@@ -1,5 +1,4 @@
-# WarlockSIM
-Warlock Sim for WoW Forever — Xn's Forever Warlock Sim.
+# Xn's Forever Warlock Sim.
 
 A DPS simulator for the Warlock in WoW Forever at level 60 against a level-63 raid boss. It simulates every build
 × race thousands of times (pets as their own actors, DoTs, procs, mana, Life Tap, execute phase, consumables, raid
