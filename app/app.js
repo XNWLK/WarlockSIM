@@ -157,10 +157,16 @@
   document.addEventListener('input', function (e) { if (e.target.closest && e.target.closest('#totalTable')) { readSettings(); markDirty(); } });
   // Out-of-date results (round 44, after the Havoc report in round 40): any settings change after a run marks the
   // table as stale until the next Sim!.
-  function markDirty() { if (!results.length) return; dirty = true; showStale(); }
+  // Round 55: "changed" = the settings differ from the run's (changing a value back clears it again).
+  function markDirty() { if (!results.length || running) return; dirty = !sameSettings(); showStale(); }
   function showStale() {
-    $('stale').hidden = !dirty || running;
+    var pend = running || dirty ? [] : pendingBuilds();                 // round 55: new builds with unchanged settings
+    $('stale').hidden = running || !(dirty || pend.length);
     $('results').classList.toggle('stale', dirty && !running);
+    $('staleMsg').innerHTML = dirty
+      ? '<b>Settings changed since this run.</b> The results below are from the previous settings; Sim! reruns every build.'
+      : '<b>' + pend.length + ' build' + (pend.length === 1 ? '' : 's') + ' not simulated yet:</b> ' + pend.map(function (b) { return esc(b.short); }).join(', ') +
+        '. The settings are unchanged, so Sim! only simulates ' + (pend.length === 1 ? 'this build' : 'these') + ' and adds ' + (pend.length === 1 ? 'it' : 'them') + ' to the list.';
   }
   // Settings tabs
   document.addEventListener('click', function (e) {
@@ -341,17 +347,37 @@
   }
 
   // ---------- run ----------
+  // Round 55 (user): with the same settings as the last run, Sim! only simulates builds that have no results yet (added
+  // or edited in the build editor) and slots them into the list; every other row keeps its numbers — they depend on the
+  // settings, not on which other builds are on the sheet. Any change to stats, buffs / debuffs, consumables or fight /
+  // pets (anything in the settings) reruns every build.
+  // Compared as the settings snapshot (engine/settings-code.js: everything the user can change in the UI), not the raw
+  // config: ticking a consumable and unticking it again leaves "on: false" where the default had no flag at all.
+  function sameSettings() { return results.length > 0 && JSON.stringify(WL.settingsSnapshot(cfg)) === JSON.stringify(WL.settingsSnapshot(runCfg)); }
+  function pendingBuilds() {         // builds on the sheet without results yet
+    if (!results.length) return [];
+    var have = {}; results.forEach(function (r) { have[r.build.key] = 1; });
+    return WL.BUILDS.filter(function (b) { return !have[b.key]; });
+  }
   function run() {
     readSettings();
     if (running) return;
-    running = true; dirty = false; showStale();
-    runCfg = JSON.parse(JSON.stringify(cfg));
-    renderStatbar();
     // Snapshot of the build list: builds added/removed in the editor during a run only count from the next run.
-    var builds = WL.BUILDS.slice(), jobs = [];
-    builds.forEach(function (b) { WL.SIM_RACE_KEYS.forEach(function (r) { jobs.push({ kind: 'combo', b: b, r: r }); }); });   // 5 races + "No race" baseline
-    var nCombos = jobs.length, out = [], i = 0, t0 = performance.now();
-    weights = {};
+    var builds = WL.BUILDS.slice(), keep = sameSettings(), todo = keep ? pendingBuilds() : builds;
+    if (keep) {                                                          // drop rows / weights of removed builds
+      var keys = builds.map(function (b) { return b.key; });
+      results = results.filter(function (r) { return keys.indexOf(r.build.key) >= 0; });
+      Object.keys(weights).forEach(function (k) { if (keys.indexOf(k) < 0) delete weights[k]; });
+    } else { runCfg = JSON.parse(JSON.stringify(cfg)); weights = {}; }
+    var jobs = [];
+    todo.forEach(function (b) { WL.SIM_RACE_KEYS.forEach(function (r) { jobs.push({ kind: 'combo', b: b, r: r }); }); });   // 5 races + "No race" baseline
+    var nCombos = jobs.length, out = keep ? results.slice() : [], i = 0, t0 = performance.now();
+    running = true; dirty = false; showStale();
+    renderStatbar();
+    function queueWeights() {                                            // shown builds without stat weights yet
+      bestRaceJobs(builds).filter(function (x) { return !weights[x.b.key]; }).forEach(function (x) { jobs.push(x); });
+    }
+    if (!nCombos) { results = out.slice(); queueWeights(); }
     function step() {
       var until = performance.now() + 60;
       while (i < jobs.length && performance.now() < until) {
@@ -361,15 +387,21 @@
         i++;
         if (i === nCombos) {                                            // combos done → show table, queue stat weights
           results = out.slice();
-          bestRaceJobs(builds).forEach(function (x) { jobs.push(x); });
+          queueWeights();
           render();
         }
       }
-      $('runMeta').textContent = (i <= nCombos ? 'Simulating builds ' : 'Stat weights ') + i + ' / ' + jobs.length + '…';
+      $('runMeta').textContent = (i < nCombos ? 'Simulating ' + (keep ? 'new builds ' : 'builds ') : 'Stat weights ') + i + ' / ' + jobs.length + '…';
       if (i < jobs.length) { setTimeout(step, 0); return; }
-      running = false; renderStatbar(); render(); showStale(); renderCompareOptions();
-      $('runMeta').textContent = results.length + ' combos × ' + fmt(runCfg.fight.iterations) + ' fights + stat weights (' +
-        fmt(runCfg.fight.weightIterations) + ' fights each) in ' + ((performance.now() - t0) / 1000).toFixed(1) + ' s · seed ' + runCfg.fight.seed;
+      running = false; dirty = !sameSettings();                          // settings edited during the run → stale
+      renderStatbar(); render(); showStale(); renderCompareOptions();
+      var secs = ((performance.now() - t0) / 1000).toFixed(1);
+      $('runMeta').textContent = !keep
+        ? results.length + ' combos × ' + fmt(runCfg.fight.iterations) + ' fights + stat weights (' + fmt(runCfg.fight.weightIterations) +
+          ' fights each) in ' + secs + ' s · seed ' + runCfg.fight.seed
+        : !jobs.length ? 'Nothing new to simulate: the settings are unchanged and every build has results · seed ' + runCfg.fight.seed
+        : 'Added ' + todo.length + ' build' + (todo.length === 1 ? '' : 's') + ' (' + nCombos + ' combos × ' + fmt(runCfg.fight.iterations) +
+          ' fights' + (jobs.length > nCombos ? ' + stat weights' : '') + ') in ' + secs + ' s; the other builds keep their results (same settings) · seed ' + runCfg.fight.seed;
     }
     setTimeout(step, 0);
   }
@@ -1268,16 +1300,18 @@
       var i = WL.BUILDS.map(function (x) { return x.key; }).indexOf(ed.editing);
       WL.BUILDS[i] = makeCustom(b, ed.editing);
       results = results.filter(function (r) { return r.build.key !== ed.editing; });
+      delete weights[ed.editing];                                        // re-measured with the edited talents (round 55)
     } else { var c = makeCustom(b); WL.BUILDS.push(c); ed.editing = c.key; }
-    saveCustoms(); edOptions(); renderEditor(); render(); markDirty();
-    edMsg('Saved "' + b.short + '" — press Sim! to simulate it. Custom builds are always shown, whatever the cut-off.');
+    saveCustoms(); edOptions(); renderEditor(); render(); showStale();   // a build change does not invalidate the other rows (round 55)
+    edMsg('Saved "' + b.short + '" — press Sim! to simulate it' + (sameSettings() ? ' (settings unchanged: only this build is simulated)' : '') +
+      '. Custom builds are always shown, whatever the cut-off.');
   }
   function edRemove(key) {
     var i = WL.BUILDS.map(function (x) { return x.key; }).indexOf(key); if (i < 0) return;
     var b = WL.BUILDS.splice(i, 1)[0];
     results = results.filter(function (r) { return r.build.key !== key; }); delete weights[key];
     if (ed.editing === key) ed.editing = null;
-    saveCustoms(); edOptions(); renderEditor(); render(); markDirty(); edMsg('Removed "' + b.short + '".');
+    saveCustoms(); edOptions(); renderEditor(); render(); showStale(); edMsg('Removed "' + b.short + '".');
   }
   // Drag and drop in the priority list (round 44).
   var dragFrom = null;
