@@ -20,6 +20,12 @@ window.WL = window.WL || {};
 WL.SPELLS = {
   shadowBolt:   { id: 11661,   name: 'Shadow Bolt',    school: 'shadow', tree: 'destruction', kind: 'direct', rank: 9,
                   base: 251, coef: 0.857, cast: 3.0, cost: 370, projectile: true },
+  // Shadow Bolt Rank 2 (round 57, user: a fast, cheap filler to test against Rank 9, e.g. for ISB uptime). Wowhead
+  // Forever spell 695: Effect Value 26 (SP mod 0.629) → base 25 (Value − 1), 2.2 s cast, 40 mana, learned at level 6.
+  // `family: 'shadowBolt'` = everything that names Shadow Bolt applies to it too (Bane cast time, Improved Shadow Bolt,
+  // Shadow Trance, Decimation). No low-rank spell-power penalty: the Forever data shows the full 0.629 (A70).
+  shadowBoltR2: { id: 695,     name: 'Shadow Bolt',    school: 'shadow', tree: 'destruction', kind: 'direct', rank: 2, family: 'shadowBolt',
+                  base: 25, coef: 0.629, cast: 2.2, cost: 40, projectile: true },
   immolate:     { id: 11668,   name: 'Immolate',       school: 'fire',   tree: 'destruction', kind: 'hybrid', rank: 7,
                   base: 146, coef: 0.20, tickBase: 52, tickCoef: 0.13, tickEvery: 3, duration: 15, cast: 2.0, cost: 370 },
   incinerate:   { id: 1293813, name: 'Incinerate',     school: 'fire',   tree: 'destruction', kind: 'direct',
@@ -85,6 +91,9 @@ WL.spellsFor = function (cfg) {
   }
   return WL._bookSpells;
 };
+
+// Any rank of Shadow Bolt (round 57): talents and effects that name Shadow Bolt apply to every rank.
+WL.isShadowBolt = function (k) { return k === 'shadowBolt' || !!(WL.SPELLS[k] && WL.SPELLS[k].family === 'shadowBolt'); };
 
 // Spells whose crit bonus is raised by Pandemic (talent text).
 WL.PANDEMIC_SPELLS = ['corruption', 'baneOfAgony', 'baneOfDoom', 'drainSoul', 'drainLife', 'siphonLife', 'wrack'];

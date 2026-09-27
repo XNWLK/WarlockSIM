@@ -56,6 +56,7 @@ WL.TALENT_TEXT = {
 };
 WL.SPELL_TEXT = {
   11661: "Sends a shadowy bolt at the enemy, causing 237 to 265 Shadow damage (+85.7% of Spell Power).",
+  695: "Sends a shadowy bolt at the enemy, causing 25 Shadow damage (+62.9% of Spell Power).",
   11668: "Burns the enemy for 146 Fire damage (+20% of Spell Power) and then an additional 260 Fire damage (+65% of Spell Power) over 15 sec.",
   1293813: "Deals (71.4% of Spell Power) Fire damage to your target and an additional 25% damage if the target is afflicted by Immolate.",
   17923: "Inflict searing pain on the enemy target, causing (42.9% of Spell Power) Fire damage.  Causes a high amount of threat.",

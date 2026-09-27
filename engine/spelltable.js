@@ -13,7 +13,7 @@ WL.buildSpellTable = function (build, stats, cfg) {
 
     // Cast time (before haste).
     var cast = s.cast || 0;
-    if (key === 'shadowBolt' || key === 'immolate' || key === 'incinerate') cast -= tv('bane', 'castRed');
+    if (WL.isShadowBolt(key) || key === 'immolate' || key === 'incinerate') cast -= tv('bane', 'castRed');   // any Shadow Bolt rank (round 57)
     if (key === 'soulFire') cast -= tv('bane', 'sfCastRed');
     if (key === 'corruption') cast -= tv('improvedCorruption', 'castRed');
     e.cast = Math.max(0, +cast.toFixed(3));

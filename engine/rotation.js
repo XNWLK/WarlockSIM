@@ -162,6 +162,8 @@ WL.ACTIONS = {
   // Fillers (always available).
   wrack:       { label: 'Wrack (filler channel)', filler: true, pick: function (S) { return S.has('wrack') ? 'wrack' : null; } },
   shadowBolt:  { label: 'Shadow Bolt (filler)',   filler: true, pick: function () { return 'shadowBolt'; } },
+  // Rank 2 (round 57, user): 2.2 s cast, 40 mana, 25 + 62.9% SP — to test a fast filler (more Improved Shadow Bolt rolls).
+  shadowBoltR2: { label: 'Shadow Bolt Rank 2 (filler)', filler: true, pick: function () { return 'shadowBoltR2'; } },
   incinerate:  { label: 'Incinerate (filler)',    filler: true, pick: function (S) { return S.has('incinerate') ? 'incinerate' : null; } },
   drainLife:   { label: 'Drain Life (filler channel)', filler: true, pick: function () { return 'drainLife'; } },
   // Drain Soul removed: its execute bonus no longer exists and it is not used (user, 2026-09-23).

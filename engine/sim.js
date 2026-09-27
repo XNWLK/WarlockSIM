@@ -32,6 +32,7 @@ window.WL = window.WL || {};
     var stats = opt.stats || WL.computeStats(build, raceKey, cfg);
     var table = opt.table || WL.buildSpellTable(build, stats, cfg);
     var SPELLS = WL.spellsFor(cfg);                                      // trainer ranks, or the AQ20 book ranks (round 42)
+    var isSB = WL.isShadowBolt;                                          // any rank of Shadow Bolt (round 57)
     // Independent random streams per roll type (common random numbers for stat weights):
     // changing hit only moves hit rolls, changing crit only moves crit rolls, etc.
     var seed0 = opt.seed != null ? opt.seed : Math.floor((opt.rng || WL.makeRng(cfg.fight.seed))() * 4294967296);
@@ -76,7 +77,7 @@ window.WL = window.WL || {};
     S.castTime = function (k) {
       var c = table[k].cast;
       if (k === 'soulFire' && S.buff('decimation')) c *= 1 - tv('decimation', 'sfCastRedPct') / 100;   // [A23]
-      if (k === 'shadowBolt' && S.buff('shadowTrance')) c = 0;                                          // [A21]
+      if (isSB(k) && S.buff('shadowTrance')) c = 0;                                          // [A21]
       return c / S.hasteFactor();
     };
     S.gcd = function () { return Math.max(cb.minGcd, cb.gcd / S.hasteFactor()); };                    // [A08]
@@ -326,7 +327,7 @@ window.WL = window.WL || {};
       if (s.kind === 'hybrid' || s.kind === 'direct') {                   // Immolate's direct part / a direct spell
         var amt = (s.base + s.coef * snapSp(e)) * e.directMult * liveMultX(key, ti, false) * (eureka || 1);
         var execute = S.targetHpPct < cfg.fight.executePct;               // extra targets follow the boss's health line [A24]
-        if ((key === 'shadowBolt' || key === 'searingPain') && execute && tv('decimation')) {
+        if ((isSB(key) || key === 'searingPain') && execute && tv('decimation')) {
           amt *= addOp0(key, tv('decimation', 'dmgPct')); S.buffs.decimation = S.t + 10;   // additive spell mod (round 43)
         }
         amt *= vulnMult(s.school, ti);
@@ -334,7 +335,7 @@ window.WL = window.WL || {};
         if (crit) amt *= e.critMult;
         deal(rk, amt, crit, false, ti);
         if (logOn) L('hit', rk, Object.assign({ dmg: Math.round(amt), crit: crit }, vulnLog(amt)));
-        if (key === 'shadowBolt' && crit && tv('improvedShadowBolt') && isbLands(xkey(ti, 'isb'))) { S.xdeb[ti].isb = S.t + 12; L('debuff', xkey(ti, 'isb')); }
+        if (isSB(key) && crit && tv('improvedShadowBolt') && isbLands(xkey(ti, 'isb'))) { S.xdeb[ti].isb = S.t + 12; L('debuff', xkey(ti, 'isb')); }
       }
       if (s.kind !== 'direct') { applyDotX(ti, key, makeSnap(key, eureka, baseMult)); L('apply', rk); }
       touchOfTheGrave();                                                  // any landed damaging cast, as on the boss [A29]
@@ -385,7 +386,7 @@ window.WL = window.WL || {};
       var amt = (s.base + s.coef * sp) * e.directMult * liveMult(key, false) * (eureka || 1);
       if (key === 'incinerate' && S.dotLeft('immolate') > 0) amt *= 1 + s.immolateBonusPct / 100;
       var execute = S.targetHpPct < cfg.fight.executePct;
-      if ((key === 'shadowBolt' || key === 'searingPain') && execute && tv('decimation')) {              // [A23]
+      if ((isSB(key) || key === 'searingPain') && execute && tv('decimation')) {              // [A23]
         amt *= addOp0(key, tv('decimation', 'dmgPct'));   // "Modifies Damage/Healing Done": adds to the spell's op0 (round 43)
         S.buffs.decimation = S.t + 10;
       }
@@ -394,7 +395,7 @@ window.WL = window.WL || {};
       if (crit) amt *= e.critMult;
       deal(key, amt, crit, false);
       if (logOn) L('hit', key, Object.assign({ dmg: Math.round(amt), crit: crit }, vulnLog(amt)));
-      if (key === 'shadowBolt' && crit && tv('improvedShadowBolt') && isbLands('isb')) { S.buffs.isb = S.t + 12; L('debuff', 'isb'); }
+      if (isSB(key) && crit && tv('improvedShadowBolt') && isbLands('isb')) { S.buffs.isb = S.t + 12; L('debuff', 'isb'); }
       if (key === 'searingPain' && tv('demonicBrand') && P) {                                            // [A51] Demonic Brand
         S.buffs.brand = S.t + cfg.demonicBrand.duration; S.brandCharges = tv('demonicBrand', 'charges');
       }
@@ -450,7 +451,7 @@ window.WL = window.WL || {};
     function startCast(key, target) {
       var s = SPELLS[key], e = table[key], rk = target > 1 ? xkey(target, key) : key;
       var castT = S.castTime(key), gcdT = S.gcd();
-      var instantTrance = key === 'shadowBolt' && S.buff('shadowTrance');
+      var instantTrance = isSB(key) && S.buff('shadowTrance');
       S.mana -= effectiveCost(key);
       // Eureka!: a damaging cast spends a charge; the aura stays up until this cast lands (channel: ends). The damage bonus
       // is applied live (liveMult), so `eureka` passed on below is always 1 now (round 38; was a snapshot multiplier).
@@ -723,7 +724,7 @@ window.WL = window.WL || {};
       } else {
         amt = (s.base + s.coef * snapSp(e)) * e.directMult * lmult(key, ti, false);
         if (key === 'incinerate' && !noImmolate && S.dotLeft('immolate') > 0) amt *= 1 + s.immolateBonusPct / 100;
-        if ((key === 'shadowBolt' || key === 'searingPain') && S.targetHpPct < cfg.fight.executePct && tv('decimation')) amt *= addOp0(key, tv('decimation', 'dmgPct'));
+        if ((isSB(key) || key === 'searingPain') && S.targetHpPct < cfg.fight.executePct && tv('decimation')) amt *= addOp0(key, tv('decimation', 'dmgPct'));
       }
       return hitChance() * amt * expVuln(s.school, ti) * expCrit(e.critPct, e.critMult);
     }
@@ -775,12 +776,14 @@ window.WL = window.WL || {};
       var up = Math.max(0, end - (S.t + occupies(key)));                   // time the new DoT is up after this cast
       if (key === 'immolate' && ti <= 1 && f === 'incinerate')             // Incinerate +25% while Immolate is up
         value += hit * up / occupies('incinerate') * expCast('incinerate', 0, true) * SPELLS.incinerate.immolateBonusPct / 100;
-      if (WL.NIGHTFALL_SPELLS.indexOf(key) >= 0 && tv('nightfall') && table.shadowBolt &&
-          (ROT.indexOf('shadowTrance') >= 0 || f === 'shadowBolt')) {       // Nightfall: a proc turns a filler GCD into a Shadow Bolt
+      // Nightfall: a proc makes the next Shadow Bolt instant — the Shadow Trance action's Rank 9, or else a Shadow Bolt filler
+      // of any rank (round 57) — so one filler GCD turns into that bolt.
+      var sbKey = ROT.indexOf('shadowTrance') >= 0 && table.shadowBolt ? 'shadowBolt' : (f && isSB(f) ? f : null);
+      if (WL.NIGHTFALL_SPELLS.indexOf(key) >= 0 && tv('nightfall') && sbKey) {
         var procTicks = 0;
         for (var j = 1; j <= nTicks; j++) if (tL + j * s.tickEvery <= dur - gcd + EPS) procTicks++;
-        var sbNow = expCast('shadowBolt', 0), sbCast = table.shadowBolt.cast / S.hasteFactor();
-        value += hit * procTicks * tv('nightfall', 'procPct') / 100 * Math.max(0, sbNow - gcd * (f === 'shadowBolt' ? sbNow / Math.max(sbCast, gcd) : fRate));
+        var sbNow = expCast(sbKey, 0), sbCast = table[sbKey].cast / S.hasteFactor();
+        value += hit * procTicks * tv('nightfall', 'procPct') / 100 * Math.max(0, sbNow - gcd * (sbKey === f ? sbNow / Math.max(sbCast, gcd) : fRate));
       }
       if (f && SPELLS[f].drain && tv('soulSiphon') && ti <= 1 && WL.SOUL_SIPHON_EFFECTS.indexOf(key) >= 0) {   // Soul Siphon on the drain
         var others = 0, per = tv('soulSiphon', 'perEffectPct'), cap = tv('soulSiphon', 'maxPct');

@@ -54,6 +54,8 @@ $override = @{
   '11661' = 'Sends a shadowy bolt at the enemy, causing 237 to 265 Shadow damage (+85.7% of Spell Power).'
   '11668' = 'Burns the enemy for 146 Fire damage (+20% of Spell Power) and then an additional 260 Fire damage (+65% of Spell Power) over 15 sec.'
   '11672' = 'Corrupts the target, causing 342 Shadow damage (+120% of Spell Power) over 18 sec.'
+  # Shadow Bolt Rank 2 (round 57): Effect Value 26 - 1 = 25 (the Wowhead tooltip says 25 to 31).
+  '695' = 'Sends a shadowy bolt at the enemy, causing 25 Shadow damage (+62.9% of Spell Power).'
 }
 $s = 0; $missing = @(); $o = 0
 foreach ($id in ($ids | Select-Object -Unique)) {
