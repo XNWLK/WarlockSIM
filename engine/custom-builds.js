@@ -49,6 +49,8 @@ WL.validateBuild = function (b) {
     else if (b.pet === s[1]) errs.push(lab + ': that demon is already out — pick the other swap');
   });
   if (rot.indexOf('swapToImp') >= 0 && rot.indexOf('swapToSuccubus') >= 0) errs.push('Only one pet swap per fight — keep one of the two swap actions');
+  if (rot.indexOf('bane') >= 0 && rot.indexOf('baneOfAgony') >= 0)                 // one Bane per target (round 56)
+    errs.push('Keep one Bane action: "' + WL.ACTIONS.bane.label + '" or "' + WL.ACTIONS.baneOfAgony.label + '"');
   return errs;
 };
 

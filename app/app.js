@@ -15,7 +15,7 @@
     immolate: '#E0662F', incinerate: '#F2A03D', conflagrate: '#B8401C', soulFire: '#F5CD5E', searingPain: '#D98530',
     'pet:melee': '#2F8F5F', 'pet:lashOfPain': '#5CC08A', 'pet:firebolt': '#3AA776', 'pet:brand': '#8FD6A8', touchOfTheGrave: '#8A8F98',
   };
-  var ACTION_ICON = { curseOfElements: 'curseOfElements', shadowTrance: 'shadowTrance', bane: 'baneOfDoom', corruption: 'corruption',
+  var ACTION_ICON = { curseOfElements: 'curseOfElements', shadowTrance: 'shadowTrance', bane: 'baneOfDoom', baneOfAgony: 'baneOfAgony', corruption: 'corruption',
     siphonLife: 'siphonLife', immolate: 'immolate', conflagrate: 'conflagrate', shadowburn: 'shadowburn', soulFire: 'soulFire',
     wrack: 'wrack', shadowBolt: 'shadowBolt', incinerate: 'incinerate', drainLife: 'drainLife', searingPain: 'searingPain',
     lifeTapPet: 'lifeTap', soulFireShards: 'soulFire', searingPainBrand: 'searingPain', shadowburnSnF: 'shadowburn', multiDot: 'corruption', shadowBoltSpread: 'talent_improvedShadowBolt', havocAuto: 'baneOfHavoc',

@@ -41,6 +41,15 @@ WL.ACTIONS = {
       return null;
     },
   },
+  // Bane of Agony for the whole fight, never Bane of Doom (round 56, user) — use it instead of `bane`. Cast when no Bane
+  // is on the target; near the end of the fight only while it still pays off (A69; check off: ≥ 12 s left).
+  baneOfAgony: {
+    label: 'Bane of Agony if no Bane (never Bane of Doom)',
+    pick: function (S) {
+      if (S.dotLeft('baneOfDoom') > 0 || S.dotLeft('baneOfAgony') > 0) return null;
+      return S.has('baneOfAgony') && dotWorthOr(S, 'baneOfAgony', 0, S.remaining >= 12) ? 'baneOfAgony' : null;
+    },
+  },
   corruption: { label: 'Corruption if missing/expiring', pick: function (S) { return dotNeeded(S, 'corruption') ? 'corruption' : null; } },
   siphonLife: { label: 'Siphon Life if missing/expiring', pick: function (S) { return dotNeeded(S, 'siphonLife') ? 'siphonLife' : null; } },
   immolate:   { label: 'Immolate if missing/expiring', pick: function (S) { return dotNeeded(S, 'immolate') ? 'immolate' : null; } },
