@@ -690,6 +690,112 @@ window.WL = window.WL || {};
       L('summon', 'pet_' + to);
     }
 
+    // ---------- end-of-fight DoT check (round 53, A69) ----------
+    // A DoT recast that cannot run its full duration before the boss dies is only worth it if the damage it still adds
+    // beats what the filler does in the same time. Everything is an expected value at this moment (hit, crit, resists,
+    // live buffs, SP snapshot) — the same formulas as the real hits and ticks.
+    var DOT_END = !(cfg.options && cfg.options.dotEndCheck === false);
+    res.dotSkips = {};
+    function expVuln(school, ti) {
+      var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe'), key = school + (coe ? '1' : '0');
+      var pr = resCache[key] || (resCache[key] = WL.resistProfile(cfg, stats.pierce, school, coe));
+      return pr.flat * pr.dist.reduce(function (a, d) { return a + d.p * (1 + d.pct / 100); }, 0);
+    }
+    function expCrit(critPct, critMult) { return 1 + Math.max(0, Math.min(100, critPct)) / 100 * (critMult - 1); }
+    function lmult(key, ti, periodic) { return ti > 1 ? liveMultX(key, ti, periodic) : liveMult(key, periodic); }
+    function hitChance() { return Math.min(100, stats.hitPct) / 100; }
+    // Time a cast takes away from other casts: cast time or GCD, a channel its full duration.
+    function occupies(key) { return SPELLS[key].kind === 'channel' ? SPELLS[key].duration : Math.max(S.castTime(key), S.gcd()); }
+    // Expected damage of one cast of a direct spell or a full channel right now.
+    function expCast(key, ti, noImmolate) {
+      var s = SPELLS[key], e = table[key], amt;
+      if (s.kind === 'channel') {
+        amt = 0;
+        for (var i = 0; i < e.ticks; i++) amt += (s.tickBase + s.tickCoef * snapSp(e)) * e.periodicMult * lmult(key, ti, true) * (s.ramp ? s.ramp[i] : 1);
+      } else {
+        amt = (s.base + s.coef * snapSp(e)) * e.directMult * lmult(key, ti, false);
+        if (key === 'incinerate' && !noImmolate && S.dotLeft('immolate') > 0) amt *= 1 + s.immolateBonusPct / 100;
+        if ((key === 'shadowBolt' || key === 'searingPain') && S.targetHpPct < cfg.fight.executePct && tv('decimation')) amt *= addOp0(key, tv('decimation', 'dmgPct'));
+      }
+      return hitChance() * amt * expVuln(s.school, ti) * expCrit(e.critPct, e.critMult);
+    }
+    // What the rotation would cast instead of the DoT: the first action below it that picks a damaging direct spell or
+    // channel right now (Soul Fire under Decimation, Conflagrate, a Shadow Trance bolt, the filler, …). Actions that
+    // apply DoTs / curses / Life Tap / pet swaps are passed over (they are not the damage the DoT's time is taken from).
+    var NOT_ALT = { bane: 1, corruption: 1, siphonLife: 1, immolate: 1, multiDot: 1, curseOfElements: 1, lifeTapPet: 1,
+                    swapToImp: 1, swapToSuccubus: 1, shadowBoltSpread: 1 };
+    function altBelow(idx) {
+      for (var i = (idx == null ? -1 : idx) + 1; i < ROT.length; i++) {
+        var a = WL.ACTIONS[ROT[i]];
+        if (!a || NOT_ALT[ROT[i]]) continue;
+        var k = a.pick(S), s = k && SPELLS[k];
+        if (s && table[k] && (s.kind === 'direct' || s.kind === 'channel')) return k;
+      }
+      return table.shadowBolt ? 'shadowBolt' : null;
+    }
+    // Value of recasting DoT `key` on target `ti` now vs the filler in the same time. { worth, value, cost, filler }.
+    function dotValue(key, ti) {
+      var s = SPELLS[key], e = table[key], castT = S.castTime(key), tL = S.t + castT;
+      // Cost = the damage rate of the alternative × the time the DoT cast takes. A smooth rate, not whole casts: counting
+      // only casts that still land made the cost jump between decisions, so DoTs were skipped and then cast a few
+      // seconds later with fewer ticks (−0.1…−0.35%; round 53 experiments).
+      var f = altBelow(S.actionIndex), fRate = f ? expCast(f, 0, key === 'immolate') / (occupies(f) + LAT) : 0;
+      var cost = (occupies(key) + LAT) * fRate;
+      var end = Math.min(dur, tL + s.duration), gcd = S.gcd(), value = 0;
+      var baseMult = key === 'baneOfAgony' && tv('amplifyCurse') && S.ready('amplifyCurse') ? 1 + tv('amplifyCurse', 'boaPct') / 100 : 1;
+      var tickAmt = (s.tickBase * baseMult + s.tickCoef * snapSp(e)) * e.periodicMult * lmult(key, ti, true) * expVuln(s.school, ti) * expCrit(e.critPct, e.critMult);
+      if (f === 'wrack' && SPELLS.wrack.debuffSpells.indexOf(key) >= 0) tickAmt *= 1 + SPELLS.wrack.debuffPct / 100;   // ticks during the Wrack filler
+      // Conflagrate (Destruction): a new Immolate lets the next Conflagrate happen, which then consumes it (unless
+      // Shadow and Flame keeps it) — so ticks after that moment count only with the keep chance.
+      var hit = hitChance(), tConf = Infinity, keep = 1;
+      if (key === 'immolate' && ti <= 1 && ROT.indexOf('conflagrate') >= 0 && S.has('conflagrate')) {
+        tConf = Math.max(tL, S.cds.conflagrate || 0);
+        if (tConf < end - 1e-6 && tConf <= dur - gcd + EPS) {
+          keep = tv('shadowAndFlame') ? tv('shadowAndFlame', 'procPct') / 100 : 0;
+          value += hit * (expCast('conflagrate', 0) - gcd * fRate);        // a Conflagrate instead of one filler GCD (needs the Immolate)
+        } else tConf = Infinity;
+      }
+      var nTicks = 0, ticks = 0;
+      for (var i = 1; i <= e.ticks; i++) {
+        var tt = tL + i * s.tickEvery;
+        if (tt > dur + EPS) break;
+        nTicks++;
+        ticks += tickAmt * (s.ramp ? s.ramp[i - 1] : 1) * (tt > tConf + EPS ? keep : 1);
+      }
+      value += hit * ticks;                                                // ticks need the DoT to land
+      if (s.kind === 'hybrid') value += expCast(key, ti);                  // Immolate's direct hit (hit chance inside)
+      var up = Math.max(0, end - (S.t + occupies(key)));                   // time the new DoT is up after this cast
+      if (key === 'immolate' && ti <= 1 && f === 'incinerate')             // Incinerate +25% while Immolate is up
+        value += hit * up / occupies('incinerate') * expCast('incinerate', 0, true) * SPELLS.incinerate.immolateBonusPct / 100;
+      if (WL.NIGHTFALL_SPELLS.indexOf(key) >= 0 && tv('nightfall') && table.shadowBolt &&
+          (ROT.indexOf('shadowTrance') >= 0 || f === 'shadowBolt')) {       // Nightfall: a proc turns a filler GCD into a Shadow Bolt
+        var procTicks = 0;
+        for (var j = 1; j <= nTicks; j++) if (tL + j * s.tickEvery <= dur - gcd + EPS) procTicks++;
+        var sbNow = expCast('shadowBolt', 0), sbCast = table.shadowBolt.cast / S.hasteFactor();
+        value += hit * procTicks * tv('nightfall', 'procPct') / 100 * Math.max(0, sbNow - gcd * (f === 'shadowBolt' ? sbNow / Math.max(sbCast, gcd) : fRate));
+      }
+      if (f && SPELLS[f].drain && tv('soulSiphon') && ti <= 1 && WL.SOUL_SIPHON_EFFECTS.indexOf(key) >= 0) {   // Soul Siphon on the drain
+        var others = 0, per = tv('soulSiphon', 'perEffectPct'), cap = tv('soulSiphon', 'maxPct');
+        WL.SOUL_SIPHON_EFFECTS.forEach(function (x) { if (x !== key && (x === 'curseOfElements' ? S.buff('coe') : S.dotLeft(x) > 0)) others++; });
+        var now = 1 + Math.min((others + (S.dotLeft(key) > 0 ? 1 : 0)) * per, cap) / 100;
+        var gain = (Math.min((others + 1) * per, cap) - Math.min(others * per, cap)) / 100;
+        value += hit * up * fRate / now * gain;
+      }
+      return { worth: value >= cost, value: value, cost: cost, filler: f };
+    }
+    // Used by the rotation (dotNeeded, bane, multiDot): true = recast. The whole DoT fitting before the end is always worth it.
+    S.dotWorth = function (key, ti) {
+      if (!DOT_END) return null;                                           // null = check off: the rotation uses the old rule
+      var s = SPELLS[key];
+      if (!table[key] || S.t + S.castTime(key) + s.duration <= dur + EPS) return true;
+      var v = dotValue(key, ti || 0), id = (ti > 1 ? 'x' + ti + ':' : '') + key;
+      if (!v.worth && !res.dotSkips[id]) {                                 // first skip of this DoT in the fight
+        res.dotSkips[id] = { key: key, target: ti || 1, t: S.t, left: S.remaining, value: v.value, cost: v.cost, filler: v.filler };
+        L('skip', id, { left: +S.remaining.toFixed(2), value: Math.round(v.value), cost: Math.round(v.cost), filler: v.filler });
+      }
+      return v.worth;
+    };
+
     function pickAction(excludeFrom) {
       var list = ROT;                                                    // build priority (+ multiDot if the option is on)
       for (var i = 0; i < list.length; i++) {
@@ -697,6 +803,7 @@ window.WL = window.WL || {};
         var a = WL.ACTIONS[list[i]];
         if (!a) throw new Error('Unknown rotation action: ' + list[i]);
         S.nextTarget = 0;                                                // set by multiDot to 2 / 3
+        S.actionIndex = i;                                               // lets the DoT check find the filler below (round 53)
         var k = a.pick(S);
         if (k && k.indexOf('swap:') === 0) return { key: k, index: i, target: 0 };   // pet swap (instant summon, round 35)
         if (k && table[k] && canCastNow(k)) return { key: k, index: i, target: S.nextTarget || 0 };   // movement: only instants while moving (W11)
@@ -815,6 +922,7 @@ window.WL = window.WL || {};
     var dpsList = [], agg = {}, first = null, lifeTaps = 0, minMana = Infinity, clipped = 0, durSum = 0, upPct = {};
     var tapPct = 0, petOomFights = 0, petOomSec = 0, idleSec = 0;             // W3 mana / pet-mana summary
     var exDmg = 0, exTime = 0, preDmg = 0, preTime = 0;                        // execute split (round 44)
+    var skipAgg = {};                                                          // end-of-fight DoT skips (round 53)
     for (var i = 0; i < n; i++) {
       var fseed = (cfg.fight.seed * 7919 + i) >>> 0;
       // Fight length varies per fight (uniform ±durationVarPct) so results don't hinge on one exact length [A56]
@@ -825,6 +933,10 @@ window.WL = window.WL || {};
       Object.keys(r.uptime).forEach(function (k) { upPct[k] = (upPct[k] || 0) + 100 * r.uptime[k] / r.duration; });
       tapPct += 100 * (r.tapTime || 0) / r.duration; idleSec += r.idle;
       exDmg += r.exDmg; exTime += r.exTime; preDmg += r.preDmg; preTime += r.preTime;
+      Object.keys(r.dotSkips || {}).forEach(function (k) {
+        var x = r.dotSkips[k], a = skipAgg[k] || (skipAgg[k] = { key: x.key, target: x.target, fights: 0, left: 0, value: 0, cost: 0, alt: {} });
+        a.fights++; a.left += x.left; a.value += x.value; a.cost += x.cost; a.alt[x.filler] = (a.alt[x.filler] || 0) + 1;
+      });
       if (r.petOomTime > 1e-9) { petOomFights++; petOomSec += r.petOomTime; }
       Object.keys(r.bySpell).forEach(function (k) {
         var a = agg[k] || (agg[k] = { casts: 0, landed: 0, misses: 0, crits: 0, hits: 0, ticks: 0, tickCrits: 0, dmg: 0, castTime: 0, glances: 0 });
@@ -838,6 +950,8 @@ window.WL = window.WL || {};
     var median = n % 2 ? sorted[(n - 1) / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
     var sd = Math.sqrt(dpsList.reduce(function (a, b) { return a + (b - mean) * (b - mean); }, 0) / Math.max(1, n - 1));
     Object.keys(upPct).forEach(function (k) { upPct[k] /= n; });                      // mean uptime % per fight (W4)
+    // Per skipped DoT: share of fights with a skip, and the mean time left / value / cost at the first skip.
+    Object.keys(skipAgg).forEach(function (k) { var a = skipAgg[k]; a.fightsPct = 100 * a.fights / n; a.left /= a.fights; a.value /= a.fights; a.cost /= a.fights; });
     // DPS distribution (W6): 24 equal bins between the lowest and highest fight
     var nb = 24, lo = sorted[0], hi = sorted[n - 1], w = (hi - lo) / nb || 1, counts = [];
     for (var b = 0; b < nb; b++) counts.push(0);
@@ -851,6 +965,7 @@ window.WL = window.WL || {};
       dpsPre: preTime ? preDmg / preTime : null, dpsExec: exTime ? exDmg / exTime : null,   // above / below the execute threshold
       execPct: cfg.fight.executePct,
       bySpell: agg, avgDuration: durSum / n, lifeTaps: lifeTaps / n, minMana: minMana, clipped: clipped / n,
+      dotSkips: skipAgg,
       log: first.log, firstFight: first,
     };
   };

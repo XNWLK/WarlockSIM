@@ -113,6 +113,10 @@ WL.DEFAULT_CONFIG = {
     // AQ20 book ranks (round 42, user): Shadow Bolt R10, Immolate R8, Corruption R7 instead of the trainer ranks
     // R9 / R7 / R6. Off by default (the books drop in Ruins of Ahn'Qiraj). See WL.BOOK_RANKS / SPELLVALUES.md.
     bookRanks: false,
+    // End-of-fight DoT check (round 53, user; A69): a DoT recast that cannot run its full duration before the boss dies is
+    // only cast if the damage it still adds (expected ticks + what it enables) beats the filler in the same time.
+    // false = the old rule (recast while at least 2 ticks fit; Bane of Agony with 12 s left).
+    dotEndCheck: true,
     // The best build of each tree (at least 25 points in it) is always shown, however far behind, and tagged
     // "best Affliction" / "best Demonology" / "best Destruction" (user: Affliction in round 28, the other two in round 29).
     alwaysShowBestTrees: [

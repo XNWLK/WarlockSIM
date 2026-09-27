@@ -8,13 +8,16 @@
 //   S.targetHpPct  target health % (falls linearly [A24])
 window.WL = window.WL || {};
 
-// A DoT should be (re)applied when it is missing or will expire before the new cast lands,
-// and enough fight is left for it to tick at least `minTicks` times.
+// A DoT should be (re)applied when it is missing or will expire before the new cast lands. Near the end of the fight
+// (the new DoT cannot run its full duration) the engine's end-of-fight check S.dotWorth decides: recast only if the
+// damage it still adds beats the filler in the same time (round 53, A69). With that check switched off
+// (options.dotEndCheck = false, S.dotWorth returns null) the old rule applies: at least `minTicks` ticks must fit.
+function dotWorthOr(S, key, ti, oldRule) { var w = S.dotWorth ? S.dotWorth(key, ti) : null; return w === null ? oldRule : w; }
 function dotNeeded(S, key, minTicks) {
   var s = WL.SPELLS[key];
   if (!S.has(key)) return false;
   if (S.dotLeft(key) > S.castTime(key)) return false;
-  return S.remaining - S.castTime(key) >= s.tickEvery * (minTicks || 2);
+  return dotWorthOr(S, key, 0, S.remaining - S.castTime(key) >= s.tickEvery * (minTicks || 2));
 }
 
 WL.ACTIONS = {
@@ -30,11 +33,11 @@ WL.ACTIONS = {
   },
   // One Bane per target: Bane of Doom when ready and it will explode before the fight ends, else Bane of Agony.
   bane: {
-    label: 'Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (≥12 s left)',
+    label: 'Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off)',
     pick: function (S) {
       if (S.dotLeft('baneOfDoom') > 0 || S.dotLeft('baneOfAgony') > 0) return null;
       if (S.ready('baneOfDoom') && S.remaining >= 60) return 'baneOfDoom';
-      if (S.remaining >= 12) return 'baneOfAgony';
+      if (S.has('baneOfAgony') && dotWorthOr(S, 'baneOfAgony', 0, S.remaining >= 12)) return 'baneOfAgony';
       return null;
     },
   },
@@ -61,7 +64,7 @@ WL.ACTIONS = {
     },
   },
   // Multi-DoT (round 27, A61): keep Corruption / Siphon Life / Bane of Agony / Immolate on targets 2 and 3.
-  // Same refresh rule as on the boss (missing or expiring, at least 2 ticks left in the fight). The Havoc target cannot
+  // Same refresh rule as on the boss (missing or expiring; near the end only while it still pays off, round 53). The Havoc target cannot
   // take Bane of Agony (one Bane per target). Sets S.nextTarget so the engine applies the spell to that target.
   // Round 39: your Curse of the Elements goes on each extra target first (when "Keep Curse of the Elements up" is on;
   // one curse per target, a Bane is not a curse) — it raises your damage there by 10%.
@@ -78,7 +81,7 @@ WL.ACTIONS = {
           }
           if (!S.has(k) || (k === 'baneOfAgony' && ti === S.havocTarget)) continue;
           if (S.xDotLeft(ti, k) > S.castTime(k)) continue;
-          if (S.remaining - S.castTime(k) < WL.SPELLS[k].tickEvery * 2) continue;
+          if (!dotWorthOr(S, k, ti, S.remaining - S.castTime(k) >= WL.SPELLS[k].tickEvery * 2)) continue;
           S.nextTarget = ti; return k;
         }
       }

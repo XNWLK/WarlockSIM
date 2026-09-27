@@ -201,7 +201,7 @@
     $('o_multiDot').checked = cfg.fight.multiDot;
   }
   var boxFields = [['o_coe', 'options', 'useCurseOfElements'], ['o_pet', 'options', 'includePetDamage'], ['o_critAll', 'gear', 'critIncludesAll'], ['o_sword', 'gear', 'weaponIsSword'],
-    ['o_multiDot', 'fight', 'multiDot'], ['o_bookRanks', 'options', 'bookRanks'],
+    ['o_multiDot', 'fight', 'multiDot'], ['o_bookRanks', 'options', 'bookRanks'], ['o_dotEnd', 'options', 'dotEndCheck'],
     ['o_eng', 'professions', 'engineering']];
   function initSettings() {
     // Stats table: editable Sheet (gear) inputs + read-only Total, built once so typing keeps focus
@@ -333,6 +333,7 @@
       chip('--c-fight', runCfg.options.includePetDamage ? runCfg.petSpPct + '%' : 'off', 'pet SP') + chip('--c-fight', buffs, 'raid buffs') + chip('--c-fight', WL.activeConsumables(runCfg).length, 'consumables') +
       ((runCfg.professions || {}).engineering ? chip('--c-fight', 'on', 'engineering') : '') +chip('--c-fight', Object.keys(runCfg.debuffs).filter(function (k) { return runCfg.debuffs[k].on; }).length, 'boss debuffs') +
       (runCfg.options.bookRanks ? chip('--c-fight', 'on', 'AQ20 ranks') : '') +
+      (runCfg.options.dotEndCheck === false ? chip('--c-fight', 'off', 'end-of-fight DoT check') : '') +
       '<span class="end">' +
       // Round 44 (user): "Pin as reference" merged into batch compare — the run is saved there as a frozen entry.
       '<button type="button" id="addRunBtn"' + (running || !results.length ? ' disabled' : '') + ' title="Save this run (settings + results) as an entry in Batch compare, to compare later runs against it">Add this run to compare</button>' +
@@ -687,6 +688,7 @@
 
     // ---- the fight: DoT chart, timeline ----
     h += dotChartBlock(r);
+    h += dotEndBlock(r);
     h += timelineBlock(r);
 
     // ---- stats table: value + every source inline (round 45) ----
@@ -759,7 +761,7 @@
     if (b.notes) h += '<div class="wide"><details class="bd"><summary>How this build was found</summary><p class="meta notes">' + esc(b.notes) + '</p></details></div>';
 
     var mode = logMode[id(r)] || 'casts';
-    var ev = r.log.filter(function (e) { return mode === 'all' || e.type === 'cast' || e.type === 'racial' || e.type === 'consumable' || e.type === 'clip' || e.type === 'miss'; });
+    var ev = r.log.filter(function (e) { return mode === 'all' || e.type === 'cast' || e.type === 'racial' || e.type === 'consumable' || e.type === 'clip' || e.type === 'miss' || e.type === 'skip'; });
     h += '<div class="wide"><h2>Rotation log · fight #1 (' + ev.length + ' events)</h2>' +
       '<div class="seg" role="group" aria-label="Log detail" style="margin-bottom:8px">' +
       '<button type="button" data-log="casts" data-id="' + esc(id(r)) + '" aria-pressed="' + (mode === 'casts') + '">Casts only</button>' +
@@ -772,6 +774,7 @@
         if (e.trance) note.push('Shadow Trance'); if (e.eureka) note.push('Eureka!');
         if (e.n) note.push('tick ' + e.n + '/' + e.of); if (e.gain) note.push('+' + e.gain + ' mana');
         if (e.for) note.push('for ' + spellName(e.for));
+        if (e.type === 'skip') note.push('not recast: ' + e.left + ' s left, would add ' + fmt(e.value) + ' < ' + fmt(e.cost) + ' from ' + spellName(e.filler));
         return '<tr class="' + cls + '"><td class="n">' + clock(e.t) + '</td><td>' + esc(e.type) + '</td>' +
           '<td><span class="sw" style="background:' + colorOf(e.spell) + '"></span>' + esc(spellName(e.spell)) + '</td>' +
           '<td class="n' + (e.crit ? ' crit' : '') + '">' + (e.dmg != null ? fmt(e.dmg) + (e.crit ? ' crit' : '') : '') +
@@ -919,6 +922,24 @@
   // extra targets with multi-DoT — coloured by spell, with tick marks (tall = crit), ▲ applications, red gaps, early
   // refreshes (a DoT re-applied while it still had time left) and the execute line. Positions in % → fits any width.
   var DOT_KEYS = ['corruption', 'immolate', 'siphonLife', 'baneOfAgony', 'baneOfDoom'];
+  // End-of-fight DoT check (round 53, A69): which DoT recasts were skipped near the end, how often, and why.
+  function dotEndBlock(r) {
+    var on = !(runCfg.options && runCfg.options.dotEndCheck === false), sk = r.dotSkips || {};
+    var keys = Object.keys(sk).sort(function (a, c) { return sk[c].fightsPct - sk[a].fightsPct; });
+    var h = '<div class="wide"><h2>DoTs at the end of the fight</h2>';
+    if (!on) return h + '<p class="meta">The end-of-fight DoT check is off (Fight &amp; pets → Options): DoTs are recast while at least 2 ticks fit (Bane of Agony: 12 s).</p></div>';
+    h += '<p class="meta">Near the end a DoT recast can no longer run its full duration. It is skipped when the ticks that still land before the boss dies (plus what the DoT enables) are worth less than the next spell in the priority would do in the same time.</p>';
+    if (!keys.length) return h + '<p class="meta">No DoT recast was skipped in these fights.</p></div>';
+    return h + '<div class="scroll"><table><thead><tr><th>DoT</th><th class="n" title="Share of the fights in which this recast was skipped">Skipped in</th>' +
+      '<th class="n" title="Average fight time left at the first skip">Time left</th><th class="n" title="Expected damage the recast would still have added (ticks in time + what it enables)">Recast would add</th>' +
+      '<th class="n" title="Expected damage of the next spell in the priority in the same time">Instead</th><th>Next spell</th></tr></thead><tbody>' +
+      keys.map(function (k) {
+        var x = sk[k], alts = Object.keys(x.alt).sort(function (a, c) { return x.alt[c] - x.alt[a]; });
+        return '<tr><td><span class="sw" style="background:' + colorOf(k) + '"></span>' + icon(iconKeyOf(k), spellName(k), '', spellTipByKey(k)) + ' ' + esc(spellName(k)) + '</td>' +
+          '<td class="n">' + fmt(x.fightsPct, 0) + '%</td><td class="n">' + fmt(x.left, 1) + ' s</td><td class="n">' + fmt(x.value, 0) + '</td>' +
+          '<td class="n">' + fmt(x.cost, 0) + '</td><td>' + alts.map(function (a) { return esc(spellName(a)); }).join(', ') + '</td></tr>';
+      }).join('') + '</tbody></table></div><p class="meta">Averages over the fights with a skip, at the moment of the first skip.</p></div>';
+  }
   function dotChartBlock(r) {
     var ff = r.firstFight, log = r.log || [], D = ff.duration, au = ff.auras || {}, SP = WL.spellsFor(runCfg);
     var exPct = (runCfg.fight && runCfg.fight.executePct != null) ? runCfg.fight.executePct : 35, exT = D * (1 - exPct / 100);
@@ -979,7 +1000,7 @@
         if (x[0] > prev + 0.05) gaps += '<u style="left:' + pos(prev) + ';width:' + ((100 * (x[0] - prev) / D).toFixed(3)) + '%" title="' + esc('down ' + clock(prev) + ' – ' + clock(x[0]) + ' (' + (x[0] - prev).toFixed(1) + ' s)') + '"></u>';
         prev = Math.max(prev, x[1]);
       });
-      if (prev < D - 0.05) gaps += '<u class="endgap" style="left:' + pos(prev) + ';width:' + ((100 * (D - prev) / D).toFixed(3)) + '%" title="' + esc('down for the last ' + (D - prev).toFixed(1) + ' s (the sim does not re-apply a DoT that would get fewer than 2 ticks)') + '"></u>';
+      if (prev < D - 0.05) gaps += '<u class="endgap" style="left:' + pos(prev) + ';width:' + ((100 * (D - prev) / D).toFixed(3)) + '%" title="' + esc('down for the last ' + (D - prev).toFixed(1) + ' s (near the end a DoT is only re-applied while it still pays off, see "DoTs at the end of the fight")') + '"></u>';
       return '<div class="dlabel">' + icon(L.icon, L.label) + ' ' + esc(L.label) + '</div>' +
         '<div class="dtrack">' + segs + gaps + ticks + marks + '<em style="left:' + pos(exT) + '"></em></div>' +
         '<span class="n" title="Uptime in fight #1 (from the first second of the fight)">' + fmt(100 * up / D, 1) + '%</span>' +
@@ -989,8 +1010,8 @@
     }).join('');
     return '<div class="wide"><h2>DoTs on the target · fight #1 (' + fmt(D, 1) + ' s)</h2><div class="dotchart">' +
       '<div class="dhead"></div><div class="daxis">' + axis + '</div><span class="dh">fight #1</span><span class="dh">all fights</span><span class="dh">applied</span><span class="dh">early refresh</span>' +
-      rows + '</div><p class="meta">Coloured = DoT up; red = down after it was first applied (faint red at the end: not re-applied because fewer than 2 ticks ' +
-      'would fit); ▲ = applied (orange ▲ = early refresh); tick marks under the bar (tall = crit); dashed line = execute phase (below ' + exPct + '%).</p></div>';
+      rows + '</div><p class="meta">Coloured = DoT up; red = down after it was first applied (faint red at the end: not re-applied because it no longer paid off ' +
+      'before the boss dies); ▲ = applied (orange ▲ = early refresh); tick marks under the bar (tall = crit); dashed line = execute phase (below ' + exPct + '%).</p></div>';
   }
 
   // ---------- round 44: edit a copy / compare two builds ----------

@@ -24,7 +24,11 @@
     T.ok(['x2:corruption', 'x2:baneOfAgony', 'x2:immolate'].every(function (k) { return x2.indexOf(k) >= 0 && m.bySpell[k].ticks > 0; }), 'Corruption, Bane of Agony, Immolate tick on target 2 (' + x2.join(', ') + ')');
     T.ok(m.dps > a.dps, 'more total DPS (' + m.dps.toFixed(1) + ' vs ' + a.dps.toFixed(1) + ')');
     // First version expected > 80% flat; the boss's own Corruption is only ~81% in this fight, target 2 starts ~1.5 s later.
-    var upX = 100 * (m.uptime['dot2:corruption'] || 0) / 150, upM = 100 * m.uptime['dot:corruption'] / 150;
+    // Round 53: measured with the end-of-fight DoT check off — with it on, target 2's last Corruption (12.2 s left, 4
+    // ticks worth 864 < 948 of Shadow Bolt; target 2 has no ISB) is rightly skipped, which is tested in test-round53.js.
+    var cOff = cfgWith(2, true); cOff.options.dotEndCheck = false;
+    var mo = WL.simulateOnce(top, 'gnome', cOff, { seed: 21, duration: 150 });
+    var upX = 100 * (mo.uptime['dot2:corruption'] || 0) / 150, upM = 100 * mo.uptime['dot:corruption'] / 150;
     T.ok(upX >= upM - 10, 'Corruption on target 2 up ' + upX.toFixed(1) + '% vs ' + upM.toFixed(1) + '% on the boss (within 10 points)');
     var avg = function (k) { var r = m.bySpell[k]; return r.dmg / r.ticks; };
     T.ok(avg('x2:corruption') < avg('corruption'), 'target-2 Corruption ticks are smaller (no Curse of the Elements / ISB there): ' + avg('x2:corruption').toFixed(0) + ' < ' + avg('corruption').toFixed(0));
