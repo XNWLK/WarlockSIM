@@ -37,7 +37,8 @@ window.WL = window.WL || {};
     var seed0 = opt.seed != null ? opt.seed : Math.floor((opt.rng || WL.makeRng(cfg.fight.seed))() * 4294967296);
     var R = { hit: WL.makeRng(seed0 ^ 0x1B873593), crit: WL.makeRng(seed0 ^ 0x85EBCA6B), proc: WL.makeRng(seed0 ^ 0xC2B2AE35),
               vuln: WL.makeRng(seed0 ^ 0x27D4EB2F), pet: WL.makeRng(seed0 ^ 0x165667B1),
-              jow: WL.makeRng(seed0 ^ 0x3C6EF372) };                                                   // Judgement of Wisdom (own stream, round 38)
+              jow: WL.makeRng(seed0 ^ 0x3C6EF372),                                                     // Judgement of Wisdom (own stream, round 38)
+              isb: WL.makeRng(seed0 ^ 0x9E3779B9) };                                                   // ISB debuff hit roll (own stream, round 54)
     var dur = opt.duration || cfg.fight.duration, cb = cfg.combat;                                    // per-fight length [A56]
     var race = WL.RACES[raceKey];
     var tv = function (k, f) { return WL.talentValue(build, k, f); };
@@ -333,7 +334,7 @@ window.WL = window.WL || {};
         if (crit) amt *= e.critMult;
         deal(rk, amt, crit, false, ti);
         if (logOn) L('hit', rk, Object.assign({ dmg: Math.round(amt), crit: crit }, vulnLog(amt)));
-        if (key === 'shadowBolt' && crit && tv('improvedShadowBolt')) { S.xdeb[ti].isb = S.t + 12; L('debuff', xkey(ti, 'isb')); }
+        if (key === 'shadowBolt' && crit && tv('improvedShadowBolt') && isbLands(xkey(ti, 'isb'))) { S.xdeb[ti].isb = S.t + 12; L('debuff', xkey(ti, 'isb')); }
       }
       if (s.kind !== 'direct') { applyDotX(ti, key, makeSnap(key, eureka, baseMult)); L('apply', rk); }
       touchOfTheGrave();                                                  // any landed damaging cast, as on the boss [A29]
@@ -360,6 +361,13 @@ window.WL = window.WL || {};
       }
     }
 
+    // Improved Shadow Bolt (round 54, user; A20): after a Shadow Bolt crit the debuff rolls its own spell-hit check with
+    // your hit chance, so not every crit applies it. Own random stream: the other rolls stay the same.
+    function isbLands(logKey) {
+      var ok = R.isb() * 100 < stats.hitPct;
+      if (!ok) { res.isbMissed = (res.isbMissed || 0) + 1; L('miss', logKey); }
+      return ok;
+    }
     // Direct-damage landing (cast finished or instant). Returns true if it hit.
     function land(key, eureka, baseMult, target) {
       if (target > 1) return landExtra(key, eureka, baseMult, target);
@@ -386,7 +394,7 @@ window.WL = window.WL || {};
       if (crit) amt *= e.critMult;
       deal(key, amt, crit, false);
       if (logOn) L('hit', key, Object.assign({ dmg: Math.round(amt), crit: crit }, vulnLog(amt)));
-      if (key === 'shadowBolt' && crit && tv('improvedShadowBolt')) { S.buffs.isb = S.t + 12; L('debuff', 'isb'); }
+      if (key === 'shadowBolt' && crit && tv('improvedShadowBolt') && isbLands('isb')) { S.buffs.isb = S.t + 12; L('debuff', 'isb'); }
       if (key === 'searingPain' && tv('demonicBrand') && P) {                                            // [A51] Demonic Brand
         S.buffs.brand = S.t + cfg.demonicBrand.duration; S.brandCharges = tv('demonicBrand', 'charges');
       }
