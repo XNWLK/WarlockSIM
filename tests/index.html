@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Warlock sim tests</title>
+<style>body{font:14px system-ui,sans-serif;margin:16px;background:#fff;color:#111}li{margin:2px 0}</style></head>
+<body>
+<div id="out">running…</div>
+<script>
+  // Capture the archived raw Wowhead data file (it calls WH.setPageData / WH.Gatherer.addData).
+  window.RAW = {};
+  var WH = { setPageData: function (k, v) { RAW.talentCalc = v; }, Gatherer: { addData: function (a, b, d) { RAW.spells = d; } } };
+</script>
+<script src="../research/raw/wowhead_forever_talents-classic_dv27.js"></script>
+<script src="../data/consumables.js"></script>
+<script src="../data/config.js"></script>
+<script src="../data/talents.js"></script>
+<script src="../data/spells.js"></script>
+<script src="../data/races.js"></script>
+<script src="../data/builds.js"></script>
+<script src="fixtures.js"></script>
+<script src="../data/tooltips.js"></script>
+<script src="../data/icons.js"></script>
+<script src="../engine/stats.js"></script>
+<script src="../engine/spelltable.js"></script>
+<script src="../engine/rng.js"></script>
+<script src="../engine/resist.js"></script>
+<script src="../engine/rotation.js"></script>
+<script src="../engine/sim.js"></script>
+<script src="../engine/settings-code.js"></script>
+<script src="../engine/custom-builds.js"></script>
+<script src="harness.js"></script>
+<script src="reference-gear.js"></script>
+<script src="test-data.js"></script>
+<script src="test-stats.js"></script>
+<script src="test-spelltable.js"></script>
+<script src="test-sim.js"></script>
+<script src="test-round2.js"></script>
+<script src="test-talents.js"></script>
+<script src="test-buffs.js"></script>
+<script src="test-consumables.js"></script>
+<script src="test-round14.js"></script>
+<script src="test-round20.js"></script>
+<script src="test-round27.js"></script>
+<script src="test-round28.js"></script>
+<script src="test-round29.js"></script>
+<script src="test-round30.js"></script>
+<script src="test-round31.js"></script>
+<script src="test-round35.js"></script>
+<script src="test-round38.js"></script>
+<script src="test-round38b.js"></script>
+<script src="test-round39.js"></script>
+<script src="test-round42.js"></script>
+<script src="test-round43.js"></script>
+<script src="test-round44.js"></script>
+<script src="test-round48.js"></script>
+<script>T.render();</script>
+</body>
+</html>

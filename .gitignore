@@ -1,0 +1,29 @@
+# Local restore points (tools/snapshot.ps1) - git history replaces them in the repository
+versions/
+
+# Raw source data and downloaded game icons, kept only locally
+# (the icons the page uses are already embedded in data/icons.js)
+research/raw/
+research/icons/
+
+# Local-only notes (round 50)
+private/
+
+# OS / editor clutter
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/
+
+# Project notes kept only locally (round 51)
+TODO.md
+MISTAKES.md
+VERSIONS.md
+CHANGELOG.md
+SPELLVALUES.md
+DOCUMENTATION.md
+NOTICE.md
+
+# Project docs kept only locally (round 52)
+docs/

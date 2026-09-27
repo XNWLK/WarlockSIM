@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Warlock sim exploration</title></head>
+<body style="font:13px system-ui;margin:16px">
+<p>Exploration tool. Open the browser console and call <code>EX.sanity()</code>, <code>EX.search('gnome', 500)</code>,
+<code>EX.rotationSearch(build, race, 150, 3000)</code>, <code>EX.actionVariants(build, race, 3000)</code>,
+<code>EX.pointShift(build, race, 250, 3000, 8)</code>, <code>EX.climb(build, race, 250, 3000, 0.3)</code> (async, see <code>EX.jobs</code>).
+Uses the shipped defaults from <code>data/config.js</code>.
+Results are recorded in <code>docs/04_EXPLORATION.md</code>.</p>
+<script src="../data/consumables.js"></script>
+<script src="../data/config.js"></script>
+<script src="../data/talents.js"></script>
+<script src="../data/spells.js"></script>
+<script src="../data/races.js"></script>
+<script src="../data/builds.js"></script>
+<script src="../tests/fixtures.js"></script>
+<script src="../engine/stats.js"></script>
+<script src="../engine/spelltable.js"></script>
+<script src="../engine/rng.js"></script>
+<script src="../engine/resist.js"></script>
+<script src="../engine/rotation.js"></script>
+<script src="../engine/sim.js"></script>
+<script src="explore.js"></script>
+</body></html>
