@@ -507,14 +507,15 @@ window.WL = window.WL || {};
     }
     S.minManaCheck = function () { if (S.mana < res.minMana) res.minMana = S.mana; };
 
-    function lifeTap() {
+    function lifeTap(moving) {
       var gain = (SPELLS.lifeTap.manaBase + stats.spi) * (1 + tv('improvedLifeTap', 'manaPct') / 100); // [A12]
       var before = S.mana;
       S.mana = Math.min(stats.maxMana, S.mana + gain);
       res.lifeTaps++; res.manaFromTaps += S.mana - before; row('lifeTap').casts++;
       S.busyUntil = S.t; S.gcdReady = S.t + S.gcd();
       res.tapTime = (res.tapTime || 0) + S.gcd();                           // GCD time spent on Life Tap (W3)
-      L('cast', 'lifeTap', { gain: Math.round(S.mana - before), castTime: 0, gcd: +(S.gcdReady - S.t).toFixed(3) });
+      if (moving) res.movingTaps = (res.movingTaps || 0) + 1;
+      L('cast', 'lifeTap', { gain: Math.round(S.mana - before), castTime: 0, gcd: +(S.gcdReady - S.t).toFixed(3), moving: moving || undefined });
       if (P && tv('demonicEnergies')) {   // Demonic Energies: the pet gains X% of "the Mana you gain" (actual gain, after the cap)
         petRegen(); P.mana = Math.min(P.maxMana, P.mana + (S.mana - before) * tv('demonicEnergies', 'tapPct') / 100);
       }
@@ -836,6 +837,10 @@ window.WL = window.WL || {};
       useManaItems();
       if (explosives.length && useExplosive()) return;
       var p = pickAction();
+      // Life Tap while moving (round 62, user; A71): when movement leaves nothing castable (moving: only instants; just before
+      // a movement phase: no cast would finish in time) and the priority has no instant to cast, Life Tap (instant) instead of
+      // waiting — whenever it restores any mana.
+      if (!p && MV && cfg.fight.lifeTapWhileMoving && S.mana < stats.maxMana - EPS) { lifeTap(true); return; }
       if (!p) { res.idle += 0.1; scheduleDecide(S.t + 0.1); return; }
       if (p.key === 'lifeTap') { lifeTap(); return; }                      // explicit Life Tap action (e.g. to feed the pet)
       if (p.key.indexOf('swap:') === 0) { doSwap(p.key.slice(5)); return; } // mid-fight pet swap (round 35)
@@ -934,7 +939,7 @@ window.WL = window.WL || {};
     var n = opt.iterations || cfg.fight.iterations;
     var stats = WL.computeStats(build, raceKey, cfg);
     var table = WL.buildSpellTable(build, stats, cfg);
-    var dpsList = [], agg = {}, first = null, lifeTaps = 0, minMana = Infinity, clipped = 0, durSum = 0, upPct = {};
+    var dpsList = [], agg = {}, first = null, lifeTaps = 0, movingTaps = 0, minMana = Infinity, clipped = 0, durSum = 0, upPct = {};
     var tapPct = 0, petOomFights = 0, petOomSec = 0, idleSec = 0;             // W3 mana / pet-mana summary
     var exDmg = 0, exTime = 0, preDmg = 0, preTime = 0;                        // execute split (round 44)
     var skipAgg = {};                                                          // end-of-fight DoT skips (round 53)
@@ -944,7 +949,7 @@ window.WL = window.WL || {};
       var vp = cfg.fight.durationVarPct || 0, fdur = cfg.fight.duration * (1 + vp / 100 * (2 * WL.makeRng(fseed ^ 0x5bd1e995)() - 1));
       var r = WL.simulateOnce(build, raceKey, cfg, { stats: stats, table: table, seed: fseed, duration: fdur, log: i === 0 && opt.log !== false });
       if (i === 0) first = r;
-      dpsList.push(r.dps); durSum += r.duration; lifeTaps += r.lifeTaps; clipped += r.clipped; minMana = Math.min(minMana, r.minMana);
+      dpsList.push(r.dps); durSum += r.duration; lifeTaps += r.lifeTaps; movingTaps += r.movingTaps || 0; clipped += r.clipped; minMana = Math.min(minMana, r.minMana);
       Object.keys(r.uptime).forEach(function (k) { upPct[k] = (upPct[k] || 0) + 100 * r.uptime[k] / r.duration; });
       tapPct += 100 * (r.tapTime || 0) / r.duration; idleSec += r.idle;
       exDmg += r.exDmg; exTime += r.exTime; preDmg += r.preDmg; preTime += r.preTime;
@@ -979,7 +984,7 @@ window.WL = window.WL || {};
       dpsErr: 1.96 * sd / Math.sqrt(n),
       dpsPre: preTime ? preDmg / preTime : null, dpsExec: exTime ? exDmg / exTime : null,   // above / below the execute threshold
       execPct: cfg.fight.executePct,
-      bySpell: agg, avgDuration: durSum / n, lifeTaps: lifeTaps / n, minMana: minMana, clipped: clipped / n,
+      bySpell: agg, avgDuration: durSum / n, lifeTaps: lifeTaps / n, movingTaps: movingTaps / n, minMana: minMana, clipped: clipped / n,
       dotSkips: skipAgg,
       log: first.log, firstFight: first,
     };

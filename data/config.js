@@ -16,6 +16,7 @@ WL.DEFAULT_CONFIG = {
     travelMs: 0,            // travel time of projectiles (Shadow Bolt, Soul Fire, Incinerate, Death Coil, Firebolt); 0 = right in front of the boss (user, round 39) [A65]
     moveEvery: 0,           // every N s ...
     moveDuration: 0,        // ... you move for M s (only instants while moving). 0 = no movement
+    lifeTapWhileMoving: false, // round 62 (user): Life Tap (instant) when nothing else can be cast because of movement [A71]
     targets: 1,             // 2-3 targets: Bane of Havoc (talent) on target 2 copies 15% of your damage to it
     multiDot: false,        // with 2-3 targets: keep your DoTs on the extra targets too (A61)
   },

@@ -207,7 +207,7 @@
     $('o_multiDot').checked = cfg.fight.multiDot;
   }
   var boxFields = [['o_coe', 'options', 'useCurseOfElements'], ['o_pet', 'options', 'includePetDamage'], ['o_critAll', 'gear', 'critIncludesAll'], ['o_sword', 'gear', 'weaponIsSword'],
-    ['o_multiDot', 'fight', 'multiDot'], ['o_bookRanks', 'options', 'bookRanks'], ['o_dotEnd', 'options', 'dotEndCheck'],
+    ['o_multiDot', 'fight', 'multiDot'], ['o_ltMove', 'fight', 'lifeTapWhileMoving'], ['o_bookRanks', 'options', 'bookRanks'], ['o_dotEnd', 'options', 'dotEndCheck'],
     ['o_eng', 'professions', 'engineering']];
   function initSettings() {
     // Stats table: editable Sheet (gear) inputs + read-only Total, built once so typing keeps focus
@@ -804,7 +804,7 @@
         var cls = e.type === 'cast' ? 'cast' : (e.type === 'tick' || e.type === 'apply' || e.type === 'debuff' || e.type === 'pet') ? 'minor' : '';
         var note = [];
         if (e.castTime != null) note.push(e.castTime ? e.castTime.toFixed(2) + ' s cast' : 'instant');
-        if (e.trance) note.push('Shadow Trance'); if (e.eureka) note.push('Eureka!');
+        if (e.trance) note.push('Shadow Trance'); if (e.moving) note.push('while moving'); if (e.eureka) note.push('Eureka!');
         if (e.n) note.push('tick ' + e.n + '/' + e.of); if (e.gain) note.push('+' + e.gain + ' mana');
         if (e.for) note.push('for ' + spellName(e.for));
         if (e.type === 'skip') note.push('not recast: ' + e.left + ' s left, would add ' + fmt(e.value) + ' < ' + fmt(e.cost) + ' from ' + spellName(e.filler));
@@ -866,7 +866,7 @@
       '<path d="' + line('mana', maxM) + '" class="mline"/>' + (hasPet ? '<path d="' + line('petMana', petMax) + '" class="mline pet"/>' : '') +
       '<text x="' + padL + '" y="' + (H - 4) + '" class="hlab">0 s</text><text x="' + (W - padR) + '" y="' + (H - 4) + '" text-anchor="end" class="hlab">' + fmt(D, 0) + ' s</text></svg>';
     return '<div><h2>Mana</h2><div class="kv">' +
-      kv('Life Taps per fight', fmt(r.lifeTaps, 1)) + kv('Time spent Life Tapping', fmt(m.tapTimePct, 1) + '% of the fight') +
+      kv('Life Taps per fight', fmt(r.lifeTaps, 1)) + (r.movingTaps > 0.05 ? kv('… of them while moving', fmt(r.movingTaps, 1)) : '') + kv('Time spent Life Tapping', fmt(m.tapTimePct, 1) + '% of the fight') +
       kv('Lowest mana in any fight', fmt(r.minMana, 0) + ' / ' + fmt(maxM, 0)) +
       (r.firstFight.manaFromJow || r.firstFight.petManaFromJow ? kv('Judgement of Wisdom (fight #1)', '+' + fmt(r.firstFight.manaFromJow || 0) + ' you' +
         (r.build.pet ? ' · +' + fmt(r.firstFight.petManaFromJow || 0) + ' pet' : '')) : '') +
