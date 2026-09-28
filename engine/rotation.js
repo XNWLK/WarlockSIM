@@ -113,6 +113,17 @@ WL.ACTIONS = {
       return null;
     },
   },
+  // Keep Improved Shadow Bolt up on the boss (round 63, user; A72): cast the max-rank Shadow Bolt while the debuff is
+  // missing or runs out before the bolt lands, so a Fire build's Shadow damage (Corruption, Banes, Shadowburn, Siphon Life)
+  // gets +20%; the rest of the time the build's own filler (e.g. Incinerate). Put it right above the filler. Needs the talent.
+  isbUpkeep: {
+    label: 'Shadow Bolt (max rank) to keep Improved Shadow Bolt up on the boss',
+    pick: function (S) {
+      if (!S.build.talents.improvedShadowBolt) return null;
+      var left = S.buff('isb') ? S.buffs.isb - S.t : 0;
+      return left <= S.castTime('shadowBolt') ? 'shadowBolt' : null;
+    },
+  },
   // Mid-fight pet swap (round 35, A63): the first time the boss is in the execute phase, sacrifice the active pet
   // (Demonic Sacrifice, off the GCD), Fel Domination (off the GCD) and summon the other demon (instant with Fel
   // Domination + Master Summoner 2/2; one GCD). Needs Demonic Sacrifice, Demonic Pact and Fel Domination. The sim then
