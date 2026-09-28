@@ -67,21 +67,22 @@ WL.DEFAULT_CONFIG = {
   // Gear in Forever lists percentages (e.g. 1.2% hit), not ratings, so weights are measured per 1%.
   extra: { sp: 0, hitPct: 0, critPct: 0, hastePct: 0, int: 0, pierce: 0 },
   weightDeltas: { sp: 100, hitPct: 2, critPct: 2, hastePct: 2, int: 120, pierce: 20 },   // weights = DPS per 1 SP, per 1% hit/crit/haste, per 1 Int, per 1 Spell Pierce
-  // Raid buffs from other classes (values from the Forever tooltips in the archived Wowhead data). Off by default [A38].
+  // Raid buffs from other classes (values from the Forever tooltips in the archived Wowhead data). Round 60 (user): Arcane
+  // Intellect, Mark of the Wild, Fortitude, Divine Spirit, Kings, Wisdom and Moonkin aura on by default; the rest off [A38].
   // Personal in Forever and therefore NOT available to us: Shadow Weaving, Improved Scorch, Winter's Chill,
   // Stormstrike, another Warlock's Improved Shadow Bolt (tooltips say "damage YOU deal" / "from YOUR attacks"). [A53]
   buffs: {
-    arcaneIntellect:  { on: false, id: 10157, name: 'Arcane Intellect / Brilliance', cls: 'Mage',    desc: '+31 Intellect', int: 31 },
-    markOfTheWild:    { on: false, id: 9885, name: 'Mark / Gift of the Wild',       cls: 'Druid',   desc: '+16 all attributes', int: 16, spi: 16, sta: 16 },
-    fortitude:        { on: false, id: 10938, name: 'Power Word: Fortitude',         cls: 'Priest',  desc: '+70 Stamina (Touch of the Grave)', sta: 70 },
-    divineSpirit:     { on: false, id: 27841, name: 'Divine Spirit / Prayer of Spirit', cls: 'Priest', desc: '+40 Spirit (Life Tap)', spi: 40 },
-    blessingOfKings:  { on: false, id: 20217, name: 'Blessing of Kings',             cls: 'Paladin', desc: '+10% total stats', statPct: 10 },
-    blessingOfWisdom: { on: false, id: 25290, name: 'Blessing of Wisdom',            cls: 'Paladin', desc: '40 mana every 5 s', mp5: 40 },
+    arcaneIntellect:  { on: true, id: 10157, name: 'Arcane Intellect / Brilliance', cls: 'Mage',    desc: '+31 Intellect', int: 31 },
+    markOfTheWild:    { on: true, id: 9885, name: 'Mark / Gift of the Wild',       cls: 'Druid',   desc: '+16 all attributes', int: 16, spi: 16, sta: 16 },
+    fortitude:        { on: true, id: 10938, name: 'Power Word: Fortitude',         cls: 'Priest',  desc: '+70 Stamina (Touch of the Grave)', sta: 70 },
+    divineSpirit:     { on: true, id: 27841, name: 'Divine Spirit / Prayer of Spirit', cls: 'Priest', desc: '+40 Spirit (Life Tap)', spi: 40 },
+    blessingOfKings:  { on: true, id: 20217, name: 'Blessing of Kings',             cls: 'Paladin', desc: '+10% total stats', statPct: 10 },
+    blessingOfWisdom: { on: true, id: 25290, name: 'Blessing of Wisdom',            cls: 'Paladin', desc: '40 mana every 5 s', mp5: 40 },
     manaSpring:       { on: false, id: 10497, name: 'Mana Spring Totem',             cls: 'Shaman',  desc: '10 mana every 2 s (25 MP5)', mp5: 25 },
     restorativeTotems:{ on: false, id: 16187, name: 'Restorative Totems (on Mana Spring)', cls: 'Shaman', desc: 'Mana Spring +25%', mp5: 6.25, requires: 'manaSpring' },
     manaTide:         { on: false, id: 17359, name: 'Mana Tide Totem',               cls: 'Shaman',  desc: '290 mana every 3 s for 12 s, once, when you drop below 50% mana', tide: { amount: 290, every: 3, ticks: 4 } },
     innervate:        { on: false, id: 29166, name: 'Innervate',                     cls: 'Druid',   desc: '5× mana regen while casting for 20 s, once, when you drop below 50% mana', innervate: { mult: 5, duration: 20 } },
-    moonkinAura:      { on: false, id: 24858, name: 'Moonkin Form aura',             cls: 'Druid',   desc: '+3% crit (party)', critPct: 3 },
+    moonkinAura:      { on: true, id: 24858, name: 'Moonkin Form aura',             cls: 'Druid',   desc: '+3% crit (party)', critPct: 3 },
     powerInfusion:    { on: false, id: 10060, name: 'Power Infusion',                cls: 'Priest',  desc: '+20% spell damage for 15 s at the pull (3 min cooldown)', spellDmgPct: 20, duration: 15, cd: 180 },
   },
   // Consumables (data/consumables.js, loaded before this file). Only the per-build weapon oil is on by default. [A57]
@@ -89,18 +90,19 @@ WL.DEFAULT_CONFIG = {
   // Professions with a DPS effect in the sim (W14, A59). Only Engineering has one (explosives); researched on Wowhead
   // Forever 2026-09-24: Alchemy, Tailoring, Enchanting, Leatherworking, Blacksmithing, gathering skills have none for a caster.
   professions: { engineering: false },
-  // Debuffs on the boss from other players. Armor only matters for Succubus melee. [A54]
+  // Debuffs on the boss from other players. Armor only matters for Succubus melee. [A54] Round 60 (user): Curse of
+  // Recklessness and Judgement of Wisdom on by default (with Sunder Armor and Faerie Fire); another Warlock's CoE stays off.
   debuffs: {
     sunderArmor:        { on: true, id: 11597,  name: 'Sunder Armor ×5',             cls: 'Warrior', desc: '−2250 armor (does not stack with Expose Armor)', armor: 2250, group: 'major' },
     exposeArmor:        { on: false, id: 11198, name: 'Expose Armor (5 points)',     cls: 'Rogue',   desc: '−2250 armor (does not stack with Sunder Armor)', armor: 2250, group: 'major' },
     faerieFire:         { on: true, id: 9907,  name: 'Faerie Fire',                 cls: 'Druid',   desc: '−505 armor', armor: 505 },
-    curseOfRecklessness:{ on: false, id: 11717, name: 'Curse of Recklessness',       cls: 'Warlock', desc: '−505 armor (from another Warlock)', armor: 505 },
+    curseOfRecklessness:{ on: true, id: 11717, name: 'Curse of Recklessness',       cls: 'Warlock', desc: '−505 armor (from another Warlock)', armor: 505 },
     coeOther:           { on: false, id: 1311680, name: 'Curse of the Elements (another Warlock)', cls: 'Warlock', desc: 'Up all fight; you skip casting it', coe: true },
     // Judgement of Wisdom R3 (Paladin; Wowhead Forever 20355 / Seal of Wisdom 20357 tooltip, round 38): "attacks and
     // spells used against the judged enemy [have] a chance to restore 59 mana to the attacker" (Give Power 20353 = 60,
     // tooltip 59, A39). The chance is not in the data — 50% (Classic) is a GUESS [A64]. Kept up all fight by the
     // Paladin; procs on your landed spell casts (not DoT/channel ticks) and on your pet's landed attacks (mana to the pet).
-    judgementOfWisdom:  { on: false, id: 20355, name: 'Judgement of Wisdom',         cls: 'Paladin', desc: '50% chance per landed spell or pet attack: +59 mana to the attacker', jow: { mana: 59, chancePct: 50 } },
+    judgementOfWisdom:  { on: true, id: 20355, name: 'Judgement of Wisdom',         cls: 'Paladin', desc: '50% chance per landed spell or pet attack: +59 mana to the attacker', jow: { mana: 59, chancePct: 50 } },
   },
   options: {
     useCurseOfElements: true,  // [A34]

@@ -9,6 +9,15 @@ WL.SHIPPED_GEAR = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG.gear));
 var sm = WL.DEFAULT_CONFIG.pets.succubus.melee;
 WL.SHIPPED_PETS = { petSpPct: WL.DEFAULT_CONFIG.petSpPct, succBaseDps: sm.baseDps, succApPerSp: sm.apPerSp, succCrit: sm.critPct, succInherit: sm.inheritSpellCrit };
 WL.DEFAULT_CONFIG.petSpPct = 100; sm.baseDps = 40; sm.apPerSp = 0.57; sm.critPct = 5; sm.inheritSpellCrit = false;   // round-2 pet values of the worked tests
+// Round 60 (user): 7 raid buffs and 2 more boss debuffs are on by default. The worked tests were written with every raid
+// buff off and only Sunder Armor + Faerie Fire on, so they keep that; the shipped defaults are checked below.
+WL.SHIPPED_ON = { buffs: {}, debuffs: {} };
+['buffs', 'debuffs'].forEach(function (g) {
+  Object.keys(WL.DEFAULT_CONFIG[g]).forEach(function (k) { WL.SHIPPED_ON[g][k] = !!WL.DEFAULT_CONFIG[g][k].on; });
+});
+WL.ROUND60_ON = { buffs: ['arcaneIntellect', 'markOfTheWild', 'fortitude', 'divineSpirit', 'blessingOfKings', 'blessingOfWisdom', 'moonkinAura'],
+                  debuffs: ['curseOfRecklessness', 'judgementOfWisdom'] };
+['buffs', 'debuffs'].forEach(function (g) { WL.ROUND60_ON[g].forEach(function (k) { WL.DEFAULT_CONFIG[g][k].on = false; }); });
 
 T.run('shipped default gear (round 13)', function () {
   T.group('defaults = 500 SP + Classic pre-raid BiS gear (A58)');
@@ -28,4 +37,25 @@ T.run('shipped default gear (round 13)', function () {
   T.near(WL.SHIPPED_PETS.succCrit, 3.2685 + 85 * 0.05, 0.01, 'Succubus own melee crit 7.52% (SoD base: 3.27% + 85 Agi × 0.05)');
   T.eq(WL.SHIPPED_PETS.succInherit, true, 'Succubus melee also inherits 100% of your spell crit (user, round 32; was your melee crit 4.5%)');
   T.ok(!WL.CONSUMABLES.darkIronBomb, 'Dark Iron Bomb removed (data error)');
+
+  T.group('shipped buff & debuff defaults (round 60, user)');
+  var onB = Object.keys(WL.SHIPPED_ON.buffs).filter(function (k) { return WL.SHIPPED_ON.buffs[k]; }).sort().join(',');
+  var onD = Object.keys(WL.SHIPPED_ON.debuffs).filter(function (k) { return WL.SHIPPED_ON.debuffs[k]; }).sort().join(',');
+  T.eq(onB, 'arcaneIntellect,blessingOfKings,blessingOfWisdom,divineSpirit,fortitude,markOfTheWild,moonkinAura',
+    'raid buffs on: Arcane Intellect, Mark of the Wild, Fortitude, Divine Spirit, Kings, Wisdom, Moonkin aura (rest off)');
+  T.eq(onD, 'curseOfRecklessness,faerieFire,judgementOfWisdom,sunderArmor',
+    'boss debuffs on: Sunder Armor, Faerie Fire, Curse of Recklessness, Judgement of Wisdom (Expose Armor and the other Warlock\'s CoE off)');
+  // Hand calculation with the shipped gear and buffs, Human, sword, no talents (stats window "Total" column):
+  var cs = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
+  cs.gear = JSON.parse(JSON.stringify(WL.SHIPPED_GEAR));
+  ['buffs', 'debuffs'].forEach(function (g) { Object.keys(cs[g]).forEach(function (k) { cs[g][k].on = WL.SHIPPED_ON[g][k]; }); });
+  var st = WL.computeStats({ key: 'x', talents: {}, pet: null, sacrifice: null, oil: 'none', rotation: ['shadowBolt'] }, 'human', cs);
+  var int = (110 + 148 + 31 + 16) * 1.10, spi = (115 + 54 + 16 + 40) * 1.05 * 1.10, sta = (65 + 160 + 16 + 70) * 1.10;
+  T.near(st.int, int, 1e-9, 'Int = (110 + 148 + 31 Arcane Intellect + 16 Mark) × 1.10 Kings = ' + int.toFixed(1));
+  T.near(st.spi, spi, 1e-9, 'Spirit = (115 + 54 + 16 Mark + 40 Divine Spirit) × 1.05 Human Spirit × 1.10 Kings = ' + spi.toFixed(3));
+  T.near(st.sta, sta, 1e-9, 'Stamina = (65 + 160 + 16 Mark + 70 Fortitude) × 1.10 Kings = ' + sta.toFixed(1));
+  T.near(st.critPct, 10 + 2 + 3 + (int - 258) / 60, 1e-9, 'crit = 10 sheet + 2 Sword + 3 Moonkin + (Int above the sheet ' + (int - 258).toFixed(1) + ') / 60');
+  T.near(st.maxMana, 1373 + 20 + 15 * (int - 20), 1e-9, 'max mana = 1373 + 20 + 15 × (Int − 20)');
+  T.eq(st.mp5, 40, 'MP5 40 (Blessing of Wisdom)');
+  T.eq(WL.bossArmor(cs), 3731 - 2250 - 505 - 505, 'boss armor 471 = 3731 − Sunder 2250 − Faerie Fire 505 − Curse of Recklessness 505');
 });

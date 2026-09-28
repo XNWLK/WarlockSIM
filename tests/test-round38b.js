@@ -9,7 +9,7 @@
   T.run('Judgement of Wisdom (round 38)', function () {
     T.group('data');
     var d = WL.DEFAULT_CONFIG.debuffs.judgementOfWisdom;
-    T.ok(d && d.id === 20355 && d.jow.mana === 59 && d.jow.chancePct === 50 && d.on === false, 'debuff 20355: 59 mana, 50% (guess), off by default');
+    T.ok(d && d.id === 20355 && d.jow.mana === 59 && d.jow.chancePct === 50 && WL.SHIPPED_ON.debuffs.judgementOfWisdom === true, 'debuff 20355: 59 mana, 50% (guess), on by default since round 60 (user; off before)');
     T.ok(/restoring 59 of the attacker/.test(WL.SPELL_TEXT[20355] || ''), 'tooltip text (live Wowhead)');
 
     T.group('your mana');
