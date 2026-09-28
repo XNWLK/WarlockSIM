@@ -151,6 +151,12 @@
       var g = cfg.consumables[t.id.slice(2)].group;
       Object.keys(cfg.consumables).forEach(function (k) { if (cfg.consumables[k].group === g && 'c_' + k !== t.id) $('c_' + k).checked = false; });
     }
+    // Boss debuffs of the same group do not stack (Sunder / Expose Armor, Faerie Fire / Curse of Recklessness — round 68):
+    // ticking one unticks the other.
+    if (t.id && t.id.indexOf('d_') === 0 && t.checked) {
+      var dg = (cfg.debuffs[t.id.slice(2)] || {}).group;
+      if (dg) Object.keys(cfg.debuffs).forEach(function (k) { if (cfg.debuffs[k].group === dg && 'd_' + k !== t.id) $('d_' + k).checked = false; });
+    }
     readSettings();
     if (t.id === 'showPct') { if (results.length && !running) { render(); showStale(); } return; }   // display only (round 66)
     if (t.id !== 't_race' && t.id !== 'gearSel') markDirty();   // the Stats race only changes the Total column, not the run

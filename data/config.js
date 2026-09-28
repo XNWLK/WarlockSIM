@@ -93,11 +93,13 @@ WL.DEFAULT_CONFIG = {
   professions: { engineering: false },
   // Debuffs on the boss from other players. Armor only matters for Succubus melee. [A54] Round 60 (user): Curse of
   // Recklessness and Judgement of Wisdom on by default (with Sunder Armor and Faerie Fire); another Warlock's CoE stays off.
+  // Round 68 (user): Faerie Fire and Curse of Recklessness do not stack in Forever (group 'minor', like Sunder / Expose =
+  // 'major'); Curse of Recklessness off by default.
   debuffs: {
     sunderArmor:        { on: true, id: 11597,  name: 'Sunder Armor ×5',             cls: 'Warrior', desc: '−2250 armor (does not stack with Expose Armor)', armor: 2250, group: 'major' },
     exposeArmor:        { on: false, id: 11198, name: 'Expose Armor (5 points)',     cls: 'Rogue',   desc: '−2250 armor (does not stack with Sunder Armor)', armor: 2250, group: 'major' },
-    faerieFire:         { on: true, id: 9907,  name: 'Faerie Fire',                 cls: 'Druid',   desc: '−505 armor', armor: 505 },
-    curseOfRecklessness:{ on: true, id: 11717, name: 'Curse of Recklessness',       cls: 'Warlock', desc: '−505 armor (from another Warlock)', armor: 505 },
+    faerieFire:         { on: true, id: 9907,  name: 'Faerie Fire',                 cls: 'Druid',   desc: '−505 armor (does not stack with Curse of Recklessness)', armor: 505, group: 'minor' },
+    curseOfRecklessness:{ on: false, id: 11717, name: 'Curse of Recklessness',       cls: 'Warlock', desc: '−505 armor, from another Warlock (does not stack with Faerie Fire)', armor: 505, group: 'minor' },
     coeOther:           { on: false, id: 1311680, name: 'Curse of the Elements (another Warlock)', cls: 'Warlock', desc: 'Up all fight; you skip casting it', coe: true },
     // Judgement of Wisdom R3 (Paladin; Wowhead Forever 20355 / Seal of Wisdom 20357 tooltip, round 38): "attacks and
     // spells used against the judged enemy [have] a chance to restore 59 mana to the attacker" (Give Power 20353 = 60,

@@ -37,14 +37,17 @@ WL.weaponOil = function (build, cfg) {
 };
 
 // Boss armor after debuffs, and the resulting physical damage reduction for a level-60 attacker (pet melee). [A54]
-// Sunder Armor and Expose Armor share the "major" group: only the stronger one counts.
+// Debuffs of the same `group` do not stack: only the strongest of each group counts; debuffs without a group add up.
+// Groups: 'major' = Sunder Armor / Expose Armor; 'minor' = Faerie Fire / Curse of Recklessness (round 68, user: no longer
+// stack in Forever).
 WL.bossArmor = function (cfg) {
-  var D = cfg.debuffs || {}, major = 0, minor = 0;
+  var D = cfg.debuffs || {}, byGroup = {}, loose = 0;
   Object.keys(D).forEach(function (k) {
     var d = D[k]; if (!d.on || !d.armor) return;
-    if (d.group === 'major') major = Math.max(major, d.armor); else minor += d.armor;
+    if (d.group) byGroup[d.group] = Math.max(byGroup[d.group] || 0, d.armor); else loose += d.armor;
   });
-  return Math.max(0, cfg.combat.bossArmor - major - minor);
+  var grouped = Object.keys(byGroup).reduce(function (s, g) { return s + byGroup[g]; }, 0);
+  return Math.max(0, cfg.combat.bossArmor - grouped - loose);
 };
 WL.armorReduction = function (cfg) {
   var a = WL.bossArmor(cfg);

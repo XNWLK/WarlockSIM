@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v60
+- **Faerie Fire and Curse of Recklessness don't stack** (like Sunder / Expose): Faerie Fire on by default, Curse of
+  Recklessness off. Ticking one debuff of a pair unticks the other.
+
 ## v59
 - New priority action **Conflagrate for Shadow and Flame**: Conflagrate only to keep the Shadow buff up (twin of the
   Shadowburn one).

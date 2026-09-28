@@ -46,7 +46,12 @@
     c.debuffs.exposeArmor.on = true;
     T.eq(WL.bossArmor(c), 976, 'Expose Armor does not stack with Sunder Armor');
     c.debuffs.curseOfRecklessness.on = true;
-    T.eq(WL.bossArmor(c), 471, '+ Curse of Recklessness −505 → 471');
+    T.eq(WL.bossArmor(c), 976, 'Curse of Recklessness does not stack with Faerie Fire (round 68) → still 976');
+    c.debuffs.faerieFire.on = false;
+    T.eq(WL.bossArmor(c), 976, 'Curse of Recklessness alone: −505 like Faerie Fire → 976');
+    c.debuffs.curseOfRecklessness.on = false;
+    T.eq(WL.bossArmor(c), 3731 - 2250, 'neither: Sunder only → 1481');
+    T.eq([c.debuffs.sunderArmor.group, c.debuffs.exposeArmor.group, c.debuffs.faerieFire.group, c.debuffs.curseOfRecklessness.group].join(','), 'major,major,minor,minor', 'non-stacking pairs: Sunder / Expose, Faerie Fire / Curse of Recklessness');
     Object.keys(c.debuffs).forEach(function (k) { c.debuffs[k].on = false; });
     T.near(WL.armorReduction(c), 3731 / 9231, 1e-12, 'no debuffs → 40.4%');
     var cs = det(base()); cs.fight.duration = 60;

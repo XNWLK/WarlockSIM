@@ -43,8 +43,8 @@ T.run('shipped default gear (round 13)', function () {
   var onD = Object.keys(WL.SHIPPED_ON.debuffs).filter(function (k) { return WL.SHIPPED_ON.debuffs[k]; }).sort().join(',');
   T.eq(onB, 'arcaneIntellect,blessingOfKings,blessingOfWisdom,divineSpirit,fortitude,markOfTheWild,moonkinAura',
     'raid buffs on: Arcane Intellect, Mark of the Wild, Fortitude, Divine Spirit, Kings, Wisdom, Moonkin aura (rest off)');
-  T.eq(onD, 'curseOfRecklessness,faerieFire,judgementOfWisdom,sunderArmor',
-    'boss debuffs on: Sunder Armor, Faerie Fire, Curse of Recklessness, Judgement of Wisdom (Expose Armor and the other Warlock\'s CoE off)');
+  T.eq(onD, 'faerieFire,judgementOfWisdom,sunderArmor',
+    'boss debuffs on: Sunder Armor, Faerie Fire, Judgement of Wisdom (round 68: Curse of Recklessness off — it does not stack with Faerie Fire; Expose Armor and the other Warlock\'s CoE off)');
   // Hand calculation with the shipped gear and buffs, Human, sword, no talents (stats window "Total" column):
   var cs = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
   cs.gear = JSON.parse(JSON.stringify(WL.SHIPPED_GEAR));
@@ -57,5 +57,5 @@ T.run('shipped default gear (round 13)', function () {
   T.near(st.critPct, 10 + 2 + 3 + (int - 258) / 60, 1e-9, 'crit = 10 sheet + 2 Sword + 3 Moonkin + (Int above the sheet ' + (int - 258).toFixed(1) + ') / 60');
   T.near(st.maxMana, 1373 + 20 + 15 * (int - 20), 1e-9, 'max mana = 1373 + 20 + 15 × (Int − 20)');
   T.eq(st.mp5, 40, 'MP5 40 (Blessing of Wisdom)');
-  T.eq(WL.bossArmor(cs), 3731 - 2250 - 505 - 505, 'boss armor 471 = 3731 − Sunder 2250 − Faerie Fire 505 − Curse of Recklessness 505');
+  T.eq(WL.bossArmor(cs), 3731 - 2250 - 505, 'boss armor 976 = 3731 − Sunder 2250 − Faerie Fire 505 (round 68; was 471 with Curse of Recklessness stacking)');
 });
