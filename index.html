@@ -375,6 +375,26 @@
   .pbarin { display: flex; height: 100%; border-radius: 2px; overflow: hidden; }
   .pbarin b { border-radius: 0; }
   #results td:has(> .pdrow) { padding-right: 12px; }
+  /* fight timeline editor (round 70) */
+  .tlon { margin-top: 4px; font-weight: 600; }
+  .tlbox { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; background: var(--ground); display: grid; gap: 6px; }
+  .tlbox[hidden] { display: none; }
+  .tlpals { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tlpal { cursor: grab; line-height: 0; border-radius: 4px; }
+  .tlpal .ico { width: 26px; height: 26px; }
+  .tlscroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+  .tllane { position: relative; height: 58px; }
+  .tlaxis { position: absolute; left: 0; right: 0; top: 0; height: 16px; border-bottom: 1px solid var(--line); }
+  .tltick { position: absolute; top: 0; height: 16px; border-left: 1px solid var(--line); padding-left: 2px; font: 9.5px var(--mono); color: var(--muted); }
+  .tltick.major { border-left-color: var(--muted); }
+  .tlrow { position: absolute; left: 0; right: 0; top: 20px; height: 34px; }
+  .tlblk { position: absolute; top: 2px; height: 30px; display: flex; align-items: center; padding-left: 2px; overflow: hidden; cursor: grab;
+           background: color-mix(in srgb, var(--c) 35%, var(--surface)); border: 1px solid var(--c); border-radius: 3px; box-sizing: border-box; }
+  .tlblk .ico { width: 22px; height: 22px; }
+  .tlblk.sel { outline: 2px solid var(--accent); outline-offset: 1px; z-index: 2; }
+  .tlblk.bad { border: 2px solid var(--bad); }
+  .tlblk.late { opacity: .45; }
+  .tlsel input[type=number] { width: 70px; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
@@ -581,6 +601,19 @@
         <h2>Checks</h2>
         <ul id="edErrs" class="ederrs"></ul>
       </div>
+    </div>
+    <label class="c tlon" for="edTlOn" title="Script the fight yourself: drag spells onto a timeline at the exact moment you want them cast. The priority above still runs: it fills every gap, recasts what misses and takes over when the timeline ends."><input id="edTlOn" type="checkbox"> Super advanced: fight timeline</label>
+    <div id="edTl" class="tlbox" hidden>
+      <div class="btnrow">
+        <span class="meta">Spells (drag onto the timeline, or click to add at the end):</span>
+        <button type="button" id="edTlFill" title="Put the casts the priority makes in fight #1 (Human, current settings) on the timeline as a starting point">Fill from the priority</button>
+        <button type="button" id="edTlClear">Clear</button>
+        <button type="button" data-tlzoom="0.5" aria-label="Zoom out">−</button><button type="button" data-tlzoom="2" aria-label="Zoom in">+</button>
+      </div>
+      <div id="edTlPal" class="tlpals"></div>
+      <div class="tlscroll"><div id="edTlLane" class="tllane"></div></div>
+      <div id="edTlSel" class="btnrow tlsel"></div>
+      <p class="meta" id="edTlInfo"></p>
     </div>
     <div class="btnrow">
       <button type="button" id="edSave" class="primary">Add to the sheet</button>

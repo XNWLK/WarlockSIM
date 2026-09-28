@@ -799,7 +799,10 @@
          b.rotation.indexOf(a) < 0 ? ' <span class="meta">(added by the Multi-DoT option)</span>' : '') + '</li>';
     }).join('') + '<li>' + icon('lifeTap', 'Life Tap') + ' Life Tap whenever mana is below the next spell\'s cost</li></ol>' +
       '<p class="meta">Racial cooldowns are used on cooldown; channels are clipped when a higher-priority action is ready.' +
-      (WL.activeConsumables(runCfg).some(function (c) { return c.manaRestore || c.spPotion; }) ? ' Mana potions / runes are used when at least their amount of mana is missing; Spellblasting at the pull and on cooldown.' : '') + '</p></div>';
+      (WL.activeConsumables(runCfg).some(function (c) { return c.manaRestore || c.spPotion; }) ? ' Mana potions / runes are used when at least their amount of mana is missing; Spellblasting at the pull and on cooldown.' : '') + '</p>' +
+      (b.timeline && b.timeline.length ? '<p class="meta"><b>Fight timeline:</b> ' + b.timeline.length + ' spells at fixed times (' +
+        Math.min.apply(null, b.timeline.map(function (e) { return e.t; })).toFixed(1) + '–' + Math.max.apply(null, b.timeline.map(function (e) { return e.t; })).toFixed(1) +
+        ' s), cast before the priority and marked "timeline" in the log; the priority fills the gaps and takes over after it.</p>' : '') + '</div>';
     var others = {};
     results.forEach(function (x) { if (x.build.key !== b.key && !isBase(x) && (!others[x.build.key] || x.dps > others[x.build.key].dps)) others[x.build.key] = x; });
     h += '<div class="dcard"><h2>This build vs the others</h2><div class="kv">' + Object.keys(others).map(function (k) { return others[k]; })
@@ -823,7 +826,7 @@
         var cls = e.type === 'cast' ? 'cast' : (e.type === 'tick' || e.type === 'apply' || e.type === 'debuff' || e.type === 'pet') ? 'minor' : '';
         var note = [];
         if (e.castTime != null) note.push(e.castTime ? e.castTime.toFixed(2) + ' s cast' : 'instant');
-        if (e.trance) note.push('Shadow Trance'); if (e.moving) note.push('while moving'); if (e.eureka) note.push('Eureka!');
+        if (e.timeline) note.push('timeline'); if (e.trance) note.push('Shadow Trance'); if (e.moving) note.push('while moving'); if (e.eureka) note.push('Eureka!');
         if (e.n) note.push('tick ' + e.n + '/' + e.of); if (e.gain) note.push('+' + e.gain + ' mana');
         if (e.for) note.push('for ' + spellName(e.for));
         if (e.type === 'skip') note.push('not recast: ' + e.left + ' s left, would add ' + fmt(e.value) + ' < ' + fmt(e.cost) + ' from ' + spellName(e.filler));
@@ -1274,13 +1277,16 @@
   function makeCustom(b, key) {
     return { key: key || 'custom_' + Date.now().toString(36), short: b.short || 'Custom build', name: 'Custom: ' + (b.short || 'Custom build'),
       notes: 'Your own build (build editor). Build code: ' + WL.encodeBuild(b), talents: JSON.parse(JSON.stringify(b.talents)),
-      pet: b.pet || null, sacrifice: b.sacrifice || null, oil: b.oil, rotation: b.rotation.slice(), custom: true };
+      pet: b.pet || null, sacrifice: b.sacrifice || null, oil: b.oil, rotation: b.rotation.slice(), custom: true,
+      timeline: b.timeline && b.timeline.length ? b.timeline.map(function (e) { return { t: e.t, k: e.k }; }) : undefined };   // round 70
   }
   function edStart(src) {
     ed.b = src ? { short: src.custom ? src.short : src.short + ' (copy)', talents: JSON.parse(JSON.stringify(src.talents)), pet: src.pet || null,
-      sacrifice: src.sacrifice || null, oil: src.oil, rotation: src.rotation.slice() }
+      sacrifice: src.sacrifice || null, oil: src.oil, rotation: src.rotation.slice(),
+      timeline: src.timeline ? src.timeline.map(function (e) { return { t: e.t, k: e.k }; }) : undefined }
       : { short: 'My build', talents: {}, pet: null, sacrifice: null, oil: 'spellstone', rotation: ['bane', 'curseOfElements', 'corruption', 'immolate', 'shadowBolt'] };
     ed.editing = src && src.custom ? src.key : null;
+    tl.sel = -1; $('edTlOn').checked = !!ed.b.timeline;
     $('edFrom').value = src ? src.key : '';
     renderEditor();
   }
@@ -1327,7 +1333,8 @@
         '<button type="button" data-eddown="' + i + '" aria-label="Move down"' + (i < b.rotation.length - 1 ? '' : ' disabled') + '>↓</button>' +
         '<button type="button" data-edrm="' + i + '" aria-label="Remove">✕</button></li>';
     }).join('') + '<li class="meta">' + icon('lifeTap', 'Life Tap') + ' Life Tap whenever mana is below the next spell\'s cost (automatic)</li>';
-    var errs = WL.validateBuild(b);
+    var errs = WL.validateBuild(b).concat(timelineErrors().map(function (x) { return 'Timeline: ' + x.msg; }));
+    renderTimeline();
     $('edErrs').innerHTML = errs.length ? errs.map(function (e) { return '<li>' + esc(e) + '</li>'; }).join('') : '<li class="ok">Legal build — ready to add.</li>';
     $('edSave').disabled = !!errs.length;
     $('edSave').textContent = ed.editing ? 'Update on the sheet' : 'Add to the sheet';
@@ -1344,7 +1351,7 @@
   }
   function edMsg(s, bad) { $('edMsg').textContent = s; $('edMsg').style.color = bad ? 'var(--bad)' : ''; }
   function edSave() {
-    var b = ed.b; if (WL.validateBuild(b).length) return;
+    var b = ed.b; if (WL.validateBuild(b).length || timelineErrors().length) return;
     if (ed.editing) {
       var i = WL.BUILDS.map(function (x) { return x.key; }).indexOf(ed.editing);
       WL.BUILDS[i] = makeCustom(b, ed.editing);
@@ -1391,7 +1398,7 @@
   var quickRunning = false;
   function quickSim() {
     if (quickRunning || running || batchRunning) { edMsg('Wait for the current run to finish.', true); return; }
-    var errs = WL.validateBuild(ed.b);
+    var errs = WL.validateBuild(ed.b).concat(timelineErrors().map(function (x) { return 'Timeline: ' + x.msg; }));
     if (errs.length) { edMsg('Fix the checks first: ' + errs[0], true); return; }
     readSettings();
     var c = JSON.parse(JSON.stringify(cfg)), n = 300, b = makeCustom(ed.b, 'quick_preview');
@@ -1415,6 +1422,118 @@
     })();
   }
 
+  // ---------- W7+ fight timeline, "super advanced" (round 70, user; A73) ----------
+  // Drag spells from the palette onto a lane as long as the fight; each block is as wide as the time it blocks the caster
+  // (cast or GCD; channels their duration) with the current stats. A drop never overlaps: it moves to the first free
+  // moment at or after the drop point. Cooldowns, talents and the fight length are checked; the priority fills every gap.
+  var tl = { px: 8, sel: -1 };
+  function tlCfg() { readSettings(); return cfg; }
+  function tlSorted() { (ed.b.timeline || []).sort(function (a, z) { return a.t - z.t; }); return ed.b.timeline || []; }
+  function timelineErrors() {
+    if (!ed.b || !ed.b.timeline || !ed.b.timeline.length) return [];
+    tlSorted(); return WL.checkTimeline(ed.b, tlCfg()).filter(function (x) { return !/after the fight/.test(x.msg); });
+  }
+  function tlSpan(k) { return WL.timelineSpan(ed.b, tlCfg(), k).span; }
+  // First moment ≥ t where a spell of `span` s fits between the entries (skipping index `skip`).
+  function tlFreeAt(t, span, skip) {
+    var L = tlSorted(), moved = true, guard = 0; t = Math.max(0, Math.round(t * 10) / 10);
+    while (moved && guard++ <= L.length + 1) {
+      moved = false;
+      for (var i = 0; i < L.length; i++) {
+        if (i === skip) continue;
+        var s = L[i].t, e = s + tlSpan(L[i].k);
+        if (t < e - 1e-6 && t + span > s + 1e-6) { t = Math.ceil(e * 100 - 1e-9) / 100; moved = true; }   // round UP (rounding down looped forever)
+      }
+    }
+    return t;
+  }
+  function tlPlace(k, t, skip) {
+    var L = ed.b.timeline, nt = tlFreeAt(t, tlSpan(k), skip);
+    if (skip != null && skip >= 0) L[skip].t = nt; else L.push({ t: nt, k: k });
+    tlSorted(); tl.sel = L.map(function (e) { return e.t === nt && e.k === k; }).indexOf(true);
+  }
+  function tlName(k) { var s = WL.SPELLS[k]; return s.name + (s.family ? ' (Rank ' + s.rank + ')' : ''); }
+  function renderTimeline() {
+    var on = !!ed.b.timeline;
+    $('edTl').hidden = !on;
+    if (!on) return;
+    var c = tlCfg(), dur = c.fight.duration, px = tl.px, L = tlSorted(), bad = {};
+    WL.checkTimeline(ed.b, c).forEach(function (x) { bad[x.i] = x.msg; });
+    $('edTlPal').innerHTML = WL.TIMELINE_SPELLS.filter(function (k) { var s = WL.SPELLS[k]; return !s.talent || ed.b.talents[s.talent]; }).map(function (k) {
+      var sp = WL.timelineSpan(ed.b, c, k);
+      return '<span class="tlpal" draggable="true" data-tlnew="' + k + '" title="' + esc(tlName(k)) + ' — drag onto the timeline (' +
+        (sp.cast ? sp.cast.toFixed(2) + ' s cast' : 'instant') + (sp.cd ? ', ' + sp.cd + ' s cooldown' : '') + ')">' + icon(k === 'lifeTap' ? 'lifeTap' : (ACTION_ICON[k] || k), tlName(k)) + '</span>';
+    }).join('');
+    var ticks = '';
+    for (var s = 0; s <= dur; s += 5) ticks += '<span class="tltick' + (s % 30 ? '' : ' major') + '" style="left:' + (s * px) + 'px">' + (s % 10 ? '' : s + 's') + '</span>';
+    var blocks = L.map(function (e, i) {
+      var w = Math.max(6, tlSpan(e.k) * px), late = e.t >= dur;
+      return '<span class="tlblk' + (i === tl.sel ? ' sel' : '') + (bad[i] ? ' bad' : '') + (late ? ' late' : '') + '" draggable="true" data-tlmove="' + i + '" style="left:' + (e.t * px) + 'px;width:' + w + 'px;--c:' + colorOf(e.k) + '" title="' +
+        esc(tlName(e.k) + ' at ' + e.t.toFixed(1) + ' s' + (bad[i] ? ' — ' + bad[i] : '')) + '">' + icon(e.k === 'lifeTap' ? 'lifeTap' : (ACTION_ICON[e.k] || e.k), tlName(e.k)) + '</span>';
+    }).join('');
+    $('edTlLane').style.width = (dur * px + 40) + 'px';
+    $('edTlLane').innerHTML = '<div class="tlaxis">' + ticks + '</div><div class="tlrow">' + blocks + '</div>';
+    var se = L[tl.sel];
+    $('edTlSel').innerHTML = se ? '<b>' + esc(tlName(se.k)) + '</b> at <input id="edTlT" type="number" min="0" step="0.1" value="' + se.t.toFixed(1) + '"> s ' +
+      '<button type="button" data-tlnudge="-1" title="One GCD earlier">◀</button><button type="button" data-tlnudge="1" title="One GCD later">▶</button> ' +
+      '<button type="button" data-tldel="1">Remove</button>' : '<span class="meta">Click a spell on the timeline to move or remove it.</span>';
+    var used = L.length ? L[L.length - 1].t + tlSpan(L[L.length - 1].k) : 0;
+    $('edTlInfo').textContent = L.length + ' spell' + (L.length === 1 ? '' : 's') + ' · scripted until ' + used.toFixed(1) + ' s of ' + dur + ' s · the priority fills every gap and takes over after the end';
+  }
+  // drag & drop: palette → lane (new), block → lane (move)
+  $('editor').addEventListener('dragstart', function (e) {
+    var n = e.target.closest && e.target.closest('[data-tlnew]'), m = e.target.closest && e.target.closest('[data-tlmove]');
+    if (!n && !m) return;
+    e.dataTransfer.setData('text/plain', n ? 'new:' + n.getAttribute('data-tlnew') : 'move:' + m.getAttribute('data-tlmove'));
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  $('edTlLane').addEventListener('dragover', function (e) { e.preventDefault(); });
+  $('edTlLane').addEventListener('drop', function (e) {
+    e.preventDefault();
+    var v = e.dataTransfer.getData('text/plain') || '', r = $('edTlLane').getBoundingClientRect(), t = (e.clientX - r.left) / tl.px;
+    if (v.indexOf('new:') === 0) tlPlace(v.slice(4), t);
+    else if (v.indexOf('move:') === 0) { var i = +v.slice(5), L = tlSorted(); if (L[i]) tlPlace(L[i].k, t, i); }
+    renderEditor();
+  });
+  function timelineClick(t) {
+    var x, L = ed.b && ed.b.timeline;
+    if (t.closest('#edTlOn')) { return false; }
+    if (!L) return false;
+    if ((x = t.closest('[data-tlmove]'))) { tl.sel = +x.getAttribute('data-tlmove'); renderEditor(); return true; }
+    if ((x = t.closest('[data-tlnew]'))) { var k = x.getAttribute('data-tlnew'), last = L.length ? L[L.length - 1] : null;   // click = add at the end
+      tlPlace(k, last ? last.t + tlSpan(last.k) : 0); renderEditor(); return true; }
+    if ((x = t.closest('[data-tlnudge]'))) { var se = L[tl.sel]; if (!se) return true;
+      var g = WL.timelineSpan(ed.b, tlCfg(), 'lifeTap').gcd, nt = Math.max(0, se.t + g * +x.getAttribute('data-tlnudge'));
+      if (+x.getAttribute('data-tlnudge') < 0) { se.t = nt; tlSorted(); tl.sel = L.indexOf(se); } else tlPlace(se.k, nt, tl.sel);
+      renderEditor(); return true; }
+    if (t.closest('[data-tldel]')) { if (L[tl.sel]) L.splice(tl.sel, 1); tl.sel = -1; renderEditor(); return true; }
+    if (t.closest('#edTlClear')) { ed.b.timeline = []; tl.sel = -1; renderEditor(); edMsg('Timeline cleared.'); return true; }
+    if ((x = t.closest('[data-tlzoom]'))) { tl.px = Math.max(2, Math.min(32, tl.px * +x.getAttribute('data-tlzoom'))); renderEditor(); return true; }
+    if (t.closest('#edTlFill')) {                  // start from what the priority does in fight #1
+      var c = tlCfg(), nb = JSON.parse(JSON.stringify(ed.b)); delete nb.timeline;
+      var r = WL.simulateOnce(nb, 'human', c, { log: true, seed: (c.fight.seed * 7919) >>> 0, duration: c.fight.duration });
+      ed.b.timeline = r.log.filter(function (ev) { return ev.type === 'cast' && WL.TIMELINE_SPELLS.indexOf(ev.spell) >= 0; })
+        .map(function (ev) { return { t: Math.round(ev.t * 100) / 100, k: ev.spell }; });
+      // re-flow: an instant proc cast (Shadow Trance bolt, Soul Fire under Decimation) is placed with its normal cast time
+      var endT = 0; ed.b.timeline.forEach(function (e) { e.t = Math.max(e.t, Math.ceil(endT * 100 - 1e-9) / 100); endT = e.t + tlSpan(e.k); });
+      tl.sel = -1; renderEditor(); edMsg('Timeline filled from fight #1 of the priority (' + ed.b.timeline.length + ' casts, Human) — change it as you like.'); return true;
+    }
+    return false;
+  }
+  document.addEventListener('change', function (e) {
+    if (!ed.b) return;
+    if (e.target.id === 'edTlOn') {
+      if (e.target.checked) { ed.b.timeline = ed.tlStash || ed.b.timeline || []; } else { ed.tlStash = ed.b.timeline; delete ed.b.timeline; }
+      tl.sel = -1; renderEditor();
+    }
+    if (e.target.id === 'edTlT') { var se = ed.b.timeline && ed.b.timeline[tl.sel]; var v = parseFloat(e.target.value);
+      if (se && isFinite(v)) tlPlace(se.k, v, tl.sel); renderEditor(); }
+  });
+  document.addEventListener('keydown', function (e) {
+    if ((e.key === 'Delete' || e.key === 'Backspace') && ed.b && ed.b.timeline && tl.sel >= 0 && document.activeElement && document.activeElement.closest &&
+        document.activeElement.closest('#edTl') && document.activeElement.tagName !== 'INPUT') { ed.b.timeline.splice(tl.sel, 1); tl.sel = -1; renderEditor(); e.preventDefault(); }
+  });
+
   $('edTrees').addEventListener('contextmenu', function (e) {
     var c = e.target.closest('[data-ed]'); if (!c) return; e.preventDefault(); edTalent(c.getAttribute('data-ed'), -1);
   });
@@ -1426,6 +1545,7 @@
   });
   document.addEventListener('input', function (e) { if (e.target.id === 'edName' && ed.b) ed.b.short = e.target.value.slice(0, 40); });
   function editorClick(t, ev) {
+    if (timelineClick(t)) return true;
     var c = t.closest('#edTrees [data-ed]'); if (c) { edTalent(c.getAttribute('data-ed'), ev.shiftKey ? -1 : 1); return true; }
     var b = ed.b, x;
     if ((x = t.closest('[data-edresettree]'))) {       // clear one tree

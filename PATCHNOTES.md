@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v61
+- **Fight timeline** (build editor → super advanced): drag spells onto a timeline to cast them at exact times; the
+  priority still fills the gaps, recasts misses and takes over after the end.
+
 ## v60
 - **Faerie Fire and Curse of Recklessness don't stack** (like Sunder / Expose): Faerie Fire on by default, Curse of
   Recklessness off. Ticking one debuff of a pair unticks the other.

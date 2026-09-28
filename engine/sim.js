@@ -240,6 +240,12 @@ window.WL = window.WL || {};
     var NT = Math.max(1, Math.min(3, cfg.fight.targets || 1));
     var HAV_T = HAV ? 2 : 0;
     var ROT = WL.effectiveRotation(build, cfg);
+    // Fight timeline (round 70, user; A73): an optional list of spells at fixed start times, built in the editor's
+    // "super advanced" mode. A due entry is cast before the priority; the priority fills the gaps (only casts that end before
+    // the next entry is due) and takes over after the timeline ends; a timeline cast that misses gives the priority one
+    // turn (e.g. to recast a missed Immolate). Short on mana → Life Tap first, the rest of the timeline runs later.
+    var TL = build.timeline && build.timeline.length
+      ? { list: build.timeline.slice().sort(function (a, b) { return a.t - b.t; }), i: 0, turn: false, wake: null } : null;
     S.xdots = {}; S.xdeb = {}; for (var ti0 = 2; ti0 <= NT; ti0++) { S.xdots[ti0] = {}; S.xdeb[ti0] = {}; }
     S.multiTargets = NT; S.havocTarget = HAV_T; S.nextTarget = 0;
     S.xDotLeft = function (ti, key) { var d = S.xdots[ti] && S.xdots[ti][key]; return d && d.expires > S.t + EPS ? d.expires - S.t : 0; };
@@ -448,7 +454,7 @@ window.WL = window.WL || {};
       return c;
     }
 
-    function startCast(key, target) {
+    function startCast(key, target, fromTL) {
       var s = SPELLS[key], e = table[key], rk = target > 1 ? xkey(target, key) : key;
       var castT = S.castTime(key), gcdT = S.gcd();
       var instantTrance = isSB(key) && S.buff('shadowTrance');
@@ -471,19 +477,19 @@ window.WL = window.WL || {};
       row(rk).casts++;
       S.minManaCheck();
       L('cast', rk, { castTime: +castT.toFixed(3), gcd: +gcdT.toFixed(3), channel: s.kind === 'channel' ? s.duration : undefined,
-                       eureka: eurekaUsed || undefined, trance: instantTrance || undefined });
+                       eureka: eurekaUsed || undefined, trance: instantTrance || undefined, timeline: fromTL || undefined });
 
       if (s.kind === 'channel') {
         var r = row(key);
         if (R.hit() * 100 >= stats.hitPct) {
           if (eurekaUsed) eurekaRelease();
-          r.misses++; L('miss', key); S.busyUntil = S.t; S.gcdReady = S.t + gcdT; scheduleDecide(S.gcdReady); return;
+          r.misses++; L('miss', key); if (fromTL) TL.turn = true; S.busyUntil = S.t; S.gcdReady = S.t + gcdT; scheduleDecide(S.gcdReady); return;
         }
         r.landed++;
         touchOfTheGrave();                                                // on cast, not on the channel's ticks [A29]
         jowProc(false);                                                   // [A64]
         var id = ++inst;
-        S.channel = { key: key, inst: id, snap: makeSnap(key, eureka), start: S.t, end: S.t + s.duration, eurekaHeld: eurekaUsed };
+        S.channel = { key: key, inst: id, snap: makeSnap(key, eureka), start: S.t, end: S.t + s.duration, eurekaHeld: eurekaUsed, tl: !!fromTL };   // timeline channels run to the end
         for (var i = 1; i <= e.ticks; i++) H.push({ t: S.t + i * s.tickEvery, o: 0, type: 'chanTick', key: key, inst: id, i: i - 1 });
         S.busyUntil = S.t + s.duration; S.gcdReady = S.t + gcdT;
         r.castTime += s.duration;
@@ -492,14 +498,14 @@ window.WL = window.WL || {};
         S.busyUntil = S.t + castT; S.gcdReady = S.t + gcdT;
         row(rk).castTime += castT;
         // projectiles land `TRAVEL` s after the cast ends (round 39; the caster is free at cast end)
-        H.push({ t: S.busyUntil + (s.projectile ? TRAVEL : 0), o: 1, type: 'castEnd', key: key, eureka: eureka, baseMult: baseMult, target: target, eurekaHeld: eurekaUsed });
+        H.push({ t: S.busyUntil + (s.projectile ? TRAVEL : 0), o: 1, type: 'castEnd', key: key, eureka: eureka, baseMult: baseMult, target: target, eurekaHeld: eurekaUsed, tl: fromTL });
         scheduleDecide(Math.max(S.busyUntil, S.gcdReady));
       } else {
         S.busyUntil = S.t; S.gcdReady = S.t + gcdT;
         row(rk).castTime += gcdT;
-        if (s.projectile && TRAVEL > EPS) H.push({ t: S.t + TRAVEL, o: 1, type: 'castEnd', key: key, eureka: eureka, baseMult: baseMult, target: target, eurekaHeld: eurekaUsed });
+        if (s.projectile && TRAVEL > EPS) H.push({ t: S.t + TRAVEL, o: 1, type: 'castEnd', key: key, eureka: eureka, baseMult: baseMult, target: target, eurekaHeld: eurekaUsed, tl: fromTL });
         else {
-          land(key, eureka, baseMult, target);
+          if (!land(key, eureka, baseMult, target) && fromTL) TL.turn = true;
           if (eurekaUsed) eurekaRelease();                              // instant: the aura part of this cast ends now
         }
         scheduleDecide(S.gcdReady);
@@ -808,7 +814,7 @@ window.WL = window.WL || {};
       return v.worth;
     };
 
-    function pickAction(excludeFrom) {
+    function pickAction(excludeFrom, fitBy) {   // fitBy (timeline gaps, round 70): only casts that end by then (channels are clipped)
       var list = ROT;                                                    // build priority (+ multiDot if the option is on)
       for (var i = 0; i < list.length; i++) {
         if (excludeFrom != null && i >= excludeFrom) return null;
@@ -822,6 +828,7 @@ window.WL = window.WL || {};
         // Rank 2 filler) — the player presses the max rank while the bolt is instant. [A21]
         if (k && k !== 'shadowBolt' && isSB(k) && S.buff('shadowTrance') && table.shadowBolt) k = 'shadowBolt';
         if (k && k.indexOf('swap:') === 0) return { key: k, index: i, target: 0 };   // pet swap (instant summon, round 35)
+        if (k && fitBy != null && table[k] && SPELLS[k].kind !== 'channel' && S.t + tlOccupies(k) > fitBy + EPS) continue;   // does not fit the gap
         if (k && table[k] && canCastNow(k)) return { key: k, index: i, target: S.nextTarget || 0 };   // movement: only instants while moving (W11)
       }
       return null;
@@ -836,7 +843,11 @@ window.WL = window.WL || {};
       manaBuffCheck();
       useManaItems();
       if (explosives.length && useExplosive()) return;
-      var p = pickAction();
+      if (TL && !TL.turn && timelineStep()) return;
+      var fit = TL && !TL.turn && TL.wake != null ? TL.wake : null;       // a gap before the next timeline entry
+      var p = pickAction(null, fit);
+      if (TL && TL.turn) TL.turn = false;                                  // the priority's one turn after a timeline miss
+      if (!p && TL && TL.wake != null && TL.wake > S.t + EPS) { res.idle += TL.wake - S.t; scheduleDecide(TL.wake); return; }
       // Life Tap while moving (round 62, user; A71): when movement leaves nothing castable (moving: only instants; just before
       // a movement phase: no cast would finish in time) and the priority has no instant to cast, Life Tap (instant) instead of
       // waiting — whenever it restores any mana.
@@ -853,6 +864,40 @@ window.WL = window.WL || {};
         lifeTap(); return;
       }
       startCast(p.key, p.target);
+    }
+
+    // ---------- fight timeline (round 70, A73) ----------
+    // Time a priority spell takes before the next decision (cast or GCD, whichever is longer).
+    function tlOccupies(k) { if (k === 'lifeTap' || !SPELLS[k] || k.indexOf('swap:') === 0) return S.gcd(); return Math.max(S.castTime(k), S.gcd()); }
+    function tlUsable(k) {
+      if (k === 'conflagrate') return S.dotLeft('immolate') > 0;
+      if (k === 'shadowburn') return S.shards > 0;
+      if (k === 'soulFire') return S.buff('decimation') || S.shards > 0;
+      return true;
+    }
+    // Casts the next due timeline entry (true = handled). Sets TL.wake = when the timeline needs the caster next.
+    function timelineStep() {
+      TL.wake = null;
+      while (TL.i < TL.list.length) {
+        var e = TL.list[TL.i], k = e.k;
+        if (e.t > dur - EPS) { TL.i = TL.list.length; break; }
+        if (S.t + EPS < e.t) { TL.wake = e.t; return false; }                              // not due yet: the priority may fill the gap
+        if (k === 'lifeTap') { TL.i++; lifeTap(); return true; }
+        if (!table[k] || !S.has(k) || (SPELLS[k].talent && !tv(SPELLS[k].talent)) || !tlUsable(k)) {
+          TL.i++; L('skip', k, { timeline: true }); continue;                               // cannot be cast (talent, Immolate, shard): skipped
+        }
+        if (!S.ready(k)) { TL.wake = S.cds[k]; return false; }                            // on cooldown: wait (the priority may fill)
+        if (!canCastNow(k)) { TL.wake = S.t + 0.1; return false; }                         // moving: wait for the phase to end
+        if (S.mana < effectiveCost(k)) {
+          if (stats.maxMana < effectiveCost(k)) { TL.i++; L('skip', k, { timeline: true }); continue; }
+          lifeTap(); return true;                                                           // Life Tap first; the rest runs later
+        }
+        TL.i++;
+        if (SPELLS[k].kind !== 'utility' && S.mana >= discountedCost(k)) { useRacials(k); useSpPotion(); }
+        startCast(k, 0, true);
+        return true;
+      }
+      return false;
     }
 
     // ---------- main loop ----------
@@ -872,7 +917,7 @@ window.WL = window.WL || {};
         if (ev.token !== decideToken) continue;
         decide();
       } else if (ev.type === 'castEnd') {
-        land(ev.key, ev.eureka, ev.baseMult, ev.target);
+        if (!land(ev.key, ev.eureka, ev.baseMult, ev.target) && ev.tl && TL) TL.turn = true;   // missed timeline cast → priority turn
         if (ev.eurekaHeld) eurekaRelease();                   // Eureka!'s aura part of this cast ends when it lands
       } else if (ev.type === 'eurekaEnd') {                    // 15 s after the pop (round 42)
         if (ev.pop === S.cds.racial && eurekaUp()) { S.eurekaCharges = 0; S.eurekaPending = 0; L('expire', 'eureka'); }
@@ -903,8 +948,14 @@ window.WL = window.WL || {};
         periodicTick(ev.key, c.snap, ev.i, true);
         var last = ev.i === table[ev.key].ticks - 1;
         if (last) { if (c.eurekaHeld) eurekaRelease(); S.channel = null; continue; }
+        // A priority channel in a timeline gap ends when the next timeline entry is due (round 70).
+        if (TL && TL.i < TL.list.length && TL.list[TL.i].t <= S.t + EPS && !c.tl) {
+          if (c.eurekaHeld) eurekaRelease();
+          S.channel = null; res.clipped++; row(ev.key).castTime -= (c.end - S.t);
+          S.busyUntil = S.t; L('clip', ev.key, { for: 'timeline' }); scheduleDecide(S.t); continue;
+        }
         // Clip the channel when something higher in the priority list is ready (and the GCD allows it).
-        if (S.t >= S.gcdReady - EPS) {
+        if (S.t >= S.gcdReady - EPS && !c.tl) {
           var idx = ROT.indexOf(ev.key);
           var higher = pickAction(idx >= 0 ? idx : ROT.length);
           if (higher) {

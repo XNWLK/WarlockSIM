@@ -1,5 +1,5 @@
 // Custom builds (W7): validation (same rules as tests/test-data.js and tools/explore.js) and a shareable build code.
-// Build code = "WFB1:" + base64(JSON {v, short, talents, pet, sacrifice, oil, rotation}).
+// Build code = "WFB1:" + base64(JSON {v, short, talents, pet, sacrifice, oil, rotation, tl?}); tl = fight timeline [[t, spell], …] (round 70).
 // Wowhead Forever talent-calculator links cannot be imported: their URL encoding could not be determined (round 20,
 // docs/03_BUILD_LOG.md step 28) — the editor uses its own code instead.
 window.WL = window.WL || {};
@@ -52,11 +52,52 @@ WL.validateBuild = function (b) {
   if (rot.indexOf('swapToImp') >= 0 && rot.indexOf('swapToSuccubus') >= 0) errs.push('Only one pet swap per fight — keep one of the two swap actions');
   if (rot.indexOf('bane') >= 0 && rot.indexOf('baneOfAgony') >= 0)                 // one Bane per target (round 56)
     errs.push('Keep one Bane action: "' + WL.ACTIONS.bane.label + '" or "' + WL.ACTIONS.baneOfAgony.label + '"');
+  // Fight timeline (round 70, A73): spells at fixed start times on top of the priority. Timing checks: WL.checkTimeline.
+  if (b.timeline) {
+    if (!Array.isArray(b.timeline)) errs.push('The fight timeline is damaged');
+    else b.timeline.forEach(function (e, i) {
+      var s = e && WL.SPELLS[e.k];
+      if (!s || WL.TIMELINE_SPELLS.indexOf(e.k) < 0) errs.push('Timeline entry ' + (i + 1) + ': unknown spell "' + (e && e.k) + '"');
+      else if (s.talent && !t[s.talent]) errs.push('Timeline: ' + s.name + ' at ' + e.t.toFixed(1) + ' s needs the ' + WL.TALENT_BY_KEY[s.talent].name + ' talent');
+      if (!(e && e.t >= 0 && isFinite(e.t))) errs.push('Timeline entry ' + (i + 1) + ': bad start time');
+    });
+  }
   return errs;
+};
+
+// Spells a player can put on the fight timeline (all castable Warlock spells; Bane of Havoc is automatic with 2+ targets).
+WL.TIMELINE_SPELLS = ['curseOfElements', 'baneOfDoom', 'baneOfAgony', 'corruption', 'siphonLife', 'immolate', 'conflagrate', 'shadowburn',
+  'soulFire', 'shadowBolt', 'shadowBoltR2', 'incinerate', 'searingPain', 'drainLife', 'drainSoul', 'wrack', 'deathCoil', 'lifeTap'];
+
+// Time a timeline entry blocks the caster (cast or GCD, whichever is longer; channels their full duration), with the stats
+// of `cfg` (haste, Spellstone, Bane). Decimation / Shadow Trance can only make casts shorter, so they are not assumed.
+WL.timelineSpan = function (b, cfg, k) {
+  var st = WL.computeStats(b, 'human', cfg), tab = WL.buildSpellTable(b, st, cfg), s = WL.SPELLS[k], h = 1 + (st.hastePct || 0) / 100;
+  var gcd = Math.max(cfg.combat.minGcd, cfg.combat.gcd / h);
+  if (k === 'lifeTap' || !tab[k]) return { cast: 0, span: gcd, gcd: gcd };
+  if (s.kind === 'channel') return { cast: s.duration, span: s.duration, gcd: gcd };
+  var cast = tab[k].cast / h;
+  return { cast: cast, span: Math.max(cast, gcd), gcd: gcd, cd: tab[k].cd || 0 };
+};
+// Timing problems of a build's timeline: overlaps (a spell starting before the previous one finished), cooldowns (the
+// same spell again too early), entries after the fight's end. Returns [{ i, msg }] (i = index in the time-sorted list).
+WL.checkTimeline = function (b, cfg) {
+  var out = [], tl = (b.timeline || []).slice().sort(function (x, y) { return x.t - y.t; }), lastEnd = 0, lastCast = {}, dur = cfg.fight.duration;
+  tl.forEach(function (e, i) {
+    if (!WL.SPELLS[e.k]) return;
+    var sp = WL.timelineSpan(b, cfg, e.k), name = WL.SPELLS[e.k].name + (WL.SPELLS[e.k].family ? ' (Rank ' + WL.SPELLS[e.k].rank + ')' : '');
+    if (i > 0 && e.t < lastEnd - 1e-6) out.push({ i: i, msg: name + ' at ' + e.t.toFixed(1) + ' s overlaps the previous spell (busy until ' + lastEnd.toFixed(1) + ' s)' });
+    if (sp.cd && lastCast[e.k] != null && e.t < lastCast[e.k] + sp.cd - 1e-6)
+      out.push({ i: i, msg: name + ' at ' + e.t.toFixed(1) + ' s is still on cooldown (ready at ' + (lastCast[e.k] + sp.cd).toFixed(1) + ' s)' });
+    if (e.t >= dur) out.push({ i: i, msg: name + ' at ' + e.t.toFixed(1) + ' s is after the fight (' + dur + ' s) — only reached in longer fights' });
+    lastEnd = Math.max(lastEnd, e.t + sp.span); lastCast[e.k] = e.t;
+  });
+  return out;
 };
 
 WL.encodeBuild = function (b) {
   var o = { v: 1, short: b.short, talents: b.talents, pet: b.pet || null, sacrifice: b.sacrifice || null, oil: b.oil, rotation: b.rotation };
+  if (b.timeline && b.timeline.length) o.tl = b.timeline.map(function (e) { return [Math.round(e.t * 100) / 100, e.k]; });   // round 70
   return WL.BUILD_CODE_PREFIX + btoa(unescape(encodeURIComponent(JSON.stringify(o))));
 };
 
@@ -68,7 +109,8 @@ WL.decodeBuild = function (code) {
   catch (e) { throw new Error('The build code is damaged (could not be decoded)'); }
   if (!o || o.v !== 1 || typeof o.talents !== 'object') throw new Error('Unknown build-code version');
   return { short: String(o.short || 'Custom build').slice(0, 40), talents: o.talents, pet: o.pet || null, sacrifice: o.sacrifice || null,
-           oil: o.oil || 'none', rotation: Array.isArray(o.rotation) ? o.rotation : [] };
+           oil: o.oil || 'none', rotation: Array.isArray(o.rotation) ? o.rotation : [],
+           timeline: Array.isArray(o.tl) ? o.tl.map(function (x) { return { t: +x[0], k: String(x[1]) }; }) : undefined };
 };
 
 // Actions a user may put in a priority list (excludes test-only actions).
