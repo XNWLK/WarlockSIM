@@ -598,13 +598,16 @@
     rest.sort(function (x, y) { return amount(y) - amount(x); });
     var mine = rest.filter(function (k) { return k.indexOf('pet:') !== 0 && k !== 'touchOfTheGrave' && k.indexOf('item:') !== 0; });
     var other = rest.filter(function (k) { return mine.indexOf(k) < 0; });
+    var prioNo = {}; own.forEach(function (s, i) { prioNo[s] = i + 1; });
+    // Round 73 (user): Death Coil is shown last among your own spells (it only finishes the fight), keeping its priority number.
+    var mineAll = own.filter(function (s) { return s !== 'deathCoil'; }).concat(mine, own.indexOf('deathCoil') >= 0 ? ['deathCoil'] : []);
     var slots = own.concat(mine, other), max = Math.max.apply(null, slots.map(amount));
     var extra = function (k) {                        // damage on the extra targets, for the tooltip
       var xs = Object.keys(r.bySpell).filter(function (x) { return x !== k && baseKey(x) === k && r.bySpell[x].dmg > 0; });
       return xs.length ? ' (incl. ' + xs.map(function (x) { return spellName(x).replace(/^.*\(/, '').replace(')', '') + ' ' + fmt(r.bySpell[x].dmg / dur, 1); }).join(', ') + ')' : '';
     };
     var cell = function (s, i) {
-      var amt = amount(s), pct = 100 * amt / total, rule = rules[s] ? '<br>Priority #' + (i + 1) + ': ' + esc(rules[s].join(' · ')) : '';
+      var amt = amount(s), pct = 100 * amt / total, rule = rules[s] ? '<br>Priority #' + prioNo[s] + ': ' + esc(rules[s].join(' · ')) : '';
       var ico, bar;
       if (s === 'bane') {
         var parts = hasBane.map(function (k) { return { k: k, amt: byBase[k] }; });
@@ -622,7 +625,7 @@
       }
       return '<span class="pd">' + ico + bar + '<span class="pct">' + (pct < 0.95 ? '<1' : Math.round(pct)) + '%</span></span>';
     };
-    return '<span class="pdown">' + own.concat(mine).map(cell).join('') + '</span>' +
+    return '<span class="pdown">' + mineAll.map(cell).join('') + '</span>' +
       (other.length ? '<span class="pdsep" aria-hidden="true"></span>' + other.map(function (k) { return cell(k, -1); }).join('') : '');
   }
   // Stat weight cells (round 44): SP = DPS per 1 SP; the others as spell-power equivalents (weight ÷ SP weight).

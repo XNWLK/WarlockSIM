@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v64
+- Spells & damage: Death Coil is shown last.
+
 ## v63
 - Every build now finishes the fight with **Death Coil** (+0.13 … +0.50%).
 
