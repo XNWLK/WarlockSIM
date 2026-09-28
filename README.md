@@ -16,7 +16,7 @@ Live version: [Xn's Forever Warlock Sim](https://claude.ai/artifact/WzHGwM25MtG9
   the pet, Demonic Brand, Touch of the Grave and explosives.
 - DPS with error margin, gap to the best build, and **stat weights** for spell power, hit, crit, haste and Intellect
   (shown as the spell power they are worth; Spell Pierce in the details).
-- Shows builds within 10% of the best (adjustable); the best Affliction, Demonology and Destruction build is always shown.
+- Shows every build by default; an optional cut-off hides builds behind the best, and a **pin** keeps any build shown.
 - Races: Human, Gnome, Orc, Undead, Troll with their racials (Sword Specialization, Eureka!, Blood Fury, Touch of the
   Grave, Berserking…).
 

@@ -144,9 +144,10 @@ WL.BUILDS = [
     pet: 'succubus', sacrifice: null, oil: 'spellstone',
     rotation: ['bane', 'curseOfElements', 'searingPainBrand', 'corruption', 'siphonLife', 'immolate', 'soulFire', 'shadowBolt'],
   },
-  // ---- Pinned reference builds (round 65, user): classic layouts, always shown however far behind (tag "pinned") ----
+  // ---- Reference builds (round 65, user): classic layouts. Round 66: every build is shown by default (no cut-off), so they
+  //      need no special flag; anyone can pin any build (📌) to keep it shown when a cut-off is set. ----
   {
-    key: 'sm_ruin_classic', short: 'SM Ruin (classic)', pinned: true,
+    key: 'sm_ruin_classic', short: 'SM Ruin (classic)',
     name: 'SM Ruin (classic) – Affliction / Destruction, Succubus out, Shadow Bolt',
     notes: '33/0/18 (user, round 65): the classic Shadow Mastery / Ruin layout — Suppression, Improved Corruption, Improved Life Tap, Malediction, Pandemic, Malevolence, Nightfall, Siphon Life, Shadow Mastery; Bane, Improved Shadow Bolt, Ruin, Agonizing Flames. No Demonology, so no sacrifice: the Succubus is out (Imp -10%), Spellstone (Firestone -0.8%); Human best. Priority = best of all 720 orders (+0.30% over the starting order, the top 5 within 0.3%); every action pays (without Bane -12.5%, Corruption -7.7%, Curse of the Elements -7.5%, Immolate -3.0%, Siphon Life -1.0%; Shadow Trance action neutral), Shadow Bolt Rank 2 filler -0.3%, Searing Pain -11% (04_EXPLORATION §30).',
     talents: {
@@ -158,7 +159,7 @@ WL.BUILDS = [
     rotation: ['bane', 'corruption', 'shadowTrance', 'siphonLife', 'curseOfElements', 'immolate', 'shadowBolt'],
   },
   {
-    key: 'ds_ruin_classic', short: 'DS Ruin (classic)', pinned: true,
+    key: 'ds_ruin_classic', short: 'DS Ruin (classic)',
     name: 'DS Ruin (classic) – Demonic Sacrifice (Imp) / Destruction, Shadow Bolt',
     notes: '22/11/18 (user, round 65): the classic Demonic Sacrifice / Ruin layout — Suppression, Improved Corruption, Malediction 2, Pandemic, Nightfall, Malevolence; Demonic Embrace, Fel Vitality, Demonic Aegis, Demonic Sacrifice; Bane, Improved Shadow Bolt, Ruin, Agonizing Flames. Imp sacrificed (+15% Shadow; Succubus sacrifice +15% Fire is -10%), no pet out, Spellstone; Human best. Priority = best of all 120 orders (+0.35%); without Bane -14.8%, Corruption -9.1%, Curse of the Elements -8.4%, Immolate -2.3%, Shadow Trance neutral; Searing Pain filler -17.5%. Shadow Bolt Rank 2 filler +1.1%, but only if Forever has no low-rank penalty (A70, unconfirmed) — not used (04_EXPLORATION §30).',
     talents: {
@@ -170,7 +171,7 @@ WL.BUILDS = [
     rotation: ['bane', 'corruption', 'immolate', 'shadowTrance', 'curseOfElements', 'shadowBolt'],
   },
   {
-    key: 'wrack_ds', short: 'Wrack DS', pinned: true,
+    key: 'wrack_ds', short: 'Wrack DS',
     name: 'Wrack DS – Affliction (Wrack) / Demonic Sacrifice (Imp)',
     notes: '35/11/5 (user, round 65): Suppression, Improved Corruption, Malediction, Pandemic, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon, Wrack; Fel Vitality, Demonic Embrace, Demonic Aegis, Demonic Sacrifice; Improved Shadow Bolt. Imp sacrificed (+15% Shadow), no pet out, Spellstone; Undead best (Human within 0.2%). Wrack checked first: 36 + 14.3% SP per second for 6 s, 200 mana, +10% on Corruption and Bane of Agony while it channels (the spell data lists only those two; the tooltip says "other Shadow damage over time effects" — with Siphon Life +0.43%, with Bane of Doom too +1.21%). Priority = best of all 720 orders (+0.39%, top 5 within 0.1%); without Bane -19.2%, Corruption -15.9%, Curse of the Elements -8.7%, Shadow Trance -3.6%, Siphon Life -3.3%, Immolate -2.8%; Drain Life filler -5.6%. Wrack is the weakest filler of this build: Shadow Bolt instead +5.4%, Wrack with "keep ISB up" above it +4.4% (04_EXPLORATION §30).',
     talents: {

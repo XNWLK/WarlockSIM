@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v58
+- **All builds shown by default**; the cut-off applies instantly without a rerun.
+- **Pin button** on every row: pinned builds stay visible when a cut-off is set.
+
 ## v57
 - **Pinned reference builds**, always shown: **SM Ruin (classic)**, **DS Ruin (classic)** and **Wrack DS**, each with its
   best priority. SM Ruin is now the best Affliction build.

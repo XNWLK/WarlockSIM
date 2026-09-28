@@ -1,4 +1,5 @@
-// Round 65 tests: Wrack's debuff (A18) checked tick by tick, and the pinned reference builds (SM Ruin, DS Ruin, Wrack DS).
+// Round 65 tests: Wrack's debuff (A18) checked tick by tick, and the reference builds (SM Ruin, DS Ruin, Wrack DS).
+// Round 66: no built-in pin flag any more — every build is shown by default (cut-off 0); pins are per browser (page).
 (function () {
   function det() {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
@@ -10,7 +11,7 @@
   }
   function tb(rot, t) { return { key: 't65', short: 't', name: 't', notes: '', talents: t || {}, pet: null, sacrifice: null, oil: 'none', rotation: rot }; }
 
-  T.run('round 65: Wrack and pinned builds', function () {
+  T.run('round 65: Wrack and reference builds', function () {
     T.group('Wrack: +10% on Corruption and Bane of Agony only while it channels (spell data 1316697)');
     var c = det(), b = tb(['baneOfAgony', 'corruption', 'siphonLife', 'wrack'], { siphonLife: 1, wrack: 1 });
     var st = WL.computeStats(b, 'human', c), tab = WL.buildSpellTable(b, st, c), sp = tab.wrack.sp;
@@ -35,17 +36,18 @@
     T.ok(ticks('wrack').every(function (e) { return e.dmg === Math.round(36 + 0.143 * sp); }), 'Wrack ticks = 36 + 0.143 × SP = ' + Math.round(36 + 0.143 * sp));
     T.eq(WL.SPELLS.wrack.debuffSpells.slice().sort().join(','), 'baneOfAgony,corruption', 'affected spells: Corruption, Bane of Agony');
 
-    T.group('pinned reference builds (user, round 65)');
+    T.group('reference builds (user, round 65); shown by default (round 66)');
     var want = { sm_ruin_classic: '33/0/18', ds_ruin_classic: '22/11/18', wrack_ds: '35/11/5' };
     Object.keys(want).forEach(function (k) {
       var bb = WL.BUILDS.filter(function (x) { return x.key === k; })[0];
-      T.ok(!!bb && bb.pinned === true, k + ' is on the sheet and pinned');
+      T.ok(!!bb && !('pinned' in bb), k + ' is on the sheet (no built-in pin flag since round 66)');
       if (!bb) return;
       var s = { affliction: 0, demonology: 0, destruction: 0 };
       Object.keys(bb.talents).forEach(function (t) { s[WL.TALENT_BY_KEY[t].tree] += bb.talents[t]; });
       T.eq(s.affliction + '/' + s.demonology + '/' + s.destruction, want[k], k + ' talent split');
       T.eq(WL.validateBuild(bb).join(' | '), '', k + ' is legal');
     });
-    T.eq(WL.BUILDS.filter(function (x) { return x.pinned; }).length, 3, 'exactly 3 pinned builds');
+    T.eq(WL.DEFAULT_CONFIG.options.showWithinPct, 0, 'display cut-off 0 by default: every build is shown (round 66; was 10)');
+    T.eq(WL.BUILDS.filter(function (x) { return x.pinned; }).length, 0, 'no build carries a pinned flag')
   });
 })();

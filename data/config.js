@@ -108,7 +108,8 @@ WL.DEFAULT_CONFIG = {
   options: {
     useCurseOfElements: true,  // [A34]
     includePetDamage: true,    // [A26]
-    showWithinPct: 10,         // results table shows only rows within 10% of the best DPS (user, round 17); 0 = all
+    showWithinPct: 0,          // display cut-off: only rows within this % of the best DPS; 0 = all (default since round 66, user; 10 in rounds 17–65).
+                               // Display only (changing it never reruns); pinned builds (📌, per browser) stay shown whatever the cut-off.
     // When to pop Eureka! (Gnome), a live +10% damage aura until 3 spells have been cast (round 38, A31):
     // 'any' = before any damaging spell · 'long' = only before a long cast (≥ 1.4 s direct spell or channel) ·
     // 'doom' = 'long' and, while Bane of Doom ticks, hold it until the explosion falls inside the aura.

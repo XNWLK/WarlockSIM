@@ -152,6 +152,7 @@
       Object.keys(cfg.consumables).forEach(function (k) { if (cfg.consumables[k].group === g && 'c_' + k !== t.id) $('c_' + k).checked = false; });
     }
     readSettings();
+    if (t.id === 'showPct') { if (results.length && !running) { render(); showStale(); } return; }   // display only (round 66)
     if (t.id !== 't_race' && t.id !== 'gearSel') markDirty();   // the Stats race only changes the Total column, not the run
   });
   document.addEventListener('input', function (e) { if (e.target.closest && e.target.closest('#totalTable')) { readSettings(); markDirty(); } });
@@ -161,10 +162,13 @@
   function markDirty() { if (!results.length || running) return; dirty = !sameSettings(); showStale(); }
   function showStale() {
     var pend = running || dirty ? [] : pendingBuilds();                 // round 55: new builds with unchanged settings
-    $('stale').hidden = running || !(dirty || pend.length);
+    var noW = running || dirty || pend.length || !results.length ? [] : bestRaceJobs(WL.BUILDS).filter(function (x) { return !weights[x.b.key]; });   // round 66
+    $('stale').hidden = running || !(dirty || pend.length || noW.length);
     $('results').classList.toggle('stale', dirty && !running);
     $('staleMsg').innerHTML = dirty
       ? '<b>Settings changed since this run.</b> The results below are from the previous settings; Sim! reruns every build.'
+      : noW.length ? '<b>' + noW.length + ' shown build' + (noW.length === 1 ? '' : 's') + ' without stat weights:</b> ' + noW.map(function (x) { return esc(x.b.short); }).join(', ') +
+        '. The settings are unchanged, so Sim! only measures ' + (noW.length === 1 ? 'its' : 'their') + ' stat weights.'
       : '<b>' + pend.length + ' build' + (pend.length === 1 ? '' : 's') + ' not simulated yet:</b> ' + pend.map(function (b) { return esc(b.short); }).join(', ') +
         '. The settings are unchanged, so Sim! only simulates ' + (pend.length === 1 ? 'this build' : 'these') + ' and adds ' + (pend.length === 1 ? 'it' : 'them') + ' to the list.';
   }
@@ -353,7 +357,9 @@
   // pets (anything in the settings) reruns every build.
   // Compared as the settings snapshot (engine/settings-code.js: everything the user can change in the UI), not the raw
   // config: ticking a consumable and unticking it again leaves "on: false" where the default had no flag at all.
-  function sameSettings() { return results.length > 0 && JSON.stringify(WL.settingsSnapshot(cfg)) === JSON.stringify(WL.settingsSnapshot(runCfg)); }
+  // Round 66: the display cut-off (options.showWithinPct) only filters the table, so it does not make results stale.
+  function snapNoCut(c) { var s = WL.settingsSnapshot(c); if (s.options) { s.options = Object.assign({}, s.options); delete s.options.showWithinPct; } return s; }
+  function sameSettings() { return results.length > 0 && JSON.stringify(snapNoCut(cfg)) === JSON.stringify(snapNoCut(runCfg)); }
   function pendingBuilds() {         // builds on the sheet without results yet
     if (!results.length) return [];
     var have = {}; results.forEach(function (r) { have[r.build.key] = 1; });
@@ -439,10 +445,14 @@
   // Display cut-off (user, round 17): only rows within options.showWithinPct % of the best DPS are shown.
   // Every build is still simulated, so a build comes back as soon as the settings make it competitive.
   // Always shown: your builds, the best Affliction build (round 28). Baseline rows follow their build's best race row.
-  function cutPct() { var p = (runCfg.options || {}).showWithinPct; return p > 0 ? p : 0; }
+  function cutPct() { var p = (cfg.options || {}).showWithinPct; return p > 0 ? p : 0; }   // live (round 66): applies at once
+  // Pins (round 66, user): the 📌 button on a row keeps that build shown whatever the cut-off; kept in this browser.
+  var pins = {};
+  try { (JSON.parse(localStorage.getItem('wfs.pins') || '[]') || []).forEach(function (k) { pins[k] = 1; }); } catch (e) { pins = {}; }
+  function savePins() { try { localStorage.setItem('wfs.pins', JSON.stringify(Object.keys(pins))); } catch (e) { /* page only */ } }
   function withinCut(r) {
     var p = cutPct();
-    if (r.build.custom || r.build.pinned || isAnchor(r.build)) return true;   // pinned: reference builds (round 65)
+    if (r.build.custom || pins[r.build.key] || isAnchor(r.build)) return true;
     if (isBase(r)) { var br = bestRow(r.build.key); return !!br && withinCut(br); }
     return !p || r.dps >= best() * (1 - p / 100) - 1e-9;
   }
@@ -463,7 +473,7 @@
     var tags = anchors().filter(function (a) { return a.key === r.build.key; }).map(function (a) {
       var tn = WL.TREES[a.tree].name;
       return '<span class="ctag t-' + a.tree + '" title="Best build with at least ' + a.minPoints + ' ' + esc(tn) + ' points: always shown, however far behind it is">best ' + esc(tn) + '</span>';
-    }).join('') + (r.build.pinned ? '<span class="ctag pin" title="Reference build: always shown, however far behind it is">pinned</span>' : '') + (r.build.custom ? '<span class="ctag">yours</span>' : '');
+    }).join('') + (r.build.custom ? '<span class="ctag">yours</span>' : '');
     var race = esc(WL.RACES[r.race].name) + (isBase(r) ? ' — baseline' : '');
     if (twoLines) return '<span class="split">' + split(r.build) + '</span>' + esc(r.build.short) + '<span class="bsub">' + race + tags + '</span>';
     return '<span class="split">' + split(r.build) + '</span>' + esc(r.build.short) + tags + ' <span class="meta">(' + race + ')</span>';
@@ -628,6 +638,7 @@
     var win = cutPct() || 10, floor = top * (1 - win / 100), f = Math.max(0.02, Math.min(1, (dps - floor) / (top - floor)));
     return '<span class="dbar" title="Bar: from ' + win + '% behind the best (empty) to the best build (full)"><i style="width:' + (100 * f).toFixed(1) + '%"></i></span>';
   }
+  var PIN_SVG = '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M10.5 1.5l4 4-2 1-2.5 2.5.5 3-1.5 1.5-3-3-3.5 3.5-.9-.9L5.1 9.6l-3-3L3.6 5.1l3 .5L9.1 3.1z" fill="currentColor"/></svg>';
   function render() {
     var tb = document.querySelector('#results tbody'), top = best(), rows = rowsForView();
     if (!rows.length) { tb.innerHTML = '<tr><td colspan="' + ncols() + '" class="meta">Simulating…</td></tr>'; return; }
@@ -642,7 +653,9 @@
         (others.length ? '<button type="button" class="rtog" data-races="' + esc(bk) + '" aria-expanded="' + rOpen + '" title="' + (rOpen ? 'Hide' : 'Show') +
           ' the other races and the no-race baseline">' + (rOpen ? '▾' : '▸') + ' ' + others.length + '</button>' : '') + '</div></td>';
       var h = '<tr class="row' + (isOpen ? ' open' : '') + '" tabindex="0" data-id="' + esc(key) + '" aria-expanded="' + isOpen + '">' +
-        '<td class="n meta">' + rank + '</td>' +
+        '<td class="n meta rankcell"><button type="button" class="pinbtn" data-pin="' + esc(bk) + '" aria-pressed="' + !!pins[bk] + '" title="' +
+          (pins[bk] ? 'Pinned: always shown, whatever the cut-off. Click to unpin.' : 'Pin: keep this build shown when a cut-off hides builds behind the best') +
+          '" aria-label="' + (pins[bk] ? 'Unpin ' : 'Pin ') + esc(b.short) + '">' + PIN_SVG + '</button>' + rank + '</td>' +
         '<td class="bname">' + buildName(r, true) + '</td>' + raceTd +
         '<td><div class="pets">' + (pets || '<span class="none">–</span>') + '</div></td>' +
         '<td><div class="pdrow">' + prioDamage(r, r.avgDuration || r.firstFight.duration) + '</div></td>' +
@@ -681,7 +694,7 @@
     if (!hid.length) return '';
     return '<tr class="hidnote"><td colspan="' + ncols() + '" class="meta">' + hid.length + ' more build' + (hid.length > 1 ? 's are' : ' is') + ' simulated but hidden (more than ' +
       cutPct() + '% behind the best): ' + hid.map(function (r) { return split(r.build) + ' ' + esc(r.build.short) + ' ' + fmt(r.dps, 1) + ' (' + ((r.dps / top - 1) * 100).toFixed(1) + '%)'; }).join(' · ') +
-      '. Change the cut-off in Fight &amp; pets → Options (0 = show all).</td></tr>';
+      '. Change the cut-off in Fight &amp; pets → Advanced (0 = show all), or show a build again by pinning it (📌) while the cut-off is 0.</td></tr>';
   }
 
   // ---------- detail ----------
@@ -1602,6 +1615,8 @@
     if (brm) { setups.splice(+brm.getAttribute('data-brm'), 1); saveSetups(); renderSetups(); return; }
     var bld = t.closest('button[data-bload]');
     if (bld) { $('codeBox').value = setups[+bld.getAttribute('data-bload')].code; loadCode(); return; }
+    var pn = t.closest('button[data-pin]');                             // pin / unpin a build (round 66)
+    if (pn) { var pk = pn.getAttribute('data-pin'); if (pins[pk]) delete pins[pk]; else pins[pk] = 1; savePins(); render(); showStale(); return; }
     var rt = t.closest('button[data-races]');
     if (rt) { var rk = rt.getAttribute('data-races'); raceOpen[rk] = !raceOpen[rk]; render(); return; }
     var lb = t.closest('button[data-log]');

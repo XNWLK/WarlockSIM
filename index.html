@@ -333,7 +333,11 @@
   .cmprot { margin: 4px 0 0; padding-left: 22px; display: grid; gap: 2px; font-size: 12px; }
   .cmprot li.only { background: var(--accent-soft); border-radius: 3px; }
   .ctag.snap { color: var(--c-hit); border-color: var(--c-hit); }
-  .ctag.pin { color: var(--muted); border-color: var(--muted); }   /* pinned reference builds (round 65) */
+  /* pin button left of the rank (round 66): keeps a build shown whatever the display cut-off */
+  #results td.rankcell { white-space: nowrap; }
+  .pinbtn { padding: 1px 3px; margin-right: 3px; border: 1px solid transparent; background: none; color: var(--line); line-height: 0; vertical-align: -1px; }
+  .pinbtn:hover { color: var(--muted); border-color: var(--line); }
+  .pinbtn[aria-pressed=true] { color: var(--accent); }
   /* ---------- round 45: details layout, DPS bar ---------- */
   .dgrid { grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 12px; }
   .dgrid > div:not(.dactions) { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; min-width: 0; }
@@ -491,7 +495,7 @@
           <label class="f" for="durVar" title="Each fight lasts the duration ± up to this % (uniform), so results don't hinge on one exact fight length (A56).">Length variation ± %<input id="durVar" type="number" min="0" max="50" step="5"></label>
           <label class="f" for="weightIterations">Fights per stat weight<input id="weightIterations" type="number" min="10" step="100"></label>
           <label class="f" for="seed" title="Same seed = the same fights = reproducible results.">Random seed<input id="seed" type="number"></label>
-          <label class="f" for="showPct" title="Rows more than this % behind the best DPS are hidden (still simulated). 0 = show all.">Show builds within % of best<input id="showPct" type="number" min="0" max="100" step="1"></label>
+          <label class="f" for="showPct" title="Rows more than this % behind the best DPS are hidden (still simulated); applies at once, no rerun. 0 = show all (default). Pinned builds (the pin left of the rank) always stay shown.">Show builds within % of best<input id="showPct" type="number" min="0" max="100" step="1"></label>
           <label class="f" for="o_eureka" title="Eureka! (Gnome) is a +10% damage aura on all your damage (DoTs included) until you have cast 3 spells, at most 15 s. When should it be popped?">Eureka! (Gnome) pop<select id="o_eureka">
             <option value="doom">before a long cast, timed with Bane of Doom</option>
             <option value="long">before a long cast (≥ 1.4 s)</option>
