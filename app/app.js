@@ -442,7 +442,7 @@
   function cutPct() { var p = (runCfg.options || {}).showWithinPct; return p > 0 ? p : 0; }
   function withinCut(r) {
     var p = cutPct();
-    if (r.build.custom || isAnchor(r.build)) return true;
+    if (r.build.custom || r.build.pinned || isAnchor(r.build)) return true;   // pinned: reference builds (round 65)
     if (isBase(r)) { var br = bestRow(r.build.key); return !!br && withinCut(br); }
     return !p || r.dps >= best() * (1 - p / 100) - 1e-9;
   }
@@ -463,7 +463,7 @@
     var tags = anchors().filter(function (a) { return a.key === r.build.key; }).map(function (a) {
       var tn = WL.TREES[a.tree].name;
       return '<span class="ctag t-' + a.tree + '" title="Best build with at least ' + a.minPoints + ' ' + esc(tn) + ' points: always shown, however far behind it is">best ' + esc(tn) + '</span>';
-    }).join('') + (r.build.custom ? '<span class="ctag">yours</span>' : '');
+    }).join('') + (r.build.pinned ? '<span class="ctag pin" title="Reference build: always shown, however far behind it is">pinned</span>' : '') + (r.build.custom ? '<span class="ctag">yours</span>' : '');
     var race = esc(WL.RACES[r.race].name) + (isBase(r) ? ' — baseline' : '');
     if (twoLines) return '<span class="split">' + split(r.build) + '</span>' + esc(r.build.short) + '<span class="bsub">' + race + tags + '</span>';
     return '<span class="split">' + split(r.build) + '</span>' + esc(r.build.short) + tags + ' <span class="meta">(' + race + ')</span>';
