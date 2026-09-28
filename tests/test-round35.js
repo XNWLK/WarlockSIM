@@ -4,7 +4,7 @@
 (function () {
   function scenario() {
     var b = JSON.parse(JSON.stringify(WL.BUILDS.filter(function (x) { return x.key === 'demo_pact_succ_sb'; })[0]));
-    delete b.talents.improvedLifeTap; b.talents.felDomination = 1;
+    delete b.talents.suppression; b.talents.felDomination = 1;   // user's scenario: the point that was Improved Life Tap (Suppression since round 61) → Fel Domination
     b.key = 't35swap'; b.short = 'swap test';
     b.rotation = ['bane', 'curseOfElements', 'searingPainBrand', 'immolate', 'corruption', 'swapToImp', 'soulFire', 'searingPainExecute', 'shadowBolt'];
     return b;

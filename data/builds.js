@@ -19,12 +19,12 @@ WL.BUILDS = [
   {
     key: 'demo_pact_succ_sb', short: 'Demo Pact Shadow Bolt Succubus',
     name: 'Demonology – Pact, Succubus out, Shadow Bolt',
-    notes: '2/31/18. Imp sacrificed (+15% Shadow, kept by Demonic Pact), Succubus out: Master Demonologist +10% Shadow for you and her, Improved Sayaad, Lash of Pain, melee, Demonic Brand upkeep with Searing Pain. Best build since round 16 (pets at 15% of your spell power); was the Succubus reference row before. Local optimum of the hill-climb; rotation order within noise of the best of 120 orders. Soul Fire during Decimation before Shadow Bolt is equal within noise (+0.03%, round 25), so it is left out. Improved Shadow Bolt 2 / Cataclysm 3 is best self-buffed (ISB up only ~16%, mana is short); with full raid buffs + consumables 5/5 ISB and no Cataclysm is +0.7% (04_EXPLORATION §11). Round 30 (Eureka! mana -50% -> -10%, beta 2026-09-24): -1 Suppression +1 Improved Life Tap is now +0.5% (mana got scarcer); Human and Gnome tie as best race (§18).',
+    notes: '2/31/18. Imp sacrificed (+15% Shadow, kept by Demonic Pact), Succubus out: Master Demonologist +10% Shadow for you and her, Improved Sayaad, Lash of Pain, melee, Demonic Brand upkeep with Searing Pain. Best build since round 16 (pets at 15% of your spell power); was the Succubus reference row before. Local optimum of the hill-climb; rotation order within noise of the best of 120 orders. Soul Fire during Decimation before Shadow Bolt is equal within noise (+0.03%, round 25), so it is left out. Improved Shadow Bolt 2 / Cataclysm 3 is best self-buffed (ISB up only ~16%, mana is short); with full raid buffs + consumables 5/5 ISB and no Cataclysm is +0.7% (04_EXPLORATION §11). Round 30 (Eureka! mana -50% -> -10%, beta 2026-09-24): -1 Suppression +1 Improved Life Tap is now +0.5% (mana got scarcer); Human and Gnome tie as best race (§18). Round 61 (raid buffs + Judgement of Wisdom on by default, v52): mana is no longer short, so -3 Cataclysm +3 Improved Shadow Bolt (5/5) and -1 Improved Life Tap +1 Suppression: +0.62% Human (701.73 -> 706.11), +0.48% Gnome, 10,000 fights (04_EXPLORATION §28).',
     talents: {
-      improvedLifeTap: 1, improvedCorruption: 1,   // round 30: -1 Suppression +1 Improved Life Tap (+0.51% Human / +0.53% Gnome, 10,000 fights)
+      suppression: 1, improvedCorruption: 1,   // round 61: -1 Improved Life Tap +1 Suppression (round 30 had moved it the other way)
       unholyPower: 5, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, improvedSayaad: 3, masterSummoner: 2,
       decimation: 2, demonicBrand: 3, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
-      improvedShadowBolt: 2, bane: 5, cataclysm: 3, ruin: 5, agonizingFlames: 3,
+      improvedShadowBolt: 5, bane: 5, ruin: 5, agonizingFlames: 3,   // round 61: -3 Cataclysm +3 Improved Shadow Bolt
     },
     pet: 'succubus', sacrifice: 'imp', oil: 'spellstone',
     rotation: ['bane', 'curseOfElements', 'searingPainBrand', 'immolate', 'corruption', 'shadowBolt'],
@@ -32,12 +32,12 @@ WL.BUILDS = [
   {
     key: 'aff_pact_succ_sb', short: 'Aff Pact Shadow Bolt Succubus',
     name: 'Affliction/Demonology – Pact, Succubus out, Shadow Bolt',
-    notes: '15/31/5 (new in round 16). Affliction side (Suppression, Improved Corruption, Improved Life Tap, Malediction, Pandemic) with the Pact tree, Imp sacrificed, Succubus out, Shadow Bolt filler. Within 0.7% of the best; local optimum of the hill-climb.',
+    notes: '15/31/5 (new in round 16). Affliction side (Suppression, Improved Corruption, Improved Life Tap, Malediction, Pandemic) with the Pact tree, Imp sacrificed, Succubus out, Shadow Bolt filler. Within 0.7% of the best; local optimum of the hill-climb. Round 61 (v52 defaults): -2 Malediction +2 Improved Shadow Bolt -> 13/31/7, +0.58% Undead (688.97 -> 692.99), +0.64% Gnome, 10,000 fights (04_EXPLORATION §28).',
     talents: {
-      suppression: 5, improvedCorruption: 2, improvedLifeTap: 2, malediction: 3, pandemic: 3,
+      suppression: 5, improvedCorruption: 2, improvedLifeTap: 2, malediction: 1, pandemic: 3,   // round 61: -2 Malediction +2 Improved Shadow Bolt
       unholyPower: 5, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, improvedSayaad: 3, masterSummoner: 2,
       decimation: 2, demonicBrand: 3, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
-      bane: 5,
+      improvedShadowBolt: 2, bane: 5,
     },
     pet: 'succubus', sacrifice: 'imp', oil: 'spellstone',
     rotation: ['bane', 'curseOfElements', 'searingPainBrand', 'corruption', 'immolate', 'shadowBolt'],
@@ -96,11 +96,11 @@ WL.BUILDS = [
   {
     key: 'demo_pact_imp_sb', short: 'Demo Pact Shadow Bolt Imp',
     name: 'Demonology – Pact, Imp out, Shadow Bolt',
-    notes: '2/31/18 (round 13: −3 Improved Shadow Bolt +3 Cataclysm). Succubus sacrificed (+15% Fire for Immolate/Soul Fire), Imp out with Improved Imp and Demonic Energies. Shadow Bolt filler. Unchanged in round 16 (best move +0.46%). With full raid buffs + consumables 5/5 Improved Shadow Bolt and no Cataclysm is +1.2% (04_EXPLORATION §11).',
+    notes: '2/31/18 (round 13: −3 Improved Shadow Bolt +3 Cataclysm). Succubus sacrificed (+15% Fire for Immolate/Soul Fire), Imp out with Improved Imp and Demonic Energies. Shadow Bolt filler. Unchanged in round 16 (best move +0.46%). With full raid buffs + consumables 5/5 Improved Shadow Bolt and no Cataclysm is +1.2% (04_EXPLORATION §11). Round 61 (v52 defaults): -1 Demonic Brand +1 Improved Health Funnel, -1 Suppression +1 Improved Corruption: +0.54% Human (653.61 -> 657.12), +0.59% Undead, 10,000 fights. Brand 2/3 = 4 charges: the Imp spends them before the 10 s brand expires (3/3 lost charges to the timer), so more charges land (64.5 vs 61.8 per fight) and the extra Searing Pains out-damage the Shadow Bolts they replace; Improved Health Funnel itself does nothing (04_EXPLORATION §28).',
     talents: {
-      suppression: 2,
+      suppression: 1, improvedCorruption: 1, improvedHealthFunnel: 1,   // round 61: -1 Suppression +1 Improved Corruption; Health Funnel = row-1 filler for the Brand point
       unholyPower: 5, improvedImp: 3, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, masterSummoner: 2,
-      decimation: 2, demonicBrand: 3, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
+      decimation: 2, demonicBrand: 2, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
       improvedShadowBolt: 2, bane: 5, cataclysm: 3, ruin: 5, agonizingFlames: 3,
     },
     pet: 'imp', sacrifice: 'succubus', oil: 'spellstone',
@@ -134,9 +134,9 @@ WL.BUILDS = [
   {
     key: 'aff_succ_sb', short: 'Aff Shadow Bolt Succubus',
     name: 'Affliction (25 points) – Succubus out, Shadow Bolt',
-    notes: '25/24/2 (new in round 28, user: always show the best build with at least 25 Affliction points). Best of 24 starting builds (25/26/0, 30/21/0, 31/20/0 Wrack, 30/0/21, 40/11/0 families; Shadow Bolt / Wrack / Searing Pain fillers — Drain Life fillers lost in round 24; Succubus / Imp / sacrifice) after hill-climbs kept at >= 25 Affliction points (04_EXPLORATION §16): the climb from 30/21/0 moved Shadow Mastery out into Demonic Knowledge, Soul Link and Bane (moves >= +0.5% only). No Demonic Pact (needs 31 Demonology), so no sacrifice: the Succubus is out with Improved Sayaad, Demonic Brand, Soul Link and Demonic Knowledge. About 13% behind the best build. Every action pays (without Siphon Life -1.4%, Soul Fire -0.6%); best of 720 priority orders +0.37% (kept); Spellstone > Firestone. Round 29 (user checks, 10,000 fights): Master Summoner / Demonic Energies -> Demonic Embrace give identical DPS (none of the three adds damage; the Succubus never runs out of mana, so Demonic Energies does nothing here — the points are only row-gate fillers; Embrace is +0.01% per point for Undead via Touch of the Grave); Bane 2 -> Shadow Mastery 2 -0.74%, -> Soul Siphon 3/3 -1.74% (drains only). Round 30 (user): Master Summoner 1 -> Demonic Embrace, Demonic Energies 2 -> 1 (+1 Embrace) adopted anyway — same DPS, more Stamina (and slightly more Touch of the Grave for Undead).',
+    notes: '25/24/2 (new in round 28, user: always show the best build with at least 25 Affliction points). Best of 24 starting builds (25/26/0, 30/21/0, 31/20/0 Wrack, 30/0/21, 40/11/0 families; Shadow Bolt / Wrack / Searing Pain fillers — Drain Life fillers lost in round 24; Succubus / Imp / sacrifice) after hill-climbs kept at >= 25 Affliction points (04_EXPLORATION §16): the climb from 30/21/0 moved Shadow Mastery out into Demonic Knowledge, Soul Link and Bane (moves >= +0.5% only). No Demonic Pact (needs 31 Demonology), so no sacrifice: the Succubus is out with Improved Sayaad, Demonic Brand, Soul Link and Demonic Knowledge. About 13% behind the best build. Every action pays (without Siphon Life -1.4%, Soul Fire -0.6%); best of 720 priority orders +0.37% (kept); Spellstone > Firestone. Round 29 (user checks, 10,000 fights): Master Summoner / Demonic Energies -> Demonic Embrace give identical DPS (none of the three adds damage; the Succubus never runs out of mana, so Demonic Energies does nothing here — the points are only row-gate fillers; Embrace is +0.01% per point for Undead via Touch of the Grave); Bane 2 -> Shadow Mastery 2 -0.74%, -> Soul Siphon 3/3 -1.74% (drains only). Round 30 (user): Master Summoner 1 -> Demonic Embrace, Demonic Energies 2 -> 1 (+1 Embrace) adopted anyway — same DPS, more Stamina (and slightly more Touch of the Grave for Undead). Round 61 (v52 defaults): -1 Soul Siphon (it only helps drains) -1 Improved Corruption +2 Malevolence (5/5): +0.51% Undead (598.60 -> 601.67), +0.49% Human, 10,000 fights (04_EXPLORATION §28).',
     talents: {
-      suppression: 5, improvedCorruption: 5, improvedLifeTap: 2, malediction: 5, pandemic: 3, malevolence: 3, siphonLife: 1, soulSiphon: 1,
+      suppression: 5, improvedCorruption: 4, improvedLifeTap: 2, malediction: 5, pandemic: 3, malevolence: 5, siphonLife: 1,   // round 61: -1 Soul Siphon -1 Improved Corruption +2 Malevolence
       unholyPower: 5, demonicEmbrace: 2, felVitality: 3, demonicEnergies: 1, improvedSayaad: 3, demonicSacrifice: 1,
       decimation: 2, demonicBrand: 3, soulLink: 1, demonicKnowledge: 3,
       bane: 2,
