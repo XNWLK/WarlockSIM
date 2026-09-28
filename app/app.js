@@ -1452,7 +1452,13 @@
     Object.keys(raid.buffs).forEach(function (k) { raid.buffs[k].on = true; });
     ['flaskSupremePower', 'greaterArcaneElixir', 'shadowPower', 'elixirOwl', 'nightfinSoup', 'majorManaPotion', 'demonicRune']
       .forEach(function (k) { if (raid.consumables[k]) raid.consumables[k].on = true; });
-    return [{ name: 'Pre-raid, self-buffed (default)', code: WL.encodeSettings(d), builtin: true },
+    // Round 60: the defaults have 7 raid buffs + Curse of Recklessness + Judgement of Wisdom on; "self-buffed" = the old
+    // defaults (every raid buff off, only Sunder Armor + Faerie Fire on the boss).
+    var self = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
+    Object.keys(self.buffs).forEach(function (k) { self.buffs[k].on = false; });
+    Object.keys(self.debuffs).forEach(function (k) { self.debuffs[k].on = k === 'sunderArmor' || k === 'faerieFire'; });
+    return [{ name: 'Default (7 raid buffs, Curse of Recklessness, Judgement of Wisdom)', code: WL.encodeSettings(d), builtin: true },
+            { name: 'Self-buffed (no raid buffs; Sunder Armor + Faerie Fire only)', code: WL.encodeSettings(self), builtin: true },
             { name: 'Full raid buffs + caster consumables', code: WL.encodeSettings(raid), builtin: true }];
   }
   function savePresets() { try { localStorage.setItem('wfs.presets', JSON.stringify(userPresets)); } catch (e) { /* page only */ } }
