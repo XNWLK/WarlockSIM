@@ -144,4 +144,29 @@ WL.BUILDS = [
     pet: 'succubus', sacrifice: null, oil: 'spellstone',
     rotation: ['bane', 'curseOfElements', 'searingPainBrand', 'corruption', 'siphonLife', 'immolate', 'soulFire', 'shadowBolt'],
   },
+  // ---- Pinned reference builds (round 65, user): classic layouts, always shown however far behind (tag "pinned") ----
+  {
+    key: 'sm_ruin_classic', short: 'SM Ruin (classic)', pinned: true,
+    name: 'SM Ruin (classic) – Affliction / Destruction, Succubus out, Shadow Bolt',
+    notes: '33/0/18 (user, round 65): the classic Shadow Mastery / Ruin layout — Suppression, Improved Corruption, Improved Life Tap, Malediction, Pandemic, Malevolence, Nightfall, Siphon Life, Shadow Mastery; Bane, Improved Shadow Bolt, Ruin, Agonizing Flames. No Demonology, so no sacrifice: the Succubus is out (Imp -10%), Spellstone (Firestone -0.8%); Human best. Priority = best of all 720 orders (+0.30% over the starting order, the top 5 within 0.3%); every action pays (without Bane -12.5%, Corruption -7.7%, Curse of the Elements -7.5%, Immolate -3.0%, Siphon Life -1.0%; Shadow Trance action neutral), Shadow Bolt Rank 2 filler -0.3%, Searing Pain -11% (04_EXPLORATION §30).',
+    talents: {
+      suppression: 5, improvedCorruption: 5, improvedLifeTap: 2, malediction: 5, pandemic: 3, malevolence: 5, nightfall: 2,
+      siphonLife: 1, shadowMastery: 5,
+      bane: 5, improvedShadowBolt: 5, ruin: 5, agonizingFlames: 3,
+    },
+    pet: 'succubus', sacrifice: null, oil: 'spellstone',
+    rotation: ['bane', 'corruption', 'shadowTrance', 'siphonLife', 'curseOfElements', 'immolate', 'shadowBolt'],
+  },
+  {
+    key: 'ds_ruin_classic', short: 'DS Ruin (classic)', pinned: true,
+    name: 'DS Ruin (classic) – Demonic Sacrifice (Imp) / Destruction, Shadow Bolt',
+    notes: '22/11/18 (user, round 65): the classic Demonic Sacrifice / Ruin layout — Suppression, Improved Corruption, Malediction 2, Pandemic, Nightfall, Malevolence; Demonic Embrace, Fel Vitality, Demonic Aegis, Demonic Sacrifice; Bane, Improved Shadow Bolt, Ruin, Agonizing Flames. Imp sacrificed (+15% Shadow; Succubus sacrifice +15% Fire is -10%), no pet out, Spellstone; Human best. Priority = best of all 120 orders (+0.35%); without Bane -14.8%, Corruption -9.1%, Curse of the Elements -8.4%, Immolate -2.3%, Shadow Trance neutral; Searing Pain filler -17.5%. Shadow Bolt Rank 2 filler +1.1%, but only if Forever has no low-rank penalty (A70, unconfirmed) — not used (04_EXPLORATION §30).',
+    talents: {
+      suppression: 5, improvedCorruption: 5, malediction: 2, pandemic: 3, nightfall: 2, malevolence: 5,
+      demonicEmbrace: 5, felVitality: 3, demonicAegis: 2, demonicSacrifice: 1,
+      bane: 5, improvedShadowBolt: 5, ruin: 5, agonizingFlames: 3,
+    },
+    pet: null, sacrifice: 'imp', oil: 'spellstone',
+    rotation: ['bane', 'corruption', 'immolate', 'shadowTrance', 'curseOfElements', 'shadowBolt'],
+  },
 ];
