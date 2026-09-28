@@ -134,6 +134,40 @@ WL.ACTIONS = {
       return left <= S.castTime('shadowBolt') ? 'shadowBolt' : null;
     },
   },
+  // Rank 2 twin of isbUpkeep (round 71, user): keep ISB up with the cheap Shadow Bolt Rank 2. (While Shadow Trance is up the
+  // engine still swaps it for the max-rank bolt, round 59.)
+  isbUpkeepR2: {
+    label: 'Shadow Bolt (Rank 2) to keep Improved Shadow Bolt up on the boss',
+    pick: function (S) {
+      if (!S.build.talents.improvedShadowBolt) return null;
+      var left = S.buff('isb') ? S.buffs.isb - S.t : 0;
+      return left <= S.castTime('shadowBoltR2') ? 'shadowBoltR2' : null;
+    },
+  },
+  // Shadow Bolt Rank 2 while mana is below 740 (round 71, user): cast the 40-mana bolt instead of dropping to a Life Tap;
+  // above 740 the next action (normally the Rank 9 filler) is cast. Put it right above the filler. [A74]
+  shadowBoltR2LowMana: {
+    label: 'Shadow Bolt (Rank 2) if mana is below 740',
+    pick: function (S) { return S.mana < 740 ? 'shadowBoltR2' : null; },
+  },
+  // Death Coil (round 71, user; damage only, the heal is not modelled) [A74]
+  deathCoil: {
+    label: 'Death Coil on cooldown',
+    pick: function (S) { return S.ready('deathCoil') ? 'deathCoil' : null; },
+  },
+  // Finisher: the last spell before the boss dies — when the time left is shorter than the filler's cast (so a normal
+  // spell could not land any more) and Death Coil can still land (travel time). Put it at the top of the priority.
+  deathCoilFinisher: {
+    label: 'Death Coil as the finisher (when the filler would not land before the boss dies)',
+    pick: function (S) {
+      if (!S.ready('deathCoil')) return null;
+      var rot = S.build.rotation, f = null;
+      for (var i = rot.length - 1; i >= 0 && !f; i--) { var A = WL.ACTIONS[rot[i]]; if (A && A.filler) f = A.pick(S); }
+      var sf = f && WL.SPELLS[f], need = !f ? S.gcd() : sf.kind === 'channel' ? sf.tickEvery : Math.max(S.castTime(f), 0.001);
+      var travel = Math.max(0, (S.cfg.fight.travelMs || 0) / 1000);
+      return S.remaining < need - 1e-6 && S.remaining > travel + 1e-6 ? 'deathCoil' : null;
+    },
+  },
   // Mid-fight pet swap (round 35, A63): the first time the boss is in the execute phase, sacrifice the active pet
   // (Demonic Sacrifice, off the GCD), Fel Domination (off the GCD) and summon the other demon (instant with Fel
   // Domination + Master Summoner 2/2; one GCD). Needs Demonic Sacrifice, Demonic Pact and Fel Domination. The sim then
