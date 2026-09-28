@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v59
+- New priority action **Conflagrate for Shadow and Flame**: Conflagrate only to keep the Shadow buff up (twin of the
+  Shadowburn one).
+
 ## v58
 - **All builds shown by default**; the cut-off applies instantly without a rerun.
 - **Pin button** on every row: pinned builds stay visible when a cut-off is set.

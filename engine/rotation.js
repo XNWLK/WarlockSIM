@@ -72,6 +72,16 @@ WL.ACTIONS = {
       return left <= 3 ? 'shadowburn' : null;
     },
   },
+  // Conflagrate only to keep Shadow and Flame's Shadow buff (+10% Shadow, 20 s) up (round 67, user; like shadowburnSnF):
+  // cast when the buff is missing or has ≤ 3 s left, instead of on every 10 s cooldown. Needs Immolate on the target.
+  conflagrateSnF: {
+    label: 'Conflagrate only to keep Shadow and Flame (Shadow +10%) up (≤ 3 s left)',
+    pick: function (S) {
+      if (!S.has('conflagrate') || !S.build.talents.shadowAndFlame || !S.ready('conflagrate') || !(S.dotLeft('immolate') > 0)) return null;
+      var left = S.buff('snfShadow') ? S.buffs.snfShadow - S.t : 0;
+      return left <= 3 ? 'conflagrate' : null;
+    },
+  },
   // Multi-DoT (round 27, A61): keep Corruption / Siphon Life / Bane of Agony / Immolate on targets 2 and 3.
   // Same refresh rule as on the boss (missing or expiring; near the end only while it still pays off, round 53). The Havoc target cannot
   // take Bane of Agony (one Bane per target). Sets S.nextTarget so the engine applies the spell to that target.

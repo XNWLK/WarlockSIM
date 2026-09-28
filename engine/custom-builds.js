@@ -36,8 +36,9 @@ WL.validateBuild = function (b) {
   else if (fi >= 0 && fi < rot.length - 1) errs.push('Everything after the first filler (' + WL.ACTIONS[rot[fi]].label + ') is never cast — move the filler to the end');
   // Talent-gated actions without the talent (they would silently never fire).
   var gated = { conflagrate: 'conflagrate', shadowburn: 'shadowburn', incinerate: 'incinerate', wrack: 'wrack', siphonLife: 'siphonLife',
-    searingPainBrand: 'demonicBrand', lifeTapPet: 'demonicEnergies', shadowburnSnF: 'shadowAndFlame', shadowBoltSpread: 'improvedShadowBolt', isbUpkeep: 'improvedShadowBolt' };
+    searingPainBrand: 'demonicBrand', lifeTapPet: 'demonicEnergies', shadowburnSnF: 'shadowAndFlame', conflagrateSnF: 'shadowAndFlame', shadowBoltSpread: 'improvedShadowBolt', isbUpkeep: 'improvedShadowBolt' };
   if (rot.indexOf('shadowburnSnF') >= 0 && !t.shadowburn) errs.push('"' + WL.ACTIONS.shadowburnSnF.label + '" needs the Shadowburn talent');
+  if (rot.indexOf('conflagrateSnF') >= 0 && !t.conflagrate) errs.push('"' + WL.ACTIONS.conflagrateSnF.label + '" needs the Conflagrate talent');
   rot.forEach(function (a) { if (gated[a] && !t[gated[a]]) errs.push('"' + WL.ACTIONS[a].label + '" needs the ' + WL.TALENT_BY_KEY[gated[a]].name + ' talent'); });
   if ((rot.indexOf('searingPainBrand') >= 0 || rot.indexOf('lifeTapPet') >= 0) && !b.pet) errs.push('Demonic Brand upkeep / Life Tap for the pet need a pet out');
   // Mid-fight pet swap (round 35): sacrifice the pet at execute, Fel Domination, summon the other one.
