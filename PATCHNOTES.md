@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v57
+- **Pinned reference builds**, always shown: **SM Ruin (classic)**, **DS Ruin (classic)** and **Wrack DS**, each with its
+  best priority. SM Ruin is now the best Affliction build.
+
 ## v56
 - New priority action **Shadow Bolt (max rank) to keep ISB up**: Shadow Bolt until Improved Shadow Bolt is up, then back
   to the filler (for Fire builds with Shadow DoTs). Works, but loses 6–8% in the Destruction builds.

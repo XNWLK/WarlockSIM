@@ -169,4 +169,17 @@ WL.BUILDS = [
     pet: null, sacrifice: 'imp', oil: 'spellstone',
     rotation: ['bane', 'corruption', 'immolate', 'shadowTrance', 'curseOfElements', 'shadowBolt'],
   },
+  {
+    key: 'wrack_ds', short: 'Wrack DS', pinned: true,
+    name: 'Wrack DS – Affliction (Wrack) / Demonic Sacrifice (Imp)',
+    notes: '35/11/5 (user, round 65): Suppression, Improved Corruption, Malediction, Pandemic, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon, Wrack; Fel Vitality, Demonic Embrace, Demonic Aegis, Demonic Sacrifice; Improved Shadow Bolt. Imp sacrificed (+15% Shadow), no pet out, Spellstone; Undead best (Human within 0.2%). Wrack checked first: 36 + 14.3% SP per second for 6 s, 200 mana, +10% on Corruption and Bane of Agony while it channels (the spell data lists only those two; the tooltip says "other Shadow damage over time effects" — with Siphon Life +0.43%, with Bane of Doom too +1.21%). Priority = best of all 720 orders (+0.39%, top 5 within 0.1%); without Bane -19.2%, Corruption -15.9%, Curse of the Elements -8.7%, Shadow Trance -3.6%, Siphon Life -3.3%, Immolate -2.8%; Drain Life filler -5.6%. Wrack is the weakest filler of this build: Shadow Bolt instead +5.4%, Wrack with "keep ISB up" above it +4.4% (04_EXPLORATION §30).',
+    talents: {
+      suppression: 5, improvedCorruption: 5, malediction: 5, pandemic: 3, malevolence: 5, siphonLife: 1, nightfall: 2,
+      shadowMastery: 5, soulSiphon: 3, wrack: 1,
+      felVitality: 3, demonicEmbrace: 5, demonicAegis: 2, demonicSacrifice: 1,
+      improvedShadowBolt: 5,
+    },
+    pet: null, sacrifice: 'imp', oil: 'spellstone',
+    rotation: ['bane', 'corruption', 'siphonLife', 'curseOfElements', 'immolate', 'shadowTrance', 'wrack'],
+  },
 ];
