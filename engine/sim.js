@@ -776,9 +776,9 @@ window.WL = window.WL || {};
       var up = Math.max(0, end - (S.t + occupies(key)));                   // time the new DoT is up after this cast
       if (key === 'immolate' && ti <= 1 && f === 'incinerate')             // Incinerate +25% while Immolate is up
         value += hit * up / occupies('incinerate') * expCast('incinerate', 0, true) * SPELLS.incinerate.immolateBonusPct / 100;
-      // Nightfall: a proc makes the next Shadow Bolt instant — the Shadow Trance action's Rank 9, or else a Shadow Bolt filler
-      // of any rank (round 57) — so one filler GCD turns into that bolt.
-      var sbKey = ROT.indexOf('shadowTrance') >= 0 && table.shadowBolt ? 'shadowBolt' : (f && isSB(f) ? f : null);
+      // Nightfall: a proc makes the next Shadow Bolt instant — always the max-rank bolt (round 59, `shadowBolt`), with the
+      // Shadow Trance action or a Shadow Bolt filler of any rank (round 57) — so one filler GCD turns into that bolt.
+      var sbKey = table.shadowBolt && (ROT.indexOf('shadowTrance') >= 0 || (f && isSB(f))) ? 'shadowBolt' : null;
       if (WL.NIGHTFALL_SPELLS.indexOf(key) >= 0 && tv('nightfall') && sbKey) {
         var procTicks = 0;
         for (var j = 1; j <= nTicks; j++) if (tL + j * s.tickEvery <= dur - gcd + EPS) procTicks++;
@@ -816,6 +816,10 @@ window.WL = window.WL || {};
         S.nextTarget = 0;                                                // set by multiDot to 2 / 3
         S.actionIndex = i;                                               // lets the DoT check find the filler below (round 53)
         var k = a.pick(S);
+        // Nightfall (round 59, user): a Shadow Trance proc is always spent on the max-rank Shadow Bolt (Rank 9, Rank 10 with
+        // the AQ20 book option = `shadowBolt` in this fight's spell values), also when the action picked a lower rank (the
+        // Rank 2 filler) — the player presses the max rank while the bolt is instant. [A21]
+        if (k && k !== 'shadowBolt' && isSB(k) && S.buff('shadowTrance') && table.shadowBolt) k = 'shadowBolt';
         if (k && k.indexOf('swap:') === 0) return { key: k, index: i, target: 0 };   // pet swap (instant summon, round 35)
         if (k && table[k] && canCastNow(k)) return { key: k, index: i, target: S.nextTarget || 0 };   // movement: only instants while moving (W11)
       }

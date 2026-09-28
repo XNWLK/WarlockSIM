@@ -28,7 +28,7 @@ WL.ACTIONS = {
   },
   // Nightfall proc: instant Shadow Bolt.
   shadowTrance: {
-    label: 'Shadow Bolt if Shadow Trance (Nightfall) is up',
+    label: 'Shadow Bolt (max rank) if Shadow Trance (Nightfall) is up',
     pick: function (S) { return S.buff('shadowTrance') ? 'shadowBolt' : null; },
   },
   // One Bane per target: Bane of Doom when ready and it will explode before the fight ends, else Bane of Agony.

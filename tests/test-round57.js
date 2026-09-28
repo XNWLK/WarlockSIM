@@ -34,8 +34,10 @@
     var crits = ri.log.filter(function (e) { return e.type === 'hit' && e.spell === 'shadowBoltR2' && e.crit; }).length;
     T.ok(crits > 0 && log(ri, 'debuff', 'isb').length === crits, 'every Rank 2 crit applies ISB at 100% hit (' + crits + ' crits)');
     var rn = WL.simulateOnce(tb(['corruption', 'shadowBoltR2'], { nightfall: 2 }), 'human', c, { duration: 300, log: true, seed: 3 });
-    var tr = log(rn, 'cast', 'shadowBoltR2').filter(function (e) { return e.trance; });
-    T.ok(tr.length > 0 && tr.every(function (e) { return e.castTime === 0; }), 'Shadow Trance makes the next Rank 2 instant (' + tr.length + '×)');
+    // Round 59 (user): the proc is spent on the max-rank Shadow Bolt instead (was: the next Rank 2 became instant).
+    var tr = log(rn, 'cast', 'shadowBolt').filter(function (e) { return e.trance; });
+    T.ok(tr.length > 0 && tr.every(function (e) { return e.castTime === 0; }) && log(rn, 'cast', 'shadowBoltR2').every(function (e) { return !e.trance; }),
+      'Shadow Trance with a Rank 2 filler → an instant max-rank Shadow Bolt, never Rank 2 (round 59; ' + tr.length + '×)');
     var rd = WL.simulateOnce(tb(['shadowBoltR2'], { decimation: 2 }), 'human', c, { duration: 60, log: true, seed: 4 });
     var cut = 60 * (1 - c.fight.executePct / 100), dec = log(rd, 'hit', 'shadowBoltR2');
     var pre = dec.filter(function (e) { return e.t < cut - 1e-6; })[0], ex = dec.filter(function (e) { return e.t > cut + 1e-6; })[0];

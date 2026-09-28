@@ -1233,7 +1233,7 @@
     curseOfElements: 'Curse of the Elements', bane: 'Bane of Doom, else Bane of Agony', baneOfAgony: 'Bane of Agony only (never Doom)',
     corruption: 'Corruption', siphonLife: 'Siphon Life', immolate: 'Immolate',
     multiDot: 'Keep DoTs on the extra targets', shadowBoltSpread: 'Shadow Bolt an extra target (for its ISB)',
-    shadowTrance: 'Shadow Bolt on Shadow Trance (Nightfall)', conflagrate: 'Conflagrate', shadowburn: 'Shadowburn on cooldown',
+    shadowTrance: 'Shadow Bolt (max rank) on Shadow Trance (Nightfall)', conflagrate: 'Conflagrate', shadowburn: 'Shadowburn on cooldown',
     shadowburnSnF: 'Shadowburn for Shadow and Flame', soulFire: 'Soul Fire during Decimation', searingPainBrand: 'Searing Pain for Demonic Brand',
     searingPainExecute: 'Searing Pain in the execute phase', lifeTapPet: 'Life Tap to feed the pet',
     swapToImp: 'Pet swap at execute → Imp', swapToSuccubus: 'Pet swap at execute → Succubus',
