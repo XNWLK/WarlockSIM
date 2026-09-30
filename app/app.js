@@ -193,7 +193,7 @@
     ['executePct', 'fight', 'executePct'], ['seed', 'fight', 'seed'],
     ['g_sp', 'gear', 'sp'], ['g_hitPct', 'gear', 'hitPct'], ['g_critPct', 'gear', 'critPct'], ['g_hastePct', 'gear', 'hastePct'],
     ['g_pierce', 'gear', 'pierce'], ['g_int', 'gear', 'int'], ['g_spi', 'gear', 'spi'], ['g_mp5', 'gear', 'mp5'],
-    ['g_sta', 'gear', 'sta'], ['g_shadowSp', 'gear', 'shadowSp'], ['g_fireSp', 'gear', 'fireSp'],
+    ['g_sta', 'gear', 'sta'], ['g_agi', 'gear', 'agi'], ['g_shadowSp', 'gear', 'shadowSp'], ['g_fireSp', 'gear', 'fireSp'],
     ['showPct', 'options', 'showWithinPct'],
     ['latencyMs', 'fight', 'latencyMs'], ['travelMs', 'fight', 'travelMs'], ['moveEvery', 'fight', 'moveEvery'], ['moveDuration', 'fight', 'moveDuration'], ['targets', 'fight', 'targets'],
   ];
@@ -289,6 +289,9 @@
     { k: 'int', label: 'Intellect', c: '--c-int', gear: function (g) { return g.int; }, tot: function (s) { return s.int; } },
     { k: 'spi', label: 'Spirit', gear: function (g) { return g.spi; }, tot: function (s) { return s.spi; } },
     { k: 'sta', label: 'Stamina', gear: function (g) { return g.sta; }, tot: function (s) { return s.sta; } },
+    // Round 75 (user): Agility → your melee crit, which the Succubus' melee inherits (Lash of Pain uses your spell crit).
+    { k: 'agi', label: 'Agility', gear: function (g) { return g.agi || 0; }, tot: function (s) { return s.agi; } },
+    { k: 'meleeCritPct', label: 'Melee crit % (Succubus melee)', c: '--c-crit', d: 2, gear: null, tot: function (s) { return s.meleeCritPct; } },
     { k: 'maxMana', label: 'Maximum mana', gear: null, tot: function (s) { return s.maxMana; } },
     { k: 'mp5', label: 'MP5', gear: function (g) { return g.mp5; }, tot: function (s) { return s.mp5; } },
   ];
@@ -751,6 +754,7 @@
     var statRows = [['Intellect', st.int, 'int', 1], ['Spirit', st.spi, 'spi', 1], ['Maximum mana', st.maxMana, 'maxMana', 0],
       ['Spell power', st.sp, 'sp', 0], ['+ Shadow spell power', st.schoolSp.shadow, 'shadowSp', 0], ['+ Fire spell power', st.schoolSp.fire, 'fireSp', 0],
       ['Hit chance %', st.hitPct, 'hitPct', 1], ['Crit % (before talents)', st.critPct, 'critPct', 2], ['Haste %', st.hastePct, 'hastePct', 1],
+      ['Agility', st.agi, 'agi', 1], ['Melee crit % (Succubus melee inherits it)', st.meleeCritPct, 'meleeCritPct', 2],
       ['Spell Pierce', st.pierce, 'pierce', 0],
       ['Shadow damage (auras)', pctOf(st.mult.shadow), 'shadowDmgPct', 1, true], ['Fire damage (auras)', pctOf(st.mult.fire), 'fireDmgPct', 1, true], ['All damage (auras)', pctOf(st.mult.all), 'allDmgPct', 1, true]];
     h += '<div class="wide"><h2>Stats used in the fight</h2><div class="scroll"><table class="stattab"><thead><tr><th>Stat</th><th class="n">Value</th><th>Where it comes from</th></tr></thead><tbody>' +
@@ -1170,6 +1174,7 @@
     var v = $('gearSel').value, g = v[0] === 'b' ? builtinGear()[+v.slice(1)] : userGear[+v.slice(1)]; if (!g) return;
     readSettings();
     var race = $('t_race').value;
+    if (g.gear.agi == null) cfg.gear.agi = 0;             // gear sets saved before round 75 have no Agility
     Object.keys(g.gear).forEach(function (k) { cfg.gear[k] = g.gear[k]; });
     initSettings(); $('t_race').value = race; renderTotals(); markDirty();
     gearMsg('Loaded "' + g.name + '" — press Sim!');

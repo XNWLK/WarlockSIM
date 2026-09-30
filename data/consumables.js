@@ -40,7 +40,7 @@ WL.CONSUMABLES = {
                          text: 'Increases Intellect by 25 for 1 hour.' },
   elixirOwl:           { on: false, id: 250337, icon: 'inv_potion_164', cat: 'Elixir', group: 'intElixir', name: 'Elixir of the Owl', desc: '+25 Intellect, +2% crit', int: 25, critPct: 2,
                          text: 'Drink to increase your Intellect by 25 and chance to critically hit by 2%. Lasts for 30 min.' },
-  elixirCunning:       { on: false, id: 250328, icon: 'inv_potion_166', cat: 'Elixir', group: 'intElixir', name: 'Elixir of Cunning', desc: '+25 Agility and Intellect', int: 25,
+  elixirCunning:       { on: false, id: 250328, icon: 'inv_potion_166', cat: 'Elixir', group: 'intElixir', name: 'Elixir of Cunning', desc: '+25 Agility and Intellect', int: 25, agi: 25,
                          text: 'Drink to gain 25 Agility and Intellect for 30 min.' },
   elixirTheSages:      { on: false, id: 13447, icon: 'inv_potion_29', cat: 'Elixir', group: 'intElixir', name: 'Elixir of the Sages', desc: '+18 Intellect and Spirit', int: 18, spi: 18,
                          text: 'Increases Intellect and Spirit by 18 for 1 hour.' },

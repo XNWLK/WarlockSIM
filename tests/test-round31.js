@@ -6,7 +6,7 @@
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     c.petSpPct = WL.SHIPPED_PETS.petSpPct; c.pets.succubus.melee.apPerSp = WL.SHIPPED_PETS.succApPerSp;
     c.pets.succubus.melee.baseDps = WL.SHIPPED_PETS.succBaseDps; c.pets.succubus.melee.critPct = WL.SHIPPED_PETS.succCrit;
-    c.pets.succubus.melee.inheritSpellCrit = WL.SHIPPED_PETS.succInherit;
+    c.pets.succubus.melee.inheritMeleeCrit = WL.SHIPPED_PETS.succInherit;
     return c;
   }
   function impBuild(talents) {
@@ -47,13 +47,13 @@
     T.ok(a2 > a1 + 1.5, 'Firebolt crit rate follows it (' + a1.toFixed(1) + '% → ' + a2.toFixed(1) + '%)');
     T.near(a1, stn.critPct, 1.2, 'Firebolt crit rate ≈ the Warlock\'s crit (' + stn.critPct.toFixed(2) + '%)');
 
-    T.group('Succubus melee crit = her own 7.52% + your spell crit − 4.8% crit suppression (rounds 32 and 42)');
+    T.group('Succubus melee crit = her own 7.52% + your MELEE crit − 4.8% crit suppression (rounds 42 and 75; round 32 used your spell crit)');
     var sb = { key: 't32succ', short: 't', name: 't', notes: '', talents: {}, pet: 'succubus', sacrifice: null, oil: 'none', rotation: ['shadowBolt'] };
     // Round 42: one-roll attack table — crits are a share of ALL swings (glancing blows take their own 40% slice).
     var meleeCrit = function (cfg) { var x = WL.simulate(sb, 'human', cfg, { iterations: 400, log: false }).bySpell['pet:melee']; return 100 * x.crits / x.casts; };
-    var ss = WL.computeStats(sb, 'human', shipped()), expect = WL.SHIPPED_PETS.succCrit + ss.critPct - 4.8, got = meleeCrit(shipped());
-    T.near(got, expect, 1.5, 'melee crit rate ≈ 7.52 + ' + ss.critPct.toFixed(2) + ' − 4.8 = ' + expect.toFixed(2) + '% of swings (measured ' + got.toFixed(2) + '%)');
+    var ss = WL.computeStats(sb, 'human', shipped()), expect = WL.SHIPPED_PETS.succCrit + ss.meleeCritPct - 4.8, got = meleeCrit(shipped());
+    T.near(got, expect, 1.5, 'melee crit rate ≈ 7.52 + ' + ss.meleeCritPct.toFixed(2) + ' − 4.8 = ' + expect.toFixed(2) + '% of swings (measured ' + got.toFixed(2) + '%)');
     var gotM = meleeCrit(cm);
-    T.ok(gotM > got + 1.5, 'follows your spell crit: Moonkin aura +3% → ' + gotM.toFixed(2) + '%');
+    T.near(gotM, got, 0.8, 'does not follow your spell crit any more (round 75): Moonkin aura +3% spell crit → ' + gotM.toFixed(2) + '%');
   });
 })();

@@ -640,10 +640,10 @@ window.WL = window.WL || {};
       var m = P.c.melee, r = row('pet:melee'), tb = cb.petMelee;
       r.casts++;
       // One-roll attack table (round 42) [A46]: miss (8% − your hit above base, first 1% ignored) → dodge 6.5% →
-      // glancing 40% at 65% damage → crit (own + your spell crit − 4.8%) → hit. The pet inherits your hit and crit.
+      // glancing 40% at 65% damage → crit (own + your MELEE crit − 4.8%; round 75, was your spell crit since round 32) → hit.
       var hitBonus = Math.max(0, stats.hitPct - cb.baseHitPct - tb.hitSuppressionPct);
       var miss = Math.max(0, tb.missPct - hitBonus), roll = R.pet() * 100;
-      var critCh = Math.max(0, m.critPct + (m.inheritSpellCrit ? stats.critPct : 0) - tb.critSuppressionPct);
+      var critCh = Math.max(0, m.critPct + (m.inheritMeleeCrit ? stats.meleeCritPct : 0) - tb.critSuppressionPct);
       if (roll >= miss + tb.dodgePct) {
         r.landed++;
         jowProc(true);                                                   // [A64]

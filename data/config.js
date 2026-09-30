@@ -25,6 +25,9 @@ WL.DEFAULT_CONFIG = {
     maxHitPct: 100,         // round 48 (user): Forever removed the permanent 1% miss → 17% usable hit, 100% reachable (was 99 / 16%, Classic & SoD) [A01]
     baseCritPct: 1.7,       // [A03]
     critPerInt: 1 / 60,     // 60 Int = 1% crit (user-confirmed) [A03]
+    // Your MELEE crit (round 75, user: it comes from Agility; the Succubus' melee inherits it, Lash of Pain your spell crit):
+    // Classic L60 Warlock: 2.0% base + 1% per 20 Agility (round 17 values, A75). Gear crit % is spell crit only.
+    meleeCritBasePct: 2.0, agiPerMeleeCrit: 20,
     ratingPerHitPct: 10,    // [A02]
     ratingPerCritPct: 14,   // [A04]
     ratingPerHastePct: 10,  // [A05]
@@ -61,6 +64,7 @@ WL.DEFAULT_CONFIG = {
     pierce: 0,              // Spell Pierce (new stat) [A44]
     // Round 37 (user): Int 148 / Spirit 54 (was 48 / 4 = Classic pre-raid BiS item sums, round 13).
     // Round 39 (user): Stamina 160 (was 92), MP5 0 (was 4).
+    agi: 0,                 // Agility from gear (round 75): only feeds your melee crit, which the Succubus' melee inherits [A75]
     int: 148, spi: 54, sta: 160, mp5: 0,  // gear only (race base is added by the engine); Int drives mana, Spirit drives Life Tap [A58]
     weaponIsSword: true,    // [A30] Human Sword Specialization
   },
@@ -74,16 +78,19 @@ WL.DEFAULT_CONFIG = {
   // Stormstrike, another Warlock's Improved Shadow Bolt (tooltips say "damage YOU deal" / "from YOUR attacks"). [A53]
   buffs: {
     arcaneIntellect:  { on: true, id: 10157, name: 'Arcane Intellect / Brilliance', cls: 'Mage',    desc: '+31 Intellect', int: 31 },
-    markOfTheWild:    { on: true, id: 9885, name: 'Mark / Gift of the Wild',       cls: 'Druid',   desc: '+16 all attributes', int: 16, spi: 16, sta: 16 },
+    markOfTheWild:    { on: true, id: 9885, name: 'Mark / Gift of the Wild',       cls: 'Druid',   desc: '+16 all attributes', int: 16, spi: 16, sta: 16, agi: 16 },
     fortitude:        { on: true, id: 10938, name: 'Power Word: Fortitude',         cls: 'Priest',  desc: '+70 Stamina (Touch of the Grave)', sta: 70 },
     divineSpirit:     { on: true, id: 27841, name: 'Divine Spirit / Prayer of Spirit', cls: 'Priest', desc: '+40 Spirit (Life Tap)', spi: 40 },
     blessingOfKings:  { on: true, id: 20217, name: 'Blessing of Kings',             cls: 'Paladin', desc: '+10% total stats', statPct: 10 },
     blessingOfWisdom: { on: true, id: 25290, name: 'Blessing of Wisdom',            cls: 'Paladin', desc: '40 mana every 5 s', mp5: 40 },
     manaSpring:       { on: false, id: 10497, name: 'Mana Spring Totem',             cls: 'Shaman',  desc: '10 mana every 2 s (25 MP5)', mp5: 25 },
     restorativeTotems:{ on: false, id: 16187, name: 'Restorative Totems (on Mana Spring)', cls: 'Shaman', desc: 'Mana Spring +25%', mp5: 6.25, requires: 'manaSpring' },
+    // Round 75 (user): Agility for your melee crit (the Succubus' melee inherits it). Classic values, not checked in Forever [A75].
+    graceOfAir:       { on: false, id: 25359, name: 'Grace of Air Totem',            cls: 'Shaman',  desc: '+77 Agility (melee crit for the Succubus)', agi: 77 },
     manaTide:         { on: false, id: 17359, name: 'Mana Tide Totem',               cls: 'Shaman',  desc: '290 mana every 3 s for 12 s, once, when you drop below 50% mana', tide: { amount: 290, every: 3, ticks: 4 } },
     innervate:        { on: false, id: 29166, name: 'Innervate',                     cls: 'Druid',   desc: '5× mana regen while casting for 20 s, once, when you drop below 50% mana', innervate: { mult: 5, duration: 20 } },
     moonkinAura:      { on: true, id: 24858, name: 'Moonkin Form aura',             cls: 'Druid',   desc: '+3% crit (party)', critPct: 3 },
+    scrollOfAgility:  { on: true, id: 12174, name: 'Scroll of Agility IV',                  cls: 'Scroll',  desc: '+17 Agility (melee crit for the Succubus)', agi: 17 },
     powerInfusion:    { on: false, id: 10060, name: 'Power Infusion',                cls: 'Priest',  desc: '+20% spell damage for 15 s at the pull (3 min cooldown)', spellDmgPct: 20, duration: 15, cd: 180 },
   },
   // Consumables (data/consumables.js, loaded before this file). Only the per-build weapon oil is on by default. [A57]
@@ -158,12 +165,12 @@ WL.DEFAULT_CONFIG = {
       // [A46] Base: Season of Discovery values (L60 Succubus base stats, identical in Classic and Season of Discovery):
       // weapon 95–131 per 2.0 s = 56.5 DPS + own AP (Str 129 × 2 − 20 = 238) / 14 = 17.0 → 73.5 DPS.
       // Pet AP from you: round 31 = 1/6 of your spell power (user, measured in Forever: "6 SP = 1 pet AP"; rounds 17–30:
-      // 56.5%, Season of Discovery). Melee crit = her own 3.27% + 85 Agi × 0.05 = 7.52% (SoD base stats) + **100% of your spell
-      // crit** (user, round 32: she inherits spell crit; the character-sheet crit incl. Int, buffs, consumables, oil).
+      // 56.5%, Season of Discovery). Melee crit = her own 3.27% + 85 Agi × 0.05 = 7.52% (SoD base stats) + **your melee crit** (round 75, user:
+      // 2.0% + Agility / 20; rounds 32–74 used your spell crit, rounds 17–31 a fixed 4.5% melee crit).
       // Rounds 17–31: own 7.52% + your *melee* crit 4.5% = 12% total. (Round 16: 100 / 0.57 / 5%.) [A46]
       // Round 42: miss / dodge / glancing / crit come from combat.petMelee (was a flat 85.5% land, no glancing).
       melee: { baseDps: 73.5, swing: 2.0, apPerSp: 0.1667, apPerDps: 14,
-               critPct: 7.52, inheritSpellCrit: true },   // crit ×2; armor from boss armor − debuffs
+               critPct: 7.52, inheritMeleeCrit: true },   // round 75 (user): your MELEE crit (Agility), not your spell crit [A75]   // crit ×2; armor from boss armor − debuffs
     },
     felhunter: { name: 'Felhunter', mana: 2000, manaRegen: 8, melee: { baseDps: 40, swing: 2.0, apPerSp: 0.1667, apPerDps: 14, critPct: 5 } },
     voidwalker:{ name: 'Voidwalker',mana: 2000, manaRegen: 8, melee: { baseDps: 30, swing: 2.0, apPerSp: 0.1667, apPerDps: 14, critPct: 5 } },

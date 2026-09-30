@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v65
+- **Succubus melee crit now uses your melee crit (Agility)**, not your spell crit: Succubus builds −0.9 … −1.1%.
+- New raid buffs: **Grace of Air Totem** (off) and **Scroll of Agility IV** (on); Agility and Melee crit rows in the stats.
+
 ## v64
 - Spells & damage: Death Coil is shown last.
 

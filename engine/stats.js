@@ -96,6 +96,12 @@ WL.computeStats = function (build, raceKey, cfg) {
   if (staPct) add('sta', 'Demonic Embrace +' + staPct + '%', staFlat * staPct / 100);
   if (kingsPct) add('sta', 'Blessing of Kings +' + kingsPct + '%', sta - staFlat * (1 + staPct / 100));
 
+  // Agility (round 75, user): only your melee crit uses it, and the Succubus' melee inherits that crit [A75].
+  var agiFlat = add('agi', 'Base (L60 Warlock) [A75]', base.agi || 0) + add('agi', race.name + ' offset', race.offset.agi || 0)
+          + add('agi', 'Gear', gear.agi || 0) + buffStat('agi') + conStat('agi');
+  var agi = agiFlat * (1 + kingsPct / 100);
+  if (kingsPct) add('agi', 'Blessing of Kings +' + kingsPct + '%', agi - agiFlat);
+
   // --- Pools --- [A10]
   var manaFlat = base.mana + 20 + cb.manaPerInt * (int - 20);
   var manaPct = tv('felVitality', 'manaPct') + (racial('manaPct') ? racial('manaPct').value : 0);
@@ -144,6 +150,12 @@ WL.computeStats = function (build, raceKey, cfg) {
     if (sword && gear.weaponIsSword) critPct += add('critPct', 'Sword Specialization [A30]', sword.value);
   }
 
+  // --- Melee crit --- [A75]: 2.0% + Agility / 20 (Classic L60 Warlock) + Sword Specialization; no spell-crit sources.
+  var meleeCritPct = add('meleeCritPct', 'Base (L60 Warlock) [A75]', cb.meleeCritBasePct != null ? cb.meleeCritBasePct : 2)
+                   + add('meleeCritPct', 'Agility ' + Math.round(agi * 10) / 10 + ' / ' + (cb.agiPerMeleeCrit || 20), agi / (cb.agiPerMeleeCrit || 20));
+  var swordM = racial('critPctIfSword');
+  if (swordM && gear.weaponIsSword) meleeCritPct += add('meleeCritPct', 'Sword Specialization [A30]', swordM.value);
+
   // --- Haste --- [A05][A08]
   var hastePct = add('hastePct', 'Gear', gear.hastePct || 0)
                + add('hastePct', 'Stat-weight test', ex.hastePct || 0)
@@ -164,7 +176,7 @@ WL.computeStats = function (build, raceKey, cfg) {
   if (petActive) mul('all', 'Soul Link', tv('soulLink', 'dmgPct'));
 
   return {
-    race: raceKey, int: int, spi: spi, sta: sta, maxMana: maxMana, maxHealth: maxHealth,
+    race: raceKey, int: int, spi: spi, sta: sta, agi: agi, meleeCritPct: meleeCritPct, maxMana: maxMana, maxHealth: maxHealth,
     sp: sp, dkSp: dkSp, schoolSp: schoolSp, hitPct: hitPct, hitPctUncapped: hitRaw, critPct: critPct, hastePct: hastePct, mp5: mp5, pierce: pierce,
     mult: mult, petActive: petActive, sacrificeActive: sacrificeActive, oilName: oil.name, breakdown: bd,
   };

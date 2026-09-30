@@ -7,15 +7,15 @@ WL.SHIPPED_GEAR = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG.gear));
 (function (g) { g.sp = 700; g.int = 200; g.spi = 80; g.sta = 200; g.mp5 = 0; })(WL.DEFAULT_CONFIG.gear);
 // Round 16 changed the pet defaults (pet SP 100% → 15%, Succubus melee 40 → 100 DPS); the pet tests' worked numbers use the old ones.
 var sm = WL.DEFAULT_CONFIG.pets.succubus.melee;
-WL.SHIPPED_PETS = { petSpPct: WL.DEFAULT_CONFIG.petSpPct, succBaseDps: sm.baseDps, succApPerSp: sm.apPerSp, succCrit: sm.critPct, succInherit: sm.inheritSpellCrit };
-WL.DEFAULT_CONFIG.petSpPct = 100; sm.baseDps = 40; sm.apPerSp = 0.57; sm.critPct = 5; sm.inheritSpellCrit = false;   // round-2 pet values of the worked tests
+WL.SHIPPED_PETS = { petSpPct: WL.DEFAULT_CONFIG.petSpPct, succBaseDps: sm.baseDps, succApPerSp: sm.apPerSp, succCrit: sm.critPct, succInherit: sm.inheritMeleeCrit };
+WL.DEFAULT_CONFIG.petSpPct = 100; sm.baseDps = 40; sm.apPerSp = 0.57; sm.critPct = 5; sm.inheritMeleeCrit = false;   // round-2 pet values of the worked tests
 // Round 60 (user): 7 raid buffs and 2 more boss debuffs are on by default. The worked tests were written with every raid
 // buff off and only Sunder Armor + Faerie Fire on, so they keep that; the shipped defaults are checked below.
 WL.SHIPPED_ON = { buffs: {}, debuffs: {} };
 ['buffs', 'debuffs'].forEach(function (g) {
   Object.keys(WL.DEFAULT_CONFIG[g]).forEach(function (k) { WL.SHIPPED_ON[g][k] = !!WL.DEFAULT_CONFIG[g][k].on; });
 });
-WL.ROUND60_ON = { buffs: ['arcaneIntellect', 'markOfTheWild', 'fortitude', 'divineSpirit', 'blessingOfKings', 'blessingOfWisdom', 'moonkinAura'],
+WL.ROUND60_ON = { buffs: ['arcaneIntellect', 'markOfTheWild', 'fortitude', 'divineSpirit', 'blessingOfKings', 'blessingOfWisdom', 'moonkinAura', 'scrollOfAgility'],   // + round 75
                   debuffs: ['curseOfRecklessness', 'judgementOfWisdom'] };
 ['buffs', 'debuffs'].forEach(function (g) { WL.ROUND60_ON[g].forEach(function (k) { WL.DEFAULT_CONFIG[g][k].on = false; }); });
 
@@ -35,14 +35,14 @@ T.run('shipped default gear (round 13)', function () {
   T.near(WL.SHIPPED_PETS.succBaseDps, (95 + 131) / 2 / 2.0 + (129 * 2 - 20) / 14, 0.05, 'Succubus melee base = 56.5 weapon + 17.0 from own AP = 73.5 DPS (SoD)');
   T.near(WL.SHIPPED_PETS.succApPerSp, 1 / 6, 0.0001, 'Succubus AP = 1/6 of the Warlock\'s spell power (user, measured: 6 SP = 1 pet AP; Imp tooltip 17%; was 0.565)');
   T.near(WL.SHIPPED_PETS.succCrit, 3.2685 + 85 * 0.05, 0.01, 'Succubus own melee crit 7.52% (SoD base: 3.27% + 85 Agi × 0.05)');
-  T.eq(WL.SHIPPED_PETS.succInherit, true, 'Succubus melee also inherits 100% of your spell crit (user, round 32; was your melee crit 4.5%)');
+  T.eq(WL.SHIPPED_PETS.succInherit, true, 'Succubus melee inherits your melee crit (user, round 75: from Agility; rounds 32–74 your spell crit, before that a fixed 4.5%)');
   T.ok(!WL.CONSUMABLES.darkIronBomb, 'Dark Iron Bomb removed (data error)');
 
   T.group('shipped buff & debuff defaults (round 60, user)');
   var onB = Object.keys(WL.SHIPPED_ON.buffs).filter(function (k) { return WL.SHIPPED_ON.buffs[k]; }).sort().join(',');
   var onD = Object.keys(WL.SHIPPED_ON.debuffs).filter(function (k) { return WL.SHIPPED_ON.debuffs[k]; }).sort().join(',');
-  T.eq(onB, 'arcaneIntellect,blessingOfKings,blessingOfWisdom,divineSpirit,fortitude,markOfTheWild,moonkinAura',
-    'raid buffs on: Arcane Intellect, Mark of the Wild, Fortitude, Divine Spirit, Kings, Wisdom, Moonkin aura (rest off)');
+  T.eq(onB, 'arcaneIntellect,blessingOfKings,blessingOfWisdom,divineSpirit,fortitude,markOfTheWild,moonkinAura,scrollOfAgility',
+    'raid buffs on: Arcane Intellect, Mark of the Wild, Fortitude, Divine Spirit, Kings, Wisdom, Moonkin aura, Scroll of Agility IV (round 75; rest off)');
   T.eq(onD, 'faerieFire,judgementOfWisdom,sunderArmor',
     'boss debuffs on: Sunder Armor, Faerie Fire, Judgement of Wisdom (round 68: Curse of Recklessness off — it does not stack with Faerie Fire; Expose Armor and the other Warlock\'s CoE off)');
   // Hand calculation with the shipped gear and buffs, Human, sword, no talents (stats window "Total" column):
