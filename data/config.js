@@ -49,7 +49,8 @@ WL.DEFAULT_CONFIG = {
     // inherits your hit and crit) [A46]. Classic values for weapon skill 300 vs defense 315: one roll in the order
     // miss → dodge → glancing → crit → hit. Miss 8% minus your hit above the base (gear, Suppression, buffs), of which the
     // first 1% does not count (hit suppression vs +3); dodge 6.5%; glancing 40% of swings at 65% damage (never crit);
-    // crit = the pet's own + your spell crit − 4.8% (3% skill gap + 1.8% vs a +3 boss). No parry / block from behind.
+    // crit = the pet's own + your MELEE crit (round 75; your spell crit in rounds 32–74) − 4.8% (3% skill gap + 1.8% vs
+    // a +3 boss). No parry / block from behind.
     petMelee: { missPct: 8, dodgePct: 6.5, hitSuppressionPct: 1, glancePct: 40, glanceDmgPct: 65, critSuppressionPct: 4.8 },
   },
   // Gear (user, 2026-09-23; round 13: SP 500). Percentages are character-sheet values BEFORE talents, racials and weapon oil. [A35][A42]
