@@ -1,5 +1,5 @@
 // Round 76 (performance): a Web Worker that runs simulations off the page's main thread. The page (app/app.js) starts
-// one worker per CPU core (minus one) and hands out jobs; the numbers are identical to a run on the page (same engine
+// one worker per CPU core (1–8) and hands out jobs; the numbers are identical to a run on the page (same engine
 // files, same seeds). If workers are not available (opened from file://, blocked by the host), the page runs everything
 // itself as before.
 // Messages in:  { id, kind: 'combo', build, race, cfg }                 → { id, r: WL.stripResult(WL.simulate(...)) }
