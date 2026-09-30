@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v69
+- **Wrack DS replaced by Wrack Succubus** (40/0/11): Succubus out instead of the Imp sacrifice, Bane of Agony only,
+  Improved Bane of Agony, Improved Drains, Bane and Ruin. 499.9 DPS (Human), +7.7% over Wrack DS.
+
 ## v67
 - **Loads instantly**: the default results come with the page (was ~2.5 min of simulating on a first visit).
 - **Runs use all your CPU cores** (Web Workers): about 2–4× faster, and the page stays responsive.

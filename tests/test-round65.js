@@ -1,4 +1,4 @@
-// Round 65 tests: Wrack's debuff (A18) checked tick by tick, and the reference builds (SM Ruin, DS Ruin, Wrack DS).
+// Round 65 tests: Wrack's debuff (A18) checked tick by tick, and the reference builds (SM Ruin, DS Ruin, Wrack DS → Wrack Succubus in round 77).
 // Round 66: no built-in pin flag any more — every build is shown by default (cut-off 0); pins are per browser (page).
 (function () {
   function det() {
@@ -37,7 +37,7 @@
     T.eq(WL.SPELLS.wrack.debuffSpells.slice().sort().join(','), 'baneOfAgony,corruption', 'affected spells: Corruption, Bane of Agony');
 
     T.group('reference builds (user, round 65); shown by default (round 66)');
-    var want = { sm_ruin_classic: '33/0/18', ds_ruin_classic: '22/11/18', wrack_ds: '35/11/5' };
+    var want = { sm_ruin_classic: '33/0/18', ds_ruin_classic: '22/11/18', wrack_succubus: '40/0/11' };
     Object.keys(want).forEach(function (k) {
       var bb = WL.BUILDS.filter(function (x) { return x.key === k; })[0];
       T.ok(!!bb && !('pinned' in bb), k + ' is on the sheet (no built-in pin flag since round 66)');
