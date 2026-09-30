@@ -45,7 +45,7 @@ WL.BUILDS = [
   {
     key: 'demo_pact_succ_fire', short: 'Demo Pact Fire Succubus',
     name: 'Demonology – Pact, Succubus out, Searing Pain',
-    notes: '2/31/18 (new in round 16; hill-climb −2 Improved Shadow Bolt +2 Aftermath, +0.7%). Same Succubus Pact tree with a Fire filler: Searing Pain keeps Demonic Brand up by itself, Firestone. Round 25: Soul Fire during Decimation added before the filler (+1.8%, 10,000 fights). Round 71: Death Coil as the finisher on top +0.18% (10,000 fights).',
+    notes: '2/31/18 (new in round 16; hill-climb −2 Improved Shadow Bolt +2 Aftermath, +0.7%). Same Succubus Pact tree with a Fire filler: Searing Pain keeps Demonic Brand up by itself, Firestone. Round 25: Soul Fire during Decimation added before the filler (+1.8%, 10,000 fights). Round 71: Death Coil as the finisher on top +0.18% (10,000 fights). Round 74 (user: apply Demonic Brand early): the Brand upkeep near the top of the priority +0.09% (10,000 fights).',
     talents: {
       suppression: 1, improvedCorruption: 1,
       unholyPower: 5, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, improvedSayaad: 3, masterSummoner: 2,
@@ -53,12 +53,12 @@ WL.BUILDS = [
       bane: 5, cataclysm: 3, aftermath: 2, ruin: 5, agonizingFlames: 3,
     },
     pet: 'succubus', sacrifice: 'imp', oil: 'firestone',
-    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'immolate', 'corruption', 'soulFire', 'searingPain'],   // round 25: + Soul Fire during Decimation (+1.8%)
+    rotation: ['deathCoilFinisher', 'bane', 'searingPainBrand', 'curseOfElements', 'immolate', 'corruption', 'soulFire', 'searingPain'],   // round 25: + Soul Fire during Decimation (+1.8%)
   },
   {
     key: 'demo_pact_fire', short: 'Demo Pact Fire Imp',
     name: 'Demonology – Pact, Imp out, Fire',
-    notes: '2/31/18 (round 10: −2 Cataclysm +2 Suppression; round 16: −1 Suppression +1 Improved Corruption, +0.6%). Succubus sacrificed (+15% Fire), Imp out (Master Demonologist +10% Fire for you and the Imp), Agonizing Flames. Searing Pain filler, Soul Fire during Decimation. Best build while pets were assumed to use 100% of your spell power (rounds 3–15), and best again since round 31 (pet scaling measured in Forever: 10% SP, and Demonic Knowledge now reaches the Imp). Round 71: Death Coil as the finisher on top +0.13% (10,000 fights).',
+    notes: '2/31/18 (round 10: −2 Cataclysm +2 Suppression; round 16: −1 Suppression +1 Improved Corruption, +0.6%). Succubus sacrificed (+15% Fire), Imp out (Master Demonologist +10% Fire for you and the Imp), Agonizing Flames. Searing Pain filler, Soul Fire during Decimation. Best build while pets were assumed to use 100% of your spell power (rounds 3–15), and best again since round 31 (pet scaling measured in Forever: 10% SP, and Demonic Knowledge now reaches the Imp). Round 71: Death Coil as the finisher on top +0.13% (10,000 fights). Round 74 (user: apply Demonic Brand early): the Brand upkeep near the top of the priority +0.12% (10,000 fights).',
     talents: {
       suppression: 1, improvedCorruption: 1,
       unholyPower: 5, improvedImp: 3, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, masterSummoner: 2,
@@ -66,7 +66,7 @@ WL.BUILDS = [
       bane: 5, aftermath: 5, ruin: 5, agonizingFlames: 3,
     },
     pet: 'imp', sacrifice: 'succubus', oil: 'firestone',
-    rotation: ['deathCoilFinisher', 'lifeTapPet', 'bane', 'curseOfElements', 'immolate', 'soulFire', 'corruption', 'searingPain'],
+    rotation: ['deathCoilFinisher', 'searingPainBrand', 'lifeTapPet', 'bane', 'curseOfElements', 'immolate', 'soulFire', 'corruption', 'searingPain'],
   },
   {
     key: 'destro_incin_succ', short: 'Destro Incinerate Succubus',
@@ -83,7 +83,7 @@ WL.BUILDS = [
   {
     key: 'aff_pact_fire', short: 'Aff Pact Fire Imp',
     name: 'Affliction/Demonology – Pact, Imp out, Fire',
-    notes: '15/31/5 (round 10). Suppression, Pandemic and Malediction with the Imp Pact tree. Searing Pain filler. Unchanged in round 16 (local optimum). Round 71: Death Coil as the finisher on top +0.22% (10,000 fights).',
+    notes: '15/31/5 (round 10). Suppression, Pandemic and Malediction with the Imp Pact tree. Searing Pain filler. Unchanged in round 16 (local optimum). Round 71: Death Coil as the finisher on top +0.22% (10,000 fights). Round 74 (user: apply Demonic Brand early): the Brand upkeep near the top of the priority +0.16% (10,000 fights).',
     talents: {
       suppression: 5, improvedCorruption: 2, improvedLifeTap: 2, malediction: 3, pandemic: 3,
       unholyPower: 5, improvedImp: 3, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, masterSummoner: 2,
@@ -91,12 +91,12 @@ WL.BUILDS = [
       bane: 5,
     },
     pet: 'imp', sacrifice: 'succubus', oil: 'firestone',
-    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'corruption', 'immolate', 'lifeTapPet', 'soulFire', 'searingPain'],
+    rotation: ['deathCoilFinisher', 'bane', 'searingPainBrand', 'curseOfElements', 'corruption', 'immolate', 'lifeTapPet', 'soulFire', 'searingPain'],
   },
   {
     key: 'demo_pact_imp_sb', short: 'Demo Pact Shadow Bolt Imp',
     name: 'Demonology – Pact, Imp out, Shadow Bolt',
-    notes: '2/31/18 (round 13: −3 Improved Shadow Bolt +3 Cataclysm). Succubus sacrificed (+15% Fire for Immolate/Soul Fire), Imp out with Improved Imp and Demonic Energies. Shadow Bolt filler. Unchanged in round 16 (best move +0.46%). With full raid buffs + consumables 5/5 Improved Shadow Bolt and no Cataclysm is +1.2% (04_EXPLORATION §11). Round 61 (v52 defaults): -1 Demonic Brand +1 Improved Health Funnel, -1 Suppression +1 Improved Corruption: +0.54% Human (653.61 -> 657.12), +0.59% Undead, 10,000 fights. Brand 2/3 = 4 charges: the Imp spends them before the 10 s brand expires (3/3 lost charges to the timer), so more charges land (64.5 vs 61.8 per fight) and the extra Searing Pains out-damage the Shadow Bolts they replace; Improved Health Funnel itself does nothing (04_EXPLORATION §28). Round 71: Death Coil as the finisher on top +0.28% (10,000 fights).',
+    notes: '2/31/18 (round 13: −3 Improved Shadow Bolt +3 Cataclysm). Succubus sacrificed (+15% Fire for Immolate/Soul Fire), Imp out with Improved Imp and Demonic Energies. Shadow Bolt filler. Unchanged in round 16 (best move +0.46%). With full raid buffs + consumables 5/5 Improved Shadow Bolt and no Cataclysm is +1.2% (04_EXPLORATION §11). Round 61 (v52 defaults): -1 Demonic Brand +1 Improved Health Funnel, -1 Suppression +1 Improved Corruption: +0.54% Human (653.61 -> 657.12), +0.59% Undead, 10,000 fights. Brand 2/3 = 4 charges: the Imp spends them before the 10 s brand expires (3/3 lost charges to the timer), so more charges land (64.5 vs 61.8 per fight) and the extra Searing Pains out-damage the Shadow Bolts they replace; Improved Health Funnel itself does nothing (04_EXPLORATION §28). Round 71: Death Coil as the finisher on top +0.28% (10,000 fights). Round 74 (user: apply Demonic Brand early): the Brand upkeep near the top of the priority +0.03% (10,000 fights).',
     talents: {
       suppression: 1, improvedCorruption: 1, improvedHealthFunnel: 1,   // round 61: -1 Suppression +1 Improved Corruption; Health Funnel = row-1 filler for the Brand point
       unholyPower: 5, improvedImp: 3, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, masterSummoner: 2,
@@ -104,7 +104,7 @@ WL.BUILDS = [
       improvedShadowBolt: 2, bane: 5, cataclysm: 3, ruin: 5, agonizingFlames: 3,
     },
     pet: 'imp', sacrifice: 'succubus', oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'lifeTapPet', 'bane', 'curseOfElements', 'searingPainBrand', 'immolate', 'corruption', 'soulFire', 'shadowBolt'],
+    rotation: ['deathCoilFinisher', 'searingPainBrand', 'lifeTapPet', 'bane', 'curseOfElements', 'immolate', 'corruption', 'soulFire', 'shadowBolt'],
   },
   {
     key: 'aff_pact_succ_drain', short: 'Aff Pact Drain Life Succubus',

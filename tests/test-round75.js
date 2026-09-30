@@ -50,4 +50,26 @@
     var rm = WL.simulate(succ, 'human', cc, { iterations: 400, log: false });
     T.near(100 * rm.bySpell['pet:melee'].crits / rm.bySpell['pet:melee'].casts, 100 * mel.crits / mel.casts, 0.8, 'more spell crit does not change her melee crits');
   });
+
+  T.run('round 74: Demonic Brand applied early', function () {
+    T.group('Fire builds and Demo Pact SB Imp: the Brand upkeep near the top (10,000 fights +0.03 … +0.16%)');
+    var cd = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
+    ['buffs', 'debuffs'].forEach(function (g) { Object.keys(cd[g]).forEach(function (k) { cd[g][k].on = WL.SHIPPED_ON[g][k]; }); });
+    var first = function (b) {
+      var e = WL.simulateOnce(b, 'human', cd, { duration: 60, log: true, seed: 7 }).log.filter(function (x) { return x.type === 'cast' && x.spell === 'searingPain'; })[0];
+      return e ? e.t : Infinity;
+    };
+    ['demo_pact_succ_fire', 'demo_pact_fire', 'demo_pact_imp_sb', 'aff_pact_fire'].forEach(function (k) {
+      var b = WL.BUILDS.filter(function (x) { return x.key === k; })[0], i = b.rotation.indexOf('searingPainBrand');
+      var without = JSON.parse(JSON.stringify(b)); without.rotation = b.rotation.filter(function (a) { return a !== 'searingPainBrand'; });
+      var tNow = first(b), tWas = first(without);
+      T.ok(i >= 0 && i <= 2 && i < b.rotation.indexOf('curseOfElements') && tNow < tWas && tNow < 4,
+        b.short + ': Brand upkeep at #' + (i + 1) + ', first Searing Pain at ' + tNow.toFixed(1) + ' s (without it: ' + tWas.toFixed(1) + ' s)');
+    });
+    T.group('Shadow Bolt Succubus builds keep Brand after Bane and Curse of the Elements (earlier loses 0.3 … 0.9%)');
+    ['demo_pact_succ_sb', 'aff_pact_succ_sb', 'aff_succ_sb'].forEach(function (k) {
+      var r = WL.BUILDS.filter(function (x) { return x.key === k; })[0].rotation;
+      T.ok(r.indexOf('searingPainBrand') > r.indexOf('curseOfElements') && r.indexOf('curseOfElements') > r.indexOf('bane'), k + ': ' + r.join(' > '));
+    });
+  });
 })();
