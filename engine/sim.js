@@ -985,6 +985,33 @@ window.WL = window.WL || {};
   };
 
   // Monte-Carlo wrapper: averages `iterations` fights; keeps the log of the first fight.
+  // Seed and length of fight i of a run (round 76: shared by WL.simulate and WL.firstFight, so fight #1 can be rebuilt
+  // exactly). Fight length varies per fight (uniform ±durationVarPct) so results don't hinge on one exact length [A56].
+  WL.fightParams = function (cfg, i) {
+    var fseed = (cfg.fight.seed * 7919 + i) >>> 0, vp = cfg.fight.durationVarPct || 0;
+    return { seed: fseed, duration: cfg.fight.duration * (1 + vp / 100 * (2 * WL.makeRng(fseed ^ 0x5bd1e995)() - 1)) };
+  };
+  // Fight #1 of a run with its full event log — the same fight WL.simulate keeps as firstFight / log.
+  WL.firstFight = function (build, raceKey, cfg, stats, table) {
+    stats = stats || WL.computeStats(build, raceKey, cfg);
+    var fp = WL.fightParams(cfg, 0);
+    return WL.simulateOnce(build, raceKey, cfg, { stats: stats, table: table || WL.buildSpellTable(build, stats, cfg), seed: fp.seed, duration: fp.duration, log: true });
+  };
+  // Round 76 (performance): a result without the parts that can be rebuilt on the page — the build, stats and spell
+  // table (recomputed in a blink) and fight #1 with its log (~45 KB, rebuilt from its seed when a detail view needs it).
+  // Used for results sent back by the Web Workers and for the default results shipped with the page.
+  var HEAVY = { build: 1, stats: 1, table: 1, log: 1, firstFight: 1 };
+  WL.stripResult = function (r) {
+    var o = {}; Object.keys(r).forEach(function (k) { if (!HEAVY[k]) o[k] = r[k]; }); return o;
+  };
+  WL.hydrateResult = function (r, build, cfg) {
+    r.build = build; r.stats = WL.computeStats(build, r.race, cfg); r.table = WL.buildSpellTable(build, r.stats, cfg);
+    var ff = null, get = function () { return ff || (ff = WL.firstFight(build, r.race, cfg, r.stats, r.table)); };
+    Object.defineProperty(r, 'firstFight', { get: get, enumerable: false, configurable: true });
+    Object.defineProperty(r, 'log', { get: function () { return get().log; }, enumerable: false, configurable: true });
+    return r;
+  };
+
   WL.simulate = function (build, raceKey, cfg, opt) {
     opt = opt || {};
     var n = opt.iterations || cfg.fight.iterations;
@@ -995,10 +1022,8 @@ window.WL = window.WL || {};
     var exDmg = 0, exTime = 0, preDmg = 0, preTime = 0;                        // execute split (round 44)
     var skipAgg = {};                                                          // end-of-fight DoT skips (round 53)
     for (var i = 0; i < n; i++) {
-      var fseed = (cfg.fight.seed * 7919 + i) >>> 0;
-      // Fight length varies per fight (uniform ±durationVarPct) so results don't hinge on one exact length [A56]
-      var vp = cfg.fight.durationVarPct || 0, fdur = cfg.fight.duration * (1 + vp / 100 * (2 * WL.makeRng(fseed ^ 0x5bd1e995)() - 1));
-      var r = WL.simulateOnce(build, raceKey, cfg, { stats: stats, table: table, seed: fseed, duration: fdur, log: i === 0 && opt.log !== false });
+      var fp = WL.fightParams(cfg, i);
+      var r = WL.simulateOnce(build, raceKey, cfg, { stats: stats, table: table, seed: fp.seed, duration: fp.duration, log: i === 0 && opt.log !== false });
       if (i === 0) first = r;
       dpsList.push(r.dps); durSum += r.duration; lifeTaps += r.lifeTaps; movingTaps += r.movingTaps || 0; clipped += r.clipped; minMana = Math.min(minMana, r.minMana);
       Object.keys(r.uptime).forEach(function (k) { upPct[k] = (upPct[k] || 0) + 100 * r.uptime[k] / r.duration; });
@@ -1044,14 +1069,21 @@ window.WL = window.WL || {};
   // Stat weights: DPS gained per 1 SP, per 1% hit, per 1% crit, per 1% haste, per 1 Int, per 1 Spell Pierce.
   // Common random numbers: baseline and every +stat run use the same seed, so noise largely cancels.
   WL.STAT_WEIGHT_KEYS = ['sp', 'hitPct', 'critPct', 'hastePct', 'int', 'pierce'];
-  WL.statWeights = function (build, raceKey, cfg, n) {
-    var base = WL.simulate(build, raceKey, cfg, { iterations: n, log: false }).dps;
+  // One stat-weight run: the baseline DPS (k = null) or the DPS with +weightDeltas[k] of stat k (round 76: split out so
+  // the Web Workers can run the 7 runs of a build in parallel; WL.statWeights combines them exactly as before).
+  WL.statWeightRun = function (build, raceKey, cfg, n, k) {
+    var c = cfg;
+    if (k) { c = JSON.parse(JSON.stringify(cfg)); c.extra = c.extra || {}; c.extra[k] = (c.extra[k] || 0) + cfg.weightDeltas[k]; }
+    return WL.simulate(build, raceKey, c, { iterations: n, log: false }).dps;
+  };
+  WL.combineWeights = function (cfg, base, dpsByKey) {
     var out = { base: base };
-    WL.STAT_WEIGHT_KEYS.forEach(function (k) {
-      var c = JSON.parse(JSON.stringify(cfg)), d = cfg.weightDeltas[k];
-      c.extra = c.extra || {}; c.extra[k] = (c.extra[k] || 0) + d;
-      out[k] = (WL.simulate(build, raceKey, c, { iterations: n, log: false }).dps - base) / d;
-    });
+    WL.STAT_WEIGHT_KEYS.forEach(function (k) { out[k] = (dpsByKey[k] - base) / cfg.weightDeltas[k]; });
     return out;
+  };
+  WL.statWeights = function (build, raceKey, cfg, n) {
+    var base = WL.statWeightRun(build, raceKey, cfg, n, null), by = {};
+    WL.STAT_WEIGHT_KEYS.forEach(function (k) { by[k] = WL.statWeightRun(build, raceKey, cfg, n, k); });
+    return WL.combineWeights(cfg, base, by);
   };
 })();

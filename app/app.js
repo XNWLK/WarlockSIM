@@ -384,41 +384,74 @@
       results = results.filter(function (r) { return keys.indexOf(r.build.key) >= 0; });
       Object.keys(weights).forEach(function (k) { if (keys.indexOf(k) < 0) delete weights[k]; });
     } else { runCfg = JSON.parse(JSON.stringify(cfg)); weights = {}; }
-    var jobs = [];
-    todo.forEach(function (b) { WL.SIM_RACE_KEYS.forEach(function (r) { jobs.push({ kind: 'combo', b: b, r: r }); }); });   // 5 races + "No race" baseline
-    var nCombos = jobs.length, out = keep ? results.slice() : [], i = 0, t0 = performance.now();
+    // Round 76: the jobs run on a pool of Web Workers (app/sim-pool.js) — one per CPU core — or on the page when workers
+    // are not available. Results come back without fight #1's log; WL.hydrateResult rebuilds it from its seed on demand.
+    var combos = [];
+    todo.forEach(function (b) { WL.SIM_RACE_KEYS.forEach(function (r) { combos.push({ kind: 'combo', b: b, build: b, race: r, cfg: runCfg }); }); });   // 5 races + "No race" baseline
+    var nCombos = combos.length, out = keep ? results.slice() : [], base = out.length, done = 0, nWeights = 0, wDone = 0, t0 = performance.now();
+    combos.forEach(function (j, k) { j.idx = base + k; });
     running = true; dirty = false; showStale();
     renderStatbar();
-    function queueWeights() {                                            // shown builds without stat weights yet
-      bestRaceJobs(builds).filter(function (x) { return !weights[x.b.key]; }).forEach(function (x) { jobs.push(x); });
+    function progress() {
+      $('runMeta').textContent = (done < nCombos ? 'Simulating ' + (keep ? 'new builds ' : 'builds ') + done + ' / ' + nCombos
+        : 'Stat weights ' + wDone + ' / ' + nWeights) + '… (' + WL.SimPool.mode() + ')';
     }
-    if (!nCombos) { results = out.slice(); queueWeights(); }
-    function step() {
-      var until = performance.now() + 60;
-      while (i < jobs.length && performance.now() < until) {
-        var j = jobs[i];
-        if (j.kind === 'combo') out.push(WL.simulate(j.b, j.r, runCfg));
-        else weights[j.b.key] = { race: j.r, w: WL.statWeights(j.b, j.r, runCfg, runCfg.fight.weightIterations) };
-        i++;
-        if (i === nCombos) {                                            // combos done → show table, queue stat weights
-          results = out.slice();
-          queueWeights();
-          render();
-        }
-      }
-      $('runMeta').textContent = (i < nCombos ? 'Simulating ' + (keep ? 'new builds ' : 'builds ') : 'Stat weights ') + i + ' / ' + jobs.length + '…';
-      if (i < jobs.length) { setTimeout(step, 0); return; }
+    function weightJobs() {                                              // shown builds without stat weights yet: 7 runs each
+      var list = [];
+      bestRaceJobs(builds).filter(function (x) { return !weights[x.b.key]; }).forEach(function (x) {
+        var acc = { race: x.r, base: null, by: {}, left: 1 + WL.STAT_WEIGHT_KEYS.length };
+        [null].concat(WL.STAT_WEIGHT_KEYS).forEach(function (k) {
+          list.push({ kind: 'weight', b: x.b, build: x.b, race: x.r, cfg: runCfg, n: runCfg.fight.weightIterations, stat: k, acc: acc });
+        });
+      });
+      return list;
+    }
+    function finished() {
       running = false; dirty = !sameSettings();                          // settings edited during the run → stale
       renderStatbar(); render(); showStale(); renderCompareOptions();
-      var secs = ((performance.now() - t0) / 1000).toFixed(1);
+      var secs = ((performance.now() - t0) / 1000).toFixed(1), how = WL.SimPool.mode() === 'page' ? '' : ' on ' + WL.SimPool.mode();   // e.g. "on workers (7)"
       $('runMeta').textContent = !keep
         ? results.length + ' combos × ' + fmt(runCfg.fight.iterations) + ' fights + stat weights (' + fmt(runCfg.fight.weightIterations) +
-          ' fights each) in ' + secs + ' s · seed ' + runCfg.fight.seed
-        : !jobs.length ? 'Nothing new to simulate: the settings are unchanged and every build has results · seed ' + runCfg.fight.seed
+          ' fights each) in ' + secs + ' s' + how + ' · seed ' + runCfg.fight.seed
+        : !nCombos && !nWeights ? 'Nothing new to simulate: the settings are unchanged and every build has results · seed ' + runCfg.fight.seed
         : 'Added ' + todo.length + ' build' + (todo.length === 1 ? '' : 's') + ' (' + nCombos + ' combos × ' + fmt(runCfg.fight.iterations) +
-          ' fights' + (jobs.length > nCombos ? ' + stat weights' : '') + ') in ' + secs + ' s; the other builds keep their results (same settings) · seed ' + runCfg.fight.seed;
+          ' fights' + (nWeights ? ' + stat weights' : '') + ') in ' + secs + ' s' + how + '; the other builds keep their results (same settings) · seed ' + runCfg.fight.seed;
     }
-    setTimeout(step, 0);
+    function runWeights() {
+      var wj = weightJobs(); nWeights = wj.length; progress();
+      WL.SimPool.run(wj, function (j, res) {
+        var a = j.acc; if (j.stat) a.by[j.stat] = res.dps; else a.base = res.dps;
+        if (--a.left === 0) weights[j.b.key] = { race: a.race, w: WL.combineWeights(runCfg, a.base, a.by) };
+        wDone++; progress();
+      }, finished);
+    }
+    progress();
+    WL.SimPool.run(combos, function (j, res) {
+      out[j.idx] = WL.hydrateResult(res.r, j.b, runCfg); done++; progress();
+    }, function () {
+      results = out.slice();                                            // combos done → show table, then stat weights
+      render(); runWeights();
+    });
+  }
+  // Round 76 (performance): the default results shipped with the page (data/default-results.js, tools/gen-default-results.js).
+  // Used on start-up only when the settings and the built-in builds are exactly the ones they were simulated with; the
+  // numbers are those of a live run (same engine, same seeds). Your own builds are then simulated on top as usual.
+  function useShipped() {
+    var D = WL.DEFAULT_RESULTS; if (!D) return false;
+    readSettings();
+    var builtins = WL.BUILDS.filter(function (b) { return !b.custom; });
+    if (JSON.stringify(snapNoCut(cfg)) !== D.settings || JSON.stringify(builtins) !== D.builds) return false;
+    var rc = JSON.parse(JSON.stringify(cfg)), byKey = {}; builtins.forEach(function (b) { byKey[b.key] = b; });
+    var list = D.results.map(function (r, i) { return WL.hydrateResult(JSON.parse(JSON.stringify(r)), byKey[D.keys[i]], rc); });
+    // Self-check: fight #1 of every row re-simulated here (~0.1 s; the details need these fights anyway) must match the
+    // file exactly — else the engine changed since the file was made, or this browser rounds differently → live run.
+    if (!D.probe || list.some(function (r, i) { return r.firstFight.dps !== D.probe[i]; })) return false;
+    runCfg = rc; results = list;
+    weights = JSON.parse(JSON.stringify(D.weights));
+    dirty = false; renderStatbar(); render(); showStale(); renderCompareOptions();
+    $('runMeta').textContent = 'Default results: ' + results.length + ' combos × ' + fmt(runCfg.fight.iterations) + ' fights + stat weights, shipped with the page ' +
+      '(identical to a live run with these settings) · seed ' + runCfg.fight.seed + '. Change a setting and press Sim! to rerun.';
+    return true;
   }
   function bestRaceJobs(builds) {   // stat weights only for builds that are shown (best race within the display cut-off)
     return builds.map(function (b) {
@@ -1773,5 +1806,7 @@
   $('compare').addEventListener('toggle', function () { if ($('compare').open) renderCompare(); });
   edOptions(); edStart(WL.BUILDS[0]);
   render();
-  run();   // open in a working state with the default stats
+  // Open in a working state: the shipped default results when they match (round 76), else a live run. Your own builds
+  // (loaded above) have no shipped results — the run then simulates only those.
+  if (!useShipped() || pendingBuilds().length) run();
 })();

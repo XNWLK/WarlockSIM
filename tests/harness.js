@@ -1,8 +1,8 @@
 // Minimal in-browser test harness. Results render as a list; summary is in #summary and document.title.
 window.T = (function () {
-  var results = [], group = '';
+  var results = [], group = '', pending = 0, wantRender = false, self;
   function record(ok, name, detail) { results.push({ ok: ok, group: group, name: name, detail: detail || '' }); }
-  return {
+  return self = {
     group: function (g) { group = g; },
     ok: function (cond, name, detail) { record(!!cond, name, cond ? '' : detail); },
     eq: function (actual, expected, name) {
@@ -17,7 +17,16 @@ window.T = (function () {
     run: function (label, fn) {
       try { fn(); } catch (e) { record(false, label + ' threw', String(e && e.stack || e)); }
     },
+    // Round 76: asynchronous tests (Web Workers). fn(done) records its checks and calls done(); the summary waits for all
+    // of them (at most 120 s, then the unfinished ones fail).
+    async: function (label, fn) {
+      pending++;
+      var finished = false, done = function () { if (finished) return; finished = true; if (--pending === 0 && wantRender) self.render(); };
+      setTimeout(function () { if (!finished) { record(false, label + ' timed out (120 s)', ''); done(); } }, 120000);
+      try { fn(done); } catch (e) { record(false, label + ' threw', String(e && e.stack || e)); done(); }
+    },
     render: function () {
+      if (pending > 0) { wantRender = true; return; }
       var pass = results.filter(function (r) { return r.ok === true; }).length;
       var fail = results.filter(function (r) { return r.ok === false; }).length;
       var warn = results.filter(function (r) { return r.ok === null; }).length;

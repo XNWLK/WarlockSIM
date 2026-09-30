@@ -64,6 +64,7 @@ Click a build for:
 ### Also
 - Hover tooltips with the in-game text for talents and spells.
 - A banner tells you when the results are out of date after changing settings.
+- Opens instantly with the default results; runs use all your CPU cores (Web Workers).
 - Light and dark theme; works on phones.
 
 ## Notice

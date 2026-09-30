@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v67
+- **Loads instantly**: the default results come with the page (was ~2.5 min of simulating on a first visit).
+- **Runs use all your CPU cores** (Web Workers): about 2–4× faster, and the page stays responsive.
+
 ## v66
 - **Demonic Brand goes up early** (0–1.5 s) in the Fire builds and Demo Pact SB Imp (+0.03 … +0.16%).
 
