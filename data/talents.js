@@ -20,7 +20,7 @@ WL.TALENTS = [
   { key: 'soulHarvesting',      tree: 'affliction', wid: 105922, name: 'Soul Harvesting',       row: 1, col: 1, ranks: 2, v: {} },
   { key: 'improvedDrains',      tree: 'affliction', wid: 105920, name: 'Improved Drains',       row: 1, col: 2, ranks: 3, v: { dmgPct: [7, 13, 20] } },
   { key: 'improvedBaneOfAgony', tree: 'affliction', wid: 105919, name: 'Improved Bane of Agony',row: 2, col: 0, ranks: 2, v: { dmgPct: [5, 10] } },
-  { key: 'felConcentration',    tree: 'affliction', wid: 105918, name: 'Fel Concentration',     row: 2, col: 1, ranks: 3, v: {} },
+  { key: 'felConcentration',    tree: 'affliction', wid: 105918, name: 'Fel Concentration',     row: 2, col: 1, ranks: 3, v: { resistPct: [23, 47, 70] } },   // pushback (round 78, A76)
   { key: 'amplifyCurse',        tree: 'affliction', wid: 105916, name: 'Amplify Curse',         row: 2, col: 2, ranks: 1, v: { boaPct: [50] } },
   { key: 'pandemic',            tree: 'affliction', wid: 105917, name: 'Pandemic',              row: 2, col: 3, ranks: 3, v: { critBonusPct: [33, 67, 100] } },
   { key: 'malevolence',         tree: 'affliction', wid: 110876, name: 'Malevolence',           row: 3, col: 0, ranks: 5, v: { shadowCritPct: [1, 2, 3, 4, 5] } },
@@ -61,7 +61,7 @@ WL.TALENTS = [
   { key: 'aftermath',           tree: 'destruction', wid: 105886, name: 'Aftermath',            row: 1, col: 2, ranks: 5, v: { immoInitPct: [10, 20, 30, 40, 50] } },
   { key: 'ruin',                tree: 'destruction', wid: 105883, name: 'Ruin',                 row: 2, col: 1, ranks: 5, v: { critBonusPct: [20, 40, 60, 80, 100] } },
   { key: 'shadowburn',          tree: 'destruction', wid: 105884, name: 'Shadowburn',           row: 2, col: 2, ranks: 1, v: {} },
-  { key: 'intensity',           tree: 'destruction', wid: 105882, name: 'Intensity',            row: 3, col: 0, ranks: 3, v: {} },
+  { key: 'intensity',           tree: 'destruction', wid: 105882, name: 'Intensity',            row: 3, col: 0, ranks: 3, v: { resistPct: [23, 47, 70] } },   // pushback (round 78, A76)
   { key: 'agonizingFlames',     tree: 'destruction', wid: 105879, name: 'Agonizing Flames',     row: 3, col: 1, ranks: 3, v: { spCritPct: [3, 7, 10], dmgPct: [3, 7, 10] } },
   { key: 'conflagrate',         tree: 'destruction', wid: 105880, name: 'Conflagrate',          row: 3, col: 2, ranks: 1, v: {} },
   { key: 'pyroclasm',           tree: 'destruction', wid: 105878, name: 'Pyroclasm',            row: 4, col: 0, ranks: 2, req: 'intensity', reqQty: 3, v: {} },

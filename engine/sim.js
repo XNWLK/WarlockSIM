@@ -39,7 +39,8 @@ window.WL = window.WL || {};
     var R = { hit: WL.makeRng(seed0 ^ 0x1B873593), crit: WL.makeRng(seed0 ^ 0x85EBCA6B), proc: WL.makeRng(seed0 ^ 0xC2B2AE35),
               vuln: WL.makeRng(seed0 ^ 0x27D4EB2F), pet: WL.makeRng(seed0 ^ 0x165667B1),
               jow: WL.makeRng(seed0 ^ 0x3C6EF372),                                                     // Judgement of Wisdom (own stream, round 38)
-              isb: WL.makeRng(seed0 ^ 0x9E3779B9) };                                                   // ISB debuff hit roll (own stream, round 54)
+              isb: WL.makeRng(seed0 ^ 0x9E3779B9),                                                     // ISB debuff hit roll (own stream, round 54)
+              push: WL.makeRng(seed0 ^ 0x61C88647) };                                                  // damage taken / pushback (own stream, round 78)
     var dur = opt.duration || cfg.fight.duration, cb = cfg.combat;                                    // per-fight length [A56]
     var race = WL.RACES[raceKey];
     var tv = function (k, f) { return WL.talentValue(build, k, f); };
@@ -55,7 +56,7 @@ window.WL = window.WL || {};
       targetHpPct: 100,
     };
     var inst = 0, decideToken = 0;
-    var res = { bySpell: {}, lifeTaps: 0, manaFromTaps: 0, minMana: stats.maxMana, total: 0, oom: 0, clipped: 0, idle: 0, vulnHits: {}, petOomTime: 0, exDmg: 0 };
+    var res = { bySpell: {}, lifeTaps: 0, manaFromTaps: 0, minMana: stats.maxMana, total: 0, oom: 0, clipped: 0, idle: 0, pushbacks: 0, pushbackTime: 0, pushResisted: 0, vulnHits: {}, petOomTime: 0, exDmg: 0 };
 
     function row(key) {
       return res.bySpell[key] || (res.bySpell[key] = { casts: 0, landed: 0, misses: 0, crits: 0, hits: 0, ticks: 0, tickCrits: 0, dmg: 0, castTime: 0, glances: 0 });
@@ -283,6 +284,49 @@ window.WL = window.WL || {};
     }
     S.isMoving = function () { return isMoving(S.t); };
 
+    // Damage taken → pushback (round 78, user; A76). Every `hitEvery` s (first hit at a random point of the first
+    // interval) you take a direct hit. Casting: the cast is pushed back 1.0 / 0.8 / 0.6 / 0.4 / 0.2 s, then 0.2 s for
+    // every later hit of the same cast (no cap on the number of hits), but never further back than its start.
+    // Channeling: the channel loses 25% of its full duration per hit (and the ticks in it). Instants / idle: no effect.
+    // Protection: Intensity (Destruction spells), Fel Concentration (Drain Life, Drain Soul, Wrack) and Concentration
+    // Aura (all spells) add up, at most 100%; one roll per hit.
+    var HIT = cfg.fight.hitEvery > 0 ? cfg.fight.hitEvery : 0;
+    var AURA_PUSH = Object.keys(cfg.buffs || {}).reduce(function (a, k) { var b = cfg.buffs[k]; return a + (b.on && b.pushbackResistPct ? b.pushbackResistPct : 0); }, 0);
+    var FEL_CONC = { drainLife: 1, drainSoul: 1, wrack: 1 };
+    S.cast = null;                                                            // the cast-time spell being cast (pushback)
+    function pushResistPct(key) {
+      var s = SPELLS[key], p = AURA_PUSH;
+      if (s.tree === 'destruction') p += tv('intensity', 'resistPct');
+      if (FEL_CONC[key]) p += tv('felConcentration', 'resistPct');
+      return Math.min(100, p);
+    }
+    function takeHit() {
+      var c = S.channel, k = c ? c.key : (S.cast && S.t < S.cast.end - EPS ? S.cast.key : null);
+      if (!k) return;
+      var pr = pushResistPct(k);
+      if (pr > 0 && R.push() * 100 < pr) { res.pushResisted++; L('pushResist', k, { pct: pr }); return; }
+      var lost;
+      if (c) {
+        var newEnd = Math.max(S.t, c.end - 0.25 * SPELLS[k].duration);
+        lost = c.end - newEnd; c.end = newEnd;
+        row(k).castTime -= lost;
+        H.push({ t: c.end, o: 1, type: 'chanEnd', inst: c.inst });
+        L('pushback', k, { cut: +lost.toFixed(3) });
+      } else {
+        var cs = S.cast, step = Math.max(0.2, 1 - 0.2 * cs.n), end = Math.min(cs.end + step, S.t + cs.full);
+        lost = end - cs.end; cs.n++;
+        if (lost <= EPS) return;
+        cs.end = end; cs.ev.dead = true;
+        cs.ev = Object.assign({}, cs.ev, { t: cs.ev.t + lost, dead: false });
+        H.push(cs.ev);
+        row(cs.rk).castTime += lost;
+        L('pushback', k, { delay: +lost.toFixed(3) });
+      }
+      res.pushbacks++; res.pushbackTime += lost;
+      S.busyUntil = c ? c.end : S.cast.end;
+      scheduleDecide(Math.max(S.busyUntil, S.gcdReady));
+    }
+
     function applyDot(key, snap) {
       var s = SPELLS[key], e = table[key], id = ++inst;
       if (s.bane) { delete S.dots.baneOfAgony; delete S.dots.baneOfDoom; }                               // one Bane per target
@@ -479,6 +523,7 @@ window.WL = window.WL || {};
       L('cast', rk, { castTime: +castT.toFixed(3), gcd: +gcdT.toFixed(3), channel: s.kind === 'channel' ? s.duration : undefined,
                        eureka: eurekaUsed || undefined, trance: instantTrance || undefined, timeline: fromTL || undefined });
 
+      S.cast = null;
       if (s.kind === 'channel') {
         var r = row(key);
         if (R.hit() * 100 >= stats.hitPct) {
@@ -498,7 +543,9 @@ window.WL = window.WL || {};
         S.busyUntil = S.t + castT; S.gcdReady = S.t + gcdT;
         row(rk).castTime += castT;
         // projectiles land `TRAVEL` s after the cast ends (round 39; the caster is free at cast end)
-        H.push({ t: S.busyUntil + (s.projectile ? TRAVEL : 0), o: 1, type: 'castEnd', key: key, eureka: eureka, baseMult: baseMult, target: target, eurekaHeld: eurekaUsed, tl: fromTL });
+        var ce = { t: S.busyUntil + (s.projectile ? TRAVEL : 0), o: 1, type: 'castEnd', key: key, eureka: eureka, baseMult: baseMult, target: target, eurekaHeld: eurekaUsed, tl: fromTL };
+        H.push(ce);
+        S.cast = { key: key, rk: rk, full: castT, end: S.busyUntil, ev: ce, n: 0 };     // pushback (round 78)
         scheduleDecide(Math.max(S.busyUntil, S.gcdReady));
       } else {
         S.busyUntil = S.t; S.gcdReady = S.t + gcdT;
@@ -904,6 +951,7 @@ window.WL = window.WL || {};
     // Pre-pull: Demonic Sacrifice is handled statically in computeStats (buff lasts 2 h).
     if (cfg.debuffs && cfg.debuffs.coeOther && cfg.debuffs.coeOther.on) S.buffs.coe = dur + 1;   // another Warlock keeps CoE up
     scheduleDecide(0);
+    if (HIT) H.push({ t: R.push() * HIT, o: 1, type: 'dmgTaken' });             // first hit at a random point of the first interval
     if (P) {
       if (P.c.spell) H.push({ t: 0, o: 2, type: 'petAct', gen: P.gen });
       if (P.c.melee) H.push({ t: 0, o: 0, type: 'petSwing', gen: P.gen });
@@ -917,6 +965,7 @@ window.WL = window.WL || {};
         if (ev.token !== decideToken) continue;
         decide();
       } else if (ev.type === 'castEnd') {
+        if (ev.dead) continue;                                // pushed back: a later copy of this event lands it (round 78)
         if (!land(ev.key, ev.eureka, ev.baseMult, ev.target) && ev.tl && TL) TL.turn = true;   // missed timeline cast → priority turn
         if (ev.eurekaHeld) eurekaRelease();                   // Eureka!'s aura part of this cast ends when it lands
       } else if (ev.type === 'eurekaEnd') {                    // 15 s after the pop (round 42)
@@ -942,9 +991,18 @@ window.WL = window.WL || {};
         if (!dx || dx.inst !== ev.inst) continue;
         periodicTickX(ev.ti, ev.key, dx.snap, ev.i);
         if (ev.i === dx.ticks - 1) delete S.xdots[ev.ti][ev.key];
+      } else if (ev.type === 'dmgTaken') {                          // damage taken (round 78)
+        takeHit();
+        H.push({ t: S.t + HIT, o: 1, type: 'dmgTaken' });
+      } else if (ev.type === 'chanEnd') {                      // a channel shortened by pushback ends (round 78)
+        var ch = S.channel;
+        if (!ch || ch.inst !== ev.inst || ch.end > S.t + EPS) continue;
+        if (ch.eurekaHeld) eurekaRelease();
+        S.channel = null;
       } else if (ev.type === 'chanTick') {
         var c = S.channel;
         if (!c || c.inst !== ev.inst) continue;               // clipped
+        if (ev.t > c.end + EPS) continue;                     // cut off by pushback (round 78); chanEnd closes the channel
         periodicTick(ev.key, c.snap, ev.i, true);
         var last = ev.i === table[ev.key].ticks - 1;
         if (last) { if (c.eurekaHeld) eurekaRelease(); S.channel = null; continue; }
@@ -1017,7 +1075,7 @@ window.WL = window.WL || {};
     var n = opt.iterations || cfg.fight.iterations;
     var stats = WL.computeStats(build, raceKey, cfg);
     var table = WL.buildSpellTable(build, stats, cfg);
-    var dpsList = [], agg = {}, first = null, lifeTaps = 0, movingTaps = 0, minMana = Infinity, clipped = 0, durSum = 0, upPct = {};
+    var dpsList = [], agg = {}, first = null, lifeTaps = 0, movingTaps = 0, minMana = Infinity, clipped = 0, durSum = 0, push = { n: 0, time: 0, resisted: 0 }, upPct = {};
     var tapPct = 0, petOomFights = 0, petOomSec = 0, idleSec = 0;             // W3 mana / pet-mana summary
     var exDmg = 0, exTime = 0, preDmg = 0, preTime = 0;                        // execute split (round 44)
     var skipAgg = {};                                                          // end-of-fight DoT skips (round 53)
@@ -1025,7 +1083,7 @@ window.WL = window.WL || {};
       var fp = WL.fightParams(cfg, i);
       var r = WL.simulateOnce(build, raceKey, cfg, { stats: stats, table: table, seed: fp.seed, duration: fp.duration, log: i === 0 && opt.log !== false });
       if (i === 0) first = r;
-      dpsList.push(r.dps); durSum += r.duration; lifeTaps += r.lifeTaps; movingTaps += r.movingTaps || 0; clipped += r.clipped; minMana = Math.min(minMana, r.minMana);
+      dpsList.push(r.dps); durSum += r.duration; lifeTaps += r.lifeTaps; movingTaps += r.movingTaps || 0; clipped += r.clipped; push.n += r.pushbacks; push.time += r.pushbackTime; push.resisted += r.pushResisted; minMana = Math.min(minMana, r.minMana);
       Object.keys(r.uptime).forEach(function (k) { upPct[k] = (upPct[k] || 0) + 100 * r.uptime[k] / r.duration; });
       tapPct += 100 * (r.tapTime || 0) / r.duration; idleSec += r.idle;
       exDmg += r.exDmg; exTime += r.exTime; preDmg += r.preDmg; preTime += r.preTime;
@@ -1061,6 +1119,7 @@ window.WL = window.WL || {};
       dpsPre: preTime ? preDmg / preTime : null, dpsExec: exTime ? exDmg / exTime : null,   // above / below the execute threshold
       execPct: cfg.fight.executePct,
       bySpell: agg, avgDuration: durSum / n, lifeTaps: lifeTaps / n, movingTaps: movingTaps / n, minMana: minMana, clipped: clipped / n,
+      pushback: { n: push.n / n, time: push.time / n, resisted: push.resisted / n },   // per fight (round 78)
       dotSkips: skipAgg,
       log: first.log, firstFight: first,
     };

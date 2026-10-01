@@ -145,7 +145,7 @@
     // The preset stays shown after choosing it (it used to jump back to "— choose —", which looked like it did nothing —
     // user report, round 40); editing one of the fields it sets shows "— choose —" again.
     if (t.id === 'encPreset') applyEncounter(t.value);
-    else if (['duration', 'durVar', 'latencyMs', 'moveEvery', 'moveDuration', 'targets', 'o_multiDot'].indexOf(t.id) >= 0) $('encPreset').value = '';
+    else if (['duration', 'durVar', 'latencyMs', 'moveEvery', 'moveDuration', 'hitEvery', 'targets', 'o_multiDot'].indexOf(t.id) >= 0) $('encPreset').value = '';
     // Consumables: one per group - ticking one unticks the rest of its group [A57]
     if (t.id && t.id.indexOf('c_') === 0 && t.checked) {
       var g = cfg.consumables[t.id.slice(2)].group;
@@ -195,19 +195,20 @@
     ['g_pierce', 'gear', 'pierce'], ['g_int', 'gear', 'int'], ['g_spi', 'gear', 'spi'], ['g_mp5', 'gear', 'mp5'],
     ['g_sta', 'gear', 'sta'], ['g_agi', 'gear', 'agi'], ['g_shadowSp', 'gear', 'shadowSp'], ['g_fireSp', 'gear', 'fireSp'],
     ['showPct', 'options', 'showWithinPct'],
-    ['latencyMs', 'fight', 'latencyMs'], ['travelMs', 'fight', 'travelMs'], ['moveEvery', 'fight', 'moveEvery'], ['moveDuration', 'fight', 'moveDuration'], ['targets', 'fight', 'targets'],
+    ['latencyMs', 'fight', 'latencyMs'], ['travelMs', 'fight', 'travelMs'], ['moveEvery', 'fight', 'moveEvery'], ['moveDuration', 'fight', 'moveDuration'], ['hitEvery', 'fight', 'hitEvery'], ['targets', 'fight', 'targets'],
   ];
   // Encounter presets (W11): fill the fight fields; everything else stays as it is.
   var ENCOUNTERS = {
-    default:    { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, targets: 1 },
-    short:      { duration: 90, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, targets: 1 },
-    long:       { duration: 300, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, targets: 1 },
-    move:       { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 20, moveDuration: 3, targets: 1 },
-    heavyMove:  { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 15, moveDuration: 5, targets: 1 },
-    twoTargets: { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, targets: 2 },
-    twoDots:    { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, targets: 2, multiDot: true },
-    threeDots:  { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, targets: 3, multiDot: true },
-    latency:    { duration: 180, durationVarPct: 10, latencyMs: 150, moveEvery: 0, moveDuration: 0, targets: 1 },
+    default:    { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 1 },
+    short:      { duration: 90, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 1 },
+    long:       { duration: 300, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 1 },
+    move:       { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 20, moveDuration: 3, hitEvery: 0, targets: 1 },
+    heavyMove:  { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 15, moveDuration: 5, hitEvery: 0, targets: 1 },
+    twoTargets: { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 2 },
+    twoDots:    { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 2, multiDot: true },
+    threeDots:  { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 3, multiDot: true },
+    latency:    { duration: 180, durationVarPct: 10, latencyMs: 150, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 1 },
+    hits:       { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 2, targets: 1 },   // round 78
   };
   function applyEncounter(k) {
     var p = ENCOUNTERS[k]; if (!p) return;
@@ -764,6 +765,7 @@
       kv('Median · worst – best fight', fmt(r.dpsMedian, 1) + ' · ' + fmt(r.dpsMin, 0) + ' – ' + fmt(r.dpsMax, 0)) +
       kv('vs best overall', ((r.dps / top - 1) * 100).toFixed(2) + '%') + kv('Life Taps per fight', fmt(r.lifeTaps, 1)) +
       (r.clipped > 0.05 ? kv('Channels clipped per fight', fmt(r.clipped, 1)) : '') +
+      (r.pushback && (r.pushback.n > 0.05 || r.pushback.resisted > 0.05) ? kv('Pushbacks per fight', fmt(r.pushback.n, 1) + ' · ' + fmt(r.pushback.time, 1) + ' s lost' + (r.pushback.resisted > 0.05 ? ' · ' + fmt(r.pushback.resisted, 1) + ' resisted' : '')) : '') +   // round 78
       (b.pet ? kv('Pet out of mana (fight #1)', fmt(r.firstFight.petOomTime, 0) + ' s') : '') +
       (r.firstFight.swapAt != null ? kv('Pet swap (fight #1)', clock(r.firstFight.swapAt) + ' → ' + (PET_NAMES[(b.rotation.indexOf('swapToImp') >= 0 ? 'imp' : 'succubus')])) : '') +
       kv('Weapon oil', WL.OILS[b.oil].name) + '</div></div>';
@@ -856,7 +858,7 @@
     if (b.notes) h += '<div class="wide"><details class="bd"><summary>How this build was found</summary><p class="meta notes">' + esc(b.notes) + '</p></details></div>';
 
     var mode = logMode[id(r)] || 'casts';
-    var ev = r.log.filter(function (e) { return mode === 'all' || e.type === 'cast' || e.type === 'racial' || e.type === 'consumable' || e.type === 'clip' || e.type === 'miss' || e.type === 'skip'; });
+    var ev = r.log.filter(function (e) { return mode === 'all' || e.type === 'cast' || e.type === 'racial' || e.type === 'consumable' || e.type === 'clip' || e.type === 'miss' || e.type === 'skip' || e.type === 'pushback' || e.type === 'pushResist'; });
     h += '<div class="wide"><h2>Rotation log · fight #1 (' + ev.length + ' events)</h2>' +
       '<div class="seg" role="group" aria-label="Log detail" style="margin-bottom:8px">' +
       '<button type="button" data-log="casts" data-id="' + esc(id(r)) + '" aria-pressed="' + (mode === 'casts') + '">Casts only</button>' +
@@ -869,6 +871,7 @@
         if (e.timeline) note.push('timeline'); if (e.trance) note.push('Shadow Trance'); if (e.moving) note.push('while moving'); if (e.eureka) note.push('Eureka!');
         if (e.n) note.push('tick ' + e.n + '/' + e.of); if (e.gain) note.push('+' + e.gain + ' mana');
         if (e.for) note.push('for ' + spellName(e.for));
+        if (e.delay) note.push('cast +' + e.delay.toFixed(2) + ' s'); if (e.cut) note.push('channel −' + e.cut.toFixed(2) + ' s'); if (e.type === 'pushResist') note.push('no pushback (' + e.pct + '% chance)');   // round 78
         if (e.type === 'skip') note.push('not recast: ' + e.left + ' s left, would add ' + fmt(e.value) + ' < ' + fmt(e.cost) + ' from ' + spellName(e.filler));
         return '<tr class="' + cls + '"><td class="n">' + clock(e.t) + '</td><td>' + esc(e.type) + '</td>' +
           '<td><span class="sw" style="background:' + colorOf(e.spell) + '"></span>' + esc(spellName(e.spell)) + '</td>' +

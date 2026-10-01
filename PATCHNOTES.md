@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v70
+- **Pushback**: new "Take a hit every (s)" option and a "Taking damage" preset in Fight & pets. Hits push casts back
+  (1.0 / 0.8 / 0.6 / 0.4 / 0.2 s, then 0.2 s) and cut channels by 25%.
+- **Intensity**, **Fel Concentration** and the new Paladin raid buff **Concentration Aura** give a chance to ignore it.
+- Real icons for Grace of Air Totem and Scroll of Agility IV.
+
 ## v69
 - **Wrack DS replaced by Wrack Succubus** (40/0/11): Succubus out instead of the Imp sacrifice, Bane of Agony only,
   Improved Bane of Agony, Improved Drains, Bane and Ruin. 499.9 DPS (Human), +7.7% over Wrack DS.

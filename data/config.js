@@ -16,6 +16,7 @@ WL.DEFAULT_CONFIG = {
     travelMs: 0,            // travel time of projectiles (Shadow Bolt, Soul Fire, Incinerate, Death Coil, Firebolt); 0 = right in front of the boss (user, round 39) [A65]
     moveEvery: 0,           // every N s ...
     moveDuration: 0,        // ... you move for M s (only instants while moving). 0 = no movement
+    hitEvery: 0,            // round 78 (user): you take a direct hit every N s (0 = never) → pushback on casts / channels [A76]
     lifeTapWhileMoving: false, // round 62 (user): Life Tap (instant) when nothing else can be cast because of movement [A71]
     targets: 1,             // 2-3 targets: Bane of Havoc (talent) on target 2 copies 15% of your damage to it
     multiDot: false,        // with 2-3 targets: keep your DoTs on the extra targets too (A61)
@@ -83,6 +84,9 @@ WL.DEFAULT_CONFIG = {
     fortitude:        { on: true, id: 10938, name: 'Power Word: Fortitude',         cls: 'Priest',  desc: '+70 Stamina (Touch of the Grave)', sta: 70 },
     divineSpirit:     { on: true, id: 27841, name: 'Divine Spirit / Prayer of Spirit', cls: 'Priest', desc: '+40 Spirit (Life Tap)', spi: 40 },
     blessingOfKings:  { on: true, id: 20217, name: 'Blessing of Kings',             cls: 'Paladin', desc: '+10% total stats', statPct: 10 },
+    // Round 78 (user): pushback protection for the whole party; adds to Intensity / Fel Concentration, at most 100%.
+    // Classic value (Concentration Aura, all ranks 35%), not checked in Forever [A76].
+    concentrationAura: { on: false, id: 19746, name: 'Concentration Aura',          cls: 'Paladin', desc: '35% chance to ignore pushback from damage', pushbackResistPct: 35 },
     blessingOfWisdom: { on: true, id: 25290, name: 'Blessing of Wisdom',            cls: 'Paladin', desc: '40 mana every 5 s', mp5: 40 },
     manaSpring:       { on: false, id: 10497, name: 'Mana Spring Totem',             cls: 'Shaman',  desc: '10 mana every 2 s (25 MP5)', mp5: 25 },
     restorativeTotems:{ on: false, id: 16187, name: 'Restorative Totems (on Mana Spring)', cls: 'Shaman', desc: 'Mana Spring +25%', mp5: 6.25, requires: 'manaSpring' },

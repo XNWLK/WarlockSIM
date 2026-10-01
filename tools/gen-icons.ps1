@@ -39,6 +39,10 @@ foreach ($line in $cfg -split "`n") {
   if ($section -and $line -match '^\s+(\w+)\s*:\s*\{ on: (?:true|false), id: (\d+)') {
     $ic = SpellIcon $Matches[2]; if (-not $ic -and $Matches[1] -eq 'restorativeTotems') { $ic = 'spell_nature_manaregentotem' }
     if (-not $ic -and $Matches[1] -eq 'judgementOfWisdom') { $ic = 'spell_holy_righteousnessaura' }   # Wowhead Forever tooltip icon (round 38)
+    # Not in the raw spell data: Classic icon names (round 78)
+    if (-not $ic -and $Matches[1] -eq 'concentrationAura') { $ic = 'spell_holy_mindsooth' }
+    if (-not $ic -and $Matches[1] -eq 'graceOfAir') { $ic = 'spell_nature_invisibilitytotem' }
+    if (-not $ic -and $Matches[1] -eq 'scrollOfAgility') { $ic = 'inv_scroll_02' }
     if ($ic) { $map["$($section)_$($Matches[1])"] = $ic }
   }
 }
