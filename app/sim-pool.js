@@ -1,5 +1,5 @@
-// Round 76 (performance): run simulation jobs on a pool of Web Workers (engine/worker.js), one per CPU core (1–8; the
-// page itself only renders meanwhile). Falls back to the page's main thread (time-sliced, as before round 76) when workers cannot start — opened from
+// Round 76 (performance): run simulation jobs on a pool of Web Workers (engine/worker.js), one per CPU thread (round 79: all
+// threads, at most 32; 1–8 in rounds 76–78; the page itself only renders meanwhile). Falls back to the page's main thread (time-sliced, as before round 76) when workers cannot start — opened from
 // file://, blocked by the host, or no "ready" within a few seconds — or when a worker fails mid-run (its job is redone on
 // the page). Both paths call the same engine functions with the same seeds, so the numbers are identical.
 //   WL.SimPool.run(jobs, onResult(job, res), onDone())  — jobs: { kind: 'combo', build, race, cfg } → res = { r }
@@ -20,7 +20,7 @@ WL.makeSimPool = function (workerUrl, size) {
     readyWaiters.push(cb);
     if (state === 'starting') return;
     state = 'starting';
-    var n = size || Math.max(1, Math.min(8, navigator.hardwareConcurrency || 2)), ready = 0, settled = false;
+    var n = size || Math.max(1, Math.min(32, navigator.hardwareConcurrency || 2)), ready = 0, settled = false;
     function settle(ok) {
       if (settled) return; settled = true;
       if (!ok) { (workers || []).forEach(function (w) { try { w.terminate(); } catch (e) {} }); workers = null; }

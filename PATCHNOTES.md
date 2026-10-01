@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v71
+- **Faster runs**: a full Sim! takes about 40% less time on a many-core PC (uses every CPU thread now) and ~20% less on
+  any PC. The numbers are exactly the same as before.
+
 ## v70
 - **Pushback**: new "Take a hit every (s)" option and a "Taking damage" preset in Fight & pets. Hits push casts back
   (1.0 / 0.8 / 0.6 / 0.4 / 0.2 s, then 0.2 s) and cut channels by 25%.

@@ -397,11 +397,13 @@
       $('runMeta').textContent = (done < nCombos ? 'Simulating ' + (keep ? 'new builds ' : 'builds ') + done + ' / ' + nCombos
         : 'Stat weights ' + wDone + ' / ' + nWeights) + '… (' + WL.SimPool.mode() + ')';
     }
-    function weightJobs() {                                              // shown builds without stat weights yet: 7 runs each
-      var list = [];
+    function weightJobs() {                                              // shown builds without stat weights yet: 6 runs each
+      // Round 79: with as many fights per weight run as per combo, the unchanged "base" run is exactly the best-race row
+      // (same build, race, settings and seeds), so its DPS is reused instead of simulated again (7 → 6 runs per build).
+      var list = [], reuse = runCfg.fight.weightIterations === runCfg.fight.iterations;
       bestRaceJobs(builds).filter(function (x) { return !weights[x.b.key]; }).forEach(function (x) {
-        var acc = { race: x.r, base: null, by: {}, left: 1 + WL.STAT_WEIGHT_KEYS.length };
-        [null].concat(WL.STAT_WEIGHT_KEYS).forEach(function (k) {
+        var acc = { race: x.r, base: reuse ? bestRow(x.b.key).dps : null, by: {}, left: (reuse ? 0 : 1) + WL.STAT_WEIGHT_KEYS.length };
+        (reuse ? [] : [null]).concat(WL.STAT_WEIGHT_KEYS).forEach(function (k) {
           list.push({ kind: 'weight', b: x.b, build: x.b, race: x.r, cfg: runCfg, n: runCfg.fight.weightIterations, stat: k, acc: acc });
         });
       });

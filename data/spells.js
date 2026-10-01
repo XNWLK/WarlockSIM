@@ -93,7 +93,8 @@ WL.spellsFor = function (cfg) {
 };
 
 // Any rank of Shadow Bolt (round 57): talents and effects that name Shadow Bolt apply to every rank.
-WL.isShadowBolt = function (k) { return k === 'shadowBolt' || !!(WL.SPELLS[k] && WL.SPELLS[k].family === 'shadowBolt'); };
+var SB_CACHE = {};
+WL.isShadowBolt = function (k) { var v = SB_CACHE[k]; if (v === undefined) v = SB_CACHE[k] = k === 'shadowBolt' || !!(WL.SPELLS[k] && WL.SPELLS[k].family === 'shadowBolt'); return v; };
 
 // Spells whose crit bonus is raised by Pandemic (talent text).
 WL.PANDEMIC_SPELLS = ['corruption', 'baneOfAgony', 'baneOfDoom', 'drainSoul', 'drainLife', 'siphonLife', 'wrack'];

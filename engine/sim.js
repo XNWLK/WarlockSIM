@@ -23,7 +23,7 @@ window.WL = window.WL || {};
     }
     return top;
   };
-  function less(x, y) { return x.t < y.t - 1e-9 || (Math.abs(x.t - y.t) <= 1e-9 && (x.o < y.o || (x.o === y.o && x.seq < y.seq))); }
+  function less(x, y) { var d = x.t - y.t; if (d < -1e-9) return true; if (d > 1e-9) return false; return x.o < y.o || (x.o === y.o && x.seq < y.seq); }
 
   var EPS = 1e-9;
 
@@ -43,7 +43,8 @@ window.WL = window.WL || {};
               push: WL.makeRng(seed0 ^ 0x61C88647) };                                                  // damage taken / pushback (own stream, round 78)
     var dur = opt.duration || cfg.fight.duration, cb = cfg.combat;                                    // per-fight length [A56]
     var race = WL.RACES[raceKey];
-    var tv = function (k, f) { return WL.talentValue(build, k, f); };
+    var TVC = {};
+    var tv = function (k, f) { var c = TVC[k] || (TVC[k] = {}), q = f || '', v = c[q]; if (v === undefined) v = c[q] = WL.talentValue(build, k, f); return v; };
     var logOn = !!opt.log, log = [];
     var H = new Heap();
 
@@ -86,7 +87,7 @@ window.WL = window.WL || {};
 
     // ---------- aura tracking: uptime seconds (W4) and exact intervals for the fight-#1 timeline (W5) ----------
     // State only changes at events, so between two events every buff/DoT is either on or off until its expiry.
-    var up = {}, iv = logOn ? {} : null;
+    var up = {}, iv = logOn ? {} : null, DOTK = {};
     function auraAdd(k, a, b) {
       if (b <= a + EPS) return;
       up[k] = (up[k] || 0) + (b - a);
@@ -95,7 +96,7 @@ window.WL = window.WL || {};
     function trackAuras(prev, t) {
       if (t <= prev + EPS) return;
       for (var k in S.buffs) { var e = S.buffs[k]; if (e > prev + EPS && (k !== 'brand' || S.brandCharges > 0)) auraAdd(k, prev, Math.min(t, e)); }
-      for (var d in S.dots) { var x = S.dots[d]; if (x.expires > prev + EPS) auraAdd('dot:' + d, prev, Math.min(t, x.expires)); }
+      for (var d in S.dots) { var x = S.dots[d]; if (x.expires > prev + EPS) auraAdd(DOTK[d] || (DOTK[d] = 'dot:' + d), prev, Math.min(t, x.expires)); }
       for (var tj in S.xdots) for (var d2 in S.xdots[tj]) { var y = S.xdots[tj][d2]; if (y.expires > prev + EPS) auraAdd('dot' + tj + ':' + d2, prev, Math.min(t, y.expires)); }
       for (var tk in S.xdeb) for (var nm in S.xdeb[tk]) { var ex = S.xdeb[tk][nm]; if (ex > prev + EPS) auraAdd('deb' + tk + ':' + nm, prev, Math.min(t, ex)); }
       if (eurekaUp()) auraAdd('eureka', prev, t);

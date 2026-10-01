@@ -48,12 +48,15 @@ function runJobs(jobs) {
   const wj = [];
   builtins.forEach(b => {                              // best real race (the page: bestRow — highest DPS, stable order)
     const best = results.filter((r, i) => combos[i].key === b.key && r.race !== WL.BASELINE_RACE).sort((x, y) => y.dps - x.dps)[0];
-    [null].concat(WL.STAT_WEIGHT_KEYS).forEach(stat => wj.push({ kind: 'weight', key: b.key, race: best.race, stat, i: wj.length }));
+    // Round 79: the unchanged base run = the best-race combo (same fights) when both use the same number of fights.
+    const stats = cfg.fight.weightIterations === cfg.fight.iterations ? WL.STAT_WEIGHT_KEYS : [null].concat(WL.STAT_WEIGHT_KEYS);
+    stats.forEach(stat => wj.push({ kind: 'weight', key: b.key, race: best.race, stat, base: best.dps, i: wj.length }));
   });
   const wr = await runJobs(wj), weights = {};
   builtins.forEach(b => {
-    const mine = wj.filter(j => j.key === b.key), base = wr[mine[0].i].dps, by = {};
-    mine.slice(1).forEach(j => { by[j.stat] = wr[j.i].dps; });
+    const mine = wj.filter(j => j.key === b.key), by = {};
+    const base = mine[0].stat === null ? wr[mine[0].i].dps : mine[0].base;
+    mine.filter(j => j.stat).forEach(j => { by[j.stat] = wr[j.i].dps; });
     weights[b.key] = { race: mine[0].race, w: WL.combineWeights(cfg, base, by) };
   });
   // Self-check for the page: DPS of fight #1 of every row. The page re-simulates these 78 single fights (~0.1 s) and uses
