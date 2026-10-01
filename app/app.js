@@ -93,7 +93,7 @@
   // How the sim uses a racial cooldown (Eureka!: live +10% aura, pop timing from options.eurekaPolicy — round 38).
   function racialRule(rc) {
     if (!rc.charges) return 'Used on cooldown, right before a damaging spell (never before a curse or Life Tap)';
-    var pol = (runCfg.options || {}).eurekaPolicy || 'doom';
+    var pol = (runCfg.options || {}).eurekaPolicy || 'long';
     return 'A +10% damage aura on your direct hits and channel ticks (not on DoT ticks since round 80) until 3 spells have been cast. Popped ' +
       (pol === 'any' ? 'on cooldown, right before any damaging spell' : pol === 'long' ? 'on cooldown, right before a long cast (Shadow Bolt, Searing Pain, Incinerate, Soul Fire, a channel)' :
         'right before a long cast; while Bane of Doom ticks, held until its explosion falls inside the aura');
@@ -261,7 +261,7 @@
     $('bossArmor').value = cfg.combat.bossArmor;
     $('resShadow').value = cfg.combat.targetResist.shadow; $('resFire').value = cfg.combat.targetResist.fire;
     $('o_levelRes').checked = !!(cfg.combat.levelResist && cfg.combat.levelResist.on);
-    $('o_eureka').value = cfg.options.eurekaPolicy || 'doom';
+    $('o_eureka').value = cfg.options.eurekaPolicy || 'long';
     armorNote(); renderTotals(); tabCounts();
   }
   var CON_GROUPS = { flask: 'Flask', spElixir: 'Spell power elixir', shadowElixir: 'Shadow elixir', fireElixir: 'Fire elixir',

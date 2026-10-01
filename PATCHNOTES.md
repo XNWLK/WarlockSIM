@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v73
+- Eureka! is now popped **before a long cast** by default (was: timed with Bane of Doom, which no longer gains from it).
+
 ## v72
 - **Eureka! (Gnome)** follows the Forever patch: its +10% no longer applies to DoT ticks; direct hits and channel ticks
   (Drain Life, Drain Soul, Wrack) still get it. Gnome builds −0.3 … −0.8%.

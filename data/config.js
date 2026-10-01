@@ -127,7 +127,8 @@ WL.DEFAULT_CONFIG = {
     // When to pop Eureka! (Gnome), a live +10% damage aura until 3 spells have been cast (round 38, A31):
     // 'any' = before any damaging spell · 'long' = only before a long cast (≥ 1.4 s direct spell or channel) ·
     // 'doom' = 'long' and, while Bane of Doom ticks, hold it until the explosion falls inside the aura.
-    eurekaPolicy: 'doom',
+    // Round 80 (user): default 'long' (was 'doom'): the Bane of Doom explosion no longer gets Eureka! (Forever patch).
+    eurekaPolicy: 'long',
     // AQ20 book ranks (round 42, user): Shadow Bolt R10, Immolate R8, Corruption R7 instead of the trainer ranks
     // R9 / R7 / R6. Off by default (the books drop in Ruins of Ahn'Qiraj). See WL.BOOK_RANKS / SPELLVALUES.md.
     bookRanks: false,

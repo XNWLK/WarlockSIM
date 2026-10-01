@@ -39,6 +39,7 @@
     T.ok(ihIn.length > 0 && ih.out.length > 0 && Math.abs(ihIn[0].dmg / ih.out[0].dmg - 1.10) < 0.01, "Immolate's direct hit 1.10 × (" + (ihIn[0] && ihIn[0].dmg) + ' vs ' + (ih.out[0] && ih.out[0].dmg) + ')');
 
     T.group('other races and the default results');
+    T.eq(WL.DEFAULT_CONFIG.options.eurekaPolicy, 'long', "default pop timing 'long' (user, round 80; was 'doom')");
     var h = WL.simulateOnce(tb(['drainLife']), 'human', det(), { seed: 2, duration: 60, log: true });
     T.eq((h.auras.eureka || []).length, 0, 'no Eureka! aura for a Human');
   });
