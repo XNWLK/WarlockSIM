@@ -47,7 +47,7 @@
     var ticks = eg.log.filter(function (e) { return e.type === 'tick' && e.spell === 'corruption'; });
     var ti = ticks.filter(function (e) { return inE(e.t); }), to = ticks.filter(function (e) { return outE(e.t); });
     T.ok(ti.length > 0 && to.length > 0, 'Corruption ticks inside (' + ti.length + ') and outside (' + to.length + ') the Eureka! aura');
-    T.near(ti[0].dmg / to[0].dmg, (1 + 0.20 + 0.10) / 1.20, 0.006, 'tick × ' + (ti[0].dmg / to[0].dmg).toFixed(4) + ' = (1 + 20% + 10%) / 1.20 = 1.0833 (was 1.10)');
+    T.near(ti[0].dmg / to[0].dmg, 1, 0.006, 'tick × ' + (ti[0].dmg / to[0].dmg).toFixed(4) + ' = 1: DoT ticks get no Eureka! since round 80 (rounds 43–79: (1 + 20% + 10%) / 1.20)');
     var sb = eg.log.filter(function (e) { return e.type === 'hit' && e.spell === 'shadowBolt'; });
     var si = sb.filter(function (e) { return inE(e.t - 1e-3) || ivs.some(function (v) { return Math.abs(e.t - v[1]) < 1e-6; }); }), so = sb.filter(function (e) { return outE(e.t); });
     T.ok(si.length > 0 && so.length > 0, 'Shadow Bolts inside (' + si.length + ') and outside (' + so.length + ') the aura');
@@ -56,6 +56,6 @@
     var hv = (hb.auras && hb.auras.eureka) || [], htk = hb.log.filter(function (e) { return e.type === 'tick' && e.spell === 'corruption'; });
     var a1 = htk.filter(function (e) { return hv.some(function (v) { return e.t > v[0] + 1e-6 && e.t < v[1] - 1e-6; }); })[0];
     var a0 = htk.filter(function (e) { return !hv.some(function (v) { return e.t >= v[0] - 1e-6 && e.t <= v[1] + 1e-6; }); })[0];
-    T.near(a1.dmg / a0.dmg, 1.10, 0.006, 'without other modifiers Eureka! is still exactly +10%');
+    T.near(a1.dmg / a0.dmg, 1, 0.006, 'without other modifiers: a DoT tick is unchanged too (round 80)');
   });
 })();

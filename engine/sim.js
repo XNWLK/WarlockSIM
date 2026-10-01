@@ -111,8 +111,10 @@ window.WL = window.WL || {};
     }
 
     // ---------- damage ----------
-    // Eureka! (Gnome) is a live aura (user, round 38): +10% to all of your damage — direct hits, DoT and channel ticks,
-    // also DoTs applied before it — from the pop until the 3rd empowered spell has been cast (landed; a channel: ended).
+    // Eureka! (Gnome) is a live aura (user, round 38): +10% to your direct hits and channel ticks — round 80 (user, Forever
+    // patch): "Eureka! no longer benefits periodic effects at all. Channeled spells do not count as periodics." → DoT ticks
+    // (Corruption, Banes, Siphon Life, Immolate's burn) get nothing; rounds 38–79 they got +10% too — from the pop until the
+    // 3rd empowered spell has been cast (landed; a channel: ended).
     // Nothing is snapshotted. Its mana discount still applies to those 3 casts. [A31]
     // Round 42: the buff lasts at most 15 s (spell 1259821 "Duration 15 seconds"): an 'eurekaEnd' event at pop + 15 s
     // removes unused charges and the aura (casts still in flight then land without it).
@@ -124,6 +126,7 @@ window.WL = window.WL || {};
     function eurekaMult(key, periodic) {
       var cd = racialOf('cooldown');
       if (!(cd && cd.charges && eurekaUp())) return 1;
+      if (periodic && SPELLS[key].kind !== 'channel') return 1;                          // DoT ticks: no bonus (round 80) [A31]
       var e = table[key], g = e ? (periodic ? e.op22 : e.op0) || 0 : 0;
       return (1 + g + cd.dmgPct / 100) / (1 + g);
     }

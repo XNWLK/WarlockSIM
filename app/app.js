@@ -94,7 +94,7 @@
   function racialRule(rc) {
     if (!rc.charges) return 'Used on cooldown, right before a damaging spell (never before a curse or Life Tap)';
     var pol = (runCfg.options || {}).eurekaPolicy || 'doom';
-    return 'A +10% damage aura on all your damage (DoTs included) until 3 spells have been cast. Popped ' +
+    return 'A +10% damage aura on your direct hits and channel ticks (not on DoT ticks since round 80) until 3 spells have been cast. Popped ' +
       (pol === 'any' ? 'on cooldown, right before any damaging spell' : pol === 'long' ? 'on cooldown, right before a long cast (Shadow Bolt, Searing Pain, Incinerate, Soul Fire, a channel)' :
         'right before a long cast; while Bane of Doom ticks, held until its explosion falls inside the aura');
   }

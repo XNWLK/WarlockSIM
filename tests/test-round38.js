@@ -13,7 +13,7 @@
   function inAura(r, t) { return (r.auras.eureka || []).some(function (iv) { return t >= iv[0] - 1e-6 && t <= iv[1] + 1e-6; }); }
 
   T.run('Eureka! live aura (round 38)', function () {
-    T.group('a DoT applied before the pop gains +10% while the aura is up, and loses it afterwards');
+    T.group('a DoT gets nothing from the aura (round 80, Forever patch: Eureka! no longer benefits periodic effects; rounds 38–79: +10%)');
     var r = WL.simulateOnce(tb(['corruption', 'shadowBolt']), 'gnome', det('long'), { seed: 1, duration: 60, log: true });
     var pop = r.log.filter(function (e) { return e.type === 'racial'; })[0];
     var firstCast = r.log.filter(function (e) { return e.type === 'cast'; })[0];
@@ -22,7 +22,7 @@
     var inT = ticks.filter(function (e) { return inAura(r, e.t); }), outT = ticks.filter(function (e) { return !inAura(r, e.t); });
     T.ok(inT.length >= 2 && outT.length >= 2, 'Corruption ticks inside (' + inT.length + ') and outside (' + outT.length + ') the aura');
     var base = outT[outT.length - 1].dmg;
-    T.ok(inT.every(function (e) { return Math.abs(e.dmg / base - 1.10) < 0.01; }), 'ticks during the aura = 1.10 × the normal tick (' + inT.map(function (e) { return e.dmg; }).join(', ') + ' vs ' + base + ')');
+    T.ok(inT.every(function (e) { return Math.abs(e.dmg - base) <= 1; }), 'ticks during the aura = the normal tick (' + inT.map(function (e) { return e.dmg; }).join(', ') + ' vs ' + base + ')');
     T.ok(outT.every(function (e) { return Math.abs(e.dmg - base) <= 1; }), 'ticks outside the aura are normal — nothing is snapshotted');
 
     T.group('the 3 empowered casts, and when the aura ends');
@@ -50,7 +50,7 @@
     T.ok(boom && inAura(d, boom.t), 'the Bane of Doom explosion (' + (boom && boom.t) + ' s) lands inside the aura');
     var dAny = WL.simulateOnce(tb(['bane', 'corruption', 'shadowBolt']), 'gnome', det('any'), { seed: 1, duration: 100, log: true });
     var boomAny = dAny.log.filter(function (e) { return e.type === 'tick' && e.spell === 'baneOfDoom'; })[0];
-    T.near(boom.dmg / boomAny.dmg, 1.10, 0.005, "…so it hits 10% harder than with 'any' (" + boom.dmg + ' vs ' + boomAny.dmg + ')');
+    T.near(boom.dmg / boomAny.dmg, 1, 0.005, "…but since round 80 it hits no harder than with 'any' (a periodic effect: " + boom.dmg + ' vs ' + boomAny.dmg + ')');
 
     T.group('other races unaffected');
     var h1 = WL.simulateOnce(tb(['corruption', 'shadowBolt']), 'human', det('any'), { seed: 1, duration: 60 });

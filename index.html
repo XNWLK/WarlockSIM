@@ -518,7 +518,7 @@
           <label class="f" for="weightIterations">Fights per stat weight<input id="weightIterations" type="number" min="10" step="100"></label>
           <label class="f" for="seed" title="Same seed = the same fights = reproducible results.">Random seed<input id="seed" type="number"></label>
           <label class="f" for="showPct" title="Rows more than this % behind the best DPS are hidden (still simulated); applies at once, no rerun. 0 = show all (default). Pinned builds (the pin left of the rank) always stay shown.">Show builds within % of best<input id="showPct" type="number" min="0" max="100" step="1"></label>
-          <label class="f" for="o_eureka" title="Eureka! (Gnome) is a +10% damage aura on all your damage (DoTs included) until you have cast 3 spells, at most 15 s. When should it be popped?">Eureka! (Gnome) pop<select id="o_eureka">
+          <label class="f" for="o_eureka" title="Eureka! (Gnome) is a +10% damage aura on your direct hits and channel ticks (not on DoT ticks: Forever patch) until you have cast 3 spells, at most 15 s. When should it be popped?">Eureka! (Gnome) pop<select id="o_eureka">
             <option value="doom">before a long cast, timed with Bane of Doom</option>
             <option value="long">before a long cast (≥ 1.4 s)</option>
             <option value="any">before any damaging spell</option>
