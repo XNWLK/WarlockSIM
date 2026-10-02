@@ -3,6 +3,11 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v75
+- The race button is now a **"+4 races" pill**, and a **Show all races** switch above the table opens every build's races.
+- Default fight length is now **2 minutes** (was 3); all builds were re-checked for it. Demo Pact Shadow Bolt Imp,
+  Aff Pact Drain Life and Aff Shadow Bolt Succubus now switch to **Searing Pain in the execute phase** (+0.5 … +1.6%).
+
 ## v74
 - **Shadow Bolt Rank 2 removed** (gutted in Forever): the Rank 2 filler and both Rank 2 priority actions are gone. Old build
   codes still load — Rank 2 becomes the normal Shadow Bolt; the "below 740 mana" action is dropped.

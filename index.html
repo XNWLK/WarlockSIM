@@ -270,8 +270,23 @@
   /* one row per build; the other races underneath */
   .racecell { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; white-space: nowrap; }
   .racecell > * { flex: none; }
-  .rtog { padding: 0 5px; font: 600 10.5px var(--mono); color: var(--muted); line-height: 18px; }
-  .rtog[aria-expanded=true] { color: var(--accent); border-color: var(--accent); }
+  /* race toggle (round 82): a labelled pill instead of the bare "▸ 5" chip */
+  .rtog { display: inline-flex; align-items: center; gap: 3px; padding: 0 7px 0 8px; font: 600 11px var(--sans); line-height: 20px;
+          color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 999px; min-width: 70px; justify-content: center; }
+  .rtog:hover { background: var(--accent); color: var(--surface); }
+  .rtog .chev { width: 6px; height: 6px; border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: translateY(-2px) rotate(45deg); }
+  .rtog[aria-expanded=true] { background: var(--surface); }
+  .rtog[aria-expanded=true]:hover { background: var(--accent); }
+  .rtog[aria-expanded=true] .chev { transform: translateY(1px) rotate(-135deg); }
+  .tabletools { display: flex; justify-content: flex-end; margin-bottom: 6px; }
+  .switch { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; cursor: pointer; user-select: none; }
+  .switch input { appearance: none; -webkit-appearance: none; margin: 0; width: 30px; height: 17px; border-radius: 9px; background: var(--line);
+                  position: relative; cursor: pointer; transition: background .15s; flex: none; }
+  .switch input::after { content: ""; position: absolute; left: 2px; top: 2px; width: 13px; height: 13px; border-radius: 50%; background: var(--surface);
+                         transition: left .15s; }
+  .switch input:checked { background: var(--accent); }
+  .switch input:checked::after { left: 15px; }
+  .switch input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   #results > tbody > tr.racerow > td { font-size: 11px; background: var(--ground); }
   #results > tbody > tr.racerow:hover > td { background: var(--sunk); }
   #results > tbody > tr.racerow.open > td { background: var(--accent-soft); }
@@ -483,7 +498,7 @@
         <fieldset><legend>Encounter</legend>
           <label class="f" for="encPreset">Preset<select id="encPreset">
             <option value="">— choose —</option>
-            <option value="default">Standard: 3 min, 1 target</option>
+            <option value="default">Standard: 2 min, 1 target</option>
             <option value="short">Short: 90 s</option>
             <option value="long">Long: 5 min</option>
             <option value="move">Movement: 3 s every 20 s</option>
@@ -636,8 +651,9 @@
       <span id="staleMsg"><b>Settings changed since this run.</b> The results below are from the previous settings.</span>
       <button type="button" id="staleRun" class="primary">Sim!</button>
     </div>
+    <div class="tabletools"><label class="switch" for="allRaces" title="Open every build's other races and its no-race baseline under its row. The pill next to each race still opens or closes one build."><input id="allRaces" type="checkbox"> Show all races</label></div>
     <div class="scroll"><table id="results"><thead><tr>
-      <th>#</th><th>Build</th><th title="The build's best race. ▸ shows the other races and the no-race baseline.">Race</th><th>Pets</th>
+      <th>#</th><th>Build</th><th title="The build's best race. The +4 races pill shows the other races and the no-race baseline; Show all races (above the table) opens them for every build.">Race</th><th>Pets</th>
       <th title="Your damaging spells in priority order (left = checked first) with their share of the total damage (bar length relative to the build's biggest source); Bane of Doom and Bane of Agony share one split icon (one Bane per target). Pet, Demonic Brand, Touch of the Grave and explosives after the divider. Curses, Life Tap and racial cooldowns are in the details' full priority list.">Spells &amp; damage</th>
       <th class="n">DPS</th><th class="n wrap2">vs best</th>
       <th class="n wrap2" title="What the race adds: DPS change vs the same build with no race (Human base stats, no racials).">vs no race</th>
@@ -659,8 +675,8 @@
     <div id="cmpOut"></div>
   </details>
 
-  <p class="foot">Click a row for talents, stats, the DoT chart, per-spell numbers, race comparison and the full rotation log; ▸ next to the race
-    shows the build's other races. Stat weights: DPS per 1 spell power; hit / crit / haste / Int shown as the spell power they are worth,
+  <p class="foot">Click a row for talents, stats, the DoT chart, per-spell numbers, race comparison and the full rotation log; the "+4 races" pill next to the race
+    (or Show all races above the table) shows the build's other races. Stat weights: DPS per 1 spell power; hit / crit / haste / Int shown as the spell power they are worth,
     computed on each build's best race with common random numbers (hit/haste carry some noise). Spell Pierce weight: in the details.
     Data: Wowhead Forever (beta 1.60.1) · assumptions in <code>docs/02_ASSUMPTIONS.md</code>.</p>
 </div>

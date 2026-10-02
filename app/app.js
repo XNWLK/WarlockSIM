@@ -199,16 +199,16 @@
   ];
   // Encounter presets (W11): fill the fight fields; everything else stays as it is.
   var ENCOUNTERS = {
-    default:    { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 1 },
+    default:    { duration: 120, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 1 },
     short:      { duration: 90, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 1 },
     long:       { duration: 300, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 1 },
-    move:       { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 20, moveDuration: 3, hitEvery: 0, targets: 1 },
-    heavyMove:  { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 15, moveDuration: 5, hitEvery: 0, targets: 1 },
-    twoTargets: { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 2 },
-    twoDots:    { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 2, multiDot: true },
-    threeDots:  { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 3, multiDot: true },
-    latency:    { duration: 180, durationVarPct: 10, latencyMs: 150, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 1 },
-    hits:       { duration: 180, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 2, targets: 1 },   // round 78
+    move:       { duration: 120, durationVarPct: 10, latencyMs: 0, moveEvery: 20, moveDuration: 3, hitEvery: 0, targets: 1 },
+    heavyMove:  { duration: 120, durationVarPct: 10, latencyMs: 0, moveEvery: 15, moveDuration: 5, hitEvery: 0, targets: 1 },
+    twoTargets: { duration: 120, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 2 },
+    twoDots:    { duration: 120, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 2, multiDot: true },
+    threeDots:  { duration: 120, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 3, multiDot: true },
+    latency:    { duration: 120, durationVarPct: 10, latencyMs: 150, moveEvery: 0, moveDuration: 0, hitEvery: 0, targets: 1 },
+    hits:       { duration: 120, durationVarPct: 10, latencyMs: 0, moveEvery: 0, moveDuration: 0, hitEvery: 2, targets: 1 },   // round 78
   };
   function applyEncounter(k) {
     var p = ENCOUNTERS[k]; if (!p) return;
@@ -493,6 +493,11 @@
   function cutPct() { var p = (cfg.options || {}).showWithinPct; return p > 0 ? p : 0; }   // live (round 66): applies at once
   // Pins (round 66, user): the 📌 button on a row keeps that build shown whatever the cut-off; kept in this browser.
   var pins = {};
+  // "Show all races" switch above the table (round 82, user: the race toggle was not seen as clickable). raceOpen[bk]
+  // overrides it per build; flipping the switch clears the overrides. Remembered per browser.
+  var allRaces = false;
+  try { allRaces = localStorage.getItem('wfs.allRaces') === '1'; } catch (e) { allRaces = false; }
+  function racesShown(bk) { return raceOpen[bk] != null ? raceOpen[bk] : allRaces; }
   try { (JSON.parse(localStorage.getItem('wfs.pins') || '[]') || []).forEach(function (k) { pins[k] = 1; }); } catch (e) { pins = {}; }
   function savePins() { try { localStorage.setItem('wfs.pins', JSON.stringify(Object.keys(pins))); } catch (e) { /* page only */ } }
   function withinCut(r) {
@@ -695,10 +700,10 @@
       rank++;
       var pets = (b.sacrifice ? '<span class="sac" title="Sacrificed: ' + esc(b.sacrifice) + '">' + icon('pet_' + b.sacrifice, 'Sacrificed ' + b.sacrifice) + '</span>' : '') +
                  (b.pet ? icon('pet_' + b.pet, 'Active: ' + b.pet) : '');
-      var others = otherRaces(r), rOpen = !!raceOpen[bk];
+      var others = otherRaces(r), rOpen = racesShown(bk), nReal = others.filter(function (x) { return !isBase(x); }).length;
       var raceTd = '<td><div class="racecell">' + icon('race_' + r.race, WL.RACES[r.race].name + ' (best race for this build)', 'lg') +
         (others.length ? '<button type="button" class="rtog" data-races="' + esc(bk) + '" aria-expanded="' + rOpen + '" title="' + (rOpen ? 'Hide' : 'Show') +
-          ' the other races and the no-race baseline">' + (rOpen ? '▾' : '▸') + ' ' + others.length + '</button>' : '') + '</div></td>';
+          ' the other races and the no-race baseline">' + (rOpen ? 'Hide' : '+' + nReal + ' races') + '<span class="chev" aria-hidden="true"></span></button>' : '') + '</div></td>';
       var h = '<tr class="row' + (isOpen ? ' open' : '') + '" tabindex="0" data-id="' + esc(key) + '" aria-expanded="' + isOpen + '">' +
         '<td class="n meta rankcell"><button type="button" class="pinbtn" data-pin="' + esc(bk) + '" aria-pressed="' + !!pins[bk] + '" title="' +
           (pins[bk] ? 'Pinned: always shown, whatever the cut-off. Click to unpin.' : 'Pin: keep this build shown when a cut-off hides builds behind the best') +
@@ -1790,7 +1795,7 @@
     var pn = t.closest('button[data-pin]');                             // pin / unpin a build (round 66)
     if (pn) { var pk = pn.getAttribute('data-pin'); if (pins[pk]) delete pins[pk]; else pins[pk] = 1; savePins(); render(); showStale(); return; }
     var rt = t.closest('button[data-races]');
-    if (rt) { var rk = rt.getAttribute('data-races'); raceOpen[rk] = !raceOpen[rk]; render(); return; }
+    if (rt) { var rk = rt.getAttribute('data-races'); raceOpen[rk] = !racesShown(rk); render(); return; }
     var lb = t.closest('button[data-log]');
     if (lb) { logMode[lb.getAttribute('data-id')] = lb.getAttribute('data-log'); render(); return; }
     var tr = t.closest('tr.row');
@@ -1807,6 +1812,12 @@
   renderPresets();
   renderGear();
   ['cmpA', 'cmpB'].forEach(function (x) { $(x).addEventListener('change', renderCompare); });
+  $('allRaces').checked = allRaces;
+  $('allRaces').addEventListener('change', function () {
+    allRaces = this.checked; raceOpen = {};
+    try { localStorage.setItem('wfs.allRaces', allRaces ? '1' : '0'); } catch (e) { /* page only */ }
+    render();
+  });
   $('compare').addEventListener('toggle', function () { if ($('compare').open) renderCompare(); });
   edOptions(); edStart(WL.BUILDS[0]);
   render();

@@ -85,19 +85,19 @@
   T.run('fight length variation', function () {
     T.group('fight length variation [A56]');
     var c = base(); c.fight.iterations = 300;
-    var b = WL.TEST_BUILDS[4];
+    var b = WL.TEST_BUILDS[4], D = c.fight.duration;               // the default length (120 s since round 82)
     var r = WL.simulate(b, 'orc', c, { log: false });
-    T.near(r.avgDuration, 180, 3, 'average fight length ≈ 180 s with ±10% variation (' + r.avgDuration.toFixed(2) + ')');
+    T.near(r.avgDuration, D, D / 60, 'average fight length ≈ ' + D + ' s with ±10% variation (' + r.avgDuration.toFixed(2) + ')');
     var r2 = WL.simulate(b, 'orc', c, { log: false });
     T.eq(r.dps, r2.dps, 'same seed → same fight lengths → identical DPS');
     var lens = [];
     for (var i = 0; i < 200; i++) {
       var fs = (c.fight.seed * 7919 + i) >>> 0;
-      lens.push(180 * (1 + 0.1 * (2 * WL.makeRng(fs ^ 0x5bd1e995)() - 1)));
+      lens.push(D * (1 + 0.1 * (2 * WL.makeRng(fs ^ 0x5bd1e995)() - 1)));
     }
-    T.ok(Math.min.apply(null, lens) >= 162 && Math.max.apply(null, lens) <= 198, 'every fight between 162 and 198 s', Math.min.apply(null, lens) + '–' + Math.max.apply(null, lens));
+    T.ok(Math.min.apply(null, lens) >= 0.9 * D - 1e-9 && Math.max.apply(null, lens) <= 1.1 * D + 1e-9, 'every fight between ' + 0.9 * D + ' and ' + 1.1 * D + ' s', Math.min.apply(null, lens) + '–' + Math.max.apply(null, lens));
     c.fight.durationVarPct = 0;
-    T.eq(WL.simulate(b, 'orc', c, { log: false }).avgDuration, 180, 'variation 0 → exactly 180 s');
+    T.eq(WL.simulate(b, 'orc', c, { log: false }).avgDuration, D, 'variation 0 → exactly ' + D + ' s');
   });
 
   T.run('icons', function () {
