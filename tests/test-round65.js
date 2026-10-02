@@ -37,7 +37,7 @@
     T.eq(WL.SPELLS.wrack.debuffSpells.slice().sort().join(','), 'baneOfAgony,corruption', 'affected spells: Corruption, Bane of Agony');
 
     T.group('reference builds (user, round 65); shown by default (round 66)');
-    var want = { sm_ruin_classic: '33/0/18', ds_ruin_classic: '22/11/18', wrack_succubus: '40/0/11' };
+    var want = { sm_ruin_classic: '30/0/21', ds_ruin_classic: '22/11/18', wrack_succubus: '40/0/11' };   // SM Ruin 33/0/18 until round 83
     Object.keys(want).forEach(function (k) {
       var bb = WL.BUILDS.filter(function (x) { return x.key === k; })[0];
       T.ok(!!bb && !('pinned' in bb), k + ' is on the sheet (no built-in pin flag since round 66)');

@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v76
+- **SM Ruin** now 30/0/21 (−3 Improved Corruption, +3 Cataclysm), **DS Ruin** −2 Improved Corruption +2 Improved Life Tap,
+  **Wrack Succubus** keeps Improved Shadow Bolt up with Shadow Bolt: +0.7%, +1.2%, +4.1%.
+
 ## v75
 - The race button is now a **"+4 races" pill**, and a **Show all races** switch above the table opens every build's races.
 - Default fight length is now **2 minutes** (was 3); all builds were re-checked for it. Demo Pact Shadow Bolt Imp,

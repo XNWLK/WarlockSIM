@@ -149,11 +149,11 @@ WL.BUILDS = [
   {
     key: 'sm_ruin_classic', short: 'SM Ruin (classic)',
     name: 'SM Ruin (classic) – Affliction / Destruction, Succubus out, Shadow Bolt',
-    notes: '33/0/18 (user, round 65): the classic Shadow Mastery / Ruin layout — Suppression, Improved Corruption, Improved Life Tap, Malediction, Pandemic, Malevolence, Nightfall, Siphon Life, Shadow Mastery; Bane, Improved Shadow Bolt, Ruin, Agonizing Flames. No Demonology, so no sacrifice: the Succubus is out (Imp -10%), Spellstone (Firestone -0.8%); Human best. Priority = best of all 720 orders (+0.30% over the starting order, the top 5 within 0.3%); every action pays (without Bane -12.5%, Corruption -7.7%, Curse of the Elements -7.5%, Immolate -3.0%, Siphon Life -1.0%; Shadow Trance action neutral), Shadow Bolt Rank 2 filler -0.3% (Rank 2 since gutted in Forever, removed round 81), Searing Pain -11% (04_EXPLORATION §30). Round 71: Death Coil as the finisher on top +0.47% (10,000 fights).',
+    notes: '30/0/21 since round 83 (user: adopt the round 82 search result −3 Improved Corruption +3 Cataclysm, +0.67% at 120 s, 603.95 → 607.98 Human, 10,000 fights); was 33/0/18 (user, round 65): the classic Shadow Mastery / Ruin layout — Suppression, Improved Corruption, Improved Life Tap, Malediction, Pandemic, Malevolence, Nightfall, Siphon Life, Shadow Mastery; Bane, Improved Shadow Bolt, Ruin, Agonizing Flames. No Demonology, so no sacrifice: the Succubus is out (Imp -10%), Spellstone (Firestone -0.8%); Human best. Priority = best of all 720 orders (+0.30% over the starting order, the top 5 within 0.3%); every action pays (without Bane -12.5%, Corruption -7.7%, Curse of the Elements -7.5%, Immolate -3.0%, Siphon Life -1.0%; Shadow Trance action neutral), Shadow Bolt Rank 2 filler -0.3% (Rank 2 since gutted in Forever, removed round 81), Searing Pain -11% (04_EXPLORATION §30). Round 71: Death Coil as the finisher on top +0.47% (10,000 fights).',
     talents: {
-      suppression: 5, improvedCorruption: 5, improvedLifeTap: 2, malediction: 5, pandemic: 3, malevolence: 5, nightfall: 2,
+      suppression: 5, improvedCorruption: 2, improvedLifeTap: 2, malediction: 5, pandemic: 3, malevolence: 5, nightfall: 2,
       siphonLife: 1, shadowMastery: 5,
-      bane: 5, improvedShadowBolt: 5, ruin: 5, agonizingFlames: 3,
+      bane: 5, improvedShadowBolt: 5, cataclysm: 3, ruin: 5, agonizingFlames: 3,   // round 82/83: −3 Improved Corruption +3 Cataclysm
     },
     pet: 'succubus', sacrifice: null, oil: 'spellstone',
     rotation: ['deathCoilFinisher', 'bane', 'corruption', 'shadowTrance', 'siphonLife', 'curseOfElements', 'immolate', 'shadowBolt'],
@@ -161,9 +161,9 @@ WL.BUILDS = [
   {
     key: 'ds_ruin_classic', short: 'DS Ruin (classic)',
     name: 'DS Ruin (classic) – Demonic Sacrifice (Imp) / Destruction, Shadow Bolt',
-    notes: '22/11/18 (user, round 65): the classic Demonic Sacrifice / Ruin layout — Suppression, Improved Corruption, Malediction 2, Pandemic, Nightfall, Malevolence; Demonic Embrace, Fel Vitality, Demonic Aegis, Demonic Sacrifice; Bane, Improved Shadow Bolt, Ruin, Agonizing Flames. Imp sacrificed (+15% Shadow; Succubus sacrifice +15% Fire is -10%), no pet out, Spellstone; Human best. Priority = best of all 120 orders (+0.35%); without Bane -14.8%, Corruption -9.1%, Curse of the Elements -8.4%, Immolate -2.3%, Shadow Trance neutral; Searing Pain filler -17.5%. Shadow Bolt Rank 2 filler +1.1% if Forever had no low-rank penalty (A70) — not used; Rank 2 since gutted in Forever, removed round 81 (04_EXPLORATION §30). Round 71: Death Coil as the finisher on top +0.50% (10,000 fights).',
+    notes: '22/11/18; round 83 (user: adopt the round 82 search result −2 Improved Corruption +2 Improved Life Tap, +1.20% at 120 s, 565.60 → 572.37 Human, 10,000 fights). Round 65 (user): the classic Demonic Sacrifice / Ruin layout — Suppression, Improved Corruption, Malediction 2, Pandemic, Nightfall, Malevolence; Demonic Embrace, Fel Vitality, Demonic Aegis, Demonic Sacrifice; Bane, Improved Shadow Bolt, Ruin, Agonizing Flames. Imp sacrificed (+15% Shadow; Succubus sacrifice +15% Fire is -10%), no pet out, Spellstone; Human best. Priority = best of all 120 orders (+0.35%); without Bane -14.8%, Corruption -9.1%, Curse of the Elements -8.4%, Immolate -2.3%, Shadow Trance neutral; Searing Pain filler -17.5%. Shadow Bolt Rank 2 filler +1.1% if Forever had no low-rank penalty (A70) — not used; Rank 2 since gutted in Forever, removed round 81 (04_EXPLORATION §30). Round 71: Death Coil as the finisher on top +0.50% (10,000 fights).',
     talents: {
-      suppression: 5, improvedCorruption: 5, malediction: 2, pandemic: 3, nightfall: 2, malevolence: 5,
+      suppression: 5, improvedCorruption: 3, improvedLifeTap: 2, malediction: 2, pandemic: 3, nightfall: 2, malevolence: 5,   // round 82/83: −2 Improved Corruption +2 Improved Life Tap
       demonicEmbrace: 5, felVitality: 3, demonicAegis: 2, demonicSacrifice: 1,
       bane: 5, improvedShadowBolt: 5, ruin: 5, agonizingFlames: 3,
     },
@@ -173,7 +173,7 @@ WL.BUILDS = [
   {
     key: 'wrack_succubus', short: 'Wrack Succubus',
     name: 'Wrack Succubus – Affliction (Wrack) / Destruction (Improved Shadow Bolt), Succubus out',
-    notes: '40/0/11 (user, round 77: replaces Wrack DS 1:1): Suppression, Improved Corruption, Malediction, Pandemic, Malevolence, Siphon Life, Nightfall 2, Shadow Mastery, Soul Siphon, Wrack, Improved Bane of Agony 2, Improved Drains 3; Improved Shadow Bolt, Bane, Ruin. No Demonology points: the 11 Demonology points of Wrack DS moved to Improved Bane of Agony, Improved Drains, Bane and Ruin; Succubus out instead of the Imp sacrifice, Spellstone; Bane of Agony only (never Bane of Doom). At the v67 defaults (1,000 fights) Human 499.9 vs Wrack DS 464.2 (Undead), +7.7%. ' +
+    notes: '40/0/11 (user, round 77: replaces Wrack DS 1:1). Round 83 (user: adopt the round 82 search result): "Shadow Bolt (max rank) to keep Improved Shadow Bolt up" above Shadow Trance, +4.12% at 120 s (504.05 → 524.85 Human, 10,000 fights) — Wrack stays the filler. Talents: Suppression, Improved Corruption, Malediction, Pandemic, Malevolence, Siphon Life, Nightfall 2, Shadow Mastery, Soul Siphon, Wrack, Improved Bane of Agony 2, Improved Drains 3; Improved Shadow Bolt, Bane, Ruin. No Demonology points: the 11 Demonology points of Wrack DS moved to Improved Bane of Agony, Improved Drains, Bane and Ruin; Succubus out instead of the Imp sacrifice, Spellstone; Bane of Agony only (never Bane of Doom). At the v67 defaults (1,000 fights) Human 499.9 vs Wrack DS 464.2 (Undead), +7.7%. ' +
            'Previous build, Wrack DS — 35/11/5 (user, round 65): Suppression, Improved Corruption, Malediction, Pandemic, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon, Wrack; Fel Vitality, Demonic Embrace, Demonic Aegis, Demonic Sacrifice; Improved Shadow Bolt. Imp sacrificed (+15% Shadow), no pet out, Spellstone; Undead best (Human within 0.2%). Wrack checked first: 36 + 14.3% SP per second for 6 s, 200 mana, +10% on Corruption and Bane of Agony while it channels (the spell data lists only those two; the tooltip says "other Shadow damage over time effects" — with Siphon Life +0.43%, with Bane of Doom too +1.21%). Priority = best of all 720 orders (+0.39%, top 5 within 0.1%); without Bane -19.2%, Corruption -15.9%, Curse of the Elements -8.7%, Shadow Trance -3.6%, Siphon Life -3.3%, Immolate -2.8%; Drain Life filler -5.6%. Wrack is the weakest filler of this build: Shadow Bolt instead +5.4%, Wrack with "keep ISB up" above it +4.4% (04_EXPLORATION §30). Round 71: Death Coil as the finisher on top +0.18% (10,000 fights).',
     talents: {
       suppression: 5, improvedCorruption: 5, malediction: 5, pandemic: 3, malevolence: 5, siphonLife: 1, nightfall: 2,
@@ -181,6 +181,6 @@ WL.BUILDS = [
       improvedShadowBolt: 5, bane: 5, ruin: 1,
     },
     pet: 'succubus', sacrifice: null, oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'baneOfAgony', 'corruption', 'siphonLife', 'curseOfElements', 'immolate', 'shadowTrance', 'wrack'],
+    rotation: ['deathCoilFinisher', 'baneOfAgony', 'corruption', 'siphonLife', 'curseOfElements', 'immolate', 'isbUpkeep', 'shadowTrance', 'wrack'],   // round 82/83: + ISB upkeep
   },
 ];
