@@ -34,7 +34,12 @@
   .wrap > * { min-width: 0; }   /* let wide tables scroll inside their panel instead of widening the page */
   header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
   h1 { font: 600 21px/1.15 var(--display); margin: 0; }
-  .titles { min-width: 0; flex: 1 1 480px; }
+  .titles { min-width: 0; flex: 1 1 480px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+  /* light / dark switch (round 85): Auto = the old behaviour (system / viewer theme) */
+  .themebtn { display: inline-flex; align-items: center; gap: 5px; padding: 2px 10px 2px 8px; font: 600 11.5px var(--sans);
+              color: var(--muted); border-radius: 999px; line-height: 18px; }
+  .themebtn:hover { color: var(--ink); border-color: var(--accent); }
+  .themebtn svg { width: 14px; height: 14px; flex: none; }
   .meta { color: var(--muted); font-size: 12px; }
   h2 { font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; font-weight: 600; }
 
@@ -412,11 +417,60 @@
   .tlsel input[type=number] { width: 70px; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
+<script>
+// Theme button (round 85, user): Auto (default — follows the system, or the theme the artifact viewer stamps on <html>),
+// Light or Dark. An explicit choice sets data-theme on <html> (the CSS already has light / dark token sets for it) and is
+// remembered per browser; Auto puts back whatever the viewer had stamped.
+(function () {
+  var root = document.documentElement, host = root.getAttribute('data-theme'), mine = null, mode = 'auto';
+  try { var m = localStorage.getItem('wfs.theme'); if (m === 'light' || m === 'dark') mode = m; } catch (e) { /* storage off: Auto */ }
+  function apply() {
+    mine = mode === 'auto' ? host : mode;
+    if (mine) root.setAttribute('data-theme', mine); else root.removeAttribute('data-theme');
+    paint();
+  }
+  // The viewer may re-stamp the theme later: remember it for Auto, keep an explicit choice on top.
+  new MutationObserver(function () {
+    var v = root.getAttribute('data-theme');
+    if (v === mine) return;
+    host = v; apply();
+  }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+  function effective() {
+    var v = root.getAttribute('data-theme');
+    return v === 'light' || v === 'dark' ? v : (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+  var ICON = {
+    auto: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 2a6 6 0 0 1 0 12z" fill="currentColor"/></svg>',
+    light: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="currentColor"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6L13 13M3 13l1.4-1.4M11.6 4.4L13 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+    dark: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 10.2A6 6 0 0 1 5.8 2.5a6 6 0 1 0 7.7 7.7z" fill="currentColor"/></svg>'
+  };
+  var NAME = { auto: 'Auto', light: 'Light', dark: 'Dark' };
+  function next() { return mode === 'auto' ? (effective() === 'dark' ? 'light' : 'dark') : mode === 'light' ? 'dark' : 'auto'; }
+  function paint() {
+    var b = document.getElementById('themeBtn'); if (!b) return;
+    b.innerHTML = ICON[mode] + NAME[mode];
+    b.title = 'Colour theme: ' + NAME[mode] + (mode === 'auto' ? ' (follows your system / viewer setting)' : '') + '. Click for ' + NAME[next()] + '.';
+    b.setAttribute('aria-label', b.title);
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    var b = document.getElementById('themeBtn');
+    b.addEventListener('click', function () {
+      mode = next();
+      try { if (mode === 'auto') localStorage.removeItem('wfs.theme'); else localStorage.setItem('wfs.theme', mode); } catch (e) { /* this page only */ }
+      apply();
+    });
+    paint();
+  });
+  if (window.matchMedia) { var mq = matchMedia('(prefers-color-scheme: dark)'); if (mq.addEventListener) mq.addEventListener('change', paint); }
+  apply();
+})();
+</script>
 
 <div class="wrap">
   <header>
     <div class="titles">
       <h1>Xn's Forever Warlock Sim</h1>
+      <button type="button" id="themeBtn" class="themebtn">Auto</button>
     </div>
     <div class="meta" id="runMeta">Starting…</div>
   </header>

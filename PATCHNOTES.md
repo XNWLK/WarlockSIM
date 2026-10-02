@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v78
+- **Light / dark button** next to the title. Auto (the default) follows your system as before.
+
 ## v77
 - Talents you haven't picked now show how many points they can take (0/5, 0/3, …).
 
