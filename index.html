@@ -237,7 +237,7 @@
   .tcell.part .ico { border-color: var(--good); }
   .tcell.off .ico { filter: grayscale(1); opacity: .35; }
   .tcell .rk { position: absolute; right: -6px; bottom: -4px; font: 600 9px var(--mono); padding: 0 3px; border-radius: 3px; background: var(--ink); color: var(--surface); }
-  .tcell.off .rk { display: none; }
+  .tcell.off .rk { background: var(--sunk); color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); }   /* round 84: 0/N shown, muted */
   .ico[data-tip] { cursor: help; }
   #tip { position: fixed; z-index: 50; max-width: 320px; pointer-events: none; background: var(--surface); color: var(--ink);
          border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-size: 12px; line-height: 1.4;

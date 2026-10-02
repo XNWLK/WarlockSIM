@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v77
+- Talents you haven't picked now show how many points they can take (0/5, 0/3, …).
+
 ## v76
 - **SM Ruin** now 30/0/21 (−3 Improved Corruption, +3 Cataclysm), **DS Ruin** −2 Improved Corruption +2 Improved Life Tap,
   **Wrack Succubus** keeps Improved Shadow Bolt up with Shadow Bolt: +0.7%, +1.2%, +4.1%.
