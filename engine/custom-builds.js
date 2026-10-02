@@ -36,7 +36,7 @@ WL.validateBuild = function (b) {
   else if (fi >= 0 && fi < rot.length - 1) errs.push('Everything after the first filler (' + WL.ACTIONS[rot[fi]].label + ') is never cast — move the filler to the end');
   // Talent-gated actions without the talent (they would silently never fire).
   var gated = { conflagrate: 'conflagrate', shadowburn: 'shadowburn', incinerate: 'incinerate', wrack: 'wrack', siphonLife: 'siphonLife',
-    searingPainBrand: 'demonicBrand', lifeTapPet: 'demonicEnergies', shadowburnSnF: 'shadowAndFlame', conflagrateSnF: 'shadowAndFlame', shadowBoltSpread: 'improvedShadowBolt', isbUpkeep: 'improvedShadowBolt', isbUpkeepR2: 'improvedShadowBolt' };
+    searingPainBrand: 'demonicBrand', lifeTapPet: 'demonicEnergies', shadowburnSnF: 'shadowAndFlame', conflagrateSnF: 'shadowAndFlame', shadowBoltSpread: 'improvedShadowBolt', isbUpkeep: 'improvedShadowBolt' };
   if (rot.indexOf('shadowburnSnF') >= 0 && !t.shadowburn) errs.push('"' + WL.ACTIONS.shadowburnSnF.label + '" needs the Shadowburn talent');
   if (rot.indexOf('conflagrateSnF') >= 0 && !t.conflagrate) errs.push('"' + WL.ACTIONS.conflagrateSnF.label + '" needs the Conflagrate talent');
   rot.forEach(function (a) { if (gated[a] && !t[gated[a]]) errs.push('"' + WL.ACTIONS[a].label + '" needs the ' + WL.TALENT_BY_KEY[gated[a]].name + ' talent'); });
@@ -67,7 +67,7 @@ WL.validateBuild = function (b) {
 
 // Spells a player can put on the fight timeline (all castable Warlock spells; Bane of Havoc is automatic with 2+ targets).
 WL.TIMELINE_SPELLS = ['curseOfElements', 'baneOfDoom', 'baneOfAgony', 'corruption', 'siphonLife', 'immolate', 'conflagrate', 'shadowburn',
-  'soulFire', 'shadowBolt', 'shadowBoltR2', 'incinerate', 'searingPain', 'drainLife', 'drainSoul', 'wrack', 'deathCoil', 'lifeTap'];
+  'soulFire', 'shadowBolt', 'incinerate', 'searingPain', 'drainLife', 'drainSoul', 'wrack', 'deathCoil', 'lifeTap'];
 
 // Time a timeline entry blocks the caster (cast or GCD, whichever is longer; channels their full duration), with the stats
 // of `cfg` (haste, Spellstone, Bane). Decimation / Shadow Trance can only make casts shorter, so they are not assumed.
@@ -85,7 +85,7 @@ WL.checkTimeline = function (b, cfg) {
   var out = [], tl = (b.timeline || []).slice().sort(function (x, y) { return x.t - y.t; }), lastEnd = 0, lastCast = {}, dur = cfg.fight.duration;
   tl.forEach(function (e, i) {
     if (!WL.SPELLS[e.k]) return;
-    var sp = WL.timelineSpan(b, cfg, e.k), name = WL.SPELLS[e.k].name + (WL.SPELLS[e.k].family ? ' (Rank ' + WL.SPELLS[e.k].rank + ')' : '');
+    var sp = WL.timelineSpan(b, cfg, e.k), name = WL.SPELLS[e.k].name;
     if (i > 0 && e.t < lastEnd - 1e-6) out.push({ i: i, msg: name + ' at ' + e.t.toFixed(1) + ' s overlaps the previous spell (busy until ' + lastEnd.toFixed(1) + ' s)' });
     if (sp.cd && lastCast[e.k] != null && e.t < lastCast[e.k] + sp.cd - 1e-6)
       out.push({ i: i, msg: name + ' at ' + e.t.toFixed(1) + ' s is still on cooldown (ready at ' + (lastCast[e.k] + sp.cd).toFixed(1) + ' s)' });
@@ -101,6 +101,15 @@ WL.encodeBuild = function (b) {
   return WL.BUILD_CODE_PREFIX + btoa(unescape(encodeURIComponent(JSON.stringify(o))));
 };
 
+// Shadow Bolt Rank 2 was gutted in Forever and removed (round 81): old build codes and saved builds still load — the Rank 2
+// filler / ISB upkeep become their max-rank twins, "Rank 2 below 740 mana" and Rank 2 timeline entries are dropped.
+WL.R2_ACTIONS = { shadowBoltR2: 'shadowBolt', isbUpkeepR2: 'isbUpkeep', shadowBoltR2LowMana: null };
+WL.migrateRotation = function (rot) {
+  var out = [];
+  rot.forEach(function (a) { var m = WL.R2_ACTIONS.hasOwnProperty(a) ? WL.R2_ACTIONS[a] : a; if (m && out.indexOf(m) < 0) out.push(m); });
+  return out;
+};
+
 WL.decodeBuild = function (code) {
   var s = String(code || '').replace(/\s+/g, '');
   if (s.indexOf(WL.BUILD_CODE_PREFIX) !== 0) throw new Error('Not a build code (it must start with ' + WL.BUILD_CODE_PREFIX + ')');
@@ -109,8 +118,8 @@ WL.decodeBuild = function (code) {
   catch (e) { throw new Error('The build code is damaged (could not be decoded)'); }
   if (!o || o.v !== 1 || typeof o.talents !== 'object') throw new Error('Unknown build-code version');
   return { short: String(o.short || 'Custom build').slice(0, 40), talents: o.talents, pet: o.pet || null, sacrifice: o.sacrifice || null,
-           oil: o.oil || 'none', rotation: Array.isArray(o.rotation) ? o.rotation : [],
-           timeline: Array.isArray(o.tl) ? o.tl.map(function (x) { return { t: +x[0], k: String(x[1]) }; }) : undefined };
+           oil: o.oil || 'none', rotation: Array.isArray(o.rotation) ? WL.migrateRotation(o.rotation) : [],
+           timeline: Array.isArray(o.tl) ? o.tl.map(function (x) { return { t: +x[0], k: String(x[1]) }; }).filter(function (e) { return e.k !== 'shadowBoltR2'; }) : undefined };
 };
 
 // Actions a user may put in a priority list (excludes test-only actions).

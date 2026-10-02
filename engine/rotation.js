@@ -134,22 +134,6 @@ WL.ACTIONS = {
       return left <= S.castTime('shadowBolt') ? 'shadowBolt' : null;
     },
   },
-  // Rank 2 twin of isbUpkeep (round 71, user): keep ISB up with the cheap Shadow Bolt Rank 2. (While Shadow Trance is up the
-  // engine still swaps it for the max-rank bolt, round 59.)
-  isbUpkeepR2: {
-    label: 'Shadow Bolt (Rank 2) to keep Improved Shadow Bolt up on the boss',
-    pick: function (S) {
-      if (!S.build.talents.improvedShadowBolt) return null;
-      var left = S.buff('isb') ? S.buffs.isb - S.t : 0;
-      return left <= S.castTime('shadowBoltR2') ? 'shadowBoltR2' : null;
-    },
-  },
-  // Shadow Bolt Rank 2 while mana is below 740 (round 71, user): cast the 40-mana bolt instead of dropping to a Life Tap;
-  // above 740 the next action (normally the Rank 9 filler) is cast. Put it right above the filler. [A74]
-  shadowBoltR2LowMana: {
-    label: 'Shadow Bolt (Rank 2) if mana is below 740',
-    pick: function (S) { return S.mana < 740 ? 'shadowBoltR2' : null; },
-  },
   // Death Coil (round 71, user; damage only, the heal is not modelled) [A74]
   deathCoil: {
     label: 'Death Coil on cooldown',
@@ -217,8 +201,6 @@ WL.ACTIONS = {
   // Fillers (always available).
   wrack:       { label: 'Wrack (filler channel)', filler: true, pick: function (S) { return S.has('wrack') ? 'wrack' : null; } },
   shadowBolt:  { label: 'Shadow Bolt (filler)',   filler: true, pick: function () { return 'shadowBolt'; } },
-  // Rank 2 (round 57, user): 2.2 s cast, 40 mana, 25 + 62.9% SP — to test a fast filler (more Improved Shadow Bolt rolls).
-  shadowBoltR2: { label: 'Shadow Bolt Rank 2 (filler)', filler: true, pick: function () { return 'shadowBoltR2'; } },
   incinerate:  { label: 'Incinerate (filler)',    filler: true, pick: function (S) { return S.has('incinerate') ? 'incinerate' : null; } },
   drainLife:   { label: 'Drain Life (filler channel)', filler: true, pick: function () { return 'drainLife'; } },
   // Drain Soul removed: its execute bonus no longer exists and it is not used (user, 2026-09-23).

@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v74
+- **Shadow Bolt Rank 2 removed** (gutted in Forever): the Rank 2 filler and both Rank 2 priority actions are gone. Old build
+  codes still load — Rank 2 becomes the normal Shadow Bolt; the "below 740 mana" action is dropped.
+
 ## v73
 - Eureka! is now popped **before a long cast** by default (was: timed with Bane of Doom, which no longer gains from it).
 

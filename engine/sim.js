@@ -32,7 +32,7 @@ window.WL = window.WL || {};
     var stats = opt.stats || WL.computeStats(build, raceKey, cfg);
     var table = opt.table || WL.buildSpellTable(build, stats, cfg);
     var SPELLS = WL.spellsFor(cfg);                                      // trainer ranks, or the AQ20 book ranks (round 42)
-    var isSB = WL.isShadowBolt;                                          // any rank of Shadow Bolt (round 57)
+    var isSB = WL.isShadowBolt;                                          // Shadow Bolt (only Rank 9 since round 81)
     // Independent random streams per roll type (common random numbers for stat weights):
     // changing hit only moves hit rolls, changing crit only moves crit rolls, etc.
     var seed0 = opt.seed != null ? opt.seed : Math.floor((opt.rng || WL.makeRng(cfg.fight.seed))() * 4294967296);
@@ -790,7 +790,7 @@ window.WL = window.WL || {};
     // channel right now (Soul Fire under Decimation, Conflagrate, a Shadow Trance bolt, the filler, …). Actions that
     // apply DoTs / curses / Life Tap / pet swaps are passed over (they are not the damage the DoT's time is taken from).
     var NOT_ALT = { bane: 1, baneOfAgony: 1, corruption: 1, siphonLife: 1, immolate: 1, multiDot: 1, curseOfElements: 1, lifeTapPet: 1,
-                    swapToImp: 1, swapToSuccubus: 1, shadowBoltSpread: 1, isbUpkeep: 1, isbUpkeepR2: 1, deathCoilFinisher: 1 };
+                    swapToImp: 1, swapToSuccubus: 1, shadowBoltSpread: 1, isbUpkeep: 1, deathCoilFinisher: 1 };
     function altBelow(idx) {
       for (var i = (idx == null ? -1 : idx) + 1; i < ROT.length; i++) {
         var a = WL.ACTIONS[ROT[i]];
@@ -874,10 +874,6 @@ window.WL = window.WL || {};
         S.nextTarget = 0;                                                // set by multiDot to 2 / 3
         S.actionIndex = i;                                               // lets the DoT check find the filler below (round 53)
         var k = a.pick(S);
-        // Nightfall (round 59, user): a Shadow Trance proc is always spent on the max-rank Shadow Bolt (Rank 9, Rank 10 with
-        // the AQ20 book option = `shadowBolt` in this fight's spell values), also when the action picked a lower rank (the
-        // Rank 2 filler) — the player presses the max rank while the bolt is instant. [A21]
-        if (k && k !== 'shadowBolt' && isSB(k) && S.buff('shadowTrance') && table.shadowBolt) k = 'shadowBolt';
         if (k && k.indexOf('swap:') === 0) return { key: k, index: i, target: 0 };   // pet swap (instant summon, round 35)
         if (k && fitBy != null && table[k] && SPELLS[k].kind !== 'channel' && S.t + tlOccupies(k) > fitBy + EPS) continue;   // does not fit the gap
         if (k && table[k] && canCastNow(k)) return { key: k, index: i, target: S.nextTarget || 0 };   // movement: only instants while moving (W11)

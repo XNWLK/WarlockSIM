@@ -10,15 +10,15 @@
 
   // One colour per damage source (shadow = violets, fire = warm, pet = greens). Used by the split bar, spell table and log.
   var COLORS = {
-    shadowBolt: '#7B4FD6', shadowBoltR2: '#9A74E8', corruption: '#4B3AA6', baneOfAgony: '#A27BEA', baneOfDoom: '#35286F', siphonLife: '#C4A6F5',
+    shadowBolt: '#7B4FD6', corruption: '#4B3AA6', baneOfAgony: '#A27BEA', baneOfDoom: '#35286F', siphonLife: '#C4A6F5',
     wrack: '#6A2D9E', drainLife: '#8C7CC9', shadowburn: '#D0B0FF', deathCoil: '#5C4B8C',
     immolate: '#E0662F', incinerate: '#F2A03D', conflagrate: '#B8401C', soulFire: '#F5CD5E', searingPain: '#D98530',
     'pet:melee': '#2F8F5F', 'pet:lashOfPain': '#5CC08A', 'pet:firebolt': '#3AA776', 'pet:brand': '#8FD6A8', touchOfTheGrave: '#8A8F98',
   };
-  var ACTION_ICON = { curseOfElements: 'curseOfElements', shadowBoltR2: 'shadowBolt', shadowTrance: 'shadowTrance', bane: 'baneOfDoom', baneOfAgony: 'baneOfAgony', corruption: 'corruption',
+  var ACTION_ICON = { curseOfElements: 'curseOfElements', shadowTrance: 'shadowTrance', bane: 'baneOfDoom', baneOfAgony: 'baneOfAgony', corruption: 'corruption',
     siphonLife: 'siphonLife', immolate: 'immolate', conflagrate: 'conflagrate', shadowburn: 'shadowburn', soulFire: 'soulFire',
     wrack: 'wrack', shadowBolt: 'shadowBolt', incinerate: 'incinerate', drainLife: 'drainLife', searingPain: 'searingPain',
-    lifeTapPet: 'lifeTap', soulFireShards: 'soulFire', searingPainBrand: 'searingPain', shadowburnSnF: 'shadowburn', conflagrateSnF: 'conflagrate', multiDot: 'corruption', shadowBoltSpread: 'talent_improvedShadowBolt', isbUpkeep: 'talent_improvedShadowBolt', isbUpkeepR2: 'talent_improvedShadowBolt', shadowBoltR2LowMana: 'shadowBolt', deathCoil: 'deathCoil', deathCoilFinisher: 'deathCoil', havocAuto: 'baneOfHavoc',
+    lifeTapPet: 'lifeTap', soulFireShards: 'soulFire', searingPainBrand: 'searingPain', shadowburnSnF: 'shadowburn', conflagrateSnF: 'conflagrate', multiDot: 'corruption', shadowBoltSpread: 'talent_improvedShadowBolt', isbUpkeep: 'talent_improvedShadowBolt', shadowBoltR2LowMana: 'shadowBolt', deathCoil: 'deathCoil', deathCoilFinisher: 'deathCoil', havocAuto: 'baneOfHavoc',
     swapToImp: 'pet_imp', swapToSuccubus: 'pet_succubus', searingPainExecute: 'searingPain' };
   // Stat weights (round 44): the table shows SP first (DPS per 1 SP), the others as spell-power equivalents
   // (weight ÷ SP weight: "1% hit is worth 12 SP"); Spell Pierce only in the details.
@@ -48,7 +48,7 @@
     lashOfPain: 'An instant attack that lashes the target, causing (42.9% of Spell Power) Shadow damage.',
   };
   var ACTION_SPELLS = { bane: ['baneOfDoom', 'baneOfAgony'], shadowTrance: ['shadowBolt'], lifeTapPet: ['lifeTap'],
-    multiDot: ['curseOfElements', 'corruption', 'baneOfAgony', 'immolate', 'siphonLife'], shadowburnSnF: ['shadowburn'], conflagrateSnF: ['conflagrate'], shadowBoltSpread: ['shadowBolt'], isbUpkeep: ['shadowBolt'], isbUpkeepR2: ['shadowBoltR2'], shadowBoltR2LowMana: ['shadowBoltR2'], deathCoil: ['deathCoil'], deathCoilFinisher: ['deathCoil'],
+    multiDot: ['curseOfElements', 'corruption', 'baneOfAgony', 'immolate', 'siphonLife'], shadowburnSnF: ['shadowburn'], conflagrateSnF: ['conflagrate'], shadowBoltSpread: ['shadowBolt'], isbUpkeep: ['shadowBolt'], deathCoil: ['deathCoil'], deathCoilFinisher: ['deathCoil'],
     searingPainBrand: ['searingPain'], soulFireShards: ['soulFire'], searingPainExecute: ['searingPain'] };
   function para(s) { return esc(s).replace(/\n/g, '<br>'); }
   function spellMeta(s) {
@@ -524,7 +524,7 @@
     return '<span class="split">' + split(r.build) + '</span>' + esc(r.build.short) + tags + ' <span class="meta">(' + race + ')</span>';
   }
   function spellName(k) {
-    if (WL.SPELLS[k]) return WL.SPELLS[k].name + (WL.SPELLS[k].family ? ' (Rank ' + WL.SPELLS[k].rank + ')' : '');   // Shadow Bolt Rank 2 (round 57)
+    if (WL.SPELLS[k]) return WL.SPELLS[k].name;
     if (k === 'pet:melee') return 'Pet melee';
     if (k === 'pet:lashOfPain') return 'Lash of Pain (Succubus)';
     if (k === 'pet:firebolt') return 'Firebolt (Imp)';
@@ -543,7 +543,6 @@
   function baseKey(k) { var xt = /^x\d:(\w+)$/.exec(k); return xt ? xt[1] : k; }
   function colorOf(k) { k = baseKey(k); return COLORS[k] || (k.indexOf('item:') === 0 ? '#C9A227' : '#8A8F98'); }
   function iconKeyOf(k) { k = baseKey(k);
-    if (WL.SPELLS[k] && WL.SPELLS[k].family) return WL.SPELLS[k].family;   // other ranks share the icon (round 57)
     if (k === 'demonicSacrifice' || k === 'felDomination') return 'talent_' + k;
     if (k.indexOf('summon:') === 0) return 'pet_' + k.slice(7);
     if (k === 'pet:brand') return 'talent_demonicBrand';            // round 45: the brand bonus had no icon
@@ -1293,20 +1292,20 @@
   var ACTION_GROUPS = [
     ['Curses & DoTs', ['curseOfElements', 'bane', 'baneOfAgony', 'corruption', 'siphonLife', 'immolate']],
     ['Multi-target', ['multiDot', 'shadowBoltSpread']],
-    ['Cooldowns & procs', ['shadowTrance', 'isbUpkeep', 'isbUpkeepR2', 'deathCoil', 'deathCoilFinisher', 'conflagrate', 'conflagrateSnF', 'shadowburn', 'shadowburnSnF', 'soulFire', 'searingPainBrand', 'searingPainExecute']],
-    ['Pet & mana', ['lifeTapPet', 'shadowBoltR2LowMana', 'swapToImp', 'swapToSuccubus']],
-    ['Fillers (the last entry)', ['shadowBolt', 'shadowBoltR2', 'incinerate', 'searingPain', 'drainLife', 'wrack']],
+    ['Cooldowns & procs', ['shadowTrance', 'isbUpkeep', 'deathCoil', 'deathCoilFinisher', 'conflagrate', 'conflagrateSnF', 'shadowburn', 'shadowburnSnF', 'soulFire', 'searingPainBrand', 'searingPainExecute']],
+    ['Pet & mana', ['lifeTapPet', 'swapToImp', 'swapToSuccubus']],
+    ['Fillers (the last entry)', ['shadowBolt', 'incinerate', 'searingPain', 'drainLife', 'wrack']],
   ];
   var ACTION_SHORT = {
     curseOfElements: 'Curse of the Elements', bane: 'Bane of Doom, else Bane of Agony', baneOfAgony: 'Bane of Agony only (never Doom)',
     corruption: 'Corruption', siphonLife: 'Siphon Life', immolate: 'Immolate',
     multiDot: 'Keep DoTs on the extra targets', shadowBoltSpread: 'Shadow Bolt an extra target (for its ISB)',
-    shadowTrance: 'Shadow Bolt (max rank) on Shadow Trance (Nightfall)', isbUpkeep: 'Shadow Bolt (max rank) to keep ISB up', isbUpkeepR2: 'Shadow Bolt (Rank 2) to keep ISB up',
-    deathCoil: 'Death Coil on cooldown', deathCoilFinisher: 'Death Coil as the finisher', shadowBoltR2LowMana: 'Shadow Bolt (Rank 2) below 740 mana', conflagrate: 'Conflagrate', shadowburn: 'Shadowburn on cooldown',
+    shadowTrance: 'Shadow Bolt (max rank) on Shadow Trance (Nightfall)', isbUpkeep: 'Shadow Bolt (max rank) to keep ISB up',
+    deathCoil: 'Death Coil on cooldown', deathCoilFinisher: 'Death Coil as the finisher', conflagrate: 'Conflagrate', shadowburn: 'Shadowburn on cooldown',
     shadowburnSnF: 'Shadowburn for Shadow and Flame', conflagrateSnF: 'Conflagrate for Shadow and Flame', soulFire: 'Soul Fire during Decimation', searingPainBrand: 'Searing Pain for Demonic Brand',
     searingPainExecute: 'Searing Pain in the execute phase', lifeTapPet: 'Life Tap to feed the pet',
     swapToImp: 'Pet swap at execute → Imp', swapToSuccubus: 'Pet swap at execute → Succubus',
-    shadowBolt: 'Shadow Bolt (Rank 9)', shadowBoltR2: 'Shadow Bolt (Rank 2)', incinerate: 'Incinerate', searingPain: 'Searing Pain',
+    shadowBolt: 'Shadow Bolt (Rank 9)', incinerate: 'Incinerate', searingPain: 'Searing Pain',
     drainLife: 'Drain Life', wrack: 'Wrack',
   };
   var PET_NAMES = { imp: 'Imp', succubus: 'Succubus', felhunter: 'Felhunter', voidwalker: 'Voidwalker' };
@@ -1499,7 +1498,7 @@
     if (skip != null && skip >= 0) L[skip].t = nt; else L.push({ t: nt, k: k });
     tlSorted(); tl.sel = L.map(function (e) { return e.t === nt && e.k === k; }).indexOf(true);
   }
-  function tlName(k) { var s = WL.SPELLS[k]; return s.name + (s.family ? ' (Rank ' + s.rank + ')' : ''); }
+  function tlName(k) { return WL.SPELLS[k].name; }
   function renderTimeline() {
     var on = !!ed.b.timeline;
     $('edTl').hidden = !on;

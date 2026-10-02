@@ -20,7 +20,7 @@
     }
 
     T.group('A: cached lookups answer as before');
-    T.ok(WL.isShadowBolt('shadowBolt') && WL.isShadowBolt('shadowBoltR2') && !WL.isShadowBolt('immolate') && !WL.isShadowBolt('nope'), 'isShadowBolt: both ranks yes, others no (twice: ' + WL.isShadowBolt('shadowBoltR2') + ')');
+    T.ok(WL.isShadowBolt('shadowBolt') && !WL.isShadowBolt('shadowBoltR2') && !WL.isShadowBolt('immolate') && !WL.isShadowBolt('nope'), 'isShadowBolt: Shadow Bolt yes, the removed Rank 2 and others no (twice: ' + WL.isShadowBolt('shadowBoltR2') + ')');
 
     T.group('B: worker pool size');
     var src = '';
