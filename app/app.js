@@ -91,10 +91,16 @@
       '<div class="tt-rule">' + esc(racialRule(rc)) + '</div>';
   }
   // How the sim uses a racial cooldown (Eureka!: live +10% aura, pop timing from options.eurekaPolicy — round 38).
+  // First use of the short cooldowns (options.activesPolicy, round 87).
+  function activesWhen() {
+    var a = (runCfg.options || {}).activesPolicy || 'doom';
+    return a === 'pull' ? 'on the pull' : a === 'execute' ? 'when the boss drops below ' + runCfg.fight.executePct + '%' :
+      'when the first Bane of Doom explodes (on the pull for builds that never cast it)';
+  }
   function racialRule(rc) {
-    if (!rc.charges) return 'Used on cooldown, right before a damaging spell (never before a curse or Life Tap)';
+    if (!rc.charges) return 'First used ' + activesWhen() + ', then whenever it is ready — right before a damaging spell (never before a curse or Life Tap)';
     var pol = (runCfg.options || {}).eurekaPolicy || 'long';
-    return 'A +10% damage aura on your direct hits and channel ticks (not on DoT ticks since round 80) until 3 spells have been cast. Popped ' +
+    return 'First allowed ' + activesWhen() + '. A +10% damage aura on your direct hits and channel ticks (not on DoT ticks since round 80) until 3 spells have been cast. Popped ' +
       (pol === 'any' ? 'on cooldown, right before any damaging spell' : pol === 'long' ? 'on cooldown, right before a long cast (Shadow Bolt, Searing Pain, Incinerate, Soul Fire, a channel)' :
         'right before a long cast; while Bane of Doom ticks, held until its explosion falls inside the aura');
   }
@@ -262,6 +268,7 @@
     $('resShadow').value = cfg.combat.targetResist.shadow; $('resFire').value = cfg.combat.targetResist.fire;
     $('o_levelRes').checked = !!(cfg.combat.levelResist && cfg.combat.levelResist.on);
     $('o_eureka').value = cfg.options.eurekaPolicy || 'long';
+    $('o_actives').value = cfg.options.activesPolicy || 'doom';
     armorNote(); renderTotals(); tabCounts();
   }
   var CON_GROUPS = { flask: 'Flask', spElixir: 'Spell power elixir', shadowElixir: 'Shadow elixir', fireElixir: 'Fire elixir',
@@ -329,6 +336,7 @@
     ['Shadow', 'Fire'].forEach(function (s) { var v = parseFloat($('res' + s).value); if (isFinite(v)) cfg.combat.targetResist[s.toLowerCase()] = Math.max(0, v); });
     cfg.combat.levelResist.on = $('o_levelRes').checked;
     cfg.options.eurekaPolicy = $('o_eureka').value;
+    cfg.options.activesPolicy = $('o_actives').value;
     armorNote(); renderTotals(); tabCounts();
     var num = function (id, fallback) { var v = parseFloat($(id).value); return isFinite(v) ? v : fallback; };
     cfg.petSpPct = num('p_spPct', cfg.petSpPct);
@@ -845,8 +853,8 @@
         (a === 'havocAuto' ? ' <span class="meta">(added by Targets ≥ 2)</span>' :
          b.rotation.indexOf(a) < 0 ? ' <span class="meta">(added by the Multi-DoT option)</span>' : '') + '</li>';
     }).join('') + '<li>' + icon('lifeTap', 'Life Tap') + ' Life Tap whenever mana is below the next spell\'s cost</li></ol>' +
-      '<p class="meta">Racial cooldowns are used on cooldown; channels are clipped when a higher-priority action is ready.' +
-      (WL.activeConsumables(runCfg).some(function (c) { return c.manaRestore || c.spPotion; }) ? ' Mana potions / runes are used when at least their amount of mana is missing; Spellblasting at the pull and on cooldown.' : '') + '</p>' +
+      '<p class="meta">Racial cooldowns, the Spellblasting potion and Power Infusion are first popped ' + activesWhen() + ', then whenever ready; channels are clipped when a higher-priority action is ready.' +
+      (WL.activeConsumables(runCfg).some(function (c) { return c.manaRestore || c.spPotion; }) ? ' Mana potions / runes are used when at least their amount of mana is missing.' : '') + '</p>' +
       (b.timeline && b.timeline.length ? '<p class="meta"><b>Fight timeline:</b> ' + b.timeline.length + ' spells at fixed times (' +
         Math.min.apply(null, b.timeline.map(function (e) { return e.t; })).toFixed(1) + '–' + Math.max.apply(null, b.timeline.map(function (e) { return e.t; })).toFixed(1) +
         ' s), cast before the priority and marked "timeline" in the log; the priority fills the gaps and takes over after it.</p>' : '') + '</div>';

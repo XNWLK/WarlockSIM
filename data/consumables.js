@@ -2,11 +2,14 @@
 // (https://www.wowhead.com/forever/item=<id>&xml, retrieved 2026-09-24). `text` = the tooltip's "Use:" line.
 // group: only one consumable per group can be active (Classic-style categories; Forever rules unknown) [A57].
 // Effect fields: sp, schoolSp{shadow,fire}, int, spi, sta, critPct, hitPct, hastePct, mp5, maxMana (flat, after %),
-//   oil (weapon slot, replaces Spellstone/Firestone), spPotion {sp, duration} (used at the pull, then on cooldown),
+//   oil (weapon oil; stacks with the Spellstone/Firestone), spPotion {sp, duration} (popped with the other cooldowns:
+//   options.activesPolicy, then on cooldown),
 //   manaRestore {amount | pct} (used when the missing mana ≥ the amount), cd (s), cdGroup ('potion' | 'rune').
 // Not included: Elixir of Greater Firepower (only its recipe exists in Forever; item 21546 is now Elixir of Holy Power),
 //   Blessed Wizard Oil (undead only), healing/melee/protection consumables, world buffs (not consumables),
-//   Superior Mana Potion (user round 12: not needed), Dark Iron Bomb (Forever tooltip says 9661 Fire vs Classic 344–456:
+//   Superior Mana Potion (user round 12: not needed), smaller versions of a consumable (user, round 87: only the biggest of
+//   each — removed Arcane Elixir, Minor Arcane Elixir, Mageblood Elixir, Sagefish Delight, Wizard Oil; the smaller
+//   Spellblasting potions were never added), Dark Iron Bomb (Forever tooltip says 9661 Fire vs Classic 344–456:
 //   a data error, removed by the user in round 16).
 // Icons: Forever item XML `icon`, except 4 elixirs whose Forever DB icon differs from the in-game one (user, round 12):
 //   Greater Arcane, Shadow Power, Fire Power, Mageblood use the Wowhead CLASSIC icon (/classic/item=<id>&xml).
@@ -28,10 +31,6 @@ WL.CONSUMABLES = {
   // ---------------- Elixirs ----------------
   greaterArcaneElixir: { on: false, id: 13454, icon: 'inv_potion_25', cat: 'Elixir', group: 'spElixir', name: 'Greater Arcane Elixir', desc: '+35 spell damage', sp: 35,
                          text: 'Increases spell damage by up to 35 for 1 hour.' },
-  arcaneElixir:        { on: false, id: 9155, icon: 'inv_potion_30', cat: 'Elixir', group: 'spElixir', name: 'Arcane Elixir', desc: '+20 spell damage', sp: 20,
-                         text: 'Increases spell damage by up to 20 for 30 min.' },
-  minorArcaneElixir:   { on: false, id: 247754, icon: 'inv_potion_106', cat: 'Elixir', group: 'spElixir', name: 'Minor Arcane Elixir', desc: '+5 spell damage', sp: 5,
-                         text: 'Increases spell damage by up to 5 for 30 min.' },
   shadowPower:         { on: false, id: 9264, icon: 'inv_potion_46', cat: 'Elixir', group: 'shadowElixir', name: 'Elixir of Shadow Power', desc: '+40 Shadow spell damage', schoolSp: { shadow: 40 },
                          text: 'Increases spell shadow damage by up to 40 for 30 min.' },
   firePower:           { on: false, id: 6373, icon: 'inv_potion_33', cat: 'Elixir', group: 'fireElixir', name: 'Elixir of Fire Power', desc: '+10 Fire spell damage', schoolSp: { fire: 10 },
@@ -48,8 +47,6 @@ WL.CONSUMABLES = {
                          text: 'Drink to increase your Spirit by 25 and chance to critically hit by 2%. Lasts for 30 min.' },
   greaterSpirit:       { on: false, id: 250347, icon: 'inv_potion_116', cat: 'Elixir', group: 'spiElixir', name: 'Elixir of Greater Spirit', desc: '+18 Spirit', spi: 18,
                          text: 'Drink to increase your Spirit by 18. Lasts for 30 min.' },
-  magebloodElixir:     { on: false, id: 20007, icon: 'inv_potion_45', cat: 'Elixir', group: 'manaElixir', name: 'Mageblood Elixir', desc: '12 mana every 5 s', mp5: 12,
-                         text: 'Regenerate 12 mana per 5 sec for 1 hour.' },
   greaterMageblood:    { on: false, id: 250341, icon: 'inv_potion_168', cat: 'Elixir', group: 'manaElixir', name: 'Greater Mageblood Elixir', desc: '20 mana every 5 s', mp5: 20,
                          text: 'Drink to regenerate 20 mana every 5 seconds. Lasts for 30 min.' },
   spiritOfZanza:       { on: false, id: 20079, icon: 'inv_potion_30', cat: 'Elixir', group: 'zanza', name: 'Spirit of Zanza', desc: '+50 Spirit, +50 Stamina', spi: 50, sta: 50,
@@ -62,8 +59,6 @@ WL.CONSUMABLES = {
                          text: 'If you spend at least 10 seconds eating you will become well fed and gain 22 Spell Damage for 15 min.' },
   runnTumTuber:        { on: false, id: 18254, icon: 'inv_misc_food_63', cat: 'Food', group: 'food', name: 'Runn Tum Tuber Surprise', desc: 'Well fed: +15 Intellect', int: 15,
                          text: 'If you spend at least 10 seconds eating you will become well fed and gain 15 Intellect for 15 min.' },
-  sagefishDelight:     { on: false, id: 21217, icon: 'inv_misc_fish_21', cat: 'Food', group: 'food', name: 'Sagefish Delight', desc: 'Well fed: +7 spell damage', sp: 7,
-                         text: 'If you spend at least 10 seconds eating you will become well fed and gain 7 Spell Damage for 15 min.' },
   kreegsStout:         { on: false, id: 18284, icon: 'inv_drink_05', cat: 'Food', group: 'drink', name: "Kreeg's Stout Beatdown", desc: '+25 Spirit, −5 Intellect', spi: 25, int: -5,
                          text: 'Increases Spirit by 25, but decreases Intelligence by 5 for 15 min.' },
 
@@ -74,10 +69,6 @@ WL.CONSUMABLES = {
                          text: 'Major Spellstone: +2% spell haste and up to 21 Shadow damage. Major Firestone: +2% spell crit and up to 21 Fire damage. Each build uses the one listed in its details. Stacks with a weapon oil.' },
   brilliantWizardOil:  { on: false, id: 20749, icon: 'inv_potion_105', cat: 'Weapon', group: 'weapon', name: 'Brilliant Wizard Oil', desc: '+36 spell damage, +1% crit', oil: { sp: 36, critPct: 1 },
                          text: 'While applied to target weapon it increases spell damage and healing by up to 36 and increases Spell Critical chance by 1%. Lasts for 30 minutes.' },
-  // Beta build 2026-09-24 (dev notes, S12): Wizard Oil reverted to the Classic value 24 (was 30). The Wowhead item
-  // tooltip still said 30 on 2026-09-25, so the text below is the official note, not the tooltip.
-  wizardOil:           { on: false, id: 20750, icon: 'inv_potion_104', cat: 'Weapon', group: 'weapon', name: 'Wizard Oil', desc: '+24 spell damage', oil: { sp: 24 },
-                         text: 'While applied to target weapon it increases spell damage and healing by up to 24. Lasts for 30 minutes. (Beta build of 2026-09-24: reverted from 30 to the Classic value 24.)' },
   brilliantManaOil:    { on: false, id: 20748, icon: 'inv_potion_100', cat: 'Weapon', group: 'weapon', name: 'Brilliant Mana Oil', desc: '15 mana every 5 s', oil: { mp5: 15 },
                          text: 'While applied to target weapon it restores 15 mana to the caster every 5 seconds and increases the effect of healing spells by up to 30. Lasts for 30 minutes.' },
 
@@ -86,8 +77,8 @@ WL.CONSUMABLES = {
                          text: 'Restores 1800 mana. (2 Min Cooldown)' },
   restoredManaPotion:  { on: false, id: 282013, icon: 'inv_potion_17', cat: 'Potion', group: 'potion', name: 'Restored Mana Potion', desc: '20% of maximum mana, 2 min cooldown', manaRestore: { pct: 20 }, cd: 120, cdGroup: 'potion',
                          text: 'Restores 20% mana. (2 Min Cooldown)' },
-  majorSpellblasting:  { on: false, id: 250937, icon: 'inv_potione_4', cat: 'Potion', group: 'potion', name: 'Major Spellblasting Potion', desc: '+40 spell damage for 30 s, at the pull (2 min cooldown)', spPotion: { sp: 40, duration: 30 }, cd: 120, cdGroup: 'potion',
-                         text: 'Increases your Spell Damage by 40 for 30 sec.' },
+  majorSpellblasting:  { on: false, id: 250937, icon: 'inv_potione_4', cat: 'Potion', group: 'potion', name: 'Major Spellblasting Potion', desc: '+47 spell damage for 30 s (2 min cooldown); popped with your other cooldowns', spPotion: { sp: 47, duration: 30 }, cd: 120, cdGroup: 'potion',
+                         text: 'Increases Spell Damage by 47 for 30 sec.' },   // 47 since the Wowhead Forever tooltip of 2026-10-04 (40 before)
 
   // ---------------- Engineering explosives (require the Engineering profession, W14 / A59) ----------------
   // Damage is fixed (no spell power / talents); explosives share a 1 min cooldown, the Sapper has its own 5 min cooldown.

@@ -96,7 +96,7 @@ WL.DEFAULT_CONFIG = {
     innervate:        { on: false, id: 29166, name: 'Innervate',                     cls: 'Druid',   desc: '5× mana regen while casting for 20 s, once, when you drop below 50% mana', innervate: { mult: 5, duration: 20 } },
     moonkinAura:      { on: true, id: 24858, name: 'Moonkin Form aura',             cls: 'Druid',   desc: '+3% crit (party)', critPct: 3 },
     scrollOfAgility:  { on: true, id: 12174, name: 'Scroll of Agility IV',                  cls: 'Scroll',  desc: '+17 Agility (melee crit for the Succubus)', agi: 17 },
-    powerInfusion:    { on: false, id: 10060, name: 'Power Infusion',                cls: 'Priest',  desc: '+20% spell damage for 15 s at the pull (3 min cooldown)', spellDmgPct: 20, duration: 15, cd: 180 },
+    powerInfusion:    { on: false, id: 10060, name: 'Power Infusion',                cls: 'Priest',  desc: '+20% spell damage for 15 s (3 min cooldown); cast on you when you pop your cooldowns', spellDmgPct: 20, duration: 15, cd: 180 },
   },
   // Consumables (data/consumables.js, loaded before this file). Only the per-build weapon oil is on by default. [A57]
   consumables: JSON.parse(JSON.stringify(WL.CONSUMABLES || {})),
@@ -129,6 +129,12 @@ WL.DEFAULT_CONFIG = {
     // 'doom' = 'long' and, while Bane of Doom ticks, hold it until the explosion falls inside the aura.
     // Round 80 (user): default 'long' (was 'doom'): the Bane of Doom explosion no longer gets Eureka! (Forever patch).
     eurekaPolicy: 'long',
+    // When to pop the short cooldowns for the first time (round 87, user): the racial cooldown (Blood Fury, Berserking,
+    // Eureka!), the Spellblasting potion and Power Infusion. 'pull' = right before the first damaging spell (the rule until
+    // round 86) · 'doom' = when the first Bane of Doom explodes (right before the cast it falls into; at the pull if the
+    // build never casts Doom or Doom cannot explode in this fight) · 'execute' = when the boss drops below executePct.
+    // After the first use each one is used again whenever it is ready. [A77]
+    activesPolicy: 'doom',
     // AQ20 book ranks (round 42, user): Shadow Bolt R10, Immolate R8, Corruption R7 instead of the trainer ranks
     // R9 / R7 / R6. Off by default (the books drop in Ruins of Ahn'Qiraj). See WL.BOOK_RANKS / SPELLVALUES.md.
     bookRanks: false,

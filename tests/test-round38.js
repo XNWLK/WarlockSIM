@@ -5,6 +5,7 @@
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.weaponIsSword = false;
     c.gear.pierce = 0; c.options.useCurseOfElements = false; c.fight.durationVarPct = 0; c.options.eurekaPolicy = policy;
+    c.options.activesPolicy = 'pull';                       // these tests are about Eureka!'s own timing (round 87 default: first Doom explosion)
     return c;
   }
   function tb(rot) { return { key: 't38', short: 't', name: 't', notes: '', talents: {}, pet: null, sacrifice: null, oil: 'none', rotation: rot }; }

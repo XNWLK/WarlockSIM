@@ -35,10 +35,11 @@
     T.near(sw.maxMana - s0.maxMana, 2000, 1e-9, 'Flask of Distilled Wisdom +2000 max mana (flat)');
     T.near(WL.computeStats(b, 'human', only(base(), ['flaskSupremePower'])).sp - s0.sp, 150, 1e-9, 'Flask of Supreme Power +150 SP');
     T.near(WL.computeStats(b, 'human', only(base(), ['nightfinSoup'])).sp - s0.sp, 22, 1e-9, 'Nightfin Soup +22 SP (Forever value)');
-    T.near(WL.computeStats(b, 'human', only(base(), ['minorArcaneElixir'])).sp - s0.sp, 5, 1e-9, 'Minor Arcane Elixir +5 SP (round 12)');
+    T.near(WL.computeStats(b, 'human', only(base(), ['greaterArcaneElixir'])).sp - s0.sp, 35, 1e-9, 'Greater Arcane Elixir +35 SP');
+    T.eq(['arcaneElixir', 'minorArcaneElixir', 'magebloodElixir', 'sagefishDelight', 'wizardOil'].filter(function (k) { return WL.CONSUMABLES[k]; }).join(','), '', 'smaller versions removed: only the biggest of each consumable (user, round 87)');
     T.ok(!WL.CONSUMABLES.superiorManaPotion, 'Superior Mana Potion removed (user round 12)');
-    T.eq(['greaterArcaneElixir', 'shadowPower', 'firePower', 'magebloodElixir'].map(function (k) { return WL.CONSUMABLES[k].icon; }).join(','),
-      'inv_potion_25,inv_potion_46,inv_potion_33,inv_potion_45', 'Classic icons for the 4 elixirs with a wrong Forever DB icon');
+    T.eq(['greaterArcaneElixir', 'shadowPower', 'firePower'].map(function (k) { return WL.CONSUMABLES[k].icon; }).join(','),
+      'inv_potion_25,inv_potion_46,inv_potion_33', 'Classic icons for the 3 elixirs with a wrong Forever DB icon');
     T.near(WL.computeStats(b, 'human', only(base(), ['shadowPower'])).schoolSp.shadow, 40, 1e-9, 'Elixir of Shadow Power +40 Shadow SP');
     T.near(WL.computeStats(b, 'human', only(base(), ['kreegsStout'])).int - s0.int, -5, 1e-9, "Kreeg's Stout −5 Int");
     T.near(WL.computeStats(b, 'human', only(base(), ['greaterMageblood'])).mp5, 20, 1e-9, 'Greater Mageblood 20 MP5');
@@ -66,9 +67,9 @@
     var fs2 = WL.computeStats(tb(['shadowBolt'], 'firestone'), 'human', only(base(), ['buildOil', 'brilliantWizardOil']));
     T.near(fs2.critPct - s0.critPct, 3, 1e-9, 'Firestone + Brilliant Wizard Oil: +2% + 1% crit');
     T.eq(WL.CONSUMABLES.buildOil.group, 'stone', 'the stone is its own group');
-    T.eq(['brilliantWizardOil', 'wizardOil', 'brilliantManaOil'].map(function (k) { return WL.CONSUMABLES[k].group; }).join(','), 'weapon,weapon,weapon', 'the oils share the weapon-oil group');
-    var two = WL.computeStats(ss, 'human', only(base(), ['brilliantWizardOil', 'wizardOil']));
-    T.near(two.sp - s0.sp, 36, 1e-9, 'two oils ticked: only the first counts');
+    T.eq(['brilliantWizardOil', 'brilliantManaOil'].map(function (k) { return WL.CONSUMABLES[k].group; }).join(','), 'weapon,weapon', 'the oils share the weapon-oil group');
+    var two = WL.computeStats(ss, 'human', only(base(), ['brilliantWizardOil', 'brilliantManaOil']));
+    T.ok(Math.abs(two.sp - s0.sp - 36) < 1e-9 && Math.abs(two.mp5 - s0.mp5) < 1e-9, 'two oils ticked: only the first counts');
     T.near(WL.computeStats(ss, 'human', only(base(), ['brilliantManaOil'])).mp5, 15, 1e-9, 'Brilliant Mana Oil 15 MP5');
     var sNone = WL.computeStats(ss, 'human', only(base(), []));
     T.near(sNone.hastePct + sNone.schoolSp.shadow, 0, 1e-9, 'weapon slot empty → no Spellstone');
@@ -106,8 +107,9 @@
     var mm = WL.computeStats(tb([]), 'human', cr).maxMana, ru = rr.log.filter(function (e) { return e.type === 'consumable'; });
     T.ok(ru.length >= 1 && ru.every(function (e) { return e.gain === Math.round(mm * 0.2); }), 'gain = 20% of ' + fmt0(mm) + ' mana');
 
-    T.group('Major Spellblasting Potion (+40 SP for 30 s at the pull)');
-    var cs = det(only(base(), ['majorSpellblasting']));
+    T.group('Major Spellblasting Potion (+47 SP for 30 s; here popped on the pull)');
+    T.eq(WL.CONSUMABLES.majorSpellblasting.spPotion.sp + '/' + WL.CONSUMABLES.majorSpellblasting.spPotion.duration, '47/30', '+47 SP for 30 s (Wowhead Forever tooltip 2026-10-04; 40 before)');
+    var cs = det(only(base(), ['majorSpellblasting'])); cs.options.activesPolicy = 'pull';
     var rs = WL.simulateOnce(tb(['shadowBolt']), 'human', cs, { seed: 7, duration: 180, log: true });
     var su = rs.log.filter(function (e) { return e.type === 'consumable'; });
     T.ok(su.length === 2, 'used twice in 180 s (t = ' + su.map(function (e) { return e.t; }).join(', ') + ')');
@@ -116,8 +118,8 @@
     var rs0 = WL.simulateOnce(tb(['shadowBolt']), 'human', det(only(base(), [])), { seed: 7, duration: 180, log: false });
     T.ok(rs.dps > rs0.dps, 'more DPS with Spellblasting (' + rs.dps.toFixed(1) + ' vs ' + rs0.dps.toFixed(1) + ')');
     var gain = rs.dps - rs0.dps, sbCoef = WL.SPELLS.shadowBolt.coef || 0.857;
-    // ~60 s of +40 SP out of 180 s → roughly 40 × coef / 3 s-per-bolt... sanity band only
-    T.ok(gain > 1 && gain < 40 * sbCoef, 'DPS gain in a plausible band (' + gain.toFixed(2) + ')');
+    // ~60 s of +47 SP out of 180 s → roughly 47 × coef / 3 s-per-bolt... sanity band only
+    T.ok(gain > 1 && gain < 47 * sbCoef, 'DPS gain in a plausible band (' + gain.toFixed(2) + ')');
   });
   function fmt0(x) { return Math.round(x); }
 })();

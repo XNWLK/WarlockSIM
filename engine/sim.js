@@ -135,7 +135,7 @@ window.WL = window.WL || {};
     function liveMult(key, periodic) {
       var s = SPELLS[key], m = eurekaMult(key, periodic);
       if (S.buff('coe')) m *= 1 + SPELLS.curseOfElements.dmgTakenPct / 100;                          // [A34]
-      if (PI && (S.t % PI.cd) < PI.duration) m *= 1 + PI.spellDmgPct / 100;                               // Power Infusion
+      if (PI && S.buff('powerInfusion')) m *= 1 + PI.spellDmgPct / 100;                                    // Power Infusion
       if (s.school === 'shadow' && S.buff('isb')) m *= 1 + tv('improvedShadowBolt', 'debuffPct') / 100;  // [A20]
       if (s.school === 'shadow' && S.buff('snfShadow')) m *= 1 + tv('shadowAndFlame', 'schoolPct') / 100; // [A22]
       if (s.school === 'fire' && S.buff('snfFire')) m *= 1 + tv('shadowAndFlame', 'schoolPct') / 100;
@@ -170,6 +170,30 @@ window.WL = window.WL || {};
     var spPot = conList.filter(function (c) { return c.spPotion; })[0] || null;
     var manaItems = conList.filter(function (c) { return c.manaRestore; });
     function potSp() { return spPot && S.buff('spPotion') ? spPot.spPotion.sp : 0; }
+    // When the short cooldowns are popped for the first time (round 87, user; options.activesPolicy, A77): racial
+    // cooldown, Spellblasting potion, Power Infusion. Once open, each is used again whenever it is ready.
+    //   'pull'    right before the first damaging spell (the rule until round 86)
+    //   'doom'    when the first Bane of Doom explodes: right before the cast the explosion falls into (so live effects
+    //             cover it) or the first cast after it. At the pull if this build never casts Doom, if a Bane of Agony
+    //             went up instead, or if Doom will not explode before the fight ends.
+    //   'execute' once the boss is below fight.executePct
+    var ACT_POL = (cfg.options && cfg.options.activesPolicy) || 'pull', actOpen = ACT_POL === 'pull', doomSeen = false;
+    var ACT_DOOM = null;                                                   // does this build ever cast Bane of Doom? (set on first use: ROT is built below)
+    function activesOk(key) {
+      if (actOpen) return true;
+      if (ACT_POL === 'execute') return actOpen = S.targetHpPct < cfg.fight.executePct;
+      if (ACT_DOOM === null) ACT_DOOM = ROT.indexOf('bane') >= 0 || (build.timeline || []).some(function (e) { return e.k === 'baneOfDoom'; });
+      var d = S.dots.baneOfDoom;                                           // 'doom'
+      if (d) doomSeen = true;
+      if (!d || d.expires <= S.t + EPS) return actOpen = doomSeen || !ACT_DOOM || !!S.dots.baneOfAgony;
+      var toBoom = d.expires - S.t, sp = SPELLS[key], len = sp.kind === 'channel' ? sp.duration : Math.max(S.castTime(key), S.gcd());
+      return actOpen = toBoom > S.remaining || toBoom <= len + EPS;
+    }
+    function usePowerInfusion() {
+      if (!PI || !S.ready('powerInfusion')) return;
+      S.cds.powerInfusion = S.t + PI.cd; S.buffs.powerInfusion = S.t + PI.duration;
+      L('buff', PI.name);
+    }
     function useSpPotion() {
       if (!spPot || !S.ready('cd:' + spPot.cdGroup)) return;
       S.cds['cd:' + spPot.cdGroup] = S.t + spPot.cd; S.buffs.spPotion = S.t + spPot.spPotion.duration;
@@ -345,7 +369,7 @@ window.WL = window.WL || {};
       var s = SPELLS[key], m = eurekaMult(key, periodic);
       if (S.xDebLeft(ti, 'coe') > 0) m *= 1 + SPELLS.curseOfElements.dmgTakenPct / 100;
       if (s.school === 'shadow' && S.xDebLeft(ti, 'isb') > 0) m *= 1 + tv('improvedShadowBolt', 'debuffPct') / 100;
-      if (PI && (S.t % PI.cd) < PI.duration) m *= 1 + PI.spellDmgPct / 100;
+      if (PI && S.buff('powerInfusion')) m *= 1 + PI.spellDmgPct / 100;
       if (s.school === 'shadow' && S.buff('snfShadow')) m *= 1 + tv('shadowAndFlame', 'schoolPct') / 100;
       if (s.school === 'fire' && S.buff('snfFire')) m *= 1 + tv('shadowAndFlame', 'schoolPct') / 100;
       return m;
@@ -905,7 +929,7 @@ window.WL = window.WL || {};
       // Racial cooldowns fire only right before an actual damaging cast (never before a curse or a Life Tap).
       // Checked with Eureka's cost reduction in mind: pop it only if we can then afford the spell.
       var damaging = SPELLS[p.key].kind !== 'utility';
-      if (damaging && S.mana >= discountedCost(p.key)) { useRacials(p.key); useSpPotion(); }
+      if (damaging && S.mana >= discountedCost(p.key) && activesOk(p.key)) { useRacials(p.key); useSpPotion(); usePowerInfusion(); }
       if (S.mana < effectiveCost(p.key)) {
         if (stats.maxMana < effectiveCost(p.key)) { res.oom++; scheduleDecide(S.t + 1); return; }
         lifeTap(); return;
@@ -940,7 +964,7 @@ window.WL = window.WL || {};
           lifeTap(); return true;                                                           // Life Tap first; the rest runs later
         }
         TL.i++;
-        if (SPELLS[k].kind !== 'utility' && S.mana >= discountedCost(k)) { useRacials(k); useSpPotion(); }
+        if (SPELLS[k].kind !== 'utility' && S.mana >= discountedCost(k) && activesOk(k)) { useRacials(k); useSpPotion(); usePowerInfusion(); }
         startCast(k, 0, true);
         return true;
       }
@@ -1028,7 +1052,6 @@ window.WL = window.WL || {};
     }
 
     trackAuras(S.t, dur);                                   // close the last interval at the end of the fight
-    if (PI) for (var ps = 0; ps < dur; ps += PI.cd) auraAdd('powerInfusion', ps, Math.min(dur, ps + PI.duration));
     res.uptime = up; res.auras = iv;
     res.petDmg = Object.keys(res.bySpell).filter(function (k) { return k.indexOf('pet:') === 0; })
       .reduce(function (a, k) { return a + res.bySpell[k].dmg; }, 0);

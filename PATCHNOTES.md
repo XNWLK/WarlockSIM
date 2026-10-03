@@ -3,6 +3,13 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v80
+- **Pop cooldowns** setting: pop your potion, racial cooldown and Power Infusion on the pull, when the first Bane of Doom
+  explodes (default) or in the execute phase.
+- **Major Spellblasting Potion** is now +47 spell damage (was 40).
+- Consumables: only the biggest version of each is listed (removed Arcane / Minor Arcane Elixir, Mageblood Elixir,
+  Sagefish Delight, Wizard Oil).
+
 ## v79
 - **Spellstone / Firestone and weapon oils now stack** (found in game: they are not exclusive). Tick an oil in the
   Consumables tab and the stone stays on. Brilliant Wizard Oil on top is worth about +4%.

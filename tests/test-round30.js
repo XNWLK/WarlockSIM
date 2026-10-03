@@ -5,7 +5,7 @@
 
   T.run('beta build 2026-09-24 changes (round 30)', function () {
     T.group('Eureka!: mana cost -10%');
-    var top = WL.BUILDS[0], cfg = cfg0();
+    var top = WL.BUILDS[0], cfg = cfg0(); cfg.options.activesPolicy = 'pull';   // cooldowns on the pull (round 87 default: first Doom explosion)
     var r = WL.simulateOnce(top, 'gnome', cfg, { seed: 5, duration: 60, log: true }), n = 0;
     var table = WL.buildSpellTable(top, WL.computeStats(top, 'gnome', cfg), cfg);
     for (var i = 1; i < r.log.length; i++) {
@@ -43,7 +43,7 @@
     var rate = agg.bySpell.touchOfTheGrave.casts / landed;
     T.near(rate, 0.10, 0.012, 'proc rate per landed damaging cast ≈ 10% (' + (100 * rate).toFixed(2) + '% of ' + landed.toFixed(1) + ' casts per fight)');
 
-    T.group('Wizard Oil 24');
-    T.eq(WL.CONSUMABLES.wizardOil.oil.sp, 24, 'Wizard Oil +24 spell power (reverted to Classic)');
+    T.group('Wizard Oil');
+    T.ok(!WL.CONSUMABLES.wizardOil, 'Wizard Oil (24 SP since this beta build) removed in round 87: only Brilliant Wizard Oil is kept');
   });
 })();
