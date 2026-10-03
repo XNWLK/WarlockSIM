@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v79
+- **Spellstone / Firestone and weapon oils now stack** (found in game: they are not exclusive). Tick an oil in the
+  Consumables tab and the stone stays on. Brilliant Wizard Oil on top is worth about +4%.
+
 ## v78
 - **Light / dark button** next to the title. Auto (the default) follows your system as before.
 

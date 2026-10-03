@@ -67,9 +67,11 @@ WL.CONSUMABLES = {
   kreegsStout:         { on: false, id: 18284, icon: 'inv_drink_05', cat: 'Food', group: 'drink', name: "Kreeg's Stout Beatdown", desc: '+25 Spirit, −5 Intellect', spi: 25, int: -5,
                          text: 'Increases Spirit by 25, but decreases Intelligence by 5 for 15 min.' },
 
-  // ---------------- Weapon oil (one per weapon; Spellstone/Firestone are weapon oils in Forever) ----------------
-  buildOil:            { on: true, id: 17728, icon: 'inv_misc_gem_sapphire_01', cat: 'Weapon', group: 'weapon', name: 'Spellstone / Firestone (per build)', desc: 'Shadow builds: +2% haste, +21 Shadow SP · Fire builds: +2% crit, +21 Fire SP', buildOil: true,
-                         text: 'Major Spellstone: +2% spell haste and up to 21 Shadow damage. Major Firestone: +2% spell crit and up to 21 Fire damage. Each build uses the one listed in its details.' },
+  // ---------------- Weapon: stone + oil ----------------
+  // Round 86 (user, found in game): the Spellstone / Firestone and a weapon oil are NOT exclusive in Forever — you can
+  // have both up. So the stone is its own group ('stone') and the oils are another ('weapon'); one of each counts. [A33]
+  buildOil:            { on: true, id: 17728, icon: 'inv_misc_gem_sapphire_01', cat: 'Weapon', group: 'stone', name: 'Spellstone / Firestone (per build)', desc: 'Shadow builds: +2% haste, +21 Shadow SP · Fire builds: +2% crit, +21 Fire SP', buildOil: true,
+                         text: 'Major Spellstone: +2% spell haste and up to 21 Shadow damage. Major Firestone: +2% spell crit and up to 21 Fire damage. Each build uses the one listed in its details. Stacks with a weapon oil.' },
   brilliantWizardOil:  { on: false, id: 20749, icon: 'inv_potion_105', cat: 'Weapon', group: 'weapon', name: 'Brilliant Wizard Oil', desc: '+36 spell damage, +1% crit', oil: { sp: 36, critPct: 1 },
                          text: 'While applied to target weapon it increases spell damage and healing by up to 36 and increases Spell Critical chance by 1%. Lasts for 30 minutes.' },
   // Beta build 2026-09-24 (dev notes, S12): Wizard Oil reverted to the Classic value 24 (was 30). The Wowhead item

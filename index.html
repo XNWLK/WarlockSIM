@@ -499,7 +499,7 @@
       </div>
       <div class="scroll"><table class="tot" id="totalTable"></table></div>
       <p class="meta"><b>Sheet (gear)</b> = your character sheet with gear only (editable). <b>Total</b> = race base + gear + raid buffs +
-        consumables + weapon oil + passive racials (read-only). Talents differ per build and are shown in each build's details.
+        consumables + weapon oil + passive racials (read-only; the per-build Spellstone / Firestone is not included). Talents differ per build and are shown in each build's details.
         Timed effects (potions, Power Infusion, Blood Fury, Berserking, Eureka) are applied in the fight when used.
         Defaults: 500 SP, 5% hit, 10% crit, Int 148, Spirit 54, Stamina 160, MP5 0 (see A58).</p>
     </div>
@@ -536,7 +536,7 @@
       </div>
 
       <div class="pane" role="tabpanel" id="pane_cons" aria-labelledby="tab_cons" hidden>
-        <p class="meta">One per group (a flask, one elixir of each kind, one food, one drink, one weapon oil, one potion type, one rune).
+        <p class="meta">One per group (a flask, one elixir of each kind, one food, one drink, one weapon stone and one weapon oil — they stack —, one potion type, one rune).
           Ticking an item unticks the others in its group. Spellstone / Firestone share the weapon-oil slot. Potions and runes are used in the fight:
           mana items when at least their amount is missing, Spellblasting at the pull.</p>
         <div id="consBoxes" class="congrid"></div>
@@ -656,7 +656,7 @@
       <label class="c" for="edName">Name <input id="edName" type="text" maxlength="40" placeholder="My build"></label>
       <label class="c" for="edPet">Pet out <select id="edPet"></select></label>
       <label class="c" for="edSac">Sacrificed <select id="edSac"></select></label>
-      <label class="c" for="edOil">Weapon <select id="edOil"></select></label>
+      <label class="c" for="edOil" title="The build's Spellstone or Firestone. A weapon oil from the Consumables tab stacks with it.">Weapon stone <select id="edOil"></select></label>
       <span class="meta" id="edPts"></span>
       <button type="button" id="edResetAll" class="resetbtn" title="Remove every talent point in all three trees (pet, weapon and priority stay)">Reset all talents</button>
     </div>

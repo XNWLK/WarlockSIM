@@ -97,7 +97,8 @@ WL.NIGHTFALL_SPELLS = ['corruption', 'drainSoul', 'drainLife', 'wrack'];
 // Affliction effects counted by Soul Siphon (other than the drain itself). [A19]
 WL.SOUL_SIPHON_EFFECTS = ['corruption', 'baneOfAgony', 'baneOfDoom', 'siphonLife', 'curseOfElements'];
 
-// Weapon oils (Create Spellstone R3 / Create Firestone R4). [A33]
+// Weapon stones (Create Spellstone R3 / Create Firestone R4): a build's `oil` key (the name is from when they were
+// taken to share the weapon-oil slot). Since round 86 they stack with a weapon oil from the consumables. [A33]
 WL.OILS = {
   none:       { name: 'None' },
   spellstone: { name: 'Major Spellstone', id: 17728, hastePct: 2, schoolSp: { shadow: 21 } },

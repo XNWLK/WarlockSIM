@@ -266,7 +266,7 @@
   }
   var CON_GROUPS = { flask: 'Flask', spElixir: 'Spell power elixir', shadowElixir: 'Shadow elixir', fireElixir: 'Fire elixir',
     intElixir: 'Intellect elixir', spiElixir: 'Spirit elixir', manaElixir: 'Mana regeneration elixir', zanza: 'Zanza', cortex: 'Cerebral Cortex',
-    food: 'Food (well fed)', drink: 'Drink', weapon: 'Weapon oil', potion: 'Potion (shared cooldown)', rune: 'Rune (own cooldown)',
+    food: 'Food (well fed)', drink: 'Drink', stone: 'Weapon stone (stacks with an oil)', weapon: 'Weapon oil', potion: 'Potion (shared cooldown)', rune: 'Rune (own cooldown)',
     sapper: 'Engineering: Sapper (own 5 min cooldown)', explosive: 'Engineering: explosive (shared 1 min cooldown)' };
   function tabCounts() {
     var on = function (o) { return Object.keys(o).filter(function (k) { return o[k].on; }).length; };
@@ -297,11 +297,10 @@
     { k: 'mp5', label: 'MP5', gear: function (g) { return g.mp5; }, tot: function (s) { return s.mp5; } },
   ];
   function renderTotals() {
-    // Weapon slot comes from the Consumables tab. The per-build Spellstone/Firestone depends on the build,
-    // so it is left out of the total and named in the note instead.
+    // Weapon effects come from the Consumables tab: the Spellstone / Firestone and a weapon oil stack (round 86). The stone
+    // depends on the build, so it is left out of the total and named in the note instead; the oil is in the total.
     var race = $('t_race').value || 'human';
-    var wc = WL.activeConsumables(cfg).filter(function (c) { return c.group === 'weapon'; })[0];
-    var perBuild = !!(wc && wc.buildOil);
+    var perBuild = WL.activeConsumables(cfg).some(function (c) { return c.group === 'stone' && c.buildOil; });
     var s = WL.computeStats({ talents: {}, pet: null, sacrifice: null, oil: 'none', rotation: [] }, race, cfg);
     var hide = /^(Gear|Stat-weight test)$/;
     TOTAL_ROWS.forEach(function (r) {
@@ -314,8 +313,8 @@
       $('ts_' + r.k).innerHTML = src.join(' · ');
     });
     $('totNote').textContent = 'Hit chance vs a level-63 boss: ' + fmt(Math.min(cfg.combat.maxHitPct, s.hitPctUncapped), 1) + '% (cap ' +
-      cfg.combat.maxHitPct + '%, before Suppression). Weapon slot: ' + (perBuild ? 'Spellstone / Firestone per build, not in the total ' +
-      '(Spellstone +2% haste, +21 Shadow SP · Firestone +2% crit, +21 Fire SP).' : s.oilName + '.');
+      cfg.combat.maxHitPct + '%, before Suppression). Weapon: ' + (perBuild ? 'Spellstone / Firestone per build, not in the total ' +
+      '(Spellstone +2% haste, +21 Shadow SP · Firestone +2% crit, +21 Fire SP)' + (s.oilName !== WL.OILS.none.name ? ' + ' + s.oilName + ' (in the total).' : '; no weapon oil.') : s.oilName + '.');
   }
   function armorNote() {
     $('armorNote').textContent = 'Boss armor after debuffs: ' + fmt(WL.bossArmor(cfg)) + ' → pet melee damage reduced by ' + (100 * WL.armorReduction(cfg)).toFixed(1) + '%';
@@ -774,7 +773,7 @@
       (r.pushback && (r.pushback.n > 0.05 || r.pushback.resisted > 0.05) ? kv('Pushbacks per fight', fmt(r.pushback.n, 1) + ' · ' + fmt(r.pushback.time, 1) + ' s lost' + (r.pushback.resisted > 0.05 ? ' · ' + fmt(r.pushback.resisted, 1) + ' resisted' : '')) : '') +   // round 78
       (b.pet ? kv('Pet out of mana (fight #1)', fmt(r.firstFight.petOomTime, 0) + ' s') : '') +
       (r.firstFight.swapAt != null ? kv('Pet swap (fight #1)', clock(r.firstFight.swapAt) + ' → ' + (PET_NAMES[(b.rotation.indexOf('swapToImp') >= 0 ? 'imp' : 'succubus')])) : '') +
-      kv('Weapon oil', WL.OILS[b.oil].name) + '</div></div>';
+      kv('Weapon stone', WL.OILS[b.oil].name) + '</div></div>';
     h += weightsBlock(r);
     var same = results.filter(function (x) { return x.build.key === b.key; }).sort(function (a, c) { return c.dps - a.dps; });
     var sameTop = same.filter(function (x) { return !isBase(x); })[0];
@@ -1165,7 +1164,7 @@
         row('DPS in execute', fmt(A.dpsExec, 1), fmt(B.dpsExec, 1), dd(A.dpsExec, B.dpsExec)) : '') +
       row('Life Taps per fight', fmt(A.lifeTaps, 1), fmt(B.lifeTaps, 1), '', true) +
       row('Pet / sacrificed', esc((PET_NAMES[A.build.pet] || '–') + ' / ' + (PET_NAMES[A.build.sacrifice] || '–')), esc((PET_NAMES[B.build.pet] || '–') + ' / ' + (PET_NAMES[B.build.sacrifice] || '–')), '', true) +
-      row('Weapon', esc(WL.OILS[A.build.oil].name), esc(WL.OILS[B.build.oil].name), '', true) +
+      row('Weapon stone', esc(WL.OILS[A.build.oil].name), esc(WL.OILS[B.build.oil].name), '', true) +
       (wA && wB ? STATS.map(function (s) {
         var ea = s.k === 'sp' ? wA.w.sp.toFixed(2) + ' DPS' : (wA.w[s.k] / wA.w.sp).toFixed(1) + ' SP', eb = s.k === 'sp' ? wB.w.sp.toFixed(2) + ' DPS' : (wB.w[s.k] / wB.w.sp).toFixed(1) + ' SP';
         return row('Weight ' + s.unit, ea, eb, '', true);

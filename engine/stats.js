@@ -27,13 +27,17 @@ WL.activeConsumables = function (cfg) {
   }).map(function (k) { var c = C[k]; c.key = k; return c; });
 };
 
-// Weapon-slot effect for a build: the per-build Spellstone/Firestone, another oil from the consumables, or nothing.
-WL.weaponOil = function (build, cfg) {
-  var w = WL.activeConsumables(cfg).filter(function (c) { return c.group === 'weapon'; })[0];
-  if (!cfg.consumables || !Object.keys(cfg.consumables).length) w = { buildOil: true };   // configs without consumables
-  if (!w) return WL.OILS.none;
-  if (w.buildOil) return WL.OILS[build.oil] || WL.OILS.none;
-  return { name: w.name, sp: w.oil.sp || 0, critPct: w.oil.critPct || 0, mp5: w.oil.mp5 || 0, hastePct: 0 };
+// Weapon effects for a build (round 86, user: stone and oil are not exclusive in Forever): the per-build Spellstone /
+// Firestone (consumable group 'stone') and a weapon oil (group 'weapon') — both count. Returns the active ones as a list
+// of { name, sp, critPct, mp5, hastePct, schoolSp }; empty = nothing on the weapon.
+WL.weaponEffects = function (build, cfg) {
+  var act = WL.activeConsumables(cfg), out = [];
+  var stone = act.filter(function (c) { return c.group === 'stone'; })[0];
+  if (!cfg.consumables || !Object.keys(cfg.consumables).length) stone = { buildOil: true };   // configs without consumables
+  if (stone && stone.buildOil && WL.OILS[build.oil] && build.oil !== 'none') out.push(WL.OILS[build.oil]);
+  var w = act.filter(function (c) { return c.group === 'weapon'; })[0];
+  if (w && w.oil) out.push({ name: w.name, sp: w.oil.sp || 0, critPct: w.oil.critPct || 0, mp5: w.oil.mp5 || 0, hastePct: 0 });
+  return out;
 };
 
 // Boss armor after debuffs, and the resulting physical damage reduction for a level-60 attacker (pet melee). [A54]
@@ -57,7 +61,8 @@ WL.armorReduction = function (cfg) {
 WL.computeStats = function (build, raceKey, cfg) {
   var race = WL.RACES[raceKey], base = WL.WARLOCK_BASE_60, gear = cfg.gear, cb = cfg.combat;
   var tv = function (k, f) { return WL.talentValue(build, k, f); };
-  var oil = WL.weaponOil(build, cfg);
+  var oils = WL.weaponEffects(build, cfg);
+  function oilStat(stat, f) { var sum = 0; oils.forEach(function (o) { sum += add(stat, o.name, o[f || stat] || 0); }); return sum; }
   var bd = [];
   function add(stat, source, value) { if (value) bd.push({ stat: stat, source: source, value: value }); return value; }
   function racial(effect) {
@@ -71,7 +76,7 @@ WL.computeStats = function (build, raceKey, cfg) {
     WL.activeBuffs(cfg).forEach(function (b) { if (b[s]) sum += add(s, b.name, b[s]); });
     return sum;
   };
-  var cons = WL.activeConsumables(cfg).filter(function (c) { return c.group !== 'weapon'; });
+  var cons = WL.activeConsumables(cfg).filter(function (c) { return c.group !== 'weapon' && c.group !== 'stone'; });
   var conStat = function (s) {
     var sum = 0;
     cons.forEach(function (c) { if (c[s]) sum += add(s, c.name, c[s]); });
@@ -117,14 +122,14 @@ WL.computeStats = function (build, raceKey, cfg) {
   var sacrificeActive = !!build.sacrifice && (!build.pet || tv('demonicPact') > 0);
 
   // --- Spell power ---
-  var sp = add('sp', 'Gear', gear.sp) + add('sp', 'Stat-weight test', ex.sp || 0) + conStat('sp') + add('sp', oil.name, oil.sp || 0);
+  var sp = add('sp', 'Gear', gear.sp) + add('sp', 'Stat-weight test', ex.sp || 0) + conStat('sp') + oilStat('sp');
   var dkSp = 0;   // Demonic Knowledge: "your spell damage and your Demon pet's spell damage" — the pet gets it too (round 31)
   if (petActive && tv('demonicKnowledge')) {
     dkSp = Math.round(60 * tv('demonicKnowledge', 'levelPct') / 100);
     sp += add('sp', 'Demonic Knowledge (' + tv('demonicKnowledge', 'levelPct') + '% of level 60) [A27]', dkSp);
   }
   var schoolSp = { shadow: add('shadowSp', 'Gear', gear.shadowSp || 0), fire: add('fireSp', 'Gear', gear.fireSp || 0) };
-  if (oil.schoolSp) Object.keys(oil.schoolSp).forEach(function (s) { schoolSp[s] += add(s + 'Sp', oil.name, oil.schoolSp[s]); });
+  oils.forEach(function (oil) { if (oil.schoolSp) Object.keys(oil.schoolSp).forEach(function (s) { schoolSp[s] += add(s + 'Sp', oil.name, oil.schoolSp[s]); }); });
   cons.forEach(function (c) { if (c.schoolSp) Object.keys(c.schoolSp).forEach(function (s) { schoolSp[s] += add(s + 'Sp', c.name, c.schoolSp[s]); }); });
 
   // --- Hit --- [A01][A02]
@@ -145,7 +150,7 @@ WL.computeStats = function (build, raceKey, cfg) {
               + add('critPct', 'Stat-weight test', ex.critPct || 0);
   critPct += buffStat('critPct') + conStat('critPct');                   // e.g. Moonkin Form aura, Elixir of the Owl
   if (!gear.critIncludesAll) {
-    critPct += add('critPct', oil.name, oil.critPct || 0);
+    critPct += oilStat('critPct');
     var sword = racial('critPctIfSword');
     if (sword && gear.weaponIsSword) critPct += add('critPct', 'Sword Specialization [A30]', sword.value);
   }
@@ -159,10 +164,10 @@ WL.computeStats = function (build, raceKey, cfg) {
   // --- Haste --- [A05][A08]
   var hastePct = add('hastePct', 'Gear', gear.hastePct || 0)
                + add('hastePct', 'Stat-weight test', ex.hastePct || 0)
-               + add('hastePct', oil.name, oil.hastePct || 0) + conStat('hastePct');
+               + oilStat('hastePct') + conStat('hastePct');
   var pierce = add('pierce', 'Gear', gear.pierce || 0) + add('pierce', 'Stat-weight test', ex.pierce || 0);
 
-  var mp5 = add('mp5', 'Gear', gear.mp5 || 0) + buffStat('mp5') + conStat('mp5') + add('mp5', oil.name, oil.mp5 || 0);
+  var mp5 = add('mp5', 'Gear', gear.mp5 || 0) + buffStat('mp5') + conStat('mp5') + oilStat('mp5');
 
   // --- Static caster damage AURAS per school ("Mod Damage Done %" buffs: they multiply with each other and with the
   // talent spell modifiers [A16]). Talent spell modifiers (Shadow Mastery, Agonizing Flames, Malediction, …) are not
@@ -178,6 +183,6 @@ WL.computeStats = function (build, raceKey, cfg) {
   return {
     race: raceKey, int: int, spi: spi, sta: sta, agi: agi, meleeCritPct: meleeCritPct, maxMana: maxMana, maxHealth: maxHealth,
     sp: sp, dkSp: dkSp, schoolSp: schoolSp, hitPct: hitPct, hitPctUncapped: hitRaw, critPct: critPct, hastePct: hastePct, mp5: mp5, pierce: pierce,
-    mult: mult, petActive: petActive, sacrificeActive: sacrificeActive, oilName: oil.name, breakdown: bd,
+    mult: mult, petActive: petActive, sacrificeActive: sacrificeActive, oilName: oils.length ? oils.map(function (o) { return o.name; }).join(' + ') : WL.OILS.none.name, breakdown: bd,
   };
 };

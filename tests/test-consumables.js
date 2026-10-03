@@ -54,8 +54,21 @@
     var sBwo = WL.computeStats(ss, 'human', only(base(), ['brilliantWizardOil']));
     T.near(sBwo.sp - s0.sp, 36, 1e-9, 'Brilliant Wizard Oil +36 SP');
     T.near(sBwo.critPct - s0.critPct, 1, 1e-9, 'Brilliant Wizard Oil +1% crit');
-    T.near(sBwo.hastePct + sBwo.schoolSp.shadow, 0, 1e-9, 'Brilliant Wizard Oil replaces the Spellstone (no haste, no Shadow SP)');
+    T.near(sBwo.hastePct + sBwo.schoolSp.shadow, 0, 1e-9, 'Brilliant Wizard Oil alone (stone unticked): no haste, no Shadow SP');
     T.eq(sBwo.oilName, 'Brilliant Wizard Oil', 'oilName reports the oil');
+    // Round 86 (user, found in game): the stone and a weapon oil are not exclusive — both count.
+    var sBoth = WL.computeStats(ss, 'human', only(base(), ['buildOil', 'brilliantWizardOil']));
+    T.near(sBoth.hastePct, 2, 1e-9, 'Spellstone + Brilliant Wizard Oil: +2% haste from the stone');
+    T.near(sBoth.schoolSp.shadow, 21, 1e-9, 'Spellstone + Brilliant Wizard Oil: +21 Shadow SP from the stone');
+    T.near(sBoth.sp - s0.sp, 36, 1e-9, 'Spellstone + Brilliant Wizard Oil: +36 SP from the oil');
+    T.near(sBoth.critPct - s0.critPct, 1, 1e-9, 'Spellstone + Brilliant Wizard Oil: +1% crit from the oil');
+    T.eq(sBoth.oilName, 'Major Spellstone + Brilliant Wizard Oil', 'oilName names both');
+    var fs2 = WL.computeStats(tb(['shadowBolt'], 'firestone'), 'human', only(base(), ['buildOil', 'brilliantWizardOil']));
+    T.near(fs2.critPct - s0.critPct, 3, 1e-9, 'Firestone + Brilliant Wizard Oil: +2% + 1% crit');
+    T.eq(WL.CONSUMABLES.buildOil.group, 'stone', 'the stone is its own group');
+    T.eq(['brilliantWizardOil', 'wizardOil', 'brilliantManaOil'].map(function (k) { return WL.CONSUMABLES[k].group; }).join(','), 'weapon,weapon,weapon', 'the oils share the weapon-oil group');
+    var two = WL.computeStats(ss, 'human', only(base(), ['brilliantWizardOil', 'wizardOil']));
+    T.near(two.sp - s0.sp, 36, 1e-9, 'two oils ticked: only the first counts');
     T.near(WL.computeStats(ss, 'human', only(base(), ['brilliantManaOil'])).mp5, 15, 1e-9, 'Brilliant Mana Oil 15 MP5');
     var sNone = WL.computeStats(ss, 'human', only(base(), []));
     T.near(sNone.hastePct + sNone.schoolSp.shadow, 0, 1e-9, 'weapon slot empty → no Spellstone');
