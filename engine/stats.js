@@ -113,7 +113,7 @@ WL.computeStats = function (build, raceKey, cfg) {
   var maxMana = manaFlat * (1 + manaPct / 100);
   add('maxMana', 'Base mana ' + base.mana + ' + 20 + 15 × (Int − 20) [A10]', manaFlat);
   if (manaPct) add('maxMana', 'Fel Vitality / Expansive Mind +' + manaPct + '%', maxMana - manaFlat);
-  maxMana += conStat('maxMana');                                          // e.g. Flask of Distilled Wisdom (flat)
+  maxMana += conStat('maxMana');                                          // flat maximum mana from a consumable (none left since round 90: Flask of Distilled Wisdom removed)
   var maxHealth = base.health + 20 + 10 * (sta - 20);
   add('maxHealth', 'Base ' + base.health + ' + 20 + 10 × (Sta − 20)', maxHealth);
 

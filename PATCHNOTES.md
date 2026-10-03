@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v83
+- Consumables removed: Flask of Distilled Wisdom, Elixir of Greater Intellect, Elixir of Cunning, Elixir of Greater Spirit, Brilliant Mana Oil.
+
 ## v82
 - **Boss armor and resistances** moved from Buffs & debuffs to the Fight & pets tab (always shown).
 

@@ -9,7 +9,8 @@
 //   Blessed Wizard Oil (undead only), healing/melee/protection consumables, world buffs (not consumables),
 //   Superior Mana Potion (user round 12: not needed), smaller versions of a consumable (user, round 87: only the biggest of
 //   each — removed Arcane Elixir, Minor Arcane Elixir, Mageblood Elixir, Sagefish Delight, Wizard Oil; the smaller
-//   Spellblasting potions were never added), Dark Iron Bomb (Forever tooltip says 9661 Fire vs Classic 344–456:
+//   Spellblasting potions were never added), Flask of Distilled Wisdom, Elixir of Greater Intellect, Elixir of Cunning,
+//   Elixir of Greater Spirit and Brilliant Mana Oil (user, round 90: not wanted), Dark Iron Bomb (Forever tooltip says 9661 Fire vs Classic 344–456:
 //   a data error, removed by the user in round 16).
 // Icons: Forever item XML `icon`, except 4 elixirs whose Forever DB icon differs from the in-game one (user, round 12):
 //   Greater Arcane, Shadow Power, Fire Power, Mageblood use the Wowhead CLASSIC icon (/classic/item=<id>&xml).
@@ -19,8 +20,6 @@ WL.CONSUMABLES = {
   // ---------------- Flasks (one at a time) ----------------
   flaskSupremePower:   { on: false, id: 13512, icon: 'inv_potion_41', cat: 'Flask', group: 'flask', name: 'Flask of Supreme Power', desc: '+150 spell damage', sp: 150,
                          text: 'Increases damage done by magical spells and effects by up to 150 for 2 hrs.' },
-  flaskDistilledWisdom:{ on: false, id: 13511, icon: 'inv_potion_97', cat: 'Flask', group: 'flask', name: 'Flask of Distilled Wisdom', desc: '+2000 maximum mana', maxMana: 2000,
-                         text: "Increases the player's maximum Mana by 2000 for 2 hrs." },
   flaskNaturalAccuracy:{ on: false, id: 274273, icon: 'inv_potionc_5', cat: 'Flask', group: 'flask', name: 'Flask of Natural Accuracy', desc: '+60 Sta, +5% hit (Hyjal / Barrow Deeps only)', sta: 60, hitPct: 5,
                          text: 'Increases your Stamina by 60. While in Mount Hyjal, Hyjal Summit, and the Barrow Deeps, you also gain 5% Hit Chance. Lasts for 2 hrs.' },
   flaskNaturalAggression:{ on: false, id: 274274, icon: 'inv_potionc_1', cat: 'Flask', group: 'flask', name: 'Flask of Natural Aggression', desc: '+60 Sta, +4% crit (Hyjal / Barrow Deeps only)', sta: 60, critPct: 4,
@@ -35,18 +34,12 @@ WL.CONSUMABLES = {
                          text: 'Increases spell shadow damage by up to 40 for 30 min.' },
   firePower:           { on: false, id: 6373, icon: 'inv_potion_33', cat: 'Elixir', group: 'fireElixir', name: 'Elixir of Fire Power', desc: '+10 Fire spell damage', schoolSp: { fire: 10 },
                          text: 'Increases spell fire damage by up to 10 for 30 min.' },
-  greaterIntellect:    { on: false, id: 9179, icon: 'inv_potion_10', cat: 'Elixir', group: 'intElixir', name: 'Elixir of Greater Intellect', desc: '+25 Intellect', int: 25,
-                         text: 'Increases Intellect by 25 for 1 hour.' },
   elixirOwl:           { on: false, id: 250337, icon: 'inv_potion_164', cat: 'Elixir', group: 'intElixir', name: 'Elixir of the Owl', desc: '+25 Intellect, +2% crit', int: 25, critPct: 2,
                          text: 'Drink to increase your Intellect by 25 and chance to critically hit by 2%. Lasts for 30 min.' },
-  elixirCunning:       { on: false, id: 250328, icon: 'inv_potion_166', cat: 'Elixir', group: 'intElixir', name: 'Elixir of Cunning', desc: '+25 Agility and Intellect', int: 25, agi: 25,
-                         text: 'Drink to gain 25 Agility and Intellect for 30 min.' },
   elixirTheSages:      { on: false, id: 13447, icon: 'inv_potion_29', cat: 'Elixir', group: 'intElixir', name: 'Elixir of the Sages', desc: '+18 Intellect and Spirit', int: 18, spi: 18,
                          text: 'Increases Intellect and Spirit by 18 for 1 hour.' },
   elixirSages:         { on: false, id: 250338, icon: 'inv_potion_165', cat: 'Elixir', group: 'spiElixir', name: 'Elixir of Sages', desc: '+25 Spirit, +2% crit', spi: 25, critPct: 2,
                          text: 'Drink to increase your Spirit by 25 and chance to critically hit by 2%. Lasts for 30 min.' },
-  greaterSpirit:       { on: false, id: 250347, icon: 'inv_potion_116', cat: 'Elixir', group: 'spiElixir', name: 'Elixir of Greater Spirit', desc: '+18 Spirit', spi: 18,
-                         text: 'Drink to increase your Spirit by 18. Lasts for 30 min.' },
   greaterMageblood:    { on: false, id: 250341, icon: 'inv_potion_168', cat: 'Elixir', group: 'manaElixir', name: 'Greater Mageblood Elixir', desc: '20 mana every 5 s', mp5: 20,
                          text: 'Drink to regenerate 20 mana every 5 seconds. Lasts for 30 min.' },
   spiritOfZanza:       { on: false, id: 20079, icon: 'inv_potion_30', cat: 'Elixir', group: 'zanza', name: 'Spirit of Zanza', desc: '+50 Spirit, +50 Stamina', spi: 50, sta: 50,
@@ -69,8 +62,6 @@ WL.CONSUMABLES = {
                          text: 'Major Spellstone: +2% spell haste and up to 21 Shadow damage. Major Firestone: +2% spell crit and up to 21 Fire damage. Each build uses the one listed in its details. Stacks with a weapon oil.' },
   brilliantWizardOil:  { on: false, id: 20749, icon: 'inv_potion_105', cat: 'Weapon', group: 'weapon', name: 'Brilliant Wizard Oil', desc: '+36 spell damage, +1% crit', oil: { sp: 36, critPct: 1 },
                          text: 'While applied to target weapon it increases spell damage and healing by up to 36 and increases Spell Critical chance by 1%. Lasts for 30 minutes.' },
-  brilliantManaOil:    { on: false, id: 20748, icon: 'inv_potion_100', cat: 'Weapon', group: 'weapon', name: 'Brilliant Mana Oil', desc: '15 mana every 5 s', oil: { mp5: 15 },
-                         text: 'While applied to target weapon it restores 15 mana to the caster every 5 seconds and increases the effect of healing spells by up to 30. Lasts for 30 minutes.' },
 
   // ---------------- Potions (shared 2 min cooldown) ----------------
   majorManaPotion:     { on: false, id: 13444, icon: 'inv_potion_76', cat: 'Potion', group: 'potion', name: 'Major Mana Potion', desc: '1800 mana, 2 min cooldown', manaRestore: { amount: 1800 }, cd: 120, cdGroup: 'potion',

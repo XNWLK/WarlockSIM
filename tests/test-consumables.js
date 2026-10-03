@@ -31,8 +31,7 @@
     var s = WL.computeStats(b, 'human', only(base(), ['elixirOwl']));
     T.near(s.int - s0.int, 25, 1e-9, 'Elixir of the Owl +25 Int');
     T.near(s.critPct - s0.critPct, 2 + 25 / 60, 1e-9, 'Owl: +2% crit + 25 Int / 60');
-    var sw = WL.computeStats(b, 'human', only(base(), ['flaskDistilledWisdom']));
-    T.near(sw.maxMana - s0.maxMana, 2000, 1e-9, 'Flask of Distilled Wisdom +2000 max mana (flat)');
+    T.eq(['flaskDistilledWisdom', 'greaterIntellect', 'elixirCunning', 'greaterSpirit', 'brilliantManaOil'].filter(function (k) { return WL.CONSUMABLES[k]; }).join(','), '', 'removed in round 90 (user): Distilled Wisdom, Greater Intellect, Cunning, Greater Spirit, Brilliant Mana Oil');
     T.near(WL.computeStats(b, 'human', only(base(), ['flaskSupremePower'])).sp - s0.sp, 150, 1e-9, 'Flask of Supreme Power +150 SP');
     T.near(WL.computeStats(b, 'human', only(base(), ['nightfinSoup'])).sp - s0.sp, 22, 1e-9, 'Nightfin Soup +22 SP (Forever value)');
     T.near(WL.computeStats(b, 'human', only(base(), ['greaterArcaneElixir'])).sp - s0.sp, 35, 1e-9, 'Greater Arcane Elixir +35 SP');
@@ -67,21 +66,18 @@
     var fs2 = WL.computeStats(tb(['shadowBolt'], 'firestone'), 'human', only(base(), ['buildOil', 'brilliantWizardOil']));
     T.near(fs2.critPct - s0.critPct, 3, 1e-9, 'Firestone + Brilliant Wizard Oil: +2% + 1% crit');
     T.eq(WL.CONSUMABLES.buildOil.group, 'stone', 'the stone is its own group');
-    T.eq(['brilliantWizardOil', 'brilliantManaOil'].map(function (k) { return WL.CONSUMABLES[k].group; }).join(','), 'weapon,weapon', 'the oils share the weapon-oil group');
-    var two = WL.computeStats(ss, 'human', only(base(), ['brilliantWizardOil', 'brilliantManaOil']));
-    T.ok(Math.abs(two.sp - s0.sp - 36) < 1e-9 && Math.abs(two.mp5 - s0.mp5) < 1e-9, 'two oils ticked: only the first counts');
-    T.near(WL.computeStats(ss, 'human', only(base(), ['brilliantManaOil'])).mp5, 15, 1e-9, 'Brilliant Mana Oil 15 MP5');
+    T.eq(Object.keys(WL.CONSUMABLES).filter(function (k) { return WL.CONSUMABLES[k].group === 'weapon'; }).join(','), 'brilliantWizardOil', 'weapon-oil group: Brilliant Wizard Oil only (round 90)');
     var sNone = WL.computeStats(ss, 'human', only(base(), []));
     T.near(sNone.hastePct + sNone.schoolSp.shadow, 0, 1e-9, 'weapon slot empty → no Spellstone');
     var noCons = base(); delete noCons.consumables;
     T.near(WL.computeStats(ss, 'human', noCons).hastePct, 2, 1e-9, 'config without consumables → per-build oil (old behaviour)');
 
     T.group('one per group');
-    var both = only(base(), ['flaskSupremePower', 'flaskDistilledWisdom', 'greaterArcaneElixir', 'shadowPower']);
+    var both = only(base(), ['flaskSupremePower', 'flaskNaturalAggression', 'greaterArcaneElixir', 'shadowPower']);
     var act = WL.activeConsumables(both).map(function (x) { return x.key; }).join(',');
     T.eq(act, 'flaskSupremePower,greaterArcaneElixir,shadowPower', 'second flask ignored, different groups stack');
     var sb = WL.computeStats(b, 'human', both);
-    T.near(sb.maxMana, s0.maxMana, 1e-9, 'ignored Distilled Wisdom adds no mana');
+    T.near(sb.critPct, s0.critPct, 1e-9, 'the ignored second flask (Natural Aggression) adds no crit');
     T.near(sb.sp - s0.sp, 185, 1e-9, 'Supreme Power 150 + Greater Arcane 35');
   });
 
