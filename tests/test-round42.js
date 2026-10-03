@@ -72,7 +72,7 @@
     T.ok(one.glances > 0 && one.glances <= one.landed - one.crits, 'glancing blows are never crits (' + one.glances + ' glances, ' + one.crits + ' crits, ' + one.landed + ' landed)');
 
     T.group('Eureka! lasts at most 15 s (spell data, round 42)');
-    var gn = det(function (c) { c.options.eurekaPolicy = 'any'; c.fight.latencyMs = 800; });
+    var gn = det(function (c) { c.fight.latencyMs = 800; });
     var eg = WL.simulateOnce(tb(['drainLife']), 'gnome', gn, { duration: 60, log: true });
     var ivs = (eg.auras && eg.auras.eureka) || [];
     T.ok(ivs.length > 0, 'the aura was used (' + ivs.map(function (v) { return v[0].toFixed(1) + '–' + v[1].toFixed(1); }).join(', ') + ')');

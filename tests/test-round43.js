@@ -38,7 +38,7 @@
     T.near(post / pre, (1 + 0.15 + 0.06) / 1.15, 0.003, 'execute Shadow Bolt ×' + (post / pre).toFixed(4) + ' = (1 + SM 5% + AgF 10% + Decimation 6%) / 1.15 = 1.0522 (old rule 1.06)');
 
     T.group('Eureka! adds to the group of each hit / tick');
-    var g = det(function (x) { x.options.eurekaPolicy = 'any'; });
+    var g = det();
     var bg = tb(['corruption', 'shadowBolt'], { shadowMastery: 5, malediction: 5, improvedCorruption: 5, agonizingFlames: 3 });
     var eg = WL.simulateOnce(bg, 'gnome', g, { duration: 60, log: true });
     var ivs = (eg.auras && eg.auras.eureka) || [];

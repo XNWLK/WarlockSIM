@@ -90,7 +90,7 @@
       '<div class="tt-body">' + para((WL.SPELL_TEXT || {})[rc.id] || '') + '</div>' +
       '<div class="tt-rule">' + esc(racialRule(rc)) + '</div>';
   }
-  // How the sim uses a racial cooldown (Eureka!: live +10% aura, pop timing from options.eurekaPolicy — round 38).
+  // How the sim uses a racial cooldown (Eureka!: live +10% aura; no pop-timing option of its own since round 88).
   // First use of the short cooldowns (options.activesPolicy, round 87).
   function activesWhen() {
     var a = (runCfg.options || {}).activesPolicy || 'doom';
@@ -99,10 +99,8 @@
   }
   function racialRule(rc) {
     if (!rc.charges) return 'First used ' + activesWhen() + ', then whenever it is ready — right before a damaging spell (never before a curse or Life Tap)';
-    var pol = (runCfg.options || {}).eurekaPolicy || 'long';
-    return 'First allowed ' + activesWhen() + '. A +10% damage aura on your direct hits and channel ticks (not on DoT ticks since round 80) until 3 spells have been cast. Popped ' +
-      (pol === 'any' ? 'on cooldown, right before any damaging spell' : pol === 'long' ? 'on cooldown, right before a long cast (Shadow Bolt, Searing Pain, Incinerate, Soul Fire, a channel)' :
-        'right before a long cast; while Bane of Doom ticks, held until its explosion falls inside the aura');
+    return 'First allowed ' + activesWhen() + ', then whenever it is ready. A +10% damage aura on your direct hits and channel ticks (not on DoT ticks) until 3 spells have been cast. ' +
+      'Popped right before a long cast (Shadow Bolt, Searing Pain, Incinerate, Soul Fire, a channel), so no charge goes to a DoT';
   }
   function talentTip(t, n) {
     var txt = (WL.TALENT_TEXT || {})[t.key] || [];
@@ -267,7 +265,6 @@
     $('bossArmor').value = cfg.combat.bossArmor;
     $('resShadow').value = cfg.combat.targetResist.shadow; $('resFire').value = cfg.combat.targetResist.fire;
     $('o_levelRes').checked = !!(cfg.combat.levelResist && cfg.combat.levelResist.on);
-    $('o_eureka').value = cfg.options.eurekaPolicy || 'long';
     $('o_actives').value = cfg.options.activesPolicy || 'doom';
     armorNote(); renderTotals(); tabCounts();
   }
@@ -335,7 +332,6 @@
     var ba = parseFloat($('bossArmor').value); if (isFinite(ba)) cfg.combat.bossArmor = ba;
     ['Shadow', 'Fire'].forEach(function (s) { var v = parseFloat($('res' + s).value); if (isFinite(v)) cfg.combat.targetResist[s.toLowerCase()] = Math.max(0, v); });
     cfg.combat.levelResist.on = $('o_levelRes').checked;
-    cfg.options.eurekaPolicy = $('o_eureka').value;
     cfg.options.activesPolicy = $('o_actives').value;
     armorNote(); renderTotals(); tabCounts();
     var num = function (id, fallback) { var v = parseFloat($(id).value); return isFinite(v) ? v : fallback; };

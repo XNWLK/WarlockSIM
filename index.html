@@ -303,6 +303,9 @@
   details.adv { margin-top: 10px; }
   details.adv > summary { cursor: pointer; color: var(--accent); font-size: 12px; font-weight: 600; }
   .advbody { display: grid; gap: 5px; margin-top: 6px; }
+  .advopen { margin-top: 10px; }
+  label.f.wide { grid-template-columns: 1fr; gap: 3px; }   /* long select under its label */
+  label.f.wide select { width: 100%; max-width: 290px; }
   /* gear sets */
   .gearrow label.c select { max-width: 260px; }
   .gearrow input[type=text] { flex: 1 1 150px; width: 150px; }
@@ -579,23 +582,16 @@
           <label class="c" for="o_dotEnd" title="Near the end of the fight a DoT recast often cannot finish before the boss dies. On: the sim adds up the damage the recast would still do (the ticks that land in time, plus Immolate's hit and what the DoT enables: Incinerate's bonus, a Conflagrate, Nightfall procs, Soul Siphon) and recasts only if that beats the filler in the same time. Off: the old rule (recast while at least 2 ticks fit; Bane of Agony with 12 s left)."><input id="o_dotEnd" type="checkbox"> Skip DoT recasts that no longer pay off before the boss dies</label>
         </fieldset>
         </div>
-        <details class="adv">
-          <summary>Advanced: run settings, Eureka! timing, pet scaling</summary>
-          <div class="grid">
+          <div class="grid advopen">   <!-- run settings + pet scaling: always shown since round 88 (was a collapsed "Advanced" block) -->
         <fieldset><legend>Run</legend>
           <label class="f" for="durVar" title="Each fight lasts the duration ± up to this % (uniform), so results don't hinge on one exact fight length (A56).">Length variation ± %<input id="durVar" type="number" min="0" max="50" step="5"></label>
           <label class="f" for="weightIterations">Fights per stat weight<input id="weightIterations" type="number" min="10" step="100"></label>
           <label class="f" for="seed" title="Same seed = the same fights = reproducible results.">Random seed<input id="seed" type="number"></label>
           <label class="f" for="showPct" title="Rows more than this % behind the best DPS are hidden (still simulated); applies at once, no rerun. 0 = show all (default). Pinned builds (the pin left of the rank) always stay shown.">Show builds within % of best<input id="showPct" type="number" min="0" max="100" step="1"></label>
-          <label class="f" for="o_actives" title="When to pop your short cooldowns for the first time: the racial cooldown (Blood Fury, Berserking, Eureka!), the Major Spellblasting Potion and Power Infusion. After that each one is used again whenever it is ready. 'Bane of Doom explodes' = right before the cast the first explosion falls into; builds that never cast Bane of Doom (or fights where it cannot explode) pop at the pull. Execute = boss below 35% health.">Pop cooldowns (potion, racial, Power Infusion)<select id="o_actives">
+          <label class="f wide" for="o_actives" title="When to pop your short cooldowns for the first time: the racial cooldown (Blood Fury, Berserking, Eureka!), the Major Spellblasting Potion and Power Infusion. After that each one is used again whenever it is ready. Eureka! (Gnome) is then popped right before the next long cast (Shadow Bolt, Searing Pain, Incinerate, Soul Fire, a channel), so no charge goes to a DoT. 'Bane of Doom explodes' = right before the cast the first explosion falls into; builds that never cast Bane of Doom (or fights where it cannot explode) pop at the pull. Execute = boss below 35% health.">Pop cooldowns (potion, racial, Power Infusion)<select id="o_actives">
             <option value="pull">on the pull</option>
             <option value="doom">when the first Bane of Doom explodes</option>
             <option value="execute">in the execute phase (boss below 35%)</option>
-          </select></label>
-          <label class="f" for="o_eureka" title="Eureka! (Gnome) is a +10% damage aura on your direct hits and channel ticks (not on DoT ticks: Forever patch) until you have cast 3 spells, at most 15 s. When should it be popped?">Eureka! (Gnome) pop<select id="o_eureka">
-            <option value="doom">before a long cast, timed with Bane of Doom</option>
-            <option value="long">before a long cast (≥ 1.4 s)</option>
-            <option value="any">before any damaging spell</option>
           </select></label>
         </fieldset>
         <fieldset><legend title="Measured in Forever (round 31): 10 of your spell power = 1 pet spell power, 6 = 1 pet attack power (the Imp's tooltip: attack power 17% of your spell damage). Demonic Knowledge adds its bonus to the pet directly. Succubus base melee 73.5 DPS and her own 7.52% crit are Season of Discovery values; she adds your spell crit and hit, and against the boss 40% of her swings are glancing blows (65% damage) and her crit is 4.8% lower.">Pet scaling (10% SP / 1 AP per 6 SP — measured in Forever)</legend>
@@ -604,7 +600,6 @@
           <label class="f" for="p_succBase">Succubus melee: base DPS<input id="p_succBase" type="number" min="0" step="5"></label>
         </fieldset>
           </div>
-        </details>
       </div>
     </div>
   </section>

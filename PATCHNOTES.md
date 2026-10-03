@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v81
+- The separate **Eureka! pop** setting is gone: Eureka! no longer affects DoTs, so it simply follows the Pop cooldowns setting.
+- **Fight & pets**: the run settings and pet scaling are always shown (no "Advanced" fold).
+
 ## v80
 - **Pop cooldowns** setting: pop your potion, racial cooldown and Power Infusion on the pull, when the first Bane of Doom
   explodes (default) or in the execute phase.

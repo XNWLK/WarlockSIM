@@ -5,6 +5,8 @@
 window.WL = window.WL || {};
 
 WL.SETTINGS_CODE_PREFIX = 'WFS1:';
+// Settings that no longer exist: old codes may still carry them; they are dropped without a notice.
+WL.RETIRED_SETTINGS = ['options.eurekaPolicy'];   // round 88: Eureka! follows the cooldown setting
 
 WL.settingsSnapshot = function (c) {
   var on = function (o) { return Object.keys(o || {}).filter(function (k) { return o[k].on; }); };
@@ -37,7 +39,7 @@ WL.decodeSettings = function (code) {
 WL.applySettings = function (c, o) {
   var unknown = [];
   ['fight', 'gear', 'options'].forEach(function (sec) {
-    Object.keys(o[sec] || {}).forEach(function (k) { if (k in c[sec]) c[sec][k] = o[sec][k]; else unknown.push(sec + '.' + k); });
+    Object.keys(o[sec] || {}).forEach(function (k) { if (k in c[sec]) c[sec][k] = o[sec][k]; else if (WL.RETIRED_SETTINGS.indexOf(sec + '.' + k) < 0) unknown.push(sec + '.' + k); });
   });
   [['buffs', 'buffs'], ['debuffs', 'debuffs'], ['cons', 'consumables']].forEach(function (p) {
     var list = o[p[0]] || [], tgt = c[p[1]] || {};

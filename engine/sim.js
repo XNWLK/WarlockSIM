@@ -603,21 +603,13 @@ window.WL = window.WL || {};
       scheduleDecide(S.gcdReady);
     }
 
-    // Eureka! timing (round 38, options.eurekaPolicy): 'any' = before any damaging spell (old rule); 'long' = only before
-    // a long cast (a direct spell or channel of ≥ 1.4 s), so the 3 charges stretch the aura as long as possible over the
-    // DoTs already ticking; 'doom' = 'long', and while Bane of Doom is ticking hold it until the explosion falls inside
-    // the aura (about 3 such casts) — unless Doom would not explode before the fight ends.
+    // Eureka! (Gnome): once the cooldown setting allows it (activesOk), it is popped right before a long cast — a direct
+    // spell or channel of ≥ 1.4 s — so none of its 3 charges goes to a DoT or an instant, which get nothing from it.
+    // Round 88 (user): its own pop-timing option (rounds 38–87: 'any' / 'long' / 'doom') is gone — Eureka! no longer
+    // affects DoTs at all (round 80), so there is nothing left to time separately. [A31]
     function eurekaPopOk(key) {
-      var pol = (cfg.options && cfg.options.eurekaPolicy) || 'any';
-      if (pol === 'any') return true;
       var s = SPELLS[key], len = s.kind === 'channel' ? s.duration : S.castTime(key);
-      if (!(s.kind === 'direct' || s.kind === 'channel') || len < 1.4) return false;
-      if (pol !== 'doom') return true;
-      var d = S.dots.baneOfDoom;
-      if (!d || d.expires <= S.t + EPS) return true;
-      var toBoom = d.expires - S.t;
-      if (toBoom > S.remaining) return true;
-      return toBoom <= 3 * len + 0.5;
+      return (s.kind === 'direct' || s.kind === 'channel') && len >= 1.4;
     }
     function useRacials(key) {
       var cd = racialOf('cooldown');

@@ -1,11 +1,11 @@
-// Round 38 tests: Eureka! (Gnome) as a live +10% damage aura until 3 spells have been cast (user), and its pop timing
-// (options.eurekaPolicy: 'any' / 'long' / 'doom').
+// Round 38 tests: Eureka! (Gnome) as a live +10% damage aura until 3 spells have been cast (user), and its pop timing:
+// right before a long cast. (Rounds 38–87 had options.eurekaPolicy 'any' / 'long' / 'doom'; removed in round 88.)
 (function () {
-  function det(policy) {                                    // 100% hit, no crit, no curse, no pierce → exact damage
+  function det() {                                    // 100% hit, no crit, no curse, no pierce → exact damage
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.weaponIsSword = false;
-    c.gear.pierce = 0; c.options.useCurseOfElements = false; c.fight.durationVarPct = 0; c.options.eurekaPolicy = policy;
-    c.options.activesPolicy = 'pull';                       // these tests are about Eureka!'s own timing (round 87 default: first Doom explosion)
+    c.gear.pierce = 0; c.options.useCurseOfElements = false; c.fight.durationVarPct = 0;
+    c.options.activesPolicy = 'pull';                       // cooldowns on the pull (round 87 default: first Doom explosion)
     return c;
   }
   function tb(rot) { return { key: 't38', short: 't', name: 't', notes: '', talents: {}, pet: null, sacrifice: null, oil: 'none', rotation: rot }; }
@@ -15,10 +15,10 @@
 
   T.run('Eureka! live aura (round 38)', function () {
     T.group('a DoT gets nothing from the aura (round 80, Forever patch: Eureka! no longer benefits periodic effects; rounds 38–79: +10%)');
-    var r = WL.simulateOnce(tb(['corruption', 'shadowBolt']), 'gnome', det('long'), { seed: 1, duration: 60, log: true });
+    var r = WL.simulateOnce(tb(['corruption', 'shadowBolt']), 'gnome', det(), { seed: 1, duration: 60, log: true });
     var pop = r.log.filter(function (e) { return e.type === 'racial'; })[0];
     var firstCast = r.log.filter(function (e) { return e.type === 'cast'; })[0];
-    T.ok(firstCast.spell === 'corruption' && !firstCast.eureka && pop && pop.t > firstCast.t, "'long': Corruption goes out first, Eureka! is popped afterwards (at " + (pop && pop.t) + ' s)');
+    T.ok(firstCast.spell === 'corruption' && !firstCast.eureka && pop && pop.t > firstCast.t, "Corruption goes out first, Eureka! is popped afterwards, before the first long cast (at " + (pop && pop.t) + ' s)');
     var ticks = r.log.filter(function (e) { return e.type === 'tick' && e.spell === 'corruption'; });
     var inT = ticks.filter(function (e) { return inAura(r, e.t); }), outT = ticks.filter(function (e) { return !inAura(r, e.t); });
     T.ok(inT.length >= 2 && outT.length >= 2, 'Corruption ticks inside (' + inT.length + ') and outside (' + outT.length + ') the aura');
@@ -36,26 +36,22 @@
     var iv = r.auras.eureka[0];
     T.near(iv[1], emp[2].t + emp[2].castTime, 0.002, 'aura ends when the 3rd empowered Shadow Bolt lands (' + iv[1].toFixed(2) + ' s)');
 
-    T.group("pop timing: 'any' vs 'long'");
-    var a = WL.simulateOnce(tb(['corruption', 'shadowBolt']), 'gnome', det('any'), { seed: 1, duration: 60, log: true });
-    var ac = a.log.filter(function (e) { return e.type === 'cast'; })[0];
-    T.ok(ac.spell === 'corruption' && ac.eureka, "'any': popped before the first damaging spell (Corruption spends a charge)");
-    T.ok(a.auras.eureka[0][1] - a.auras.eureka[0][0] < iv[1] - iv[0], "'long' keeps the aura up longer (" + (iv[1] - iv[0]).toFixed(2) + ' s vs ' + (a.auras.eureka[0][1] - a.auras.eureka[0][0]).toFixed(2) + ' s)');
-
-    T.group("pop timing: 'doom' holds Eureka! for the Bane of Doom explosion");
-    var d = WL.simulateOnce(tb(['bane', 'corruption', 'shadowBolt']), 'gnome', det('doom'), { seed: 1, duration: 100, log: true });
-    var doomCast = d.log.filter(function (e) { return e.type === 'cast' && e.spell === 'baneOfDoom'; })[0];
-    var boom = d.log.filter(function (e) { return e.type === 'tick' && e.spell === 'baneOfDoom'; })[0];
-    var dpop = d.log.filter(function (e) { return e.type === 'racial'; })[0];
-    T.ok(doomCast && boom && dpop && dpop.t > doomCast.t + 30, 'Eureka! held while Doom ticks (Doom at ' + (doomCast && doomCast.t) + ' s, pop at ' + (dpop && dpop.t) + ' s)');
-    T.ok(boom && inAura(d, boom.t), 'the Bane of Doom explosion (' + (boom && boom.t) + ' s) lands inside the aura');
-    var dAny = WL.simulateOnce(tb(['bane', 'corruption', 'shadowBolt']), 'gnome', det('any'), { seed: 1, duration: 100, log: true });
-    var boomAny = dAny.log.filter(function (e) { return e.type === 'tick' && e.spell === 'baneOfDoom'; })[0];
-    T.near(boom.dmg / boomAny.dmg, 1, 0.005, "…but since round 80 it hits no harder than with 'any' (a periodic effect: " + boom.dmg + ' vs ' + boomAny.dmg + ')');
+    T.group('pop timing: never before a DoT or an instant; no option of its own (round 88)');
+    T.ok(!('eurekaPolicy' in WL.DEFAULT_CONFIG.options), 'options.eurekaPolicy is gone');
+    var old = det(); old.options.eurekaPolicy = 'any';
+    var a = WL.simulateOnce(tb(['corruption', 'shadowBolt']), 'gnome', old, { seed: 1, duration: 60, log: true });
+    T.eq(JSON.stringify(a.auras.eureka), JSON.stringify(r.auras.eureka), 'a config that still carries the old setting behaves the same');
+    var d = WL.simulateOnce(tb(['bane', 'corruption', 'immolate', 'shadowBolt']), 'gnome', det(), { seed: 1, duration: 100, log: true });
+    var emp2 = d.log.filter(function (e) { return e.type === 'cast' && e.eureka; });
+    T.ok(emp2.length >= 3 && emp2.every(function (e) { return e.spell === 'shadowBolt'; }), 'only Shadow Bolts are empowered (' + emp2.map(function (e) { return e.spell; }).join(', ') + '), never Doom, Corruption or Immolate');
+    var dc = det(); dc.options.activesPolicy = 'doom';
+    var dd = WL.simulateOnce(tb(['bane', 'corruption', 'shadowBolt']), 'gnome', dc, { seed: 1, duration: 100, log: true });
+    var boom = dd.log.filter(function (e) { return e.type === 'tick' && e.spell === 'baneOfDoom'; })[0], dpop = dd.log.filter(function (e) { return e.type === 'racial'; })[0];
+    T.ok(boom && dpop && dpop.t > boom.t - 3.1 && dpop.t < boom.t + 6.1, "with the cooldown setting on 'Doom explodes' Eureka! waits for it (explosion " + (boom && boom.t) + ' s, pop ' + (dpop && dpop.t) + ' s)');
 
     T.group('other races unaffected');
-    var h1 = WL.simulateOnce(tb(['corruption', 'shadowBolt']), 'human', det('any'), { seed: 1, duration: 60 });
-    var h2 = WL.simulateOnce(tb(['corruption', 'shadowBolt']), 'human', det('doom'), { seed: 1, duration: 60 });
-    T.near(h1.dps, h2.dps, 1e-9, 'Human: the Eureka! setting changes nothing');
+    var h1 = WL.simulateOnce(tb(['corruption', 'shadowBolt']), 'human', det(), { seed: 1, duration: 60 });
+    var h2 = WL.simulateOnce(tb(['corruption', 'shadowBolt']), 'human', old, { seed: 1, duration: 60 });
+    T.near(h1.dps, h2.dps, 1e-9, 'Human: identical with or without the old setting');
   });
 })();

@@ -124,11 +124,6 @@ WL.DEFAULT_CONFIG = {
     includePetDamage: true,    // [A26]
     showWithinPct: 0,          // display cut-off: only rows within this % of the best DPS; 0 = all (default since round 66, user; 10 in rounds 17–65).
                                // Display only (changing it never reruns); pinned builds (📌, per browser) stay shown whatever the cut-off.
-    // When to pop Eureka! (Gnome), a live +10% damage aura until 3 spells have been cast (round 38, A31):
-    // 'any' = before any damaging spell · 'long' = only before a long cast (≥ 1.4 s direct spell or channel) ·
-    // 'doom' = 'long' and, while Bane of Doom ticks, hold it until the explosion falls inside the aura.
-    // Round 80 (user): default 'long' (was 'doom'): the Bane of Doom explosion no longer gets Eureka! (Forever patch).
-    eurekaPolicy: 'long',
     // When to pop the short cooldowns for the first time (round 87, user): the racial cooldown (Blood Fury, Berserking,
     // Eureka!), the Spellblasting potion and Power Infusion. 'pull' = right before the first damaging spell (the rule until
     // round 86) · 'doom' = when the first Bane of Doom explodes (right before the cast it falls into; at the pull if the
