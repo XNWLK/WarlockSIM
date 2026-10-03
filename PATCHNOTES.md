@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v82
+- **Boss armor and resistances** moved from Buffs & debuffs to the Fight & pets tab (always shown).
+
 ## v81
 - The separate **Eureka! pop** setting is gone: Eureka! no longer affects DoTs, so it simply follows the Pop cooldowns setting.
 - **Fight & pets**: the run settings and pet scaling are always shown (no "Advanced" fold).

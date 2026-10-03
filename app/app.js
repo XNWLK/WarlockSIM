@@ -321,7 +321,7 @@
       '(Spellstone +2% haste, +21 Shadow SP · Firestone +2% crit, +21 Fire SP)' + (s.oilName !== WL.OILS.none.name ? ' + ' + s.oilName + ' (in the total).' : '; no weapon oil.') : s.oilName + '.');
   }
   function armorNote() {
-    $('armorNote').textContent = 'Boss armor after debuffs: ' + fmt(WL.bossArmor(cfg)) + ' → pet melee damage reduced by ' + (100 * WL.armorReduction(cfg)).toFixed(1) + '%';
+    $('armorNote').textContent = 'Boss armor after debuffs: ' + fmt(WL.bossArmor(cfg)) + ' → pet melee damage reduced by ' + (100 * WL.armorReduction(cfg)).toFixed(1) + '%. Base armor and resistances: Fight & pets tab.';
   }
   function readSettings() {
     numFields.forEach(function (f) { var v = parseFloat($(f[0]).value); if (isFinite(v)) cfg[f[1]][f[2]] = v; });

@@ -299,10 +299,7 @@
   #results .rname .meta { font-weight: 400; font-size: 10.5px; }
   #results .rvs { font-size: 10.5px; white-space: nowrap; }
   #results tr.racerow .dps b { font-size: 11.5px; }
-  /* advanced settings */
-  details.adv { margin-top: 10px; }
-  details.adv > summary { cursor: pointer; color: var(--accent); font-size: 12px; font-weight: 600; }
-  .advbody { display: grid; gap: 5px; margin-top: 6px; }
+  /* run / boss / pet settings in Fight & pets (a folded "Advanced" block until round 88) */
   .advopen { margin-top: 10px; }
   label.f.wide { grid-template-columns: 1fr; gap: 3px; }   /* long select under its label */
   label.f.wide select { width: 100%; max-width: 290px; }
@@ -524,15 +521,6 @@
         <fieldset><legend>Boss debuffs</legend>
           <div id="debuffBoxes" class="checks"></div>
           <p class="meta" id="armorNote"></p>
-          <details class="adv">
-            <summary>Advanced: boss armor and resistances</summary>
-            <div class="advbody">
-              <label class="f" for="bossArmor">Boss armor (before debuffs)<input id="bossArmor" type="number" min="0" step="100"></label>
-              <label class="f" for="resShadow" title="Resistance left after Curse of the Elements (−75) and Spell Pierce is rolled as partial resists (0/25/50/75/100%) on every hit and tick; average = 0.75 × resistance / 300.">Boss Shadow resistance<input id="resShadow" type="number" min="0" step="5"></label>
-              <label class="f" for="resFire" title="As Shadow resistance, for Fire spells.">Boss Fire resistance<input id="resFire" type="number" min="0" step="5"></label>
-              <label class="c" for="o_levelRes" title="Classic rule: a boss 3 levels above you has +24 resistance to all schools (8 per level), about 6% partial resists on average. Unknown whether Forever keeps it."><input id="o_levelRes" type="checkbox"> Level resistance (+24, Classic)</label>
-            </div>
-          </details>
           <p class="meta">Personal in Forever, so they do not help you: Shadow Weaving, Improved Scorch, Winter's Chill,
             Stormstrike and other Warlocks' Improved Shadow Bolt (their tooltips say "damage <i>you</i> deal").</p>
         </fieldset>
@@ -582,7 +570,13 @@
           <label class="c" for="o_dotEnd" title="Near the end of the fight a DoT recast often cannot finish before the boss dies. On: the sim adds up the damage the recast would still do (the ticks that land in time, plus Immolate's hit and what the DoT enables: Incinerate's bonus, a Conflagrate, Nightfall procs, Soul Siphon) and recasts only if that beats the filler in the same time. Off: the old rule (recast while at least 2 ticks fit; Bane of Agony with 12 s left)."><input id="o_dotEnd" type="checkbox"> Skip DoT recasts that no longer pay off before the boss dies</label>
         </fieldset>
         </div>
-          <div class="grid advopen">   <!-- run settings + pet scaling: always shown since round 88 (was a collapsed "Advanced" block) -->
+          <div class="grid advopen">   <!-- boss, run settings + pet scaling: always shown since round 88 (was a collapsed "Advanced" block) -->
+        <fieldset><legend title="The boss itself, before your raid's debuffs (those are in the Buffs &amp; debuffs tab).">Boss armor &amp; resistances</legend>
+          <label class="f" for="bossArmor">Boss armor (before debuffs)<input id="bossArmor" type="number" min="0" step="100"></label>
+          <label class="f" for="resShadow" title="Resistance left after Curse of the Elements (−75) and Spell Pierce is rolled as partial resists (0/25/50/75/100%) on every hit and tick; average = 0.75 × resistance / 300.">Boss Shadow resistance<input id="resShadow" type="number" min="0" step="5"></label>
+          <label class="f" for="resFire" title="As Shadow resistance, for Fire spells.">Boss Fire resistance<input id="resFire" type="number" min="0" step="5"></label>
+          <label class="c" for="o_levelRes" title="Classic rule: a boss 3 levels above you has +24 resistance to all schools (8 per level), about 6% partial resists on average. Unknown whether Forever keeps it."><input id="o_levelRes" type="checkbox"> Level resistance (+24, Classic)</label>
+        </fieldset>
         <fieldset><legend>Run</legend>
           <label class="f" for="durVar" title="Each fight lasts the duration ± up to this % (uniform), so results don't hinge on one exact fight length (A56).">Length variation ± %<input id="durVar" type="number" min="0" max="50" step="5"></label>
           <label class="f" for="weightIterations">Fights per stat weight<input id="weightIterations" type="number" min="10" step="100"></label>
