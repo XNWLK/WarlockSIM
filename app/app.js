@@ -18,7 +18,7 @@
   var ACTION_ICON = { curseOfElements: 'curseOfElements', shadowTrance: 'shadowTrance', bane: 'baneOfDoom', baneOfAgony: 'baneOfAgony', corruption: 'corruption',
     siphonLife: 'siphonLife', immolate: 'immolate', conflagrate: 'conflagrate', shadowburn: 'shadowburn', soulFire: 'soulFire',
     wrack: 'wrack', shadowBolt: 'shadowBolt', incinerate: 'incinerate', drainLife: 'drainLife', searingPain: 'searingPain',
-    lifeTapPet: 'lifeTap', soulFireShards: 'soulFire', searingPainBrand: 'searingPain', shadowburnSnF: 'shadowburn', conflagrateSnF: 'conflagrate', multiDot: 'corruption', shadowBoltSpread: 'talent_improvedShadowBolt', isbUpkeep: 'talent_improvedShadowBolt', shadowBoltR2LowMana: 'shadowBolt', deathCoil: 'deathCoil', deathCoilFinisher: 'deathCoil', havocAuto: 'baneOfHavoc',
+    lifeTapPet: 'lifeTap', soulFireShards: 'soulFire', searingPainBrand: 'searingPain', shadowburnSnF: 'shadowburn', conflagrateSnF: 'conflagrate', conflagrateExpire: 'conflagrate', multiDot: 'corruption', shadowBoltSpread: 'talent_improvedShadowBolt', isbUpkeep: 'talent_improvedShadowBolt', shadowBoltR2LowMana: 'shadowBolt', deathCoil: 'deathCoil', deathCoilFinisher: 'deathCoil', havocAuto: 'baneOfHavoc',
     swapToImp: 'pet_imp', swapToSuccubus: 'pet_succubus', searingPainExecute: 'searingPain' };
   // Stat weights (round 44): the table shows SP first (DPS per 1 SP), the others as spell-power equivalents
   // (weight ÷ SP weight: "1% hit is worth 12 SP"); Spell Pierce only in the details.
@@ -48,7 +48,7 @@
     lashOfPain: 'An instant attack that lashes the target, causing (42.9% of Spell Power) Shadow damage.',
   };
   var ACTION_SPELLS = { bane: ['baneOfDoom', 'baneOfAgony'], shadowTrance: ['shadowBolt'], lifeTapPet: ['lifeTap'],
-    multiDot: ['curseOfElements', 'corruption', 'baneOfAgony', 'immolate', 'siphonLife'], shadowburnSnF: ['shadowburn'], conflagrateSnF: ['conflagrate'], shadowBoltSpread: ['shadowBolt'], isbUpkeep: ['shadowBolt'], deathCoil: ['deathCoil'], deathCoilFinisher: ['deathCoil'],
+    multiDot: ['curseOfElements', 'corruption', 'baneOfAgony', 'immolate', 'siphonLife'], shadowburnSnF: ['shadowburn'], conflagrateSnF: ['conflagrate'], conflagrateExpire: ['conflagrate'], shadowBoltSpread: ['shadowBolt'], isbUpkeep: ['shadowBolt'], deathCoil: ['deathCoil'], deathCoilFinisher: ['deathCoil'],
     searingPainBrand: ['searingPain'], soulFireShards: ['soulFire'], searingPainExecute: ['searingPain'] };
   function para(s) { return esc(s).replace(/\n/g, '<br>'); }
   function spellMeta(s) {
@@ -1462,7 +1462,7 @@
   var ACTION_GROUPS = [
     ['Curses & DoTs', ['curseOfElements', 'bane', 'baneOfAgony', 'corruption', 'siphonLife', 'immolate']],
     ['Multi-target', ['multiDot', 'shadowBoltSpread']],
-    ['Cooldowns & procs', ['shadowTrance', 'isbUpkeep', 'deathCoil', 'deathCoilFinisher', 'conflagrate', 'conflagrateSnF', 'shadowburn', 'shadowburnSnF', 'soulFire', 'searingPainBrand', 'searingPainExecute']],
+    ['Cooldowns & procs', ['shadowTrance', 'isbUpkeep', 'deathCoil', 'deathCoilFinisher', 'conflagrate', 'conflagrateExpire', 'conflagrateSnF', 'shadowburn', 'shadowburnSnF', 'soulFire', 'searingPainBrand', 'searingPainExecute']],
     ['Pet & mana', ['lifeTapPet', 'swapToImp', 'swapToSuccubus']],
     ['Fillers (the last entry)', ['shadowBolt', 'incinerate', 'searingPain', 'drainLife', 'wrack']],
   ];
@@ -1472,7 +1472,7 @@
     multiDot: 'Keep DoTs on the extra targets', shadowBoltSpread: 'Shadow Bolt an extra target (for its ISB)',
     shadowTrance: 'Shadow Bolt (max rank) on Shadow Trance (Nightfall)', isbUpkeep: 'Shadow Bolt (max rank) to keep ISB up',
     deathCoil: 'Death Coil on cooldown', deathCoilFinisher: 'Death Coil as the finisher', conflagrate: 'Conflagrate', shadowburn: 'Shadowburn on cooldown',
-    shadowburnSnF: 'Shadowburn for Shadow and Flame', conflagrateSnF: 'Conflagrate for Shadow and Flame', soulFire: 'Soul Fire during Decimation', searingPainBrand: 'Searing Pain for Demonic Brand',
+    shadowburnSnF: 'Shadowburn for Shadow and Flame', conflagrateSnF: 'Conflagrate for Shadow and Flame', conflagrateExpire: 'Conflagrate when Immolate is about to expire', soulFire: 'Soul Fire during Decimation', searingPainBrand: 'Searing Pain for Demonic Brand',
     searingPainExecute: 'Searing Pain in the execute phase', lifeTapPet: 'Life Tap to feed the pet',
     swapToImp: 'Pet swap at execute → Imp', swapToSuccubus: 'Pet swap at execute → Succubus',
     shadowBolt: 'Shadow Bolt (Rank 9)', incinerate: 'Incinerate', searingPain: 'Searing Pain',

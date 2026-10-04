@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v90
+- New priority action: **Conflagrate only when Immolate is about to expire** (≤ 3 s left). Worth +3–4% on builds without
+  Shadow and Flame, where Conflagrate consumes Immolate; with Shadow and Flame 5/5 keep Conflagrate on cooldown.
+
 ## v89
 - **DoTs are dynamic** (Forever, unlike Classic): every tick, including the Bane of Doom explosion, uses the spell power you
   have at that moment — so Blood Fury and the Spellblasting potion now buff a Doom that explodes while they are up.

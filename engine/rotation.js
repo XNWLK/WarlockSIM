@@ -20,6 +20,7 @@ function dotNeeded(S, key, minTicks) {
   return dotWorthOr(S, key, 0, S.remaining - S.castTime(key) >= s.tickEvery * (minTicks || 2));
 }
 
+WL.CONFLAG_EXPIRE_S = 3;   // "about to expire" for conflagrateExpire: one Immolate tick interval
 WL.ACTIONS = {
   // Keep Curse of the Elements on the boss. [A34]
   curseOfElements: {
@@ -52,10 +53,26 @@ WL.ACTIONS = {
   },
   corruption: { label: 'Corruption if missing/expiring', pick: function (S) { return dotNeeded(S, 'corruption') ? 'corruption' : null; } },
   siphonLife: { label: 'Siphon Life if missing/expiring', pick: function (S) { return dotNeeded(S, 'siphonLife') ? 'siphonLife' : null; } },
-  immolate:   { label: 'Immolate if missing/expiring', pick: function (S) { return dotNeeded(S, 'immolate') ? 'immolate' : null; } },
+  // With "Conflagrate only when Immolate is about to expire" in the list (round 97) an Immolate that is still up is not
+  // refreshed while Conflagrate is ready: the Conflagrate goes first and takes that Immolate, then the new one is cast.
+  immolate:   { label: 'Immolate if missing/expiring', pick: function (S) {
+    if (S.build.rotation.indexOf('conflagrateExpire') >= 0 && S.has('conflagrate') && S.ready('conflagrate') && S.dotLeft('immolate') > 0) return null;
+    return dotNeeded(S, 'immolate') ? 'immolate' : null;
+  } },
   conflagrate: {
     label: 'Conflagrate on cooldown while Immolate is up',
     pick: function (S) { return S.has('conflagrate') && S.ready('conflagrate') && S.dotLeft('immolate') > 0 ? 'conflagrate' : null; },
+  },
+  // Conflagrate only when Immolate is about to expire (round 97, user): Conflagrate consumes Immolate, so on cooldown it
+  // cuts Immolate short (10 s cooldown vs 15 s Immolate). Here it waits until Immolate has at most CONFLAG_EXPIRE_S left —
+  // 4 of its 5 ticks are done — and the Immolate action above / below then recasts it. Works at any place in the list.
+  conflagrateExpire: {
+    label: 'Conflagrate only when Immolate is about to expire (≤ 3 s left)',
+    pick: function (S) {
+      if (!S.has('conflagrate') || !S.ready('conflagrate')) return null;
+      var left = S.dotLeft('immolate');
+      return left > 0 && left <= WL.CONFLAG_EXPIRE_S ? 'conflagrate' : null;
+    },
   },
   shadowburn: {
     label: 'Shadowburn on cooldown (needs a Soul Shard)',

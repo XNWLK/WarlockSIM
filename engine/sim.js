@@ -887,8 +887,9 @@ window.WL = window.WL || {};
       // Conflagrate (Destruction): a new Immolate lets the next Conflagrate happen, which then consumes it (unless
       // Shadow and Flame keeps it) — so ticks after that moment count only with the keep chance.
       var hit = hitChance(), tConf = Infinity, keep = 1;
-      if (key === 'immolate' && ti <= 1 && (ROT.indexOf('conflagrate') >= 0 || ROT.indexOf('conflagrateSnF') >= 0) && S.has('conflagrate')) {
-        tConf = Math.max(tL, S.cds.conflagrate || 0);
+      var cfx = ROT.indexOf('conflagrateExpire') >= 0 && ROT.indexOf('conflagrate') < 0;   // only near Immolate's end (round 97)
+      if (key === 'immolate' && ti <= 1 && (ROT.indexOf('conflagrate') >= 0 || ROT.indexOf('conflagrateSnF') >= 0 || cfx) && S.has('conflagrate')) {
+        tConf = Math.max(cfx ? tL + s.duration - WL.CONFLAG_EXPIRE_S : tL, S.cds.conflagrate || 0);
         if (tConf < end - 1e-6 && tConf <= dur - gcd + EPS) {
           keep = tv('shadowAndFlame') ? tv('shadowAndFlame', 'procPct') / 100 : 0;
           value += hit * (expCast('conflagrate', 0) - gcd * fRate);        // a Conflagrate instead of one filler GCD (needs the Immolate)
