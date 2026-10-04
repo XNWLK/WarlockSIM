@@ -60,18 +60,21 @@
   input:focus-visible, button:focus-visible, summary:focus-visible, tr:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   /* setup: Stats (always visible, sticky) | tabs for buffs, consumables, fight */
-  .setup { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: start; }
+  .setup { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: stretch; }
   .card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: grid; gap: 8px; min-width: 0; }
   .card > h2 { margin: 0; }
-  .statcard { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 8px); }
+  .statcard { align-content: start; }
   .sidecard .tabs { margin-top: 0; border-bottom: 0; }
   .tabrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; border-bottom: 1px solid var(--line); }
   .cardhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
   .cardhead h2 { margin: 0; }
   .resetbtn { padding: 3px 9px; font-size: 11.5px; font-weight: 500; color: var(--muted); }
   .resetbtn.armed { color: var(--bad); border-color: var(--bad); }
-  .sidecard { max-height: calc(100vh - 16px); overflow-y: auto; }
-  @media (max-width: 1000px) { .setup { grid-template-columns: minmax(0, 1fr); } .statcard { position: static; } .sidecard { max-height: none; } }
+  /* Round 91 (user): the right card is always exactly as tall as the Stats card — height 0 keeps its content out of the
+     row's height, min-height 100% then fills the row — so switching tabs never moves the page. The tabs are laid out
+     in balanced columns to fit; if a tab still does not fit (narrow window) it scrolls inside the card. */
+  .sidecard { height: 0; min-height: 100%; overflow-y: auto; align-content: start; }
+  @media (max-width: 1000px) { .setup { grid-template-columns: minmax(0, 1fr); } .sidecard { height: auto; min-height: 0; overflow-y: visible; } }
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 10px; }
   fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 5px; align-content: start; }
   legend { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
@@ -148,8 +151,12 @@
   table.tot td.tv { font-weight: 600; }
   .bufgrid { grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); margin-top: 4px; }
   table.tot td.stat b { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; background: var(--c, var(--line)); }
-  .congrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 10px 18px; }
-  .cgroup { display: grid; gap: 3px; align-content: start; }
+  /* balanced columns instead of a row grid: no dead space next to short groups (round 91) */
+  .congrid { columns: 2 190px; column-gap: 18px; }
+  .cgroup { display: grid; gap: 2px; align-content: start; break-inside: avoid; margin-bottom: 8px; }
+  .fcols { columns: 2 190px; column-gap: 18px; margin-top: 4px; }
+  .fcols label.f { grid-template-columns: minmax(0, 130px) minmax(56px, 80px); }
+  .fcols > fieldset { break-inside: avoid; margin-bottom: 12px; }
   .cgroup.off label { opacity: .5; }
   .cgroup .reqnote { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--c-crit); }
   .cgroup:not(.off) .reqnote { display: none; }
@@ -300,7 +307,6 @@
   #results .rvs { font-size: 10.5px; white-space: nowrap; }
   #results tr.racerow .dps b { font-size: 11.5px; }
   /* run / boss / pet settings in Fight & pets (a folded "Advanced" block until round 88) */
-  .advopen { margin-top: 10px; }
   label.f.wide { grid-template-columns: 1fr; gap: 3px; }   /* long select under its label */
   label.f.wide select { width: 100%; max-width: 290px; }
   /* gear sets */
@@ -527,14 +533,13 @@
       </div>
 
       <div class="pane" role="tabpanel" id="pane_cons" aria-labelledby="tab_cons" hidden>
-        <p class="meta">One per group (a flask, one elixir of each kind, one food, one drink, one weapon stone and one weapon oil — they stack —, one potion type, one rune).
-          Ticking an item unticks the others in its group. Spellstone / Firestone share the weapon-oil slot. Potions and runes are used in the fight:
-          mana items when at least their amount is missing, Spellblasting at the pull.</p>
+        <p class="meta">One per group; ticking an item unticks the others in its group. The weapon stone and a weapon oil stack.
+          Mana potions and runes are used when at least their amount is missing; the Spellblasting potion follows "Pop cooldowns" (Fight &amp; pets).</p>
         <div id="consBoxes" class="congrid"></div>
       </div>
 
       <div class="pane" role="tabpanel" id="pane_fight" aria-labelledby="tab_fight" hidden>
-        <div class="grid">
+        <div class="fcols">
         <fieldset><legend>Fight</legend>
           <label class="f" for="duration">Duration (s)<input id="duration" type="number" min="10" step="10"></label>
           <label class="f" for="iterations">Fights per combo<input id="iterations" type="number" min="10" step="100"></label>
@@ -569,8 +574,6 @@
           <label class="c" for="o_bookRanks" title="Off: the highest trainer ranks (Shadow Bolt R9, Immolate R7, Corruption R6). On: the ranks taught by the AQ20 books that drop in Ruins of Ahn'Qiraj (Shadow Bolt R10, Immolate R8, Corruption R7)."><input id="o_bookRanks" type="checkbox"> AQ20 book ranks (Shadow Bolt R10, Immolate R8, Corruption R7)</label>
           <label class="c" for="o_dotEnd" title="Near the end of the fight a DoT recast often cannot finish before the boss dies. On: the sim adds up the damage the recast would still do (the ticks that land in time, plus Immolate's hit and what the DoT enables: Incinerate's bonus, a Conflagrate, Nightfall procs, Soul Siphon) and recasts only if that beats the filler in the same time. Off: the old rule (recast while at least 2 ticks fit; Bane of Agony with 12 s left)."><input id="o_dotEnd" type="checkbox"> Skip DoT recasts that no longer pay off before the boss dies</label>
         </fieldset>
-        </div>
-          <div class="grid advopen">   <!-- boss, run settings + pet scaling: always shown since round 88 (was a collapsed "Advanced" block) -->
         <fieldset><legend title="The boss itself, before your raid's debuffs (those are in the Buffs &amp; debuffs tab).">Boss armor &amp; resistances</legend>
           <label class="f" for="bossArmor">Boss armor (before debuffs)<input id="bossArmor" type="number" min="0" step="100"></label>
           <label class="f" for="resShadow" title="Resistance left after Curse of the Elements (−75) and Spell Pierce is rolled as partial resists (0/25/50/75/100%) on every hit and tick; average = 0.75 × resistance / 300.">Boss Shadow resistance<input id="resShadow" type="number" min="0" step="5"></label>
@@ -593,7 +596,7 @@
           <label class="f" for="p_succAp">Succubus melee: AP per 1 SP<input id="p_succAp" type="number" min="0" step="0.01"></label>
           <label class="f" for="p_succBase">Succubus melee: base DPS<input id="p_succBase" type="number" min="0" step="5"></label>
         </fieldset>
-          </div>
+        </div>
       </div>
     </div>
   </section>

@@ -244,7 +244,7 @@
         (text ? '<div class="tt-body">' + para(text) + '</div>' : '') +
         '<div class="tt-rule">Simulated as: ' + esc(o.desc || '') + '</div>';
       return '<label class="c" for="' + prefix + k + '"><input id="' + prefix + k + '" type="checkbox"' + (o.on ? ' checked' : '') + '> ' +
-        icon(iconKey, o.name, '', tip) + '<span class="cls">' + esc(isCon ? o.cat : o.cls || '') + '</span><span>' + esc(o.name) + ' <span class="eff">' + esc(o.desc || '') + '</span></span></label>';
+        icon(iconKey, o.name, '', tip) + (isCon ? '' : '<span class="cls">' + esc(o.cls || '') + '</span>') + '<span>' + esc(o.name) + ' <span class="eff">' + esc(o.desc || '') + '</span></span></label>';
     }
     $('buffBoxes').innerHTML = Object.keys(cfg.buffs).map(function (k) { return box('b_', k, cfg.buffs[k]); }).join('');
     $('debuffBoxes').innerHTML = Object.keys(cfg.debuffs).map(function (k) { return box('d_', k, cfg.debuffs[k]); }).join('');

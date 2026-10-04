@@ -10,7 +10,8 @@
 //   Superior Mana Potion (user round 12: not needed), smaller versions of a consumable (user, round 87: only the biggest of
 //   each — removed Arcane Elixir, Minor Arcane Elixir, Mageblood Elixir, Sagefish Delight, Wizard Oil; the smaller
 //   Spellblasting potions were never added), Flask of Distilled Wisdom, Elixir of Greater Intellect, Elixir of Cunning,
-//   Elixir of Greater Spirit and Brilliant Mana Oil (user, round 90: not wanted), Dark Iron Bomb (Forever tooltip says 9661 Fire vs Classic 344–456:
+//   Elixir of Greater Spirit and Brilliant Mana Oil (user, round 90: not wanted), Elixir of the Sages (+18 Int / Spi; user,
+//   round 91 — Elixir of Sages, +25 Spirit +2% crit, stays), Dark Iron Bomb (Forever tooltip says 9661 Fire vs Classic 344–456:
 //   a data error, removed by the user in round 16).
 // Icons: Forever item XML `icon`, except 4 elixirs whose Forever DB icon differs from the in-game one (user, round 12):
 //   Greater Arcane, Shadow Power, Fire Power, Mageblood use the Wowhead CLASSIC icon (/classic/item=<id>&xml).
@@ -36,8 +37,6 @@ WL.CONSUMABLES = {
                          text: 'Increases spell fire damage by up to 10 for 30 min.' },
   elixirOwl:           { on: false, id: 250337, icon: 'inv_potion_164', cat: 'Elixir', group: 'intElixir', name: 'Elixir of the Owl', desc: '+25 Intellect, +2% crit', int: 25, critPct: 2,
                          text: 'Drink to increase your Intellect by 25 and chance to critically hit by 2%. Lasts for 30 min.' },
-  elixirTheSages:      { on: false, id: 13447, icon: 'inv_potion_29', cat: 'Elixir', group: 'intElixir', name: 'Elixir of the Sages', desc: '+18 Intellect and Spirit', int: 18, spi: 18,
-                         text: 'Increases Intellect and Spirit by 18 for 1 hour.' },
   elixirSages:         { on: false, id: 250338, icon: 'inv_potion_165', cat: 'Elixir', group: 'spiElixir', name: 'Elixir of Sages', desc: '+25 Spirit, +2% crit', spi: 25, critPct: 2,
                          text: 'Drink to increase your Spirit by 25 and chance to critically hit by 2%. Lasts for 30 min.' },
   greaterMageblood:    { on: false, id: 250341, icon: 'inv_potion_168', cat: 'Elixir', group: 'manaElixir', name: 'Greater Mageblood Elixir', desc: '20 mana every 5 s', mp5: 20,

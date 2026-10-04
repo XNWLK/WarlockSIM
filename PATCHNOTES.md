@@ -3,6 +3,11 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v84
+- The right settings panel now always has the **same height as the Stats panel**: switching tabs no longer shifts the
+  page, and every tab fits without scrolling (more compact Consumables and Fight & pets layouts).
+- Elixir of the Sages removed (Elixir of Sages stays).
+
 ## v83
 - Consumables removed: Flask of Distilled Wisdom, Elixir of Greater Intellect, Elixir of Cunning, Elixir of Greater Spirit, Brilliant Mana Oil.
 
