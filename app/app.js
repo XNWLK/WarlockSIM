@@ -358,15 +358,18 @@
     if (tl.potion || tl.rune || tl.sapper || tl.explosive) tl = cfg.options.activesTimeline = WL.activesTimelineOf(cfg);   // round 92 slot names
     return tl;
   }
+  var CD_ORDER = ['majorSpellblasting', 'majorManaPotion', 'restoredManaPotion', 'demonicRune', 'goblinSapper', 'denseDynamite', 'thoriumGrenade'];
   function cdLen() { return cfg.fight.duration * (1 + (cfg.fight.durationVarPct || 0) / 100); }
   function cdRows() {
     var act = WL.activeConsumables(cfg).map(function (c) { return c.key; }), pi = cfg.buffs.powerInfusion, prof = cfg.professions || {};
     var rows = [{ k: 'racial', name: 'Racial cooldown', icon: 'race_orc', dur: 15, cd: 120, auto: 'buff', on: true, box: null,
       tip: 'Blood Fury (Orc, 15 s, 2 min cooldown), Berserking (Troll, 10 s, 3 min), Eureka! (Gnome, 3 casts, 2 min). Humans and Undead have none. Always on.' }];
     if (pi) rows.push({ k: 'pi', name: pi.name, icon: 'buff_powerInfusion', dur: pi.duration, cd: pi.cd, auto: 'buff', on: !!pi.on, ticked: !!pi.on, box: 'b_powerInfusion', tip: pi.desc });
-    Object.keys(cfg.consumables).forEach(function (k) {
+    // Row order (round 94, user): Spellblasting, mana potions, rune, then the Engineering items; anything new goes last.
+    var keys = Object.keys(cfg.consumables).filter(function (k) { var c = cfg.consumables[k]; return c.spPotion || c.manaRestore || c.explosive; });
+    keys.sort(function (a, b) { var ia = CD_ORDER.indexOf(a), ib = CD_ORDER.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
+    keys.forEach(function (k) {
       var c = cfg.consumables[k];
-      if (!(c.spPotion || c.manaRestore || c.explosive)) return;
       rows.push({ k: k, name: c.name, icon: 'consumable_' + k, dur: c.spPotion ? c.spPotion.duration : 0, cd: c.explosive ? c.explosive.cd : c.cd,
         auto: c.spPotion ? 'buff' : c.manaRestore ? 'mana' : 'cd', on: act.indexOf(k) >= 0, ticked: !!c.on, box: 'c_' + k, tip: c.desc,
         need: c.on && c.requires && !prof[c.requires] ? 'Needs Engineering (Stats panel)' : '' });
