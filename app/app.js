@@ -358,12 +358,22 @@
     if (tl.potion || tl.rune || tl.sapper || tl.explosive) tl = cfg.options.activesTimeline = WL.activesTimelineOf(cfg);   // round 92 slot names
     return tl;
   }
+  // Racial row (round 95, user): the three cooldown racials have different timers, so the row shows one race at a time —
+  // picked with the race buttons — with its real duration and cooldown. "=" (linked, default) = one list of times for all
+  // three races; unlinked = each race has its own (cfg.options.activesRacialSplit).
+  var CD_RACES = ['orc', 'troll', 'gnome'], cdRace = 'orc';
+  function cdRacial(race) { return WL.RACES[race].racials.filter(function (x) { return x.effect === 'cooldown'; })[0]; }
+  function cdRacialTip(race) {
+    var x = cdRacial(race);
+    return WL.RACES[race].name + ': ' + x.name + ' — ' + (x.charges ? x.charges + ' casts (at most ' + x.duration + ' s)' : x.duration + ' s') + ', ' + x.cd / 60 + ' min cooldown';
+  }
   var CD_ORDER = ['majorSpellblasting', 'majorManaPotion', 'restoredManaPotion', 'demonicRune', 'goblinSapper', 'denseDynamite', 'thoriumGrenade'];
   function cdLen() { return cfg.fight.duration * (1 + (cfg.fight.durationVarPct || 0) / 100); }
   function cdRows() {
     var act = WL.activeConsumables(cfg).map(function (c) { return c.key; }), pi = cfg.buffs.powerInfusion, prof = cfg.professions || {};
-    var rows = [{ k: 'racial', name: 'Racial cooldown', icon: 'race_orc', dur: 15, cd: 120, auto: 'buff', on: true, box: null,
-      tip: 'Blood Fury (Orc, 15 s, 2 min cooldown), Berserking (Troll, 10 s, 3 min), Eureka! (Gnome, 3 casts, 2 min). Humans and Undead have none. Always on.' }];
+    var rc = cdRacial(cdRace), split = !!cfg.options.activesRacialSplit;
+    var rows = [{ k: split ? 'racial_' + cdRace : 'racial', racial: true, name: rc.name, icon: 'race_' + cdRace, dur: rc.duration, cd: rc.cd, auto: 'buff', on: true, box: null,
+      tip: cdRacialTip(cdRace) + '. Humans and Undead have no racial cooldown. Always on' }];
     if (pi) rows.push({ k: 'pi', name: pi.name, icon: 'buff_powerInfusion', dur: pi.duration, cd: pi.cd, auto: 'buff', on: !!pi.on, ticked: !!pi.on, box: 'b_powerInfusion', tip: pi.desc });
     // Row order (round 94, user): Spellblasting, mana potions, rune, then the Engineering items; anything new goes last.
     var keys = Object.keys(cfg.consumables).filter(function (k) { var c = cfg.consumables[k]; return c.spPotion || c.manaRestore || c.explosive; });
@@ -392,11 +402,21 @@
     var h = '<div class="cdgrid">', selRow = null;
     rows.forEach(function (r) {
       var arr = (tl[r.k] || []).slice().sort(function (a, b) { return a - b; }), off = r.on ? '' : ' off';
-      h += '<div class="cdrow' + off + '">' + (r.box
+      if (r.racial) {
+        var split = !!cfg.options.activesRacialSplit;
+        h += '<div class="cdrow racial"><button type="button" id="cdLink" class="cdlink" aria-pressed="' + !split + '" title="' +
+          (split ? 'Each race has its own times. Click to use the times shown here for all three races.' : 'Same times for all three races. Click to give each race its own times.') +
+          '">' + (split ? '≠' : '=') + '</button><span class="cdraces">' + CD_RACES.map(function (rk) {
+            var has = split && (tl['racial_' + rk] || []).length;
+            return '<button type="button" id="cdRace_' + rk + '" class="cdrace' + (rk === cdRace ? ' on' : '') + (has ? ' has' : '') + '" data-cdrace="' + rk + '" aria-pressed="' + (rk === cdRace) + '" title="' +
+              esc(cdRacialTip(rk) + (has ? ' — has placed uses' : '')) + '">' + icon('race_' + rk, WL.RACES[rk].name) + '</button>';
+          }).join('') + '</span><button type="button" class="cdname" data-cdadd="' + r.k + '" title="' + esc(r.tip + ' — click to add a use at 0 s, or drag onto the lane.') + '"><span>' + esc(r.name) + '</span></button></div>';
+      } else h += '<div class="cdrow' + off + '">' + (r.box
           ? '<input type="checkbox" id="cdOn_' + r.k + '" data-cdbox="' + r.box + '"' + (r.ticked ? ' checked' : '') + ' title="' + esc('Use ' + r.name + ' in the fight (the same switch as in the ' + (r.box.charAt(0) === 'b' ? 'Buffs & debuffs' : 'Consumables') + ' tab)') + '" aria-label="' + esc(r.name) + '">'
           : '<span class="cdnobox" aria-hidden="true"></span>') +
         '<button type="button" class="cdname" data-cdadd="' + r.k + '" title="' + esc(r.tip + ' — click to add a use at 0 s, or drag onto the lane.') + '">' +
-        icon(r.icon, r.name) + '<span>' + esc(r.name) + '</span></button></div><div class="cdlane' + off + '" data-cdk="' + r.k + '">' + back;
+        icon(r.icon, r.name) + '<span>' + esc(r.name) + '</span></button></div>';
+      h += '<div class="cdlane' + off + (r.racial ? ' racial' : '') + '" data-cdk="' + r.k + '">' + back;
       if (!arr.length) h += '<span class="cdauto">' + (r.on ? CD_AUTO[r.auto] : r.need || 'Off') + '</span>';
       arr.forEach(function (t, i) {
         var bad = i > 0 && t - arr[i - 1] < r.cd - 1e-9, ready = t + r.cd, sel = cdSel && cdSel.k === r.k && cdSel.t === t;
@@ -435,7 +455,7 @@
     renderCdTl(); markDirty();
   }
   $('cdTl').addEventListener('pointerdown', function (e) {
-    if (e.button || e.target.closest('input')) return;
+    if (e.button || e.target.closest('input, .cdrace, .cdlink')) return;
     var blk = e.target.closest('.cdblk'), lane = e.target.closest('.cdlane'), nm = e.target.closest('.cdname'), tl = cdStore(), k, t;
     if (blk && lane) { k = lane.getAttribute('data-cdk'); t = +blk.getAttribute('data-cdt'); }
     else if (lane) { k = lane.getAttribute('data-cdk'); t = cdTimeAt(k, e.clientX); (tl[k] = tl[k] || []).push(t); }
@@ -453,6 +473,14 @@
   window.addEventListener('pointerup', function () { if (!cdDrag) return; cdDrag = null; cdCommit(); });
   window.addEventListener('pointercancel', function () { if (!cdDrag) return; cdDrag = null; cdCommit(); });
   $('cdTl').addEventListener('click', function (e) {
+    var rb = e.target.closest('.cdrace');
+    if (rb) { cdRace = rb.getAttribute('data-cdrace'); cdSel = null; renderCdTl(); return; }       // show another race's racial
+    if (e.target.closest('.cdlink')) {                                                              // one list for all races ↔ one per race
+      var tl0 = cdStore(), wasSplit = !!cfg.options.activesRacialSplit;
+      if (wasSplit) { tl0.racial = (tl0['racial_' + cdRace] || []).slice(); CD_RACES.forEach(function (rk) { delete tl0['racial_' + rk]; }); }
+      else { CD_RACES.forEach(function (rk) { tl0['racial_' + rk] = (tl0.racial || []).slice(); }); delete tl0.racial; }
+      cfg.options.activesRacialSplit = !wasSplit; cdSel = null; cdCommit(); return;
+    }
     if (!e.target.closest('#cdSelRm') || !cdSel) return;
     var a = cdStore()[cdSel.k] || [], i = a.indexOf(cdSel.t);
     if (i >= 0) a.splice(i, 1);

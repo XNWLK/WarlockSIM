@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v88
+- Cooldown timeline: the **racial row** now shows one race at a time (Orc / Troll / Gnome buttons) with that racial's real
+  duration and cooldown. The "=" button keeps one set of times for all three races; click it to give each race its own.
+
 ## v87
 - Cooldown timeline rows reordered: racial, Power Infusion, Spellblasting, mana potions, rune, then the Engineering items.
 

@@ -138,6 +138,9 @@ WL.DEFAULT_CONFIG = {
     // with no placed use behave as usual (buffs: the 'doom' rule; mana items: when the mana is missing; explosives: on
     // cooldown). Only read when activesPolicy is 'custom'. [A77]
     activesTimeline: {},
+    // Racial cooldown on the timeline (round 95, user): false = one list of times for every race (slot 'racial');
+    // true = each race has its own list (slots 'racial_orc', 'racial_troll', 'racial_gnome').
+    activesRacialSplit: false,
     // AQ20 book ranks (round 42, user): Shadow Bolt R10, Immolate R8, Corruption R7 instead of the trainer ranks
     // R9 / R7 / R6. Off by default (the books drop in Ruins of Ahn'Qiraj). See WL.BOOK_RANKS / SPELLVALUES.md.
     bookRanks: false,

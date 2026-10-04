@@ -317,6 +317,15 @@
   .cdgrid { display: grid; grid-template-columns: minmax(104px, 176px) minmax(0, 1fr); gap: 2px 8px; align-items: center; }
   .cdrow { display: flex; align-items: center; gap: 5px; min-width: 0; }
   .cdrow input, .cdnobox { flex: none; width: 13px; height: 13px; margin: 0; }
+  /* racial row (round 95): link button + one button per race; the row shows the picked race's racial */
+  .cdlink { flex: none; width: 13px; height: 13px; padding: 0; border-radius: 3px; font: 600 10px/11px var(--mono); color: var(--muted); background: none; }
+  .cdlink[aria-pressed=true] { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+  .cdraces { display: inline-flex; gap: 1px; flex: none; }
+  .cdrace { position: relative; width: 18px; height: 18px; padding: 0; border: 1px solid transparent; border-radius: 3px; background: none; display: inline-flex; align-items: center; justify-content: center; }
+  .cdrace .ico { width: 14px; height: 14px; filter: grayscale(1); opacity: .5; }
+  .cdrace.on { border-color: var(--accent); }
+  .cdrace.on .ico { filter: none; opacity: 1; }
+  .cdrace.has::after { content: ""; position: absolute; right: -1px; top: -1px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
   .cdrow.off .cdname { color: var(--muted); }
   .cdrow.off .cdname .ico { filter: grayscale(1); opacity: .5; }
   .cdname { display: flex; align-items: center; gap: 5px; padding: 0; border: 0; background: none; border-radius: 3px; font: 500 11.5px var(--sans); color: var(--ink);
@@ -356,7 +365,8 @@
   .cdkey .k2 { height: 3px; background: var(--bad); }
   .cdkey .k3 { border: 1px dashed var(--muted); }
   .cdkey .k4 { width: 22px; background: var(--tape); border: 1px solid var(--c-crit); }
-  @media (max-width: 520px) { .cdgrid { grid-template-columns: 40px minmax(0, 1fr); gap: 2px 6px; } .cdname span { display: none; } }   /* phones: checkbox + icon, wider lanes */
+  @media (max-width: 520px) { .cdgrid { grid-template-columns: 40px minmax(0, 1fr); gap: 2px 6px; } .cdname span { display: none; }   /* phones: checkbox + icon, wider lanes */
+    .cdrow.racial, .cdlane.racial { grid-column: 1 / -1; } .cdrow.racial .cdname span { display: inline; } }                       /* racial row: switcher above its lane */
   /* gear sets */
   .gearrow label.c select { max-width: 260px; }
   .gearrow input[type=text] { flex: 1 1 150px; width: 150px; }
@@ -642,7 +652,7 @@
         </div>
         <div class="cdbox">
           <div class="cdhead">
-            <label class="c" for="o_actives" title="When to pop your short cooldowns for the first time: the racial cooldown (Blood Fury, Berserking, Eureka!), the Major Spellblasting Potion and Power Infusion. After that each one is used again whenever it is ready. 'Bane of Doom explodes' = right before the cast the first explosion falls into; builds that never cast Bane of Doom (or fights where it cannot explode) pop at the pull. Execute = boss below 35% health. Custom timeline = you place every use yourself — also mana potions, runes and explosives; whatever you do not place is used automatically as usual. Every cooldown has a row; its checkbox is the same switch as in the Buffs & debuffs / Consumables tab, and a switched-off row is greyed. Eureka! (Gnome) is then popped right before the next long cast (Shadow Bolt, Searing Pain, Incinerate, Soul Fire, a channel), so no charge goes to a DoT.">Pop cooldowns (potion, racial, Power Infusion)
+            <label class="c" for="o_actives" title="When to pop your short cooldowns for the first time: the racial cooldown (Blood Fury, Berserking, Eureka!), the Major Spellblasting Potion and Power Infusion. After that each one is used again whenever it is ready. 'Bane of Doom explodes' = right before the cast the first explosion falls into; builds that never cast Bane of Doom (or fights where it cannot explode) pop at the pull. Execute = boss below 35% health. Custom timeline = you place every use yourself — also mana potions, runes and explosives; whatever you do not place is used automatically as usual. Every cooldown has a row; its checkbox is the same switch as in the Buffs & debuffs / Consumables tab, and a switched-off row is greyed. The racial row shows one race at a time (Orc, Troll, Gnome buttons) with its real timers; '=' keeps one set of times for all three races. Eureka! (Gnome) is then popped right before the next long cast (Shadow Bolt, Searing Pain, Incinerate, Soul Fire, a channel), so no charge goes to a DoT.">Pop cooldowns (potion, racial, Power Infusion)
               <select id="o_actives">
                 <option value="pull">on the pull</option>
                 <option value="doom">when the first Bane of Doom explodes</option>

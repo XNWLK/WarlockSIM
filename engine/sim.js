@@ -195,8 +195,9 @@ window.WL = window.WL || {};
     //             cover it) or the first cast after it. At the pull if this build never casts Doom, if a Bane of Agony
     //             went up instead, or if Doom will not explode before the fight ends.
     //   'execute' once the boss is below fight.executePct
-    //   'custom'  (round 92, user) a cooldown timeline, options.activesTimeline: per slot — racial, pi and one per
-    //             consumable key (round 93) — the times at which you use it. A slot is held until its next placed time and used at
+    //   'custom'  (round 92, user) a cooldown timeline, options.activesTimeline: per slot — racial (or racial_orc /
+    //             racial_troll / racial_gnome with options.activesRacialSplit, round 95), pi and one per consumable key
+    //             (round 93) — the times at which you use it. A slot is held until its next placed time and used at
     //             the first chance from then on; after its last placed use it is automatic again (whenever ready / the
     //             usual mana rule / on cooldown). Slots without a placed use: as usual — buffs by the 'doom' rule.
     var ACT_POL = (cfg.options && cfg.options.activesPolicy) || 'pull', actOpen = ACT_POL === 'pull', doomSeen = false;
@@ -209,13 +210,14 @@ window.WL = window.WL || {};
     }
     // 0 = hold (a placed use is still ahead) · 1 = a placed time has come: use it now · 2 = automatic (nothing placed, or
     // every placed use is done). Without a custom timeline always 2.
+    var RSLOT = cfg.options && cfg.options.activesRacialSplit ? 'racial_' + raceKey : 'racial';   // racial slot: shared, or one per race (round 95)
     function slotGate(k) { var sl = ACT_TL && ACT_TL[k]; if (!sl || sl.i >= sl.t.length) return 2; return S.t >= sl.t[sl.i] - EPS ? 1 : 0; }
     function slotUsed(k) { var sl = ACT_TL && ACT_TL[k]; if (sl && sl.i < sl.t.length && S.t >= sl.t[sl.i] - EPS) sl.i++; }
     // Racial cooldown, Spellblasting potion and Power Infusion, right before a damaging cast.
     function popActives(key) {
       if (!ACT_TL) { if (activesOk(key)) { useRacials(key); useSpPotion(); usePowerInfusion(); } return; }
-      var g = slotGate('racial');
-      if (g === 1 || (g === 2 && (ACT_TL.racial || activesOk(key)))) { if (useRacials(key)) slotUsed('racial'); }
+      var g = slotGate(RSLOT);
+      if (g === 1 || (g === 2 && (ACT_TL[RSLOT] || activesOk(key)))) { if (useRacials(key)) slotUsed(RSLOT); }
       if (spPot) {
         g = slotGate(spPot.key);
         if (g === 1 || (g === 2 && (ACT_TL[spPot.key] || activesOk(key)))) { if (useSpPotion()) slotUsed(spPot.key); }
