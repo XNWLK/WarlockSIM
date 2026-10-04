@@ -344,26 +344,32 @@
     cfg.fight.weightIterations = Math.max(1, Math.round(cfg.fight.weightIterations));
   }
 
-  // ---------- custom cooldown timeline (round 92, user; options.activesPolicy 'custom', A77) ----------
-  // One lane per cooldown that is switched on, as long as the longest possible fight. A block = one use at that time
-  // (cfg.options.activesTimeline[slot] = [seconds]); the red line after it is the cooldown, the dashed "auto" box shows
-  // where it is automatic again (after its last placed use). The striped end = the fight may already be over (± length
-  // variation). Click a lane to place, drag to move, click a block to edit its time or remove it.
+  // ---------- custom cooldown timeline (rounds 92–93, user; options.activesPolicy 'custom', A77) ----------
+  // One lane per cooldown — the racial cooldown, Power Infusion and every consumable that is used in the fight — as long
+  // as the longest possible fight. Every row is always shown (round 93); its checkbox is the same switch as the one in
+  // the Buffs & debuffs / Consumables tab (both directions), and a switched-off row is greyed. A block = one use at that
+  // time (cfg.options.activesTimeline[slot] = [seconds]); the red line after it is the cooldown, the dashed "auto" box
+  // shows where it is automatic again (after its last placed use). The striped end = the fight may already be over
+  // (± length variation). Click a lane to place, drag to move, click a block to edit its time or remove it.
   var cdSel = null, cdDrag = null;                        // selected block { k, t }; drag { k, idx }
   var CD_AUTO = { buff: 'Auto: at the first Bane of Doom explosion, then whenever ready', mana: 'Auto: when that much mana is missing', cd: 'Auto: on cooldown' };
-  function cdStore() { return cfg.options.activesTimeline || (cfg.options.activesTimeline = {}); }
+  function cdStore() {
+    var tl = cfg.options.activesTimeline || (cfg.options.activesTimeline = {});
+    if (tl.potion || tl.rune || tl.sapper || tl.explosive) tl = cfg.options.activesTimeline = WL.activesTimelineOf(cfg);   // round 92 slot names
+    return tl;
+  }
   function cdLen() { return cfg.fight.duration * (1 + (cfg.fight.durationVarPct || 0) / 100); }
   function cdRows() {
-    var act = WL.activeConsumables(cfg), rows = [], pi = cfg.buffs.powerInfusion;
-    rows.push({ k: 'racial', name: 'Racial cooldown', icon: 'race_orc', dur: 15, cd: 120, auto: 'buff',
-      tip: 'Blood Fury (Orc, 15 s, 2 min cooldown), Berserking (Troll, 10 s, 3 min), Eureka! (Gnome, 3 casts, 2 min). Humans and Undead have none.' });
-    var pot = act.filter(function (c) { return c.cdGroup === 'potion'; })[0];
-    if (pot) rows.push({ k: 'potion', name: pot.name, icon: 'consumable_' + pot.key, dur: pot.spPotion ? pot.spPotion.duration : 0, cd: pot.cd, auto: pot.spPotion ? 'buff' : 'mana', tip: pot.desc });
-    if (pi && pi.on) rows.push({ k: 'pi', name: pi.name, icon: 'buff_powerInfusion', dur: pi.duration, cd: pi.cd, auto: 'buff', tip: pi.desc });
-    var rune = act.filter(function (c) { return c.cdGroup === 'rune'; })[0];
-    if (rune) rows.push({ k: 'rune', name: rune.name, icon: 'consumable_' + rune.key, dur: 0, cd: rune.cd, auto: 'mana', tip: rune.desc });
-    act.filter(function (c) { return c.explosive; }).forEach(function (c) {
-      rows.push({ k: c.explosive.cdGroup === 'sapper' ? 'sapper' : 'explosive', name: c.name, icon: 'consumable_' + c.key, dur: 0, cd: c.explosive.cd, auto: 'cd', tip: c.desc });
+    var act = WL.activeConsumables(cfg).map(function (c) { return c.key; }), pi = cfg.buffs.powerInfusion, prof = cfg.professions || {};
+    var rows = [{ k: 'racial', name: 'Racial cooldown', icon: 'race_orc', dur: 15, cd: 120, auto: 'buff', on: true, box: null,
+      tip: 'Blood Fury (Orc, 15 s, 2 min cooldown), Berserking (Troll, 10 s, 3 min), Eureka! (Gnome, 3 casts, 2 min). Humans and Undead have none. Always on.' }];
+    if (pi) rows.push({ k: 'pi', name: pi.name, icon: 'buff_powerInfusion', dur: pi.duration, cd: pi.cd, auto: 'buff', on: !!pi.on, ticked: !!pi.on, box: 'b_powerInfusion', tip: pi.desc });
+    Object.keys(cfg.consumables).forEach(function (k) {
+      var c = cfg.consumables[k];
+      if (!(c.spPotion || c.manaRestore || c.explosive)) return;
+      rows.push({ k: k, name: c.name, icon: 'consumable_' + k, dur: c.spPotion ? c.spPotion.duration : 0, cd: c.explosive ? c.explosive.cd : c.cd,
+        auto: c.spPotion ? 'buff' : c.manaRestore ? 'mana' : 'cd', on: act.indexOf(k) >= 0, ticked: !!c.on, box: 'c_' + k, tip: c.desc,
+        need: c.on && c.requires && !prof[c.requires] ? 'Needs Engineering (Stats panel)' : '' });
     });
     return rows;
   }
@@ -371,6 +377,7 @@
     var on = $('o_actives').value === 'custom', box = $('cdTl');
     box.hidden = !on; $('cdClear').hidden = !on;
     if (!on) return;
+    var foc = document.activeElement && box.contains(document.activeElement) ? document.activeElement.id : '';
     var D = cdLen(), F = cfg.fight, E0 = F.duration * (1 - (F.durationVarPct || 0) / 100), tl = cdStore(), rows = cdRows();
     var pct = function (t) { return (100 * t / D).toFixed(3) + '%'; };
     var marks = [];
@@ -381,17 +388,20 @@
     if (cdSel && !rows.some(function (r) { return r.k === cdSel.k && (tl[r.k] || []).indexOf(cdSel.t) >= 0; })) cdSel = null;
     var h = '<div class="cdgrid">', selRow = null;
     rows.forEach(function (r) {
-      var arr = (tl[r.k] || []).slice().sort(function (a, b) { return a - b; });
-      h += '<button type="button" class="cdname" data-cdadd="' + r.k + '" title="' + esc(r.tip + ' — click to add a use at 0 s, or drag onto the lane.') + '">' +
-        icon(r.icon, r.name) + '<span>' + esc(r.name) + '</span></button><div class="cdlane" data-cdk="' + r.k + '">' + back;
-      if (!arr.length) h += '<span class="cdauto">' + CD_AUTO[r.auto] + '</span>';
+      var arr = (tl[r.k] || []).slice().sort(function (a, b) { return a - b; }), off = r.on ? '' : ' off';
+      h += '<div class="cdrow' + off + '">' + (r.box
+          ? '<input type="checkbox" id="cdOn_' + r.k + '" data-cdbox="' + r.box + '"' + (r.ticked ? ' checked' : '') + ' title="' + esc('Use ' + r.name + ' in the fight (the same switch as in the ' + (r.box.charAt(0) === 'b' ? 'Buffs & debuffs' : 'Consumables') + ' tab)') + '" aria-label="' + esc(r.name) + '">'
+          : '<span class="cdnobox" aria-hidden="true"></span>') +
+        '<button type="button" class="cdname" data-cdadd="' + r.k + '" title="' + esc(r.tip + ' — click to add a use at 0 s, or drag onto the lane.') + '">' +
+        icon(r.icon, r.name) + '<span>' + esc(r.name) + '</span></button></div><div class="cdlane' + off + '" data-cdk="' + r.k + '">' + back;
+      if (!arr.length) h += '<span class="cdauto">' + (r.on ? CD_AUTO[r.auto] : r.need || 'Off') + '</span>';
       arr.forEach(function (t, i) {
         var bad = i > 0 && t - arr[i - 1] < r.cd - 1e-9, ready = t + r.cd, sel = cdSel && cdSel.k === r.k && cdSel.t === t;
         if (sel) selRow = r;
         h += '<span class="cdcool" style="left:' + pct(t) + ';width:' + pct(Math.min(r.cd, D - t)) + '"></span>';
         if (i === arr.length - 1 && ready < D - 1) h += '<span class="cdghost" style="left:' + pct(ready) + ';width:' + pct(D - ready) + '">auto</span>';
         h += '<span class="cdblk' + (bad ? ' bad' : '') + (sel ? ' sel' : '') + '" data-cdt="' + t + '" style="left:' + pct(t) + ';width:' + pct(Math.max(r.dur, D * 0.022)) + '" title="' +
-          esc(r.name + ' at ' + t + ' s' + (bad ? ' — still on cooldown from the use before it (used as soon as it is ready)' : '')) + '">' + (r.dur ? t + ' s' : '') + '</span>';
+          esc(r.name + ' at ' + t + ' s' + (r.on ? '' : ' — switched off: not used') + (bad ? ' — still on cooldown from the use before it (used as soon as it is ready)' : '')) + '">' + (r.dur ? t + ' s' : '') + '</span>';
       });
       h += '</div>';
     });
@@ -406,6 +416,7 @@
       '<span class="cdkey"><span><u class="k1"></u>placed</span><span><u class="k2"></u>cooldown</span><span><u class="k3"></u>automatic again</span>' +
       (E0 < D - 1e-9 ? '<span><u class="k4"></u>fight may be over (±' + F.durationVarPct + '%)</span>' : '') + '</span></div>';
     box.innerHTML = h;
+    if (foc && $(foc)) $(foc).focus();
   }
   function cdTimeAt(k, clientX) {
     var lane = document.querySelector('#cdTl .cdlane[data-cdk="' + k + '"]'); if (!lane) return 0;
@@ -421,7 +432,7 @@
     renderCdTl(); markDirty();
   }
   $('cdTl').addEventListener('pointerdown', function (e) {
-    if (e.button) return;
+    if (e.button || e.target.closest('input')) return;
     var blk = e.target.closest('.cdblk'), lane = e.target.closest('.cdlane'), nm = e.target.closest('.cdname'), tl = cdStore(), k, t;
     if (blk && lane) { k = lane.getAttribute('data-cdk'); t = +blk.getAttribute('data-cdt'); }
     else if (lane) { k = lane.getAttribute('data-cdk'); t = cdTimeAt(k, e.clientX); (tl[k] = tl[k] || []).push(t); }
@@ -443,6 +454,14 @@
     var a = cdStore()[cdSel.k] || [], i = a.indexOf(cdSel.t);
     if (i >= 0) a.splice(i, 1);
     cdSel = null; cdCommit();
+  });
+  // A row's checkbox is the switch of the Buffs & debuffs / Consumables tab: tick that one and let its own change
+  // handling run (one per group, totals, tab counts, stale banner); the timeline is redrawn from there.
+  $('cdTl').addEventListener('change', function (e) {
+    var id = e.target.getAttribute && e.target.getAttribute('data-cdbox'); if (!id || !$(id)) return;
+    e.stopPropagation();
+    $(id).checked = e.target.checked;
+    $(id).dispatchEvent(new Event('change', { bubbles: true }));
   });
   $('cdClear').addEventListener('click', function () { cfg.options.activesTimeline = {}; cdSel = null; cdCommit(); });
   function cdSetSelTime(v) {                              // the seconds box of the selected block

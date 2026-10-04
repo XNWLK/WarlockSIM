@@ -3,6 +3,11 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v86
+- Cooldown timeline: **every cooldown always has a row with its own checkbox** — the same switch as in the Buffs &
+  debuffs / Consumables tabs, so you can turn potions, runes, explosives and Power Infusion on and off right there.
+  Switched-off rows are greyed. Each potion and explosive keeps its own placed times.
+
 ## v85
 - **Custom cooldown timeline**: "Pop cooldowns → custom timeline" (Fight & pets) lets you place every use of your racial
   cooldown, potion, Power Infusion, rune and explosives on a timeline of the fight. Click a lane to place, drag to move,

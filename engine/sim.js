@@ -27,6 +27,24 @@ window.WL = window.WL || {};
 
   var EPS = 1e-9;
 
+  // Custom cooldown timeline (options.activesTimeline, rounds 92–93) as { slot: [sorted times ≥ 0] }. Slots: 'racial', 'pi',
+  // and one per consumable key. The round 92 names are mapped: potion → the ticked potion (else the Spellblasting
+  // potion), rune → Demonic Rune, sapper → Goblin Sapper, explosive → the ticked explosive (else Dense Dynamite);
+  // a list under the item's own key wins. Used by the engine and the page.
+  WL.activesTimelineOf = function (cfg) {
+    var src = (cfg.options && cfg.options.activesTimeline) || {}, C = cfg.consumables || {}, out = {};
+    var first = function (test, fallback) { var k = Object.keys(C).filter(function (x) { return C[x].on && test(C[x]); })[0]; return k || fallback; };
+    var legacy = { potion: first(function (c) { return c.cdGroup === 'potion'; }, 'majorSpellblasting'), rune: 'demonicRune', sapper: 'goblinSapper',
+                   explosive: first(function (c) { return c.explosive && c.explosive.cdGroup !== 'sapper'; }, 'denseDynamite') };
+    var put = function (k, v) {
+      var a = (Array.isArray(v) ? v : []).map(Number).filter(function (x) { return isFinite(x) && x >= 0; }).sort(function (x, y) { return x - y; });
+      if (a.length) out[k] = a;
+    };
+    Object.keys(src).forEach(function (k) { if (legacy[k]) put(legacy[k], src[k]); });
+    Object.keys(src).forEach(function (k) { if (!legacy[k]) put(k, src[k]); });
+    return out;
+  };
+
   WL.simulateOnce = function (build, raceKey, cfg, opt) {
     opt = opt || {};
     var stats = opt.stats || WL.computeStats(build, raceKey, cfg);
@@ -177,8 +195,8 @@ window.WL = window.WL || {};
     //             cover it) or the first cast after it. At the pull if this build never casts Doom, if a Bane of Agony
     //             went up instead, or if Doom will not explode before the fight ends.
     //   'execute' once the boss is below fight.executePct
-    //   'custom'  (round 92, user) a cooldown timeline, options.activesTimeline: per slot — racial, potion, pi, rune,
-    //             sapper, explosive — the times at which you use it. A slot is held until its next placed time and used at
+    //   'custom'  (round 92, user) a cooldown timeline, options.activesTimeline: per slot — racial, pi and one per
+    //             consumable key (round 93) — the times at which you use it. A slot is held until its next placed time and used at
     //             the first chance from then on; after its last placed use it is automatic again (whenever ready / the
     //             usual mana rule / on cooldown). Slots without a placed use: as usual — buffs by the 'doom' rule.
     var ACT_POL = (cfg.options && cfg.options.activesPolicy) || 'pull', actOpen = ACT_POL === 'pull', doomSeen = false;
@@ -186,11 +204,8 @@ window.WL = window.WL || {};
     var ACT_TL = null;                                                     // custom timeline: slot → { t: sorted times, i: next one }
     if (ACT_POL === 'custom') {
       ACT_TL = {};
-      var tlSrc = cfg.options.activesTimeline || {};
-      Object.keys(tlSrc).forEach(function (k) {
-        var a = (Array.isArray(tlSrc[k]) ? tlSrc[k] : []).map(Number).filter(function (x) { return isFinite(x) && x >= 0; }).sort(function (x, y) { return x - y; });
-        if (a.length) ACT_TL[k] = { t: a, i: 0 };
-      });
+      var tlSrc = WL.activesTimelineOf(cfg);
+      Object.keys(tlSrc).forEach(function (k) { ACT_TL[k] = { t: tlSrc[k], i: 0 }; });
     }
     // 0 = hold (a placed use is still ahead) · 1 = a placed time has come: use it now · 2 = automatic (nothing placed, or
     // every placed use is done). Without a custom timeline always 2.
@@ -201,8 +216,10 @@ window.WL = window.WL || {};
       if (!ACT_TL) { if (activesOk(key)) { useRacials(key); useSpPotion(); usePowerInfusion(); } return; }
       var g = slotGate('racial');
       if (g === 1 || (g === 2 && (ACT_TL.racial || activesOk(key)))) { if (useRacials(key)) slotUsed('racial'); }
-      g = slotGate('potion');
-      if (g === 1 || (g === 2 && (ACT_TL.potion || activesOk(key)))) { if (useSpPotion()) slotUsed('potion'); }
+      if (spPot) {
+        g = slotGate(spPot.key);
+        if (g === 1 || (g === 2 && (ACT_TL[spPot.key] || activesOk(key)))) { if (useSpPotion()) slotUsed(spPot.key); }
+      }
       g = slotGate('pi');
       if (g === 1 || (g === 2 && (ACT_TL.pi || activesOk(key)))) { if (usePowerInfusion()) slotUsed('pi'); }
     }
@@ -233,7 +250,7 @@ window.WL = window.WL || {};
     function useManaItems() {
       manaItems.forEach(function (c) {
         var amt = c.manaRestore.amount || stats.maxMana * c.manaRestore.pct / 100, miss = stats.maxMana - S.mana;
-        var slot = c.cdGroup === 'potion' ? 'potion' : 'rune', g = slotGate(slot);
+        var slot = c.key, g = slotGate(slot);
         if (g === 0 || !S.ready('cd:' + c.cdGroup) || (g === 1 ? miss <= EPS : miss < amt)) return;
         if (amt > miss) amt = miss;
         S.cds['cd:' + c.cdGroup] = S.t + c.cd; S.mana += amt;
@@ -248,7 +265,7 @@ window.WL = window.WL || {};
     function useExplosive() {
       if (S.t >= dur - EPS) return false;
       for (var i = 0; i < explosives.length; i++) {
-        var c = explosives[i], x = c.explosive, key = 'item:' + c.key, r = row(key), xslot = x.cdGroup === 'sapper' ? 'sapper' : 'explosive';
+        var c = explosives[i], x = c.explosive, key = 'item:' + c.key, r = row(key), xslot = c.key;
         if (!S.ready('cd:' + x.cdGroup) || slotGate(xslot) === 0) continue;           // custom timeline: held for its placed time
         S.cds['cd:' + x.cdGroup] = S.t + x.cd; slotUsed(xslot);
         r.casts++; r.castTime += cb.minGcd;

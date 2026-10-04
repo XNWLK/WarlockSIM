@@ -131,7 +131,9 @@ WL.DEFAULT_CONFIG = {
     // After the first use each one is used again whenever it is ready. [A77]
     activesPolicy: 'doom',
     // 'custom' (round 92, user): a cooldown timeline — per cooldown a list of times (s from the pull) at which you use it:
-    // { racial: [..], potion: [..], pi: [..], rune: [..], sapper: [..], explosive: [..] }. A cooldown is held until its next
+    // { racial: [..], pi: [..], <consumable key>: [..] } — e.g. majorSpellblasting, majorManaPotion, demonicRune,
+    // goblinSapper, denseDynamite (round 93: one list per item, so each keeps its own times; the round 92 slot names
+    // potion / rune / sapper / explosive are still read, see WL.activesTimelineOf). A cooldown is held until its next
     // placed time and used at the first chance from then on; after its last placed use it is automatic again. Cooldowns
     // with no placed use behave as usual (buffs: the 'doom' rule; mana items: when the mana is missing; explosives: on
     // cooldown). Only read when activesPolicy is 'custom'. [A77]

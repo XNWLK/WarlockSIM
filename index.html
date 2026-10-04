@@ -154,7 +154,7 @@
   /* balanced columns instead of a row grid: no dead space next to short groups (round 91) */
   .congrid { columns: 2 190px; column-gap: 18px; }
   .cgroup { display: grid; gap: 2px; align-content: start; break-inside: avoid; margin-bottom: 8px; }
-  .fcols { columns: 3 158px; column-gap: 16px; margin-top: 4px; }
+  .fcols { columns: 3 140px; column-gap: 16px; margin-top: 4px; }
   .fcols label.f { grid-template-columns: minmax(0, 130px) minmax(56px, 80px); }
   .fcols > fieldset { break-inside: avoid; margin-bottom: 12px; }
   .cgroup.off label { opacity: .5; }
@@ -314,21 +314,29 @@
   .cdhead select { max-width: 100%; }
   .cdtl { display: grid; gap: 4px; --tape: repeating-linear-gradient(135deg, color-mix(in srgb, var(--c-crit) 60%, transparent) 0 5px, transparent 5px 10px); }
   .cdtl[hidden] { display: none; }
-  .cdgrid { display: grid; grid-template-columns: minmax(84px, 150px) minmax(0, 1fr); gap: 3px 8px; align-items: center; }
+  .cdgrid { display: grid; grid-template-columns: minmax(104px, 176px) minmax(0, 1fr); gap: 2px 8px; align-items: center; }
+  .cdrow { display: flex; align-items: center; gap: 5px; min-width: 0; }
+  .cdrow input, .cdnobox { flex: none; width: 13px; height: 13px; margin: 0; }
+  .cdrow.off .cdname { color: var(--muted); }
+  .cdrow.off .cdname .ico { filter: grayscale(1); opacity: .5; }
   .cdname { display: flex; align-items: center; gap: 5px; padding: 0; border: 0; background: none; border-radius: 3px; font: 500 11.5px var(--sans); color: var(--ink);
             text-align: left; min-width: 0; cursor: grab; touch-action: none; }
   .cdname .ico { width: 16px; height: 16px; flex: none; }
   .cdname span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .cdlane { position: relative; height: 20px; background: var(--ground); border: 1px solid var(--line); border-radius: 4px; cursor: crosshair; overflow: hidden; touch-action: none; }
-  .cdauto { position: absolute; left: 6px; top: 2px; font-size: 10.5px; color: var(--muted); pointer-events: none; white-space: nowrap; }
-  .cdblk { position: absolute; top: 1px; height: 15px; min-width: 7px; box-sizing: border-box; background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 3px;
-           color: var(--accent); font: 600 10px/13px var(--mono); padding: 0 3px; white-space: nowrap; overflow: hidden; cursor: grab; touch-action: none; }
+  .cdlane { position: relative; height: 18px; background: var(--ground); border: 1px solid var(--line); border-radius: 4px; cursor: crosshair; overflow: hidden; touch-action: none; }
+  .cdauto { position: absolute; left: 6px; top: 1px; font-size: 10.5px; color: var(--muted); pointer-events: none; white-space: nowrap; }
+  .cdblk { position: absolute; top: 0; height: 14px; min-width: 7px; box-sizing: border-box; background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 3px;
+           color: var(--accent); font: 600 10px/12px var(--mono); padding: 0 3px; white-space: nowrap; overflow: hidden; cursor: grab; touch-action: none; }
   .cdblk.sel { background: var(--accent); color: var(--surface); }
   .cdblk.bad { border-color: var(--bad); color: var(--bad); }
   .cdblk.bad.sel { background: var(--bad); color: var(--surface); }
+  /* switched off (round 93): the whole bar is greyed, placed uses stay but do nothing */
+  .cdlane.off { background: var(--sunk); }
+  .cdlane.off > * { filter: grayscale(1); opacity: .45; }
+  .cdlane.off .cdauto { opacity: 1; }
   .cdcool { position: absolute; bottom: 0; height: 3px; background: var(--bad); pointer-events: none; }
-  .cdghost { position: absolute; top: 1px; height: 15px; box-sizing: border-box; border: 1px dashed var(--muted); border-radius: 3px; color: var(--muted);
-             font: 500 10px/13px var(--sans); padding: 0 3px; pointer-events: none; overflow: hidden; white-space: nowrap; }
+  .cdghost { position: absolute; top: 0; height: 14px; box-sizing: border-box; border: 1px dashed var(--muted); border-radius: 3px; color: var(--muted);
+             font: 500 10px/12px var(--sans); padding: 0 3px; pointer-events: none; overflow: hidden; white-space: nowrap; }
   .cdmark { position: absolute; top: 0; bottom: 0; border-left: 1px dashed var(--muted); pointer-events: none; }
   .cdend { position: absolute; top: 0; bottom: 0; right: 0; background: var(--tape); border-left: 1px solid var(--c-crit); pointer-events: none; }
   .cdaxis { position: relative; height: 25px; font: 10px var(--mono); color: var(--muted); }
@@ -348,7 +356,7 @@
   .cdkey .k2 { height: 3px; background: var(--bad); }
   .cdkey .k3 { border: 1px dashed var(--muted); }
   .cdkey .k4 { width: 22px; background: var(--tape); border: 1px solid var(--c-crit); }
-  @media (max-width: 520px) { .cdgrid { grid-template-columns: 20px minmax(0, 1fr); gap: 3px 6px; } .cdname span { display: none; } }   /* phones: icons only, wider lanes */
+  @media (max-width: 520px) { .cdgrid { grid-template-columns: 40px minmax(0, 1fr); gap: 2px 6px; } .cdname span { display: none; } }   /* phones: checkbox + icon, wider lanes */
   /* gear sets */
   .gearrow label.c select { max-width: 260px; }
   .gearrow input[type=text] { flex: 1 1 150px; width: 150px; }
@@ -634,7 +642,7 @@
         </div>
         <div class="cdbox">
           <div class="cdhead">
-            <label class="c" for="o_actives" title="When to pop your short cooldowns for the first time: the racial cooldown (Blood Fury, Berserking, Eureka!), the Major Spellblasting Potion and Power Infusion. After that each one is used again whenever it is ready. 'Bane of Doom explodes' = right before the cast the first explosion falls into; builds that never cast Bane of Doom (or fights where it cannot explode) pop at the pull. Execute = boss below 35% health. Custom timeline = you place every use yourself — also mana potions, runes and explosives; whatever you do not place is used automatically as usual. Eureka! (Gnome) is then popped right before the next long cast (Shadow Bolt, Searing Pain, Incinerate, Soul Fire, a channel), so no charge goes to a DoT.">Pop cooldowns (potion, racial, Power Infusion)
+            <label class="c" for="o_actives" title="When to pop your short cooldowns for the first time: the racial cooldown (Blood Fury, Berserking, Eureka!), the Major Spellblasting Potion and Power Infusion. After that each one is used again whenever it is ready. 'Bane of Doom explodes' = right before the cast the first explosion falls into; builds that never cast Bane of Doom (or fights where it cannot explode) pop at the pull. Execute = boss below 35% health. Custom timeline = you place every use yourself — also mana potions, runes and explosives; whatever you do not place is used automatically as usual. Every cooldown has a row; its checkbox is the same switch as in the Buffs & debuffs / Consumables tab, and a switched-off row is greyed. Eureka! (Gnome) is then popped right before the next long cast (Shadow Bolt, Searing Pain, Incinerate, Soul Fire, a channel), so no charge goes to a DoT.">Pop cooldowns (potion, racial, Power Infusion)
               <select id="o_actives">
                 <option value="pull">on the pull</option>
                 <option value="doom">when the first Bane of Doom explodes</option>
