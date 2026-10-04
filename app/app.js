@@ -95,6 +95,7 @@
   function activesWhen() {
     var a = (runCfg.options || {}).activesPolicy || 'doom';
     return a === 'pull' ? 'on the pull' : a === 'execute' ? 'when the boss drops below ' + runCfg.fight.executePct + '%' :
+      a === 'custom' ? 'at the times on your cooldown timeline (anything not placed there: at the first Bane of Doom explosion)' :
       'when the first Bane of Doom explodes (on the pull for builds that never cast it)';
   }
   function racialRule(rc) {
@@ -161,6 +162,7 @@
       var dg = (cfg.debuffs[t.id.slice(2)] || {}).group;
       if (dg) Object.keys(cfg.debuffs).forEach(function (k) { if (cfg.debuffs[k].group === dg && 'd_' + k !== t.id) $('d_' + k).checked = false; });
     }
+    if (t.id === 'cdSelT') cdSetSelTime(parseFloat(t.value));          // seconds box of the selected timeline block (round 92)
     readSettings();
     if (t.id === 'showPct') { if (results.length && !running) { render(); showStale(); } return; }   // display only (round 66)
     if (t.id !== 't_race' && t.id !== 'gearSel') markDirty();   // the Stats race only changes the Total column, not the run
@@ -266,7 +268,7 @@
     $('resShadow').value = cfg.combat.targetResist.shadow; $('resFire').value = cfg.combat.targetResist.fire;
     $('o_levelRes').checked = !!(cfg.combat.levelResist && cfg.combat.levelResist.on);
     $('o_actives').value = cfg.options.activesPolicy || 'doom';
-    armorNote(); renderTotals(); tabCounts();
+    armorNote(); renderTotals(); tabCounts(); renderCdTl();
   }
   var CON_GROUPS = { flask: 'Flask', spElixir: 'Spell power elixir', shadowElixir: 'Shadow elixir', fireElixir: 'Fire elixir',
     intElixir: 'Intellect elixir', spiElixir: 'Spirit elixir', manaElixir: 'Mana regeneration elixir', zanza: 'Zanza', cortex: 'Cerebral Cortex',
@@ -333,13 +335,123 @@
     ['Shadow', 'Fire'].forEach(function (s) { var v = parseFloat($('res' + s).value); if (isFinite(v)) cfg.combat.targetResist[s.toLowerCase()] = Math.max(0, v); });
     cfg.combat.levelResist.on = $('o_levelRes').checked;
     cfg.options.activesPolicy = $('o_actives').value;
-    armorNote(); renderTotals(); tabCounts();
+    armorNote(); renderTotals(); tabCounts(); renderCdTl();
     var num = function (id, fallback) { var v = parseFloat($(id).value); return isFinite(v) ? v : fallback; };
     cfg.petSpPct = num('p_spPct', cfg.petSpPct);
     cfg.pets.succubus.melee.apPerSp = num('p_succAp', cfg.pets.succubus.melee.apPerSp);
     cfg.pets.succubus.melee.baseDps = num('p_succBase', cfg.pets.succubus.melee.baseDps);
     cfg.fight.iterations = Math.max(1, Math.round(cfg.fight.iterations));
     cfg.fight.weightIterations = Math.max(1, Math.round(cfg.fight.weightIterations));
+  }
+
+  // ---------- custom cooldown timeline (round 92, user; options.activesPolicy 'custom', A77) ----------
+  // One lane per cooldown that is switched on, as long as the longest possible fight. A block = one use at that time
+  // (cfg.options.activesTimeline[slot] = [seconds]); the red line after it is the cooldown, the dashed "auto" box shows
+  // where it is automatic again (after its last placed use). The striped end = the fight may already be over (± length
+  // variation). Click a lane to place, drag to move, click a block to edit its time or remove it.
+  var cdSel = null, cdDrag = null;                        // selected block { k, t }; drag { k, idx }
+  var CD_AUTO = { buff: 'Auto: at the first Bane of Doom explosion, then whenever ready', mana: 'Auto: when that much mana is missing', cd: 'Auto: on cooldown' };
+  function cdStore() { return cfg.options.activesTimeline || (cfg.options.activesTimeline = {}); }
+  function cdLen() { return cfg.fight.duration * (1 + (cfg.fight.durationVarPct || 0) / 100); }
+  function cdRows() {
+    var act = WL.activeConsumables(cfg), rows = [], pi = cfg.buffs.powerInfusion;
+    rows.push({ k: 'racial', name: 'Racial cooldown', icon: 'race_orc', dur: 15, cd: 120, auto: 'buff',
+      tip: 'Blood Fury (Orc, 15 s, 2 min cooldown), Berserking (Troll, 10 s, 3 min), Eureka! (Gnome, 3 casts, 2 min). Humans and Undead have none.' });
+    var pot = act.filter(function (c) { return c.cdGroup === 'potion'; })[0];
+    if (pot) rows.push({ k: 'potion', name: pot.name, icon: 'consumable_' + pot.key, dur: pot.spPotion ? pot.spPotion.duration : 0, cd: pot.cd, auto: pot.spPotion ? 'buff' : 'mana', tip: pot.desc });
+    if (pi && pi.on) rows.push({ k: 'pi', name: pi.name, icon: 'buff_powerInfusion', dur: pi.duration, cd: pi.cd, auto: 'buff', tip: pi.desc });
+    var rune = act.filter(function (c) { return c.cdGroup === 'rune'; })[0];
+    if (rune) rows.push({ k: 'rune', name: rune.name, icon: 'consumable_' + rune.key, dur: 0, cd: rune.cd, auto: 'mana', tip: rune.desc });
+    act.filter(function (c) { return c.explosive; }).forEach(function (c) {
+      rows.push({ k: c.explosive.cdGroup === 'sapper' ? 'sapper' : 'explosive', name: c.name, icon: 'consumable_' + c.key, dur: 0, cd: c.explosive.cd, auto: 'cd', tip: c.desc });
+    });
+    return rows;
+  }
+  function renderCdTl() {
+    var on = $('o_actives').value === 'custom', box = $('cdTl');
+    box.hidden = !on; $('cdClear').hidden = !on;
+    if (!on) return;
+    var D = cdLen(), F = cfg.fight, E0 = F.duration * (1 - (F.durationVarPct || 0) / 100), tl = cdStore(), rows = cdRows();
+    var pct = function (t) { return (100 * t / D).toFixed(3) + '%'; };
+    var marks = [];
+    if (D > 62) marks.push({ t: 60, l: 'Doom explodes', side: 'l' });
+    marks.push({ t: F.duration * (1 - F.executePct / 100), l: 'execute', side: 'r' });
+    var back = (E0 < D - 1e-9 ? '<span class="cdend" style="left:' + pct(E0) + '"></span>' : '') +
+      marks.map(function (m) { return '<span class="cdmark" style="left:' + pct(m.t) + '"></span>'; }).join('');
+    if (cdSel && !rows.some(function (r) { return r.k === cdSel.k && (tl[r.k] || []).indexOf(cdSel.t) >= 0; })) cdSel = null;
+    var h = '<div class="cdgrid">', selRow = null;
+    rows.forEach(function (r) {
+      var arr = (tl[r.k] || []).slice().sort(function (a, b) { return a - b; });
+      h += '<button type="button" class="cdname" data-cdadd="' + r.k + '" title="' + esc(r.tip + ' — click to add a use at 0 s, or drag onto the lane.') + '">' +
+        icon(r.icon, r.name) + '<span>' + esc(r.name) + '</span></button><div class="cdlane" data-cdk="' + r.k + '">' + back;
+      if (!arr.length) h += '<span class="cdauto">' + CD_AUTO[r.auto] + '</span>';
+      arr.forEach(function (t, i) {
+        var bad = i > 0 && t - arr[i - 1] < r.cd - 1e-9, ready = t + r.cd, sel = cdSel && cdSel.k === r.k && cdSel.t === t;
+        if (sel) selRow = r;
+        h += '<span class="cdcool" style="left:' + pct(t) + ';width:' + pct(Math.min(r.cd, D - t)) + '"></span>';
+        if (i === arr.length - 1 && ready < D - 1) h += '<span class="cdghost" style="left:' + pct(ready) + ';width:' + pct(D - ready) + '">auto</span>';
+        h += '<span class="cdblk' + (bad ? ' bad' : '') + (sel ? ' sel' : '') + '" data-cdt="' + t + '" style="left:' + pct(t) + ';width:' + pct(Math.max(r.dur, D * 0.022)) + '" title="' +
+          esc(r.name + ' at ' + t + ' s' + (bad ? ' — still on cooldown from the use before it (used as soon as it is ready)' : '')) + '">' + (r.dur ? t + ' s' : '') + '</span>';
+      });
+      h += '</div>';
+    });
+    var step = D <= 200 ? 30 : D <= 400 ? 60 : 120, ticks = '';
+    for (var x = 0; x <= (E0 < D - 1e-9 ? E0 - step * 0.45 : D); x += step) ticks += '<b style="left:' + pct(x) + '">' + x + ' s</b>';
+    h += '<span></span><div class="cdaxis">' + ticks + marks.map(function (m) { return '<i class="' + m.side + '" style="left:' + pct(m.t) + '">' + m.l + '</i>'; }).join('') +
+      (E0 < D - 1e-9 ? '<i class="end">ends ' + fmt(E0) + '–' + fmt(D) + ' s</i>' : '') + '</div></div>';
+    h += '<div class="cdfoot">' + (selRow
+      ? '<span class="cdedit"><label for="cdSelT">' + esc(selRow.name) + ' at <input id="cdSelT" type="number" min="0" max="' + Math.floor(D) + '" step="1" value="' + cdSel.t + '"> s</label> ' +
+        '<button type="button" id="cdSelRm" class="resetbtn">Remove</button></span>'
+      : '<span>Click a lane to place a use · drag to move · click a block to edit or remove it</span>') +
+      '<span class="cdkey"><span><u class="k1"></u>placed</span><span><u class="k2"></u>cooldown</span><span><u class="k3"></u>automatic again</span>' +
+      (E0 < D - 1e-9 ? '<span><u class="k4"></u>fight may be over (±' + F.durationVarPct + '%)</span>' : '') + '</span></div>';
+    box.innerHTML = h;
+  }
+  function cdTimeAt(k, clientX) {
+    var lane = document.querySelector('#cdTl .cdlane[data-cdk="' + k + '"]'); if (!lane) return 0;
+    var r = lane.getBoundingClientRect(), D = cdLen();
+    return Math.max(0, Math.min(Math.floor(D), Math.round(D * (clientX - r.left) / Math.max(1, r.width))));
+  }
+  function cdCommit() {                                   // sort, drop duplicates, refresh, mark the results stale
+    var tl = cdStore();
+    Object.keys(tl).forEach(function (k) {
+      tl[k] = tl[k].filter(function (t, i, a) { return isFinite(t) && a.indexOf(t) === i; }).sort(function (a, b) { return a - b; });
+      if (!tl[k].length) delete tl[k];
+    });
+    renderCdTl(); markDirty();
+  }
+  $('cdTl').addEventListener('pointerdown', function (e) {
+    if (e.button) return;
+    var blk = e.target.closest('.cdblk'), lane = e.target.closest('.cdlane'), nm = e.target.closest('.cdname'), tl = cdStore(), k, t;
+    if (blk && lane) { k = lane.getAttribute('data-cdk'); t = +blk.getAttribute('data-cdt'); }
+    else if (lane) { k = lane.getAttribute('data-cdk'); t = cdTimeAt(k, e.clientX); (tl[k] = tl[k] || []).push(t); }
+    else if (nm) { k = nm.getAttribute('data-cdadd'); t = 0; if ((tl[k] = tl[k] || []).indexOf(0) < 0) tl[k].push(0); }
+    else return;
+    cdSel = { k: k, t: t }; cdDrag = { k: k, idx: tl[k].indexOf(t) };
+    e.preventDefault(); renderCdTl();
+  });
+  window.addEventListener('pointermove', function (e) {
+    if (!cdDrag) return;
+    var t = cdTimeAt(cdDrag.k, e.clientX), a = cdStore()[cdDrag.k];
+    if (!a || a[cdDrag.idx] === t) return;
+    a[cdDrag.idx] = t; cdSel = { k: cdDrag.k, t: t }; renderCdTl();
+  });
+  window.addEventListener('pointerup', function () { if (!cdDrag) return; cdDrag = null; cdCommit(); });
+  window.addEventListener('pointercancel', function () { if (!cdDrag) return; cdDrag = null; cdCommit(); });
+  $('cdTl').addEventListener('click', function (e) {
+    if (!e.target.closest('#cdSelRm') || !cdSel) return;
+    var a = cdStore()[cdSel.k] || [], i = a.indexOf(cdSel.t);
+    if (i >= 0) a.splice(i, 1);
+    cdSel = null; cdCommit();
+  });
+  $('cdClear').addEventListener('click', function () { cfg.options.activesTimeline = {}; cdSel = null; cdCommit(); });
+  function cdSetSelTime(v) {                              // the seconds box of the selected block
+    if (!cdSel || !isFinite(v)) return;
+    var a = cdStore()[cdSel.k] || [], i = a.indexOf(cdSel.t);
+    if (i < 0) return;
+    v = Math.max(0, Math.min(Math.floor(cdLen()), Math.round(v)));
+    a[i] = v; cdSel = { k: cdSel.k, t: v };
+    var tl = cdStore(); tl[cdSel.k] = a.filter(function (t, j, arr) { return arr.indexOf(t) === j; }).sort(function (x, y) { return x - y; });
   }
 
   // ---------- stat bar ----------

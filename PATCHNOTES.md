@@ -3,6 +3,11 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v85
+- **Custom cooldown timeline**: "Pop cooldowns → custom timeline" (Fight & pets) lets you place every use of your racial
+  cooldown, potion, Power Infusion, rune and explosives on a timeline of the fight. Click a lane to place, drag to move,
+  click a block to edit or remove. Anything you do not place is used automatically as before.
+
 ## v84
 - The right settings panel now always has the **same height as the Stats panel**: switching tabs no longer shifts the
   page, and every tab fits without scrolling (more compact Consumables and Fight & pets layouts).

@@ -177,8 +177,35 @@ window.WL = window.WL || {};
     //             cover it) or the first cast after it. At the pull if this build never casts Doom, if a Bane of Agony
     //             went up instead, or if Doom will not explode before the fight ends.
     //   'execute' once the boss is below fight.executePct
+    //   'custom'  (round 92, user) a cooldown timeline, options.activesTimeline: per slot — racial, potion, pi, rune,
+    //             sapper, explosive — the times at which you use it. A slot is held until its next placed time and used at
+    //             the first chance from then on; after its last placed use it is automatic again (whenever ready / the
+    //             usual mana rule / on cooldown). Slots without a placed use: as usual — buffs by the 'doom' rule.
     var ACT_POL = (cfg.options && cfg.options.activesPolicy) || 'pull', actOpen = ACT_POL === 'pull', doomSeen = false;
     var ACT_DOOM = null;                                                   // does this build ever cast Bane of Doom? (set on first use: ROT is built below)
+    var ACT_TL = null;                                                     // custom timeline: slot → { t: sorted times, i: next one }
+    if (ACT_POL === 'custom') {
+      ACT_TL = {};
+      var tlSrc = cfg.options.activesTimeline || {};
+      Object.keys(tlSrc).forEach(function (k) {
+        var a = (Array.isArray(tlSrc[k]) ? tlSrc[k] : []).map(Number).filter(function (x) { return isFinite(x) && x >= 0; }).sort(function (x, y) { return x - y; });
+        if (a.length) ACT_TL[k] = { t: a, i: 0 };
+      });
+    }
+    // 0 = hold (a placed use is still ahead) · 1 = a placed time has come: use it now · 2 = automatic (nothing placed, or
+    // every placed use is done). Without a custom timeline always 2.
+    function slotGate(k) { var sl = ACT_TL && ACT_TL[k]; if (!sl || sl.i >= sl.t.length) return 2; return S.t >= sl.t[sl.i] - EPS ? 1 : 0; }
+    function slotUsed(k) { var sl = ACT_TL && ACT_TL[k]; if (sl && sl.i < sl.t.length && S.t >= sl.t[sl.i] - EPS) sl.i++; }
+    // Racial cooldown, Spellblasting potion and Power Infusion, right before a damaging cast.
+    function popActives(key) {
+      if (!ACT_TL) { if (activesOk(key)) { useRacials(key); useSpPotion(); usePowerInfusion(); } return; }
+      var g = slotGate('racial');
+      if (g === 1 || (g === 2 && (ACT_TL.racial || activesOk(key)))) { if (useRacials(key)) slotUsed('racial'); }
+      g = slotGate('potion');
+      if (g === 1 || (g === 2 && (ACT_TL.potion || activesOk(key)))) { if (useSpPotion()) slotUsed('potion'); }
+      g = slotGate('pi');
+      if (g === 1 || (g === 2 && (ACT_TL.pi || activesOk(key)))) { if (usePowerInfusion()) slotUsed('pi'); }
+    }
     function activesOk(key) {
       if (actOpen) return true;
       if (ACT_POL === 'execute') return actOpen = S.targetHpPct < cfg.fight.executePct;
@@ -190,22 +217,29 @@ window.WL = window.WL || {};
       return actOpen = toBoom > S.remaining || toBoom <= len + EPS;
     }
     function usePowerInfusion() {
-      if (!PI || !S.ready('powerInfusion')) return;
+      if (!PI || !S.ready('powerInfusion')) return false;
       S.cds.powerInfusion = S.t + PI.cd; S.buffs.powerInfusion = S.t + PI.duration;
       L('buff', PI.name);
+      return true;
     }
     function useSpPotion() {
-      if (!spPot || !S.ready('cd:' + spPot.cdGroup)) return;
+      if (!spPot || !S.ready('cd:' + spPot.cdGroup)) return false;
       S.cds['cd:' + spPot.cdGroup] = S.t + spPot.cd; S.buffs.spPotion = S.t + spPot.spPotion.duration;
       L('consumable', spPot.name);
+      return true;
     }
+    // Mana potion / rune: when at least their amount of mana is missing. On a custom timeline (round 92) a placed use is
+    // taken at its time as soon as any mana is missing (the gain is capped at the missing mana).
     function useManaItems() {
       manaItems.forEach(function (c) {
-        var amt = c.manaRestore.amount || stats.maxMana * c.manaRestore.pct / 100;
-        if (!S.ready('cd:' + c.cdGroup) || stats.maxMana - S.mana < amt) return;
+        var amt = c.manaRestore.amount || stats.maxMana * c.manaRestore.pct / 100, miss = stats.maxMana - S.mana;
+        var slot = c.cdGroup === 'potion' ? 'potion' : 'rune', g = slotGate(slot);
+        if (g === 0 || !S.ready('cd:' + c.cdGroup) || (g === 1 ? miss <= EPS : miss < amt)) return;
+        if (amt > miss) amt = miss;
         S.cds['cd:' + c.cdGroup] = S.t + c.cd; S.mana += amt;
         res.manaFromConsumables = (res.manaFromConsumables || 0) + amt;
         L('consumable', c.name, { gain: Math.round(amt) });
+        slotUsed(slot);
       });
     }
     // Engineering explosives (W14, A59): thrown on cooldown; instant, 1 s item GCD; fixed damage (no spell power or
@@ -214,9 +248,9 @@ window.WL = window.WL || {};
     function useExplosive() {
       if (S.t >= dur - EPS) return false;
       for (var i = 0; i < explosives.length; i++) {
-        var c = explosives[i], x = c.explosive, key = 'item:' + c.key, r = row(key);
-        if (!S.ready('cd:' + x.cdGroup)) continue;
-        S.cds['cd:' + x.cdGroup] = S.t + x.cd;
+        var c = explosives[i], x = c.explosive, key = 'item:' + c.key, r = row(key), xslot = x.cdGroup === 'sapper' ? 'sapper' : 'explosive';
+        if (!S.ready('cd:' + x.cdGroup) || slotGate(xslot) === 0) continue;           // custom timeline: held for its placed time
+        S.cds['cd:' + x.cdGroup] = S.t + x.cd; slotUsed(xslot);
         r.casts++; r.castTime += cb.minGcd;
         S.busyUntil = S.t; S.gcdReady = S.t + cb.minGcd;
         L('cast', key, { castTime: 0, gcd: cb.minGcd });
@@ -613,8 +647,8 @@ window.WL = window.WL || {};
     }
     function useRacials(key) {
       var cd = racialOf('cooldown');
-      if (!cd || !S.ready('racial')) return;
-      if (cd.charges && key && !eurekaPopOk(key)) return;
+      if (!cd || !S.ready('racial')) return false;
+      if (cd.charges && key && !eurekaPopOk(key)) return false;
       S.cds.racial = S.t + cd.cd;
       if (cd.spPct) S.buffs.bloodFury = S.t + cd.duration;
       if (cd.hastePct) S.buffs.berserking = S.t + cd.duration;
@@ -623,6 +657,7 @@ window.WL = window.WL || {};
         if (cd.duration) H.push({ t: S.t + cd.duration, o: 0, type: 'eurekaEnd', pop: S.cds.racial });   // 15 s cap (round 42)
       }
       L('racial', cd.name);
+      return true;
     }
 
     // ---------- pet actor [A26][A45][A46] ----------
@@ -921,7 +956,7 @@ window.WL = window.WL || {};
       // Racial cooldowns fire only right before an actual damaging cast (never before a curse or a Life Tap).
       // Checked with Eureka's cost reduction in mind: pop it only if we can then afford the spell.
       var damaging = SPELLS[p.key].kind !== 'utility';
-      if (damaging && S.mana >= discountedCost(p.key) && activesOk(p.key)) { useRacials(p.key); useSpPotion(); usePowerInfusion(); }
+      if (damaging && S.mana >= discountedCost(p.key)) popActives(p.key);
       if (S.mana < effectiveCost(p.key)) {
         if (stats.maxMana < effectiveCost(p.key)) { res.oom++; scheduleDecide(S.t + 1); return; }
         lifeTap(); return;
@@ -956,7 +991,7 @@ window.WL = window.WL || {};
           lifeTap(); return true;                                                           // Life Tap first; the rest runs later
         }
         TL.i++;
-        if (SPELLS[k].kind !== 'utility' && S.mana >= discountedCost(k) && activesOk(k)) { useRacials(k); useSpPotion(); usePowerInfusion(); }
+        if (SPELLS[k].kind !== 'utility' && S.mana >= discountedCost(k)) popActives(k);
         startCast(k, 0, true);
         return true;
       }

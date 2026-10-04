@@ -130,6 +130,12 @@ WL.DEFAULT_CONFIG = {
     // build never casts Doom or Doom cannot explode in this fight) · 'execute' = when the boss drops below executePct.
     // After the first use each one is used again whenever it is ready. [A77]
     activesPolicy: 'doom',
+    // 'custom' (round 92, user): a cooldown timeline — per cooldown a list of times (s from the pull) at which you use it:
+    // { racial: [..], potion: [..], pi: [..], rune: [..], sapper: [..], explosive: [..] }. A cooldown is held until its next
+    // placed time and used at the first chance from then on; after its last placed use it is automatic again. Cooldowns
+    // with no placed use behave as usual (buffs: the 'doom' rule; mana items: when the mana is missing; explosives: on
+    // cooldown). Only read when activesPolicy is 'custom'. [A77]
+    activesTimeline: {},
     // AQ20 book ranks (round 42, user): Shadow Bolt R10, Immolate R8, Corruption R7 instead of the trainer ranks
     // R9 / R7 / R6. Off by default (the books drop in Ruins of Ahn'Qiraj). See WL.BOOK_RANKS / SPELLVALUES.md.
     bookRanks: false,
