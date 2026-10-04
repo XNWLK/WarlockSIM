@@ -3,6 +3,11 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v89
+- **DoTs are dynamic** (Forever, unlike Classic): every tick, including the Bane of Doom explosion, uses the spell power you
+  have at that moment — so Blood Fury and the Spellblasting potion now buff a Doom that explodes while they are up.
+  Only Orc numbers change with the default settings (about +0.1%).
+
 ## v88
 - Cooldown timeline: the **racial row** now shows one race at a time (Orc / Troll / Gnome buttons) with that racial's real
   duration and cooldown. The "=" button keeps one set of times for all three races; click it to give each race its own.

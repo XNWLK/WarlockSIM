@@ -288,7 +288,10 @@ window.WL = window.WL || {};
       }
       return false;
     }
-    function snapSp(e) { return (e.sp + potSp()) * (S.buff('bloodFury') ? 1 + racialOf('cooldown').spPct / 100 : 1); } // [A32]
+    // Your spell power right now for this spell: sheet + school + Spellblasting potion, × Blood Fury. [A32]
+    // Round 96 (user: in Forever every DoT is dynamic, unlike Classic): periodic ticks — DoTs incl. the Bane of Doom explosion,
+    // and channels — read it when the tick lands, like a direct hit does when it is cast; nothing is kept from the cast. [A13]
+    function spNow(e) { return (e.sp + potSp()) * (S.buff('bloodFury') ? 1 + racialOf('cooldown').spPct / 100 : 1); }
 
     // Resistance / Spell Pierce roll for one Warlock damage event. [A43][A44]
     var resCache = {}, lastVulnPct = 0;                 // vulnerable (+) / partially resisted (−) step of the last roll (log marker)
@@ -434,10 +437,10 @@ window.WL = window.WL || {};
     }
     function periodicTickX(ti, key, snap, i) {
       var s = SPELLS[key], e = table[key], rk = xkey(ti, key);
-      var amt = (s.tickBase * (snap.baseMult || 1) + s.tickCoef * snap.sp) * e.periodicMult * liveMultX(key, ti, true) * (snap.eureka || 1);
+      var amt = (s.tickBase * (snap.baseMult || 1) + s.tickCoef * spNow(e)) * e.periodicMult * liveMultX(key, ti, true) * (snap.eureka || 1);
       if (s.ramp) amt *= s.ramp[i];
       amt *= vulnMult(s.school, ti);
-      var crit = R.crit() * 100 < snap.critPct;
+      var crit = R.crit() * 100 < e.critPct;
       if (crit) amt *= e.critMult;
       deal(rk, amt, crit, true, ti);
       if (logOn) L('tick', rk, Object.assign({ dmg: Math.round(amt), crit: crit, n: i + 1, of: e.ticks }, vulnLog(amt)));
@@ -456,7 +459,7 @@ window.WL = window.WL || {};
         return true;
       }
       if (s.kind === 'hybrid' || s.kind === 'direct') {                   // Immolate's direct part / a direct spell
-        var amt = (s.base + s.coef * snapSp(e)) * e.directMult * liveMultX(key, ti, false) * (eureka || 1);
+        var amt = (s.base + s.coef * spNow(e)) * e.directMult * liveMultX(key, ti, false) * (eureka || 1);
         var execute = S.targetHpPct < cfg.fight.executePct;               // extra targets follow the boss's health line [A24]
         if ((isSB(key) || key === 'searingPain') && execute && tv('decimation')) {
           amt *= addOp0(key, tv('decimation', 'dmgPct')); S.buffs.decimation = S.t + 10;   // additive spell mod (round 43)
@@ -475,16 +478,15 @@ window.WL = window.WL || {};
 
     // baseMult scales only the spell's base value, not its spell-power part (Amplify Curse, A52).
     function makeSnap(key, eureka, baseMult) {
-      var e = table[key];
-      return { sp: snapSp(e), critPct: e.critPct, eureka: eureka, baseMult: baseMult || 1 };               // [A13]
+      return { eureka: eureka, baseMult: baseMult || 1 };   // what belongs to this cast; spell power and crit are read live per tick (round 96) [A13]
     }
 
     function periodicTick(key, snap, i, isChannel) {
       var s = SPELLS[key], e = table[key];
-      var amt = (s.tickBase * (snap.baseMult || 1) + s.tickCoef * snap.sp) * e.periodicMult * liveMult(key, true) * (snap.eureka || 1);
+      var amt = (s.tickBase * (snap.baseMult || 1) + s.tickCoef * spNow(e)) * e.periodicMult * liveMult(key, true) * (snap.eureka || 1);
       if (s.ramp) amt *= s.ramp[i];                                                                     // [A15]
       amt *= vulnMult(s.school);
-      var crit = R.crit() * 100 < snap.critPct;                                                            // [A07]
+      var crit = R.crit() * 100 < e.critPct;                                                               // [A07]
       if (crit) amt *= e.critMult;
       deal(key, amt, crit, true);
       if (logOn) L('tick', key, Object.assign({ dmg: Math.round(amt), crit: crit, n: i + 1, of: e.ticks }, vulnLog(amt)));
@@ -513,7 +515,7 @@ window.WL = window.WL || {};
       }
       if (s.kind === 'dot') { applyDot(key, makeSnap(key, eureka, baseMult)); L('apply', key); touchOfTheGrave(); jowProc(false); return true; }
       // direct or hybrid
-      var sp = snapSp(e);
+      var sp = spNow(e);
       var amt = (s.base + s.coef * sp) * e.directMult * liveMult(key, false) * (eureka || 1);
       if (key === 'incinerate' && S.dotLeft('immolate') > 0) amt *= 1 + s.immolateBonusPct / 100;
       var execute = S.targetHpPct < cfg.fight.executePct;
@@ -848,9 +850,9 @@ window.WL = window.WL || {};
       var s = SPELLS[key], e = table[key], amt;
       if (s.kind === 'channel') {
         amt = 0;
-        for (var i = 0; i < e.ticks; i++) amt += (s.tickBase + s.tickCoef * snapSp(e)) * e.periodicMult * lmult(key, ti, true) * (s.ramp ? s.ramp[i] : 1);
+        for (var i = 0; i < e.ticks; i++) amt += (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * lmult(key, ti, true) * (s.ramp ? s.ramp[i] : 1);
       } else {
-        amt = (s.base + s.coef * snapSp(e)) * e.directMult * lmult(key, ti, false);
+        amt = (s.base + s.coef * spNow(e)) * e.directMult * lmult(key, ti, false);
         if (key === 'incinerate' && !noImmolate && S.dotLeft('immolate') > 0) amt *= 1 + s.immolateBonusPct / 100;
         if ((isSB(key) || key === 'searingPain') && S.targetHpPct < cfg.fight.executePct && tv('decimation')) amt *= addOp0(key, tv('decimation', 'dmgPct'));
       }
@@ -880,7 +882,7 @@ window.WL = window.WL || {};
       var cost = (occupies(key) + LAT) * fRate;
       var end = Math.min(dur, tL + s.duration), gcd = S.gcd(), value = 0;
       var baseMult = key === 'baneOfAgony' && tv('amplifyCurse') && S.ready('amplifyCurse') ? 1 + tv('amplifyCurse', 'boaPct') / 100 : 1;
-      var tickAmt = (s.tickBase * baseMult + s.tickCoef * snapSp(e)) * e.periodicMult * lmult(key, ti, true) * expVuln(s.school, ti) * expCrit(e.critPct, e.critMult);
+      var tickAmt = (s.tickBase * baseMult + s.tickCoef * spNow(e)) * e.periodicMult * lmult(key, ti, true) * expVuln(s.school, ti) * expCrit(e.critPct, e.critMult);
       if (f === 'wrack' && SPELLS.wrack.debuffSpells.indexOf(key) >= 0) tickAmt *= 1 + SPELLS.wrack.debuffPct / 100;   // ticks during the Wrack filler
       // Conflagrate (Destruction): a new Immolate lets the next Conflagrate happen, which then consumes it (unless
       // Shadow and Flame keeps it) — so ticks after that moment count only with the keep chance.
