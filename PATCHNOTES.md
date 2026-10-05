@@ -3,6 +3,11 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v91
+- New priority action: **Searing Pain in the execute phase only to trigger Decimation** — one Searing Pain right before
+  each Soul Fire, your normal filler otherwise. For Drain Life, Wrack and Incinerate fillers, which do not trigger
+  Decimation themselves. (The older "Searing Pain in the execute phase" keeps using Searing Pain as the execute filler.)
+
 ## v90
 - New priority action: **Conflagrate only when Immolate is about to expire** (≤ 3 s left). Worth +3–4% on builds without
   Shadow and Flame, where Conflagrate consumes Immolate; with Shadow and Flame 5/5 keep Conflagrate on cooldown.

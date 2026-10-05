@@ -19,7 +19,7 @@
     siphonLife: 'siphonLife', immolate: 'immolate', conflagrate: 'conflagrate', shadowburn: 'shadowburn', soulFire: 'soulFire',
     wrack: 'wrack', shadowBolt: 'shadowBolt', incinerate: 'incinerate', drainLife: 'drainLife', searingPain: 'searingPain',
     lifeTapPet: 'lifeTap', soulFireShards: 'soulFire', searingPainBrand: 'searingPain', shadowburnSnF: 'shadowburn', conflagrateSnF: 'conflagrate', conflagrateExpire: 'conflagrate', multiDot: 'corruption', shadowBoltSpread: 'talent_improvedShadowBolt', isbUpkeep: 'talent_improvedShadowBolt', shadowBoltR2LowMana: 'shadowBolt', deathCoil: 'deathCoil', deathCoilFinisher: 'deathCoil', havocAuto: 'baneOfHavoc',
-    swapToImp: 'pet_imp', swapToSuccubus: 'pet_succubus', searingPainExecute: 'searingPain' };
+    swapToImp: 'pet_imp', swapToSuccubus: 'pet_succubus', searingPainExecute: 'searingPain', searingPainDecimation: 'searingPain' };
   // Stat weights (round 44): the table shows SP first (DPS per 1 SP), the others as spell-power equivalents
   // (weight ÷ SP weight: "1% hit is worth 12 SP"); Spell Pierce only in the details.
   var STATS = [
@@ -49,7 +49,7 @@
   };
   var ACTION_SPELLS = { bane: ['baneOfDoom', 'baneOfAgony'], shadowTrance: ['shadowBolt'], lifeTapPet: ['lifeTap'],
     multiDot: ['curseOfElements', 'corruption', 'baneOfAgony', 'immolate', 'siphonLife'], shadowburnSnF: ['shadowburn'], conflagrateSnF: ['conflagrate'], conflagrateExpire: ['conflagrate'], shadowBoltSpread: ['shadowBolt'], isbUpkeep: ['shadowBolt'], deathCoil: ['deathCoil'], deathCoilFinisher: ['deathCoil'],
-    searingPainBrand: ['searingPain'], soulFireShards: ['soulFire'], searingPainExecute: ['searingPain'] };
+    searingPainBrand: ['searingPain'], soulFireShards: ['soulFire'], searingPainExecute: ['searingPain'], searingPainDecimation: ['searingPain'] };
   function para(s) { return esc(s).replace(/\n/g, '<br>'); }
   function spellMeta(s) {
     var parts = [];
@@ -1462,7 +1462,7 @@
   var ACTION_GROUPS = [
     ['Curses & DoTs', ['curseOfElements', 'bane', 'baneOfAgony', 'corruption', 'siphonLife', 'immolate']],
     ['Multi-target', ['multiDot', 'shadowBoltSpread']],
-    ['Cooldowns & procs', ['shadowTrance', 'isbUpkeep', 'deathCoil', 'deathCoilFinisher', 'conflagrate', 'conflagrateExpire', 'conflagrateSnF', 'shadowburn', 'shadowburnSnF', 'soulFire', 'searingPainBrand', 'searingPainExecute']],
+    ['Cooldowns & procs', ['shadowTrance', 'isbUpkeep', 'deathCoil', 'deathCoilFinisher', 'conflagrate', 'conflagrateExpire', 'conflagrateSnF', 'shadowburn', 'shadowburnSnF', 'soulFire', 'searingPainBrand', 'searingPainExecute', 'searingPainDecimation']],
     ['Pet & mana', ['lifeTapPet', 'swapToImp', 'swapToSuccubus']],
     ['Fillers (the last entry)', ['shadowBolt', 'incinerate', 'searingPain', 'drainLife', 'wrack']],
   ];
@@ -1473,7 +1473,7 @@
     shadowTrance: 'Shadow Bolt (max rank) on Shadow Trance (Nightfall)', isbUpkeep: 'Shadow Bolt (max rank) to keep ISB up',
     deathCoil: 'Death Coil on cooldown', deathCoilFinisher: 'Death Coil as the finisher', conflagrate: 'Conflagrate', shadowburn: 'Shadowburn on cooldown',
     shadowburnSnF: 'Shadowburn for Shadow and Flame', conflagrateSnF: 'Conflagrate for Shadow and Flame', conflagrateExpire: 'Conflagrate when Immolate is about to expire', soulFire: 'Soul Fire during Decimation', searingPainBrand: 'Searing Pain for Demonic Brand',
-    searingPainExecute: 'Searing Pain in the execute phase', lifeTapPet: 'Life Tap to feed the pet',
+    searingPainExecute: 'Searing Pain in the execute phase', searingPainDecimation: 'Searing Pain to trigger Decimation', lifeTapPet: 'Life Tap to feed the pet',
     swapToImp: 'Pet swap at execute → Imp', swapToSuccubus: 'Pet swap at execute → Succubus',
     shadowBolt: 'Shadow Bolt (Rank 9)', incinerate: 'Incinerate', searingPain: 'Searing Pain',
     drainLife: 'Drain Life', wrack: 'Wrack',

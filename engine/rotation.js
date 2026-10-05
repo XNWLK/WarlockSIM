@@ -187,6 +187,24 @@ WL.ACTIONS = {
     label: 'Searing Pain in the execute phase (below the execute threshold)',
     pick: function (S) { return S.targetHpPct < S.cfg.fight.executePct ? 'searingPain' : null; },
   },
+  // Searing Pain in the execute phase only to trigger Decimation (round 98, user): one Searing Pain right before Soul Fire
+  // comes off cooldown, when the buff would not be up by then — for fillers that do not trigger Decimation themselves
+  // (Drain Life, Wrack, Incinerate). The filler stays the filler. Does nothing without a Soul Fire action in the list,
+  // or when the Soul Fire could not be cast before the boss dies.
+  searingPainDecimation: {
+    label: 'Searing Pain in the execute phase only to trigger Decimation (for Soul Fire)',
+    pick: function (S) {
+      var rank = S.build.talents.decimation, rot = S.build.rotation;
+      if (!rank || !(S.targetHpPct < S.cfg.fight.executePct)) return null;
+      if (rot.indexOf('soulFire') < 0 && rot.indexOf('soulFireShards') < 0) return null;
+      var cd = Math.max(0, (S.cds.soulFire || 0) - S.t), up = S.buff('decimation') ? S.buffs.decimation - S.t : 0;
+      if (up > cd) return null;                                           // Decimation is already up when Soul Fire is ready
+      var sp = S.castTime('searingPain');
+      if (cd > sp) return null;                                           // too early: the filler goes first
+      var sf = S.castTime('soulFire') * (S.buff('decimation') ? 1 : 1 - WL.TALENT_BY_KEY.decimation.v.sfCastRedPct[rank - 1] / 100);
+      return S.remaining >= Math.max(sp, S.gcd()) + sf ? 'searingPain' : null;
+    },
+  },
   // Soul Fire only while Decimation makes it free and fast (no shard spending otherwise).
   soulFire: {
     label: 'Soul Fire while Decimation buff is up',
