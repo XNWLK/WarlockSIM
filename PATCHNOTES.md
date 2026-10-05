@@ -5,7 +5,8 @@ What each version added or changed, newest first. Version = the version of the
 
 ## v93
 - New spells: **Hellfire** and **Rain of Fire**. Both hit every target of the fight (Fight & pets → Targets) and can be
-  picked as the filler in the build editor. Hellfire's damage to yourself is not counted.
+  picked as the filler in the build editor. Their ticks can crit (Hellfire crits in Forever, unlike Classic). Hellfire's
+  damage to yourself is not counted.
 - As a filler Hellfire only pays off on 3 targets (and for a few builds on 2); Rain of Fire almost never. No built-in
   build uses them.
 - The sim now also runs at **https://xnwlk.github.io/WarlockSIM/**.
