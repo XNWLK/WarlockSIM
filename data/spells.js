@@ -12,6 +12,8 @@
 //   tickEvery/duration   seconds (ticks = duration / tickEvery)
 //   cast     base cast time in seconds (0 = instant). Channels: cast = 0, duration = channel length
 //   cost     mana; cd = cooldown seconds; shards = soul shard cost
+//   range    yards to the target (0 = cast on yourself); Destructive Reach raises it (spell table `range`). Not used by
+//            the fight engine — the boss is always in range (round 99, A78)
 //   talent   talent key required to have the spell
 //   rank     spell rank (shown in the tooltip)
 //   projectile  travels to the target: lands fight.travelMs after the cast (round 39, A65)
@@ -19,46 +21,46 @@ window.WL = window.WL || {};
 
 WL.SPELLS = {
   shadowBolt:   { id: 11661,   name: 'Shadow Bolt',    school: 'shadow', tree: 'destruction', kind: 'direct', rank: 9,
-                  base: 251, coef: 0.857, cast: 3.0, cost: 370, projectile: true },
+                  base: 251, coef: 0.857, cast: 3.0, cost: 370, range: 30, projectile: true },
   immolate:     { id: 11668,   name: 'Immolate',       school: 'fire',   tree: 'destruction', kind: 'hybrid', rank: 7,
-                  base: 146, coef: 0.20, tickBase: 52, tickCoef: 0.13, tickEvery: 3, duration: 15, cast: 2.0, cost: 370 },
+                  base: 146, coef: 0.20, tickBase: 52, tickCoef: 0.13, tickEvery: 3, duration: 15, cast: 2.0, cost: 370, range: 30 },
   incinerate:   { id: 1293813, name: 'Incinerate',     school: 'fire',   tree: 'destruction', kind: 'direct',
-                  base: 217, coef: 0.714, cast: 2.5, cost: 325, immolateBonusPct: 25, talent: 'incinerate', projectile: true },
+                  base: 217, coef: 0.714, cast: 2.5, cost: 325, range: 30, immolateBonusPct: 25, talent: 'incinerate', projectile: true },
   searingPain:  { id: 17923,   name: 'Searing Pain',   school: 'fire',   tree: 'destruction', kind: 'direct',
-                  base: 114, coef: 0.429, cast: 1.5, cost: 168 },
+                  base: 114, coef: 0.429, cast: 1.5, cost: 168, range: 30 },
   conflagrate:  { id: 18932,   name: 'Conflagrate',    school: 'fire',   tree: 'destruction', kind: 'direct',
-                  base: 282, coef: 0.429, cast: 0, cost: 255, cd: 10, talent: 'conflagrate' },
+                  base: 282, coef: 0.429, cast: 0, cost: 255, range: 30, cd: 10, talent: 'conflagrate' },
   shadowburn:   { id: 18871,   name: 'Shadowburn',     school: 'shadow', tree: 'destruction', kind: 'direct',
-                  base: 266, coef: 0.429, cast: 0, cost: 365, cd: 15, shards: 1, talent: 'shadowburn' },
+                  base: 266, coef: 0.429, cast: 0, cost: 365, range: 30, cd: 15, shards: 1, talent: 'shadowburn' },
   soulFire:     { id: 17924,   name: 'Soul Fire',      school: 'fire',   tree: 'destruction', kind: 'direct',
-                  base: 431, coef: 1.0, cast: 6.0, cost: 335, cd: 60, shards: 1, projectile: true },
+                  base: 431, coef: 1.0, cast: 6.0, cost: 335, range: 30, cd: 60, shards: 1, projectile: true },
   corruption:   { id: 11672,   name: 'Corruption',     school: 'shadow', tree: 'affliction',  kind: 'dot', rank: 6,
-                  tickBase: 57, tickCoef: 0.20, tickEvery: 3, duration: 18, cast: 2.0, cost: 290 },
+                  tickBase: 57, tickCoef: 0.20, tickEvery: 3, duration: 18, cast: 2.0, cost: 290, range: 30 },
   baneOfAgony:  { id: 11713,   name: 'Bane of Agony',  school: 'shadow', tree: 'affliction',  kind: 'dot', bane: true,
-                  tickBase: 46, tickCoef: 0.133, tickEvery: 2, duration: 24, cast: 0, cost: 215,
+                  tickBase: 46, tickCoef: 0.133, tickEvery: 2, duration: 24, cast: 0, cost: 215, range: 30,
                   ramp: [0.5, 0.5, 0.5, 0.5, 1, 1, 1, 1, 1.5, 1.5, 1.5, 1.5] },   // [A15]
   baneOfDoom:   { id: 603,     name: 'Bane of Doom',   school: 'shadow', tree: 'affliction',  kind: 'dot', bane: true,
-                  tickBase: 1742, tickCoef: 4.0, tickEvery: 60, duration: 60, cast: 0, cost: 300, cd: 60 },
+                  tickBase: 1742, tickCoef: 4.0, tickEvery: 60, duration: 60, cast: 0, cost: 300, range: 30, cd: 60 },
   // Bane of Havoc (talent 105876, spell 1225228): instant, off the GCD, 5% of base mana, 5 min. 15% of the Warlock's
   // damage to other targets is also dealt to the Havoc target (Wowhead value 16 = tooltip 15, A39). Used only in
   // 2-target encounters (W11, A60).
   baneOfHavoc:  { id: 1225228, name: 'Bane of Havoc',  school: 'shadow', tree: 'affliction',  kind: 'utility',
-                  cast: 0, cost: 69, duration: 300, havocPct: 15, talent: 'baneOfHavoc' },
+                  cast: 0, cost: 69, range: 30, duration: 300, havocPct: 15, talent: 'baneOfHavoc' },
   siphonLife:   { id: 18881,   name: 'Siphon Life',    school: 'shadow', tree: 'affliction',  kind: 'dot',
-                  tickBase: 41, tickCoef: 0.05, tickEvery: 3, duration: 30, cast: 0, cost: 365, talent: 'siphonLife' },
+                  tickBase: 41, tickCoef: 0.05, tickEvery: 3, duration: 30, cast: 0, cost: 365, range: 30, talent: 'siphonLife' },
   drainLife:    { id: 11700,   name: 'Drain Life',     school: 'shadow', tree: 'affliction',  kind: 'channel', drain: true,
-                  tickBase: 51, tickCoef: 0.10, tickEvery: 1, duration: 5, cast: 0, cost: 300 },
+                  tickBase: 51, tickCoef: 0.10, tickEvery: 1, duration: 5, cast: 0, cost: 300, range: 20 },
   drainSoul:    { id: 11675,   name: 'Drain Soul',     school: 'shadow', tree: 'affliction',  kind: 'channel', drain: true,
-                  tickBase: 84, tickCoef: 0.10, tickEvery: 3, duration: 15, cast: 0, cost: 290 },
+                  tickBase: 84, tickCoef: 0.10, tickEvery: 3, duration: 15, cast: 0, cost: 290, range: 30 },
   wrack:        { id: 1316697, name: 'Wrack',          school: 'shadow', tree: 'affliction',  kind: 'channel', drain: true,
-                  tickBase: 36, tickCoef: 0.143, tickEvery: 1, duration: 6, cast: 0, cost: 200, talent: 'wrack',
+                  tickBase: 36, tickCoef: 0.143, tickEvery: 1, duration: 6, cast: 0, cost: 200, range: 30, talent: 'wrack',
                   debuffPct: 10, debuffSpells: ['corruption', 'baneOfAgony'] },   // [A18]
   deathCoil:    { id: 17926,   name: 'Death Coil',     school: 'shadow', tree: 'affliction',  kind: 'direct',
-                  base: 454, coef: 0.214, cast: 0, cost: 600, cd: 120, projectile: true },
+                  base: 454, coef: 0.214, cast: 0, cost: 600, range: 30, cd: 120, projectile: true },
   curseOfElements: { id: 1311680, name: 'Curse of the Elements', school: 'shadow', tree: 'affliction', kind: 'utility',
-                  cast: 0, cost: 200, duration: 300, dmgTakenPct: 10 },            // [A34]
+                  cast: 0, cost: 200, range: 30, duration: 300, dmgTakenPct: 10 },            // [A34]
   lifeTap:      { id: 11689,   name: 'Life Tap',       school: 'shadow', tree: 'affliction',  kind: 'utility',
-                  cast: 0, cost: 0, manaBase: 430 },                                  // [A12] mana = (430 + Spirit) * (1 + ImpLT)
+                  cast: 0, cost: 0, range: 0, manaBase: 430 },                                  // [A12] mana = (430 + Spirit) * (1 + ImpLT)
 };
 
 // AQ20 book ranks (round 42, user): taught only by Grimoire items that drop in Ruins of Ahn'Qiraj (Wowhead Forever:

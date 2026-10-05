@@ -175,11 +175,11 @@ WL.DEFAULT_CONFIG = {
   pets: {
     imp: {
       name: 'Imp', mana: 2000, manaRegen: 8,                       // [A45] mana pool / regen per second
-      spell: { key: 'firebolt', name: 'Firebolt', id: 11763, school: 'fire', base: 44, coef: 0.571, cast: 2.0, cost: 115, projectile: true },   // Effect Value 45 − 1 (round 42, SPELLVALUES.md)
+      spell: { key: 'firebolt', name: 'Firebolt', id: 11763, school: 'fire', base: 44, coef: 0.571, cast: 2.0, cost: 115, range: 30, projectile: true },   // Effect Value 45 − 1 (round 42, SPELLVALUES.md)
     },
     succubus: {
       name: 'Succubus', mana: 2000, manaRegen: 8,                   // [A45]
-      spell: { key: 'lashOfPain', name: 'Lash of Pain', id: 11780, school: 'shadow', base: 50, coef: 0.429, cast: 0, cd: 12, cost: 160 },   // Effect Value 51 − 1 (round 42)
+      spell: { key: 'lashOfPain', name: 'Lash of Pain', id: 11780, school: 'shadow', base: 50, coef: 0.429, cast: 0, cd: 12, cost: 160, range: 5 },   // Effect Value 51 − 1 (round 42)
       // [A46] Base: Season of Discovery values (L60 Succubus base stats, identical in Classic and Season of Discovery):
       // weapon 95–131 per 2.0 s = 56.5 DPS + own AP (Str 129 × 2 − 20 = 238) / 14 = 17.0 → 73.5 DPS.
       // Pet AP from you: round 31 = 1/6 of your spell power (user, measured in Forever: "6 SP = 1 pet AP"; rounds 17–30:

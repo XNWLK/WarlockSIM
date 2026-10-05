@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v92
+- Data: every spell now carries its **range** (also the pet spells and the Engineering explosives), and Destructive Reach
+  raises it in the spell table. No effect on the simulated numbers — the boss is always in range.
+
 ## v91
 - New priority action: **Searing Pain in the execute phase only to trigger Decimation** — one Searing Pain right before
   each Soul Fire, your normal filler otherwise. For Drain Life, Wrack and Incinerate fillers, which do not trigger

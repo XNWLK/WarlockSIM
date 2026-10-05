@@ -53,7 +53,7 @@ WL.TALENTS = [
   { key: 'demonicPact',         tree: 'demonology', wid: 105890, name: 'Demonic Pact',          row: 6, col: 1, ranks: 1, req: 'soulLink', reqQty: 1, v: {} },
 
   // ---------------- Destruction (Wowhead tree 301) ----------------
-  { key: 'destructiveReach',    tree: 'destruction', wid: 105881, name: 'Destructive Reach',    row: 0, col: 0, ranks: 2, v: {} },
+  { key: 'destructiveReach',    tree: 'destruction', wid: 105881, name: 'Destructive Reach',    row: 0, col: 0, ranks: 2, v: { rangePct: [10, 20] } },   // range only, no damage effect (A78)
   { key: 'improvedShadowBolt',  tree: 'destruction', wid: 105889, name: 'Improved Shadow Bolt', row: 0, col: 1, ranks: 5, v: { debuffPct: [4, 8, 12, 16, 20] } },
   { key: 'bane',                tree: 'destruction', wid: 105888, name: 'Bane',                 row: 0, col: 2, ranks: 5, v: { castRed: [0.1, 0.2, 0.3, 0.4, 0.5], sfCastRed: [0.4, 0.8, 1.2, 1.6, 2] } },
   { key: 'moltenSkin',          tree: 'destruction', wid: 105885, name: 'Molten Skin',          row: 1, col: 0, ranks: 5, v: {} },

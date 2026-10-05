@@ -22,6 +22,10 @@ WL.buildSpellTable = function (build, stats, cfg) {
     e.cd = s.cd || 0;
     if (key === 'soulFire' && tv('decimation')) e.cd = s.cd * (1 - tv('decimation', 'sfCdRedPct') / 100);
 
+    // Range in yards (0 = self). Destructive Reach: +10 / 20% on every Warlock spell that has a range. The fight
+    // engine does not use it (the boss is always in range); it is data for tools built on the table. [A78]
+    e.range = s.range ? +(s.range * (1 + tv('destructiveReach', 'rangePct') / 100)).toFixed(2) : 0;
+
     // Mana cost. Cataclysm: Destruction spells. [talent text]
     e.cost = s.cost || 0;
     if (s.tree === 'destruction' && tv('cataclysm')) e.cost *= 1 - tv('cataclysm', 'costRedPct') / 100;
