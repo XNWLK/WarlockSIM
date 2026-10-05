@@ -25,6 +25,7 @@ WL.buildSpellTable = function (build, stats, cfg) {
     // Range in yards (0 = self). Destructive Reach: +10 / 20% on every Warlock spell that has a range. The fight
     // engine does not use it (the boss is always in range); it is data for tools built on the table. [A78]
     e.range = s.range ? +(s.range * (1 + tv('destructiveReach', 'rangePct') / 100)).toFixed(2) : 0;
+    if (s.radius) e.radius = s.radius;                       // area spells; Destructive Reach's radius part does not list them [A79]
 
     // Mana cost. Cataclysm: Destruction spells. [talent text]
     e.cost = s.cost || 0;
@@ -55,9 +56,9 @@ WL.buildSpellTable = function (build, stats, cfg) {
     //  Until round 42 every one of them multiplied.
     var aura = (stats.mult[s.school] || 1) * stats.mult.all;
     var sm = s.school === 'shadow' ? tv('shadowMastery', 'shadowPct') : 0;
-    var agf = s.tree === 'destruction' ? tv('agonizingFlames', 'dmgPct') : 0;
+    var agf = s.tree === 'destruction' && !s.noAgonizingFlames ? tv('agonizingFlames', 'dmgPct') : 0;   // not Hellfire [A79]
     var op0 = sm + agf + (key === 'immolate' ? tv('aftermath', 'immoInitPct') : 0);
-    var op22 = sm + agf + tv('malediction', 'periodicPct')                                   // Malediction [A41]
+    var op22 = sm + agf + (s.noMalediction ? 0 : tv('malediction', 'periodicPct'))           // Malediction [A41]; not Rain of Fire [A79]
       + (key === 'corruption' ? tv('improvedCorruption', 'dmgPct') : 0)
       + (key === 'baneOfAgony' ? tv('improvedBaneOfAgony', 'dmgPct') : 0)
       + (s.drain ? tv('improvedDrains', 'dmgPct') : 0);

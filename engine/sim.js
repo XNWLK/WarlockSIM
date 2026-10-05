@@ -495,6 +495,24 @@ window.WL = window.WL || {};
       }
     }
 
+    // A tick of an area channel (Hellfire, Rain of Fire; round 100, user; A79): every target of the fight (1–3) takes its
+    // own damage event — own hit, resist / Spell Pierce and crit roll, that target's own Curse of the Elements. The
+    // damage is live like every tick (A13); Eureka! counts it as a channel tick; Bane of Havoc copies what the other
+    // targets take. Extra targets' damage is booked under x2: / x3: like the multi-DoT rows.
+    function aoeTick(key, i) {
+      var s = SPELLS[key], e = table[key];
+      for (var ti = 1; ti <= NT; ti++) {
+        var rk = ti > 1 ? xkey(ti, key) : key, r = row(rk);
+        if (R.hit() * 100 >= stats.hitPct) { r.misses++; L('miss', rk, { n: i + 1, of: e.ticks }); continue; }
+        var amt = (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * (ti > 1 ? liveMultX(key, ti, true) : liveMult(key, true));
+        amt *= vulnMult(s.school, ti);
+        var crit = R.crit() * 100 < e.critPct;
+        if (crit) amt *= e.critMult;
+        deal(rk, amt, crit, true, ti);
+        if (logOn) L('tick', rk, Object.assign({ dmg: Math.round(amt), crit: crit, n: i + 1, of: e.ticks }, vulnLog(amt)));
+      }
+    }
+
     // Improved Shadow Bolt (round 54, user; A20): after a Shadow Bolt crit the debuff rolls its own spell-hit check with
     // your hit chance, so not every crit applies it. Own random stream: the other rolls stay the same.
     function isbLands(logKey) {
@@ -609,7 +627,7 @@ window.WL = window.WL || {};
       S.cast = null;
       if (s.kind === 'channel') {
         var r = row(key);
-        if (R.hit() * 100 >= stats.hitPct) {
+        if (!s.aoe && R.hit() * 100 >= stats.hitPct) {                    // area channels always start; their ticks roll per target (round 100)
           if (eurekaUsed) eurekaRelease();
           r.misses++; L('miss', key); if (fromTL) TL.turn = true; S.busyUntil = S.t; S.gcdReady = S.t + gcdT; scheduleDecide(S.gcdReady); return;
         }
@@ -848,6 +866,11 @@ window.WL = window.WL || {};
     // Expected damage of one cast of a direct spell or a full channel right now.
     function expCast(key, ti, noImmolate) {
       var s = SPELLS[key], e = table[key], amt;
+      if (s.aoe) {                                                          // area channel: the same ticks on every target (round 100)
+        var sum = 0;
+        for (var tj = 1; tj <= NT; tj++) sum += e.ticks * (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * lmult(key, tj, true) * expVuln(s.school, tj);
+        return hitChance() * sum * expCrit(e.critPct, e.critMult);
+      }
       if (s.kind === 'channel') {
         amt = 0;
         for (var i = 0; i < e.ticks; i++) amt += (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * lmult(key, ti, true) * (s.ramp ? s.ramp[i] : 1);
@@ -1076,7 +1099,7 @@ window.WL = window.WL || {};
         var c = S.channel;
         if (!c || c.inst !== ev.inst) continue;               // clipped
         if (ev.t > c.end + EPS) continue;                     // cut off by pushback (round 78); chanEnd closes the channel
-        periodicTick(ev.key, c.snap, ev.i, true);
+        if (SPELLS[ev.key].aoe) aoeTick(ev.key, ev.i); else periodicTick(ev.key, c.snap, ev.i, true);
         var last = ev.i === table[ev.key].ticks - 1;
         if (last) { if (c.eurekaHeld) eurekaRelease(); S.channel = null; continue; }
         // A priority channel in a timeline gap ends when the next timeline entry is due (round 70).

@@ -54,6 +54,9 @@ $override = @{
   '11661' = 'Sends a shadowy bolt at the enemy, causing 237 to 265 Shadow damage (+85.7% of Spell Power).'
   '11668' = 'Burns the enemy for 146 Fire damage (+20% of Spell Power) and then an additional 260 Fire damage (+65% of Spell Power) over 15 sec.'
   '11672' = 'Corrupts the target, causing 342 Shadow damage (+120% of Spell Power) over 18 sec.'
+  # AoE channels (round 100): values of the triggered damage spells (11682 / 1282385), Effect Value - 1.
+  '11684' = 'Ignites the area surrounding the caster, causing 206 Fire damage (+2.2% of Spell Power) to himself and to all nearby enemies every 1 sec. Lasts 15 sec.'
+  '11678' = 'Calls down a fiery rain to burn enemies in the area of effect for 880 Fire damage (+33.2% of Spell Power) over 8 sec.'
 }
 $s = 0; $missing = @(); $o = 0
 foreach ($id in ($ids | Select-Object -Unique)) {

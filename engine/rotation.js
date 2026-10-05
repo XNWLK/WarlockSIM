@@ -238,6 +238,9 @@ WL.ACTIONS = {
   shadowBolt:  { label: 'Shadow Bolt (filler)',   filler: true, pick: function () { return 'shadowBolt'; } },
   incinerate:  { label: 'Incinerate (filler)',    filler: true, pick: function (S) { return S.has('incinerate') ? 'incinerate' : null; } },
   drainLife:   { label: 'Drain Life (filler channel)', filler: true, pick: function () { return 'drainLife'; } },
+  // AoE channels as fillers (round 100, user): every tick hits every target of the fight (Fight & pets → Targets). [A79]
+  hellfire:    { label: 'Hellfire (filler channel, hits every target)', filler: true, pick: function () { return 'hellfire'; } },
+  rainOfFire:  { label: 'Rain of Fire (filler channel, hits every target)', filler: true, pick: function () { return 'rainOfFire'; } },
   // Drain Soul removed: its execute bonus no longer exists and it is not used (user, 2026-09-23).
   searingPain: { label: 'Searing Pain (filler)',  filler: true, pick: function () { return 'searingPain'; } },
 };

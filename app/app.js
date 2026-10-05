@@ -13,11 +13,12 @@
     shadowBolt: '#7B4FD6', corruption: '#4B3AA6', baneOfAgony: '#A27BEA', baneOfDoom: '#35286F', siphonLife: '#C4A6F5',
     wrack: '#6A2D9E', drainLife: '#8C7CC9', shadowburn: '#D0B0FF', deathCoil: '#5C4B8C',
     immolate: '#E0662F', incinerate: '#F2A03D', conflagrate: '#B8401C', soulFire: '#F5CD5E', searingPain: '#D98530',
+    hellfire: '#C9302C', rainOfFire: '#EE7B5B',
     'pet:melee': '#2F8F5F', 'pet:lashOfPain': '#5CC08A', 'pet:firebolt': '#3AA776', 'pet:brand': '#8FD6A8', touchOfTheGrave: '#8A8F98',
   };
   var ACTION_ICON = { curseOfElements: 'curseOfElements', shadowTrance: 'shadowTrance', bane: 'baneOfDoom', baneOfAgony: 'baneOfAgony', corruption: 'corruption',
     siphonLife: 'siphonLife', immolate: 'immolate', conflagrate: 'conflagrate', shadowburn: 'shadowburn', soulFire: 'soulFire',
-    wrack: 'wrack', shadowBolt: 'shadowBolt', incinerate: 'incinerate', drainLife: 'drainLife', searingPain: 'searingPain',
+    wrack: 'wrack', shadowBolt: 'shadowBolt', incinerate: 'incinerate', drainLife: 'drainLife', searingPain: 'searingPain', hellfire: 'hellfire', rainOfFire: 'rainOfFire',
     lifeTapPet: 'lifeTap', soulFireShards: 'soulFire', searingPainBrand: 'searingPain', shadowburnSnF: 'shadowburn', conflagrateSnF: 'conflagrate', conflagrateExpire: 'conflagrate', multiDot: 'corruption', shadowBoltSpread: 'talent_improvedShadowBolt', isbUpkeep: 'talent_improvedShadowBolt', shadowBoltR2LowMana: 'shadowBolt', deathCoil: 'deathCoil', deathCoilFinisher: 'deathCoil', havocAuto: 'baneOfHavoc',
     swapToImp: 'pet_imp', swapToSuccubus: 'pet_succubus', searingPainExecute: 'searingPain', searingPainDecimation: 'searingPain' };
   // Stat weights (round 44): the table shows SP first (DPS per 1 SP), the others as spell-power equivalents
@@ -57,6 +58,7 @@
     else parts.push(s.cast ? s.cast + ' s cast' : 'Instant');
     if (s.cost) parts.push(s.cost + ' mana');
     if (s.cd) parts.push(s.cd >= 60 ? (s.cd / 60) + ' min cooldown' : s.cd + ' s cooldown');
+    if (s.aoe) parts.push('hits every target within ' + s.radius + ' yd');
     if (s.duration && s.kind !== 'channel' && s.kind !== 'direct') parts.push(s.duration >= 60 ? (s.duration / 60) + ' min' : s.duration + ' s');
     return parts.join(' · ');
   }
@@ -1464,7 +1466,7 @@
     ['Multi-target', ['multiDot', 'shadowBoltSpread']],
     ['Cooldowns & procs', ['shadowTrance', 'isbUpkeep', 'deathCoil', 'deathCoilFinisher', 'conflagrate', 'conflagrateExpire', 'conflagrateSnF', 'shadowburn', 'shadowburnSnF', 'soulFire', 'searingPainBrand', 'searingPainExecute', 'searingPainDecimation']],
     ['Pet & mana', ['lifeTapPet', 'swapToImp', 'swapToSuccubus']],
-    ['Fillers (the last entry)', ['shadowBolt', 'incinerate', 'searingPain', 'drainLife', 'wrack']],
+    ['Fillers (the last entry)', ['shadowBolt', 'incinerate', 'searingPain', 'drainLife', 'wrack', 'hellfire', 'rainOfFire']],
   ];
   var ACTION_SHORT = {
     curseOfElements: 'Curse of the Elements', bane: 'Bane of Doom, else Bane of Agony', baneOfAgony: 'Bane of Agony only (never Doom)',
@@ -1476,7 +1478,7 @@
     searingPainExecute: 'Searing Pain in the execute phase', searingPainDecimation: 'Searing Pain to trigger Decimation', lifeTapPet: 'Life Tap to feed the pet',
     swapToImp: 'Pet swap at execute → Imp', swapToSuccubus: 'Pet swap at execute → Succubus',
     shadowBolt: 'Shadow Bolt (Rank 9)', incinerate: 'Incinerate', searingPain: 'Searing Pain',
-    drainLife: 'Drain Life', wrack: 'Wrack',
+    drainLife: 'Drain Life', wrack: 'Wrack', hellfire: 'Hellfire (hits every target)', rainOfFire: 'Rain of Fire (hits every target)',
   };
   var PET_NAMES = { imp: 'Imp', succubus: 'Succubus', felhunter: 'Felhunter', voidwalker: 'Voidwalker' };
   function customBuilds() { return WL.BUILDS.filter(function (b) { return b.custom; }); }

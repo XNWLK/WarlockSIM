@@ -3,6 +3,13 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v93
+- New spells: **Hellfire** and **Rain of Fire**. Both hit every target of the fight (Fight & pets → Targets) and can be
+  picked as the filler in the build editor. Hellfire's damage to yourself is not counted.
+- As a filler Hellfire only pays off on 3 targets (and for a few builds on 2); Rain of Fire almost never. No built-in
+  build uses them.
+- The sim now also runs at **https://xnwlk.github.io/WarlockSIM/**.
+
 ## v92
 - Data: every spell now carries its **range** (also the pet spells and the Engineering explosives), and Destructive Reach
   raises it in the spell table. No effect on the simulated numbers — the boss is always in range.

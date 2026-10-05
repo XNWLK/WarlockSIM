@@ -67,7 +67,7 @@ WL.validateBuild = function (b) {
 
 // Spells a player can put on the fight timeline (all castable Warlock spells; Bane of Havoc is automatic with 2+ targets).
 WL.TIMELINE_SPELLS = ['curseOfElements', 'baneOfDoom', 'baneOfAgony', 'corruption', 'siphonLife', 'immolate', 'conflagrate', 'shadowburn',
-  'soulFire', 'shadowBolt', 'incinerate', 'searingPain', 'drainLife', 'drainSoul', 'wrack', 'deathCoil', 'lifeTap'];
+  'soulFire', 'shadowBolt', 'incinerate', 'searingPain', 'drainLife', 'drainSoul', 'wrack', 'hellfire', 'rainOfFire', 'deathCoil', 'lifeTap'];
 
 // Time a timeline entry blocks the caster (cast or GCD, whichever is longer; channels their full duration), with the stats
 // of `cfg` (haste, Spellstone, Bane). Decimation / Shadow Trance can only make casts shorter, so they are not assumed.

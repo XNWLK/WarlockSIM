@@ -11,9 +11,10 @@
     var keys = Object.keys(WL.SPELLS);
     T.ok(keys.every(function (k) { return typeof WL.SPELLS[k].range === 'number' && WL.SPELLS[k].range >= 0; }), 'every one of the ' + keys.length + ' spells has a range');
     var not30 = keys.filter(function (k) { return WL.SPELLS[k].range !== 30; }).sort().join(',');
-    T.eq(not30, 'drainLife,lifeTap', 'all 30 yd except Drain Life and Life Tap');
+    T.eq(not30, 'drainLife,hellfire,lifeTap', 'all 30 yd except Drain Life, Life Tap and Hellfire (around you; round 100)');
     T.eq(WL.SPELLS.drainLife.range, 20, 'Drain Life 20 yd');
     T.eq(WL.SPELLS.lifeTap.range, 0, 'Life Tap 0 = cast on yourself');
+    T.eq(WL.SPELLS.hellfire.range, 0, 'Hellfire 0 = around yourself');
     var bk = cfg(); bk.options.bookRanks = true;
     T.ok(Object.keys(WL.BOOK_RANKS).every(function (k) { return WL.spellsFor(bk)[k].range === WL.SPELLS[k].range; }), 'the AQ20 book ranks keep the range of their spell');
     T.eq(WL.DEFAULT_CONFIG.pets.imp.spell.range, 30, 'Firebolt 30 yd');

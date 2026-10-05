@@ -66,7 +66,7 @@
       if (s.kind === 'direct' || s.kind === 'hybrid') expect.push(+(s.coef * 100).toFixed(1));
       if (s.tickCoef != null && key !== 'siphonLife' && key !== 'drainLife') {
         var ticks = s.duration / s.tickEvery;
-        expect.push(key === 'wrack' ? +(s.tickCoef * 100).toFixed(1) : +(s.tickCoef * ticks * 100).toFixed(1));
+        expect.push(key === 'wrack' || s.aoe ? +(s.tickCoef * 100).toFixed(1) : +(s.tickCoef * ticks * 100).toFixed(1));   // per tick: Wrack, Hellfire, Rain of Fire (round 100)
       }
       expect.forEach(function (pct) {
         T.ok(d.indexOf('(' + pct + '% of Spell Power)') >= 0, key + ' tooltip shows ' + pct + '% of Spell Power', d);

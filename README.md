@@ -4,7 +4,7 @@ A DPS simulator for the Warlock in WoW Forever at level 60 against a level-63 ra
 × race thousands of times (pets as their own actors, DoTs, procs, mana, Life Tap, execute phase, consumables, raid
 buffs) and ranks the builds, with stat weights, per-spell damage, a DoT chart and the full combat log of a sample fight.
 
-Live version: [Xn's Forever Warlock Sim](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W)
+Live version: **[xnwlk.github.io/WarlockSIM](https://xnwlk.github.io/WarlockSIM/)** (also as a [Claude artifact](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W))
 
 ## Features
 
@@ -40,8 +40,8 @@ Click a build for:
 
 ### Fights
 - Fight length, execute threshold, number of fights.
-- **Multi-target:** 2–3 targets with Bane of Havoc copying damage to target 2, and optional **multi-DoTting** of the extra
-  targets.
+- **Multi-target:** 2–3 targets with Bane of Havoc copying damage to target 2, optional **multi-DoTting** of the extra
+  targets, and **Hellfire / Rain of Fire** hitting every target.
 - **Movement** (only instants while moving), **latency** and projectile **travel time**.
 - Encounter presets: standard, short, long, movement, heavy movement, two / three targets, high latency.
 - Options: keep Curse of the Elements up, pets on or off, AQ20 book ranks (Shadow Bolt R10, Immolate R8, Corruption R7),

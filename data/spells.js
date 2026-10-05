@@ -16,6 +16,10 @@
 //            the fight engine — the boss is always in range (round 99, A78)
 //   talent   talent key required to have the spell
 //   rank     spell rank (shown in the tooltip)
+//   aoe      area spell: every tick hits every target of the fight (fight.targets), each with its own hit / resist /
+//            crit roll; radius = yards around the caster (range 0) or around the aimed spot. effectSpell = the triggered
+//            spell that deals the damage (where the value and SP mod come from) (round 100, A79)
+//   noAgonizingFlames / noMalediction  the talent's spell data does not list this spell (A79)
 //   projectile  travels to the target: lands fight.travelMs after the cast (round 39, A65)
 window.WL = window.WL || {};
 
@@ -34,6 +38,15 @@ WL.SPELLS = {
                   base: 266, coef: 0.429, cast: 0, cost: 365, range: 30, cd: 15, shards: 1, talent: 'shadowburn' },
   soulFire:     { id: 17924,   name: 'Soul Fire',      school: 'fire',   tree: 'destruction', kind: 'direct',
                   base: 431, coef: 1.0, cast: 6.0, cost: 335, range: 30, cd: 60, shards: 1, projectile: true },
+  // AoE channels (round 100, user; A79). Damage = the triggered spell's Effect Value − 1 per tick and target. Hellfire's
+  // damage to yourself is not modelled (user). Talents from the spell data: Cataclysm, Ruin, Intensity, Destructive Reach
+  // (both); Malediction lists Hellfire but not Rain of Fire; Agonizing Flames lists Rain of Fire but not Hellfire.
+  hellfire:     { id: 11684,   name: 'Hellfire',       school: 'fire',   tree: 'destruction', kind: 'channel', aoe: true, rank: 3,
+                  tickBase: 206, tickCoef: 0.022, tickEvery: 1, duration: 15, cast: 0, cost: 1300, range: 0, radius: 10,
+                  effectSpell: 11682, noAgonizingFlames: true },
+  rainOfFire:   { id: 11678,   name: 'Rain of Fire',   school: 'fire',   tree: 'destruction', kind: 'channel', aoe: true, rank: 4,
+                  tickBase: 220, tickCoef: 0.083, tickEvery: 2, duration: 8, cast: 0, cost: 1185, range: 30, radius: 8,
+                  effectSpell: 1282385, noMalediction: true },
   corruption:   { id: 11672,   name: 'Corruption',     school: 'shadow', tree: 'affliction',  kind: 'dot', rank: 6,
                   tickBase: 57, tickCoef: 0.20, tickEvery: 3, duration: 18, cast: 2.0, cost: 290, range: 30 },
   baneOfAgony:  { id: 11713,   name: 'Bane of Agony',  school: 'shadow', tree: 'affliction',  kind: 'dot', bane: true,
