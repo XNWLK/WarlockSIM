@@ -43,6 +43,7 @@ foreach ($line in $cfg -split "`n") {
     if (-not $ic -and $Matches[1] -eq 'concentrationAura') { $ic = 'spell_holy_mindsooth' }
     if (-not $ic -and $Matches[1] -eq 'graceOfAir') { $ic = 'spell_nature_invisibilitytotem' }
     if (-not $ic -and $Matches[1] -eq 'scrollOfAgility') { $ic = 'inv_scroll_02' }
+    if (-not $ic -and $Matches[1] -eq 'tranquilAir') { $ic = 'spell_nature_brilliance' }   # Tranquil Air Totem: not in the raw data (round 119)
     if ($ic) { $map["$($section)_$($Matches[1])"] = $ic }
   }
 }

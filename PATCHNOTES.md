@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v113
+- Blessing of Salvation and Tranquil Air Totem have their icons.
+
 ## v112
 - Cooldown timeline: a placed use can follow the **execute phase** or the **first Bane of Doom explosion** instead of a fixed
   second (select the block, then "At execute" / "At the Doom explosion"). New rows for **Amplify Curse** and the **pet swap**.
