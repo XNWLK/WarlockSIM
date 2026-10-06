@@ -6,6 +6,9 @@ buffs) and ranks the builds, with stat weights, per-spell damage, a DoT chart an
 
 Live version: **[xnwlk.github.io/WarlockSIM](https://xnwlk.github.io/WarlockSIM/)** (also as a [Claude artifact](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W))
 
+Want to press the buttons yourself? **[Forever Warlocking](https://xnwlk.github.io/ForeverWarlocking/)** is the 3D practice sim built on
+the same data and mechanics ([its repository](https://github.com/XNWLK/ForeverWarlocking)).
+
 ## Features
 
 ### Build ranking

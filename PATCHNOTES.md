@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v95
+- Links at the top of the page: this sim's GitHub, the 3D practice sim **Forever Warlocking** and its GitHub.
+
 ## v94
 - Fixed: a **build code** (WFB1:…) pasted into the settings-code box was refused. Both code boxes now accept both kinds
   and load the code where it belongs; the buttons say which is which.

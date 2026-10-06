@@ -40,6 +40,11 @@
               color: var(--muted); border-radius: 999px; line-height: 18px; }
   .themebtn:hover { color: var(--ink); border-color: var(--accent); }
   .themebtn svg { width: 14px; height: 14px; flex: none; }
+  /* project links next to the title (round 103, user) */
+  .toplinks { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; font-size: 12px; color: var(--muted); }
+  .toplinks a { color: var(--accent); font-weight: 600; text-decoration: none; }
+  .toplinks a:hover, .toplinks a:focus-visible { text-decoration: underline; }
+  .toplinks .sep { opacity: .5; }
   .meta { color: var(--muted); font-size: 12px; }
   h2 { font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; font-weight: 600; }
 
@@ -535,6 +540,12 @@
     <div class="titles">
       <h1>Xn's Forever Warlock Sim</h1>
       <button type="button" id="themeBtn" class="themebtn">Auto</button>
+      <nav class="toplinks" aria-label="Project links">
+        <a href="https://github.com/XNWLK/WarlockSIM" target="_blank" rel="noopener">GitHub</a>
+        <span class="sep" aria-hidden="true">·</span>
+        <span>3D practice sim: <a href="https://xnwlk.github.io/ForeverWarlocking/" target="_blank" rel="noopener">Forever Warlocking</a>
+          (<a href="https://github.com/XNWLK/ForeverWarlocking" target="_blank" rel="noopener">GitHub</a>)</span>
+      </nav>
     </div>
     <div class="meta" id="runMeta">Starting…</div>
   </header>
