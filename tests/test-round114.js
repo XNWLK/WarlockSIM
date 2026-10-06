@@ -1,6 +1,8 @@
 // Round 114 tests (user): the 5-second rule. Spirit regenerates mana only while no mana was spent for 5 seconds
 // (combat.fsrSeconds); a cast-time spell spends when its cast completes, instants and channels when they start; Life Tap
 // does not restart the 5 seconds; no Spirit regeneration on top of Innervate.
+// Round 117 (user): no Spirit regeneration while a channel runs (drains, Wrack); the 5 s still count from the start of the
+// channel, so a Life Tap right after a 5 s Drain Life regenerates.
 (function () {
   function det() {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
@@ -21,16 +23,20 @@
     return r.log.filter(function (e) { return e.type === 'cast' && WL.SPELLS[e.spell] && WL.SPELLS[e.spell].cost > 0; })
       .map(function (e) { return e.t + (atEnd && !e.channel ? e.castTime : 0); });
   }
-  // Seconds of the fight that lie more than 5 s after the last spend (nothing before the first spend), minus `skip` = [a, b].
+  // Seconds of the fight that lie more than 5 s after the last spend (nothing before the first spend), minus the time
+  // inside `skip` — one [a, b] or a list of them that do not overlap each other (Innervate, channels).
   function outside(sp, skip) {
-    var out = 0;
+    var out = 0, cuts = !skip ? [] : typeof skip[0] === 'number' ? [skip] : skip;
     sp.forEach(function (t, i) {
       var a = t + 5, b = i + 1 < sp.length ? sp[i + 1] : DUR;
-      if (skip) { var cut = Math.max(0, Math.min(b, skip[1]) - Math.max(a, skip[0])); out -= cut; }
-      if (b > a) out += b - a;
+      if (b <= a) return;
+      out += b - a;
+      cuts.forEach(function (c) { out -= Math.max(0, Math.min(b, c[1]) - Math.max(a, c[0])); });
     });
     return out;
   }
+  // When the player was channelling, from the log (no clips or pushback in these fights).
+  function channels(r) { return r.log.filter(function (e) { return e.type === 'cast' && e.channel; }).map(function (e) { return [e.t, Math.min(DUR, e.t + e.channel)]; }); }
   function rate(r) { return (WL.DEFAULT_CONFIG.combat.spiritRegenBase + WL.DEFAULT_CONFIG.combat.spiritRegenPerSpi * r.stats.spi) / 2; }
 
   T.run('round 114: 5-second rule', function () {
@@ -79,13 +85,28 @@
     T.near(rl.fsrOutTime, rm.fsrOutTime, 1e-6, 'the same as without the two Life Taps (' + rm.fsrOutTime.toFixed(2) + ' s)');
     T.near(rl.manaFromSpirit, rate(rl) * rl.fsrOutTime, 1e-6, 'and the mana matches: ' + rl.manaFromSpirit.toFixed(1));
 
-    T.group('channels: the 5 s count from the start of the channel');
+    T.group('channels (round 117, user): no Spirit regeneration while channelling; the 5 s count from the channel\'s start');
     var cw = det(), bw = tb(['wrack'], { wrack: 1 }), rw = run(bw, cw);
     var nW = rw.log.filter(function (e) { return e.type === 'cast' && e.spell === 'wrack'; }).length;
-    T.near(rw.fsrOutTime, outside(spends(rw, true)), 1e-6, 'Wrack only (6 s channel): ' + rw.fsrOutTime.toFixed(2) + ' s outside the rule in ' + nW + ' channels');
-    T.ok(rw.fsrOutTime > 0.6 * (nW - 1) && rw.fsrOutTime <= nW + 1e-6, 'about the last second of each channel');
+    T.ok(nW >= 9 && outside(spends(rw, true)) > 8, 'Wrack only: ' + nW + ' channels of 6 s — by the clock alone ' + outside(spends(rw, true)).toFixed(1) + ' s would lie more than 5 s after a spend');
+    T.eq(rw.fsrOutTime, 0, 'but all of it is channel time: no Spirit regeneration at all');
+    T.eq(rw.manaFromSpirit, 0, 'and no mana from Spirit');
     var rd = run(tb(['drainLife']), det());
-    T.ok(rd.fsrOutTime < 1, 'Drain Life only (5 s channel): nothing (' + rd.fsrOutTime.toFixed(2) + ' s)');
+    T.eq(rd.fsrOutTime, 0, 'Drain Life only (5 s channels back to back): none either');
+    // A Life Tap right after a channel (placed with the fight timeline): the channel started 5 s / 6 s ago, so the rule's
+    // 5 s are over and the Life Tap's global cooldown regenerates — until the next channel spends mana again. After the
+    // fifth Drain Life, so that the Life Tap does not fill the mana bar (regeneration stops at full mana).
+    var bd = tb(['drainLife']); bd.timeline = [{ t: 25, k: 'lifeTap' }];
+    var rdl = run(bd, det()); rdl.stats = WL.computeStats(bd, 'human', det());
+    var tapD = rdl.log.filter(function (e) { return e.type === 'cast' && e.spell === 'lifeTap'; })[0], nextD = rdl.log.filter(function (e) { return e.type === 'cast' && e.spell === 'drainLife' && e.t > 25; })[0];
+    T.ok(tapD && Math.abs(tapD.t - 25) < 1e-6 && nextD && nextD.t > 26, 'Drain Life 20–25 s, Life Tap at ' + (tapD ? tapD.t.toFixed(1) : '?') + ' s, next Drain Life at ' + (nextD ? nextD.t.toFixed(1) : '?') + ' s');
+    T.near(rdl.fsrOutTime, nextD.t - 25, 1e-6, 'Spirit regenerates during that Life Tap: ' + rdl.fsrOutTime.toFixed(2) + ' s (user: "it\'ll apply after a 5 second drain if you life tap")');
+    T.near(rdl.fsrOutTime, outside(spends(rdl, true), channels(rdl)), 1e-6, '= the time more than 5 s after a spend that is not channel time');
+    T.near(rdl.manaFromSpirit, rate(rdl) * rdl.fsrOutTime, 1e-6, 'mana gained: ' + rdl.manaFromSpirit.toFixed(1));
+    var bwl = tb(['wrack'], { wrack: 1 }); bwl.timeline = [{ t: 6, k: 'lifeTap' }];
+    var rwl = run(bwl, det()), nextW = rwl.log.filter(function (e) { return e.type === 'cast' && e.spell === 'wrack' && e.t > 6; })[0];
+    T.near(rwl.fsrOutTime, nextW.t - 6, 1e-6, 'Wrack 0–6 s, Life Tap at 6 s: ' + rwl.fsrOutTime.toFixed(2) + ' s — the Life Tap only, not the sixth second of the channel');
+    T.near(rwl.fsrOutTime, outside(spends(rwl, true), channels(rwl)), 1e-6, 'again the log\'s count without channel time');
 
     T.group('Innervate: no Spirit regeneration on top of it');
     var ci = det(); ci.buffs.innervate.on = true; ci.fight.moveEvery = 20; ci.fight.moveDuration = 9;
@@ -101,7 +122,7 @@
     var cfg = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     var a = WL.simulate(WL.findBuild('wrack_succubus'), 'human', cfg, { iterations: 100, log: false });
     var b = WL.simulate(WL.findBuild('demo_pact_succ_sb'), 'human', cfg, { iterations: 100, log: false });
-    T.ok(a.mana.spiritRegenAvg > b.mana.spiritRegenAvg && b.mana.spiritRegenAvg >= 0, 'mana from Spirit per fight: Wrack Succubus ' + a.mana.spiritRegenAvg.toFixed(0) + ' > Demo Pact Shadow Bolt Succubus ' + b.mana.spiritRegenAvg.toFixed(0));
-    T.ok(a.mana.fsrOutSecAvg > 0 && a.mana.fsrOutSecAvg < 0.2 * cfg.fight.duration, 'seconds outside the rule per fight are reported (' + a.mana.fsrOutSecAvg.toFixed(1) + ' s)');
+    T.ok(a.mana.spiritRegenAvg >= 0 && b.mana.spiritRegenAvg >= 0 && a.mana.spiritRegenAvg + b.mana.spiritRegenAvg > 0, 'mana from Spirit per fight is reported: Wrack Succubus ' + a.mana.spiritRegenAvg.toFixed(0) + ', Demo Pact Shadow Bolt Succubus ' + b.mana.spiritRegenAvg.toFixed(0));
+    T.ok(a.mana.fsrOutSecAvg >= 0 && a.mana.fsrOutSecAvg < 0.2 * cfg.fight.duration && b.mana.fsrOutSecAvg < 0.2 * cfg.fight.duration, 'and the seconds it ran (' + a.mana.fsrOutSecAvg.toFixed(1) + ' s / ' + b.mana.fsrOutSecAvg.toFixed(1) + ' s)');
   });
 })();

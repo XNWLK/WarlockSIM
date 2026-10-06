@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v109
+- 5-second rule: Spirit does not regenerate mana while you channel (Drain Life, Wrack, Hellfire, Rain of Fire). It does
+  right after the channel if you then Life Tap, because the 5 seconds count from the start of the channel.
+
 ## v108
 - **Rank for your race**: a race picker above the results ranks the builds for the race you play instead of each build's
   best race.

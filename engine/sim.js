@@ -126,6 +126,10 @@ window.WL = window.WL || {};
     var FSR = cb.fsrSeconds > 0 ? cb.fsrSeconds : 0, SPI_REGEN = FSR ? (cb.spiritRegenBase + cb.spiritRegenPerSpi * stats.spi) / 2 : 0;
     function spiritRegen(a, b) {                           // over [a, b], with S.lastSpend fixed during it
       if (S.lastSpend === -Infinity) return;               // nothing spent yet: mana is full (the first cast's cost is booked at its start)
+      // Round 117 (user): no Spirit regeneration while you channel (drains, Wrack) — the 5 s still count from the start of the
+      // channel, so a Life Tap right after a 5 s Drain Life does regenerate. S.channel is set from the channel's start to its
+      // end / clip, and it only changes at events, so it holds for the whole of [a, b]. [A82]
+      if (S.channel) return;
       var from = Math.max(a, S.lastSpend + FSR, S.innervateUntil);
       if (b <= from) return;
       var before = S.mana; S.mana = Math.min(stats.maxMana, S.mana + SPI_REGEN * (b - from));
@@ -139,7 +143,7 @@ window.WL = window.WL || {};
       // 5-second rule (round 114, user) [A82]: Spirit regeneration runs while no mana was spent for FSR seconds. A cast-time
       // spell spends its mana when the cast completes (S.spendAt, moved by pushback); instants and channels when they start.
       // Life Tap costs no mana and does not restart the 5 s (user). Not during Innervate: its ticks already hold the full
-      // regeneration.
+      // regeneration. Not while a channel runs (round 117, user).
       if (SPI_REGEN > 0) {
         if (S.spendAt != null && S.spendAt <= t + EPS) {
           var mid = Math.min(t, Math.max(S.lastRegen, S.spendAt));
