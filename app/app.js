@@ -1450,11 +1450,31 @@
     var fallback = function () { box.focus(); box.select(); codeMsg('Selected — press Ctrl+C to copy.'); };
     try { navigator.clipboard.writeText(box.value).then(function () { codeMsg('Copied.'); }, fallback); } catch (e) { fallback(); }
   }
+  // There are two kinds of code: settings (WFS1:…, this box) and builds (WFB1:…, the build editor's box). A code pasted
+  // into the other box is loaded where it belongs instead of being refused (round 102, user).
+  function codeKind(v) {
+    v = String(v || '').trim();
+    return v.indexOf(WL.BUILD_CODE_PREFIX) === 0 ? 'build' : v.indexOf(WL.SETTINGS_CODE_PREFIX) === 0 ? 'settings' : null;
+  }
+  var NOT_A_CODE = 'That is not a code: settings codes start with WFS1:, build codes with WFB1:.';
+  function applySettingsCode(code) {                     // returns the text that says what was loaded
+    var o = WL.decodeSettings(code), unknown = WL.applySettings(cfg, o);
+    initSettings(); markDirty();
+    return WL.describeSettings(o) + '. Press Sim! to simulate.' + (unknown.length ? ' Ignored (not in this version): ' + unknown.join(', ') + '.' : '');
+  }
   function loadCode() {
+    var v = $('codeBox').value;
+    if (!codeKind(v)) { codeMsg(v.trim() ? NOT_A_CODE : 'Paste a code first.', true); return; }
     try {
-      var o = WL.decodeSettings($('codeBox').value), unknown = WL.applySettings(cfg, o);
-      initSettings(); markDirty();
-      codeMsg('Loaded: ' + WL.describeSettings(o) + '. Press Sim! to simulate.' + (unknown.length ? ' Ignored (not in this version): ' + unknown.join(', ') + '.' : ''));
+      if (codeKind(v) === 'build') {
+        var d = edLoadBuild(WL.decodeBuild(v));
+        $('edCode').value = v.trim(); $('editor').open = true;
+        edMsg('Build code loaded' + (WL.validateBuild(d).length ? ' — see the checks.' : ' — press "Add to the sheet" to simulate it.'));
+        codeMsg('That is a build code (WFB1), not a settings code — "' + d.short + '" is now open in the build editor below.');
+        $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      codeMsg('Loaded: ' + applySettingsCode(v));
     } catch (e) { codeMsg(e.message, true); }
   }
 
@@ -1507,6 +1527,13 @@
     tl.sel = -1; $('edTlOn').checked = !!ed.b.timeline;
     $('edFrom').value = src ? src.key : '';
     renderEditor();
+  }
+  // Puts a decoded build into the editor as a new build (build code loaded, round 102).
+  function edLoadBuild(d) {
+    ed.b = d; ed.editing = null;
+    tl.sel = -1; $('edTlOn').checked = !!d.timeline; $('edFrom').value = '';
+    renderEditor();
+    return d;
   }
   function edOptions() {
     $('edFrom').innerHTML = '<option value="">Empty (0 points)</option>' + WL.BUILDS.map(function (b) {
@@ -1793,8 +1820,12 @@
       return true;
     }
     if (t.closest('#edLoadCode')) {
-      try { var d = WL.decodeBuild($('edCode').value); ed.b = d; ed.editing = null; renderEditor(); edMsg('Build code loaded' + (WL.validateBuild(d).length ? ' — see the checks.' : '.')); }
-      catch (e3) { edMsg(e3.message, true); }
+      if (!codeKind($('edCode').value)) { edMsg($('edCode').value.trim() ? NOT_A_CODE : 'Paste a code first.', true); return true; }
+      try {
+        if (codeKind($('edCode').value) === 'settings') {             // a settings code in the build box (round 102)
+          edMsg('That is a settings code (WFS1), not a build code — settings loaded: ' + applySettingsCode($('edCode').value));
+        } else { var d = edLoadBuild(WL.decodeBuild($('edCode').value)); edMsg('Build code loaded' + (WL.validateBuild(d).length ? ' — see the checks.' : '.')); }
+      } catch (e3) { edMsg(e3.message, true); }
       return true;
     }
     return false;

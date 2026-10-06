@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v94
+- Fixed: a **build code** (WFB1:…) pasted into the settings-code box was refused. Both code boxes now accept both kinds
+  and load the code where it belongs; the buttons say which is which.
+
 ## v93
 - New spells: **Hellfire** and **Rain of Fire**. Both hit every target of the fight (Fight & pets → Targets) and can be
   picked as the filler in the build editor. Their ticks can crit (Hellfire crits in Forever, unlike Classic). Hellfire's
