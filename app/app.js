@@ -910,10 +910,11 @@
         esc(s.unit + ' = ' + v.toFixed(3) + ' DPS' + (eq != null ? ' = ' + eq.toFixed(2) + ' spell power' : '') + ' · computed on ' + WL.RACES[w.race].name) + '">' + shown + '</td>';
     }).join('');
   }
-  // Relative DPS bar under the DPS number (round 45, user): full = the best build, empty = the display cut-off
-  // (default 10% behind), so differences of a few % are visible. Rows further behind (always-shown builds) get a stub.
+  // Relative DPS bar under the DPS number (round 45, user): full = the best build, empty = 20% behind it (round 113, user:
+  // 10% made small gaps look big — a build 5% behind had half a bar). A display cut-off wider than 20% widens the scale to
+  // match, a narrower one no longer narrows it. Rows further behind get a stub.
   function dpsBar(dps, top) {
-    var win = cutPct() || 10, floor = top * (1 - win / 100), f = Math.max(0.02, Math.min(1, (dps - floor) / (top - floor)));
+    var win = Math.max(20, cutPct()), floor = top * (1 - win / 100), f = Math.max(0.02, Math.min(1, (dps - floor) / (top - floor)));
     return '<span class="dbar" title="Bar: from ' + win + '% behind the best (empty) to the best build (full)"><i style="width:' + (100 * f).toFixed(1) + '%"></i></span>';
   }
   var PIN_SVG = '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M10.5 1.5l4 4-2 1-2.5 2.5.5 3-1.5 1.5-3-3-3.5 3.5-.9-.9L5.1 9.6l-3-3L3.6 5.1l3 .5L9.1 3.1z" fill="currentColor"/></svg>';

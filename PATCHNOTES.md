@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v105
+- The bar under each DPS number now runs from 20% behind the best build (empty) to the best build (full); it was 10%, which
+  made small gaps look large.
+
 ## v104
 - Tidied the texts on the page: no more internal reference codes (like "A58") in gear set names, tooltips or the footnote.
 - Each build's details now have a short "About this build" description instead of the old research notes.
