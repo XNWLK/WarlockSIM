@@ -37,8 +37,10 @@ WL.DEFAULT_CONFIG = {
     minGcd: 1.0,            // [A08]
     manaPerInt: 15,         // [A10]
     bossArmor: 3731,        // typical L63 raid boss armor (Classic); pet melee reduction = armor / (armor + 400 + 85 × 60) [A54]
-    // Mana regen per 2 s from Spirit (Classic Warlock formula), used only by Innervate: 8 + Spirit / 4 [A55]
-    spiritRegenBase: 8, spiritRegenPerSpi: 0.25,
+    // Mana regen per 2 s from Spirit (Classic Warlock formula): 8 + Spirit / 4 [A55]. Used by Innervate and, since round 114,
+    // by the 5-second rule: Spirit regeneration only runs while you have spent no mana for fsrSeconds (user, round 114;
+    // Life Tap does not restart the 5 s). 0 = no Spirit regeneration in combat (rounds 1–113). [A82]
+    spiritRegenBase: 8, spiritRegenPerSpi: 0.25, fsrSeconds: 5,
     // Resistance & Spell Pierce [A43][A44]
     targetResist: { shadow: 0, fire: 0 },   // boss resistance before reductions (rolled as partial resists since round 39)
     levelResist: { on: false, perLevel: 8, levelDiff: 3 },   // Classic level-based resistance (+24 vs a level-63 boss); off by default (user, round 39)

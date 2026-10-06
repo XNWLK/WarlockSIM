@@ -1191,6 +1191,8 @@
     return '<div><h2>Mana</h2><div class="kv">' +
       kv('Life Taps per fight', fmt(r.lifeTaps, 1)) + (r.movingTaps > 0.05 ? kv('… of them while moving', fmt(r.movingTaps, 1)) : '') + kv('Time spent Life Tapping', fmt(m.tapTimePct, 1) + '% of the fight') +
       kv('Lowest mana in any fight', fmt(r.minMana, 0) + ' / ' + fmt(maxM, 0)) +
+      (m.spiritRegenAvg != null ? '<span title="5-second rule: Spirit only regenerates mana while you have spent none for 5 seconds. Life Tap does not restart the 5 seconds.">Mana from Spirit per fight (outside the 5-second rule)</span><span class="n">' +
+        fmt(m.spiritRegenAvg, 0) + ' <span class="meta">in ' + fmt(m.fsrOutSecAvg, 1) + ' s</span></span>' : '') +
       (r.firstFight.manaFromJow || r.firstFight.petManaFromJow ? kv('Judgement of Wisdom (fight #1)', '+' + fmt(r.firstFight.manaFromJow || 0) + ' you' +
         (r.build.pet ? ' · +' + fmt(r.firstFight.petManaFromJow || 0) + ' pet' : '')) : '') +
       (r.build.pet ? kv('Fights where the pet ran out of mana', fmt(m.petOomFightsPct, 0) + '%' + (m.petOomFightsPct > 0 ? ' (avg ' + fmt(m.petOomSecAvg, 0) + ' s)' : '')) : '') +

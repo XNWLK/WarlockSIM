@@ -3,6 +3,13 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v106
+- **5-second rule**: Spirit now regenerates mana while you have spent none for 5 seconds (8 + Spirit / 4 mana every 2
+  seconds). A cast-time spell counts from the end of its cast, an instant or a channel from its start. Life Tap does not
+  restart the 5 seconds. MP5 ticks all the time, as before.
+- For normal fights this changes little (at most 0.2% on the default sheet; Wrack gains the most). It matters with long
+  movement phases and long channels. A build's details show the mana gained this way.
+
 ## v105
 - The bar under each DPS number now runs from 20% behind the best build (empty) to the best build (full); it was 10%, which
   made small gaps look large.

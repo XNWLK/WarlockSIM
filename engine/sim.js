@@ -71,11 +71,12 @@ window.WL = window.WL || {};
       t: 0, remaining: dur, cfg: cfg, build: build,
       mana: stats.maxMana, shards: cfg.fight.startingShards,
       busyUntil: 0, gcdReady: 0, lastRegen: 0,
+      lastSpend: -Infinity, spendAt: null, innervateUntil: 0,   // 5-second rule (round 114): last mana spent, cast in progress, Innervate window
       cds: {}, dots: {}, buffs: {}, channel: null, eurekaCharges: 0, eurekaPending: 0,
       targetHpPct: 100,
     };
     var inst = 0, decideToken = 0;
-    var res = { bySpell: {}, lifeTaps: 0, manaFromTaps: 0, minMana: stats.maxMana, total: 0, oom: 0, clipped: 0, idle: 0, pushbacks: 0, pushbackTime: 0, pushResisted: 0, vulnHits: {}, petOomTime: 0, exDmg: 0 };
+    var res = { bySpell: {}, lifeTaps: 0, manaFromTaps: 0, manaFromSpirit: 0, fsrOutTime: 0, minMana: stats.maxMana, total: 0, oom: 0, clipped: 0, idle: 0, pushbacks: 0, pushbackTime: 0, pushResisted: 0, vulnHits: {}, petOomTime: 0, exDmg: 0 };
 
     function row(key) {
       return res.bySpell[key] || (res.bySpell[key] = { casts: 0, landed: 0, misses: 0, crits: 0, hits: 0, ticks: 0, tickCrits: 0, dmg: 0, castTime: 0, glances: 0 });
@@ -120,11 +121,31 @@ window.WL = window.WL || {};
       if (eurekaUp()) auraAdd('eureka', prev, t);
     }
 
+    // Spirit regeneration per second outside the 5-second rule: (base + per Spirit × Spirit) per 2 s, accrued continuously
+    // like MP5. combat.fsrSeconds 0 / missing = no Spirit regeneration in combat (the rule of rounds 1–113).
+    var FSR = cb.fsrSeconds > 0 ? cb.fsrSeconds : 0, SPI_REGEN = FSR ? (cb.spiritRegenBase + cb.spiritRegenPerSpi * stats.spi) / 2 : 0;
+    function spiritRegen(a, b) {                           // over [a, b], with S.lastSpend fixed during it
+      if (S.lastSpend === -Infinity) return;               // nothing spent yet: mana is full (the first cast's cost is booked at its start)
+      var from = Math.max(a, S.lastSpend + FSR, S.innervateUntil);
+      if (b <= from) return;
+      var before = S.mana; S.mana = Math.min(stats.maxMana, S.mana + SPI_REGEN * (b - from));
+      res.manaFromSpirit += S.mana - before; res.fsrOutTime += b - from;
+    }
     function updateTime(t) {
       trackAuras(S.t, Math.min(t, dur));
       S.t = t; S.remaining = Math.max(0, dur - t);
       S.targetHpPct = 100 * (1 - t / dur);                                                               // [A24]
       if (stats.mp5) { S.mana = Math.min(stats.maxMana, S.mana + stats.mp5 / 5 * (t - S.lastRegen)); }  // [A11]
+      // 5-second rule (round 114, user) [A82]: Spirit regeneration runs while no mana was spent for FSR seconds. A cast-time
+      // spell spends its mana when the cast completes (S.spendAt, moved by pushback); instants and channels when they start.
+      // Life Tap costs no mana and does not restart the 5 s (user). Not during Innervate: its ticks already hold the full
+      // regeneration.
+      if (SPI_REGEN > 0) {
+        if (S.spendAt != null && S.spendAt <= t + EPS) {
+          var mid = Math.min(t, Math.max(S.lastRegen, S.spendAt));
+          spiritRegen(S.lastRegen, mid); S.lastSpend = S.spendAt; S.spendAt = null; spiritRegen(mid, t);
+        } else spiritRegen(S.lastRegen, t);
+      }
       S.lastRegen = t;
     }
 
@@ -179,6 +200,7 @@ window.WL = window.WL || {};
         if (mb.b.innervate) {
           var perTick = (cb.spiritRegenBase + cb.spiritRegenPerSpi * stats.spi) * mb.b.innervate.mult;   // per 2 s
           for (var j = 1; j <= mb.b.innervate.duration / 2; j++) H.push({ t: S.t + j * 2, o: 0, type: 'mana', amount: perTick, src: mb.b.name });
+          S.innervateUntil = S.t + mb.b.innervate.duration;                 // no Spirit regeneration on top of it (round 114)
         }
         L('buff', mb.b.name);
       });
@@ -402,6 +424,7 @@ window.WL = window.WL || {};
         if (lost <= EPS) return;
         cs.end = end; cs.ev.dead = true;
         if (table[cs.key] && table[cs.key].cd && S.cds[cs.key]) S.cds[cs.key] += lost;   // its cooldown starts at the later cast end (round 107)
+        if (S.spendAt != null) S.spendAt += lost;                                        // and so does the 5-second rule (round 114)
         cs.ev = Object.assign({}, cs.ev, { t: cs.ev.t + lost, dead: false });
         H.push(cs.ev);
         row(cs.rk).castTime += lost;
@@ -616,7 +639,9 @@ window.WL = window.WL || {};
       var s = SPELLS[key], e = table[key], rk = target > 1 ? xkey(target, key) : key;
       var castT = S.castTime(key), gcdT = S.gcd();
       var instantTrance = isSB(key) && S.buff('shadowTrance');
-      S.mana -= effectiveCost(key);
+      var paid = effectiveCost(key);
+      S.mana -= paid;
+      if (paid > 0) { if (castT > EPS && s.kind !== 'channel') S.spendAt = S.t + castT; else S.lastSpend = S.t; }   // 5-second rule (round 114)
       // Eureka!: a damaging cast spends a charge; the aura stays up until this cast lands (channel: ends). The damage bonus
       // is applied live (liveMult), so `eureka` passed on below is always 1 now (round 38; was a snapshot multiplier).
       var eureka = 1;
@@ -847,6 +872,7 @@ window.WL = window.WL || {};
       S.cds.felDomination = S.t + PS.felDom.cd;                                   // 2. Fel Domination (off the GCD)
       L('cast', 'felDomination', { castTime: 0, gcd: 0 });
       S.mana -= cost; S.minManaCheck();                                           // 3. summon: one GCD
+      if (cost > 0) S.lastSpend = S.t;
       var castT = summonCast(to) / S.hasteFactor(), gcdT = S.gcd();
       S.busyUntil = S.t + castT; S.gcdReady = S.t + gcdT;
       L('cast', 'summon:' + to, { castTime: +castT.toFixed(3), gcd: +gcdT.toFixed(3), cost: Math.round(cost) });
@@ -996,6 +1022,7 @@ window.WL = window.WL || {};
       if (S.t >= dur - EPS) return;
       if (HAV && !S.buff('havoc')) {                                       // 2 targets: Bane of Havoc on the second one (off the GCD)
         S.mana -= table.baneOfHavoc.cost; S.buffs.havoc = S.t + SPELLS.baneOfHavoc.duration;
+        if (table.baneOfHavoc.cost > 0) S.lastSpend = S.t;
         row('baneOfHavoc').casts++; L('cast', 'baneOfHavoc', { castTime: 0, gcd: 0 });
       }
       manaBuffCheck();
@@ -1186,7 +1213,7 @@ window.WL = window.WL || {};
     var stats = WL.computeStats(build, raceKey, cfg);
     var table = WL.buildSpellTable(build, stats, cfg);
     var dpsList = [], agg = {}, first = null, lifeTaps = 0, movingTaps = 0, minMana = Infinity, clipped = 0, durSum = 0, push = { n: 0, time: 0, resisted: 0 }, upPct = {};
-    var tapPct = 0, petOomFights = 0, petOomSec = 0, idleSec = 0;             // W3 mana / pet-mana summary
+    var tapPct = 0, petOomFights = 0, petOomSec = 0, idleSec = 0, spiRegen = 0, fsrOut = 0;             // W3 mana / pet-mana summary
     var exDmg = 0, exTime = 0, preDmg = 0, preTime = 0;                        // execute split (round 44)
     var skipAgg = {};                                                          // end-of-fight DoT skips (round 53)
     for (var i = 0; i < n; i++) {
@@ -1195,7 +1222,7 @@ window.WL = window.WL || {};
       if (i === 0) first = r;
       dpsList.push(r.dps); durSum += r.duration; lifeTaps += r.lifeTaps; movingTaps += r.movingTaps || 0; clipped += r.clipped; push.n += r.pushbacks; push.time += r.pushbackTime; push.resisted += r.pushResisted; minMana = Math.min(minMana, r.minMana);
       Object.keys(r.uptime).forEach(function (k) { upPct[k] = (upPct[k] || 0) + 100 * r.uptime[k] / r.duration; });
-      tapPct += 100 * (r.tapTime || 0) / r.duration; idleSec += r.idle;
+      tapPct += 100 * (r.tapTime || 0) / r.duration; idleSec += r.idle; spiRegen += r.manaFromSpirit || 0; fsrOut += r.fsrOutTime || 0;
       exDmg += r.exDmg; exTime += r.exTime; preDmg += r.preDmg; preTime += r.preTime;
       Object.keys(r.dotSkips || {}).forEach(function (k) {
         var x = r.dotSkips[k], a = skipAgg[k] || (skipAgg[k] = { key: x.key, target: x.target, fights: 0, left: 0, value: 0, cost: 0, alt: {} });
@@ -1222,7 +1249,7 @@ window.WL = window.WL || {};
     dpsList.forEach(function (x) { counts[Math.min(nb - 1, Math.floor((x - lo) / w))]++; });
     return {
       uptimePct: upPct, dpsHist: { min: lo, max: hi, width: w, counts: counts },
-      mana: { tapTimePct: tapPct / n, petOomFightsPct: 100 * petOomFights / n, petOomSecAvg: petOomFights ? petOomSec / petOomFights : 0, idleSecAvg: idleSec / n },
+      mana: { spiritRegenAvg: spiRegen / n, fsrOutSecAvg: fsrOut / n, tapTimePct: tapPct / n, petOomFightsPct: 100 * petOomFights / n, petOomSecAvg: petOomFights ? petOomSec / petOomFights : 0, idleSecAvg: idleSec / n },
       build: build, race: raceKey, stats: stats, table: table, iterations: n,
       dps: mean, dpsMedian: median, dpsSd: sd, dpsMin: sorted[0], dpsMax: sorted[n - 1],
       dpsErr: 1.96 * sd / Math.sqrt(n),
