@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v103
+- Quick setup: hit-capped gear is now 1000 SP / 17% hit (was 800 SP / 16%), and "Max" uses the Major Spellblasting Potion
+  instead of the Major Mana Potion.
+
 ## v102
 - **Eight builds instead of thirteen**: Aff Pact Fire Imp, Demo Pact Fire Succubus, Aff Pact Drain Life Succubus, Aff Shadow Bolt
   Succubus and DS Ruin are off the sheet. The other builds' numbers are unchanged.

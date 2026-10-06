@@ -331,16 +331,15 @@
   // only its own part — the sheet values, or which raid buffs / boss debuffs / consumables are ticked — so "both" is
   // simply both set to the right. Fight settings, options and professions are never touched. A button is lit while the
   // settings match it exactly. The same setups are in the Presets list (as whole setups, for batch compare).
-  // Hit-capped: 16% hit caps every build with at least 1 point in Suppression (83 + 1 + 16); the other values are a
-  // well-geared raid set chosen for this preset, not a measured item list.
+  // Hit-capped (numbers from the user, round 111): 1000 SP and 17% hit — the full cap without any talent, so builds with
+  // Suppression points have that much hit to spare; crit, Intellect, Spirit and Stamina as chosen in round 110.
   var GEAR_KEYS = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'agi', 'int', 'spi', 'sta', 'mp5'];
-  var HITCAP_GEAR = { sp: 800, shadowSp: 0, fireSp: 0, hitPct: 16, critPct: 20, hastePct: 0, pierce: 0, agi: 0, int: 250, spi: 100, sta: 300, mp5: 0 };
+  var HITCAP_GEAR = { sp: 1000, shadowSp: 0, fireSp: 0, hitPct: 17, critPct: 20, hastePct: 0, pierce: 0, agi: 0, int: 250, spi: 100, sta: 300, mp5: 0 };
   // Max: every raid buff, every boss debuff that stacks (no second Warlock's Curse of the Elements — that changes your
-  // rotation), and the best consumable of every group. Potion: Major Mana Potion — on the shared potion cooldown it adds
-  // +1.3 … +2.7% for the three mana-hungry Pact builds (Spellblasting +0.7 … +1.0% there); for the other builds
-  // Spellblasting is 0.3 … 0.9% better (04_EXPLORATION §44). No Engineering explosives: that is a profession, switched on in the Stats panel.
+  // rotation), and the best consumable of every group. Potion: always Major Spellblasting (user, round 111; round 110 had
+  // Major Mana Potion, which shares its cooldown — 04_EXPLORATION §44). No Engineering explosives: that is a profession, switched on in the Stats panel.
   var MAX_CONS = ['flaskSupremePower', 'greaterArcaneElixir', 'shadowPower', 'firePower', 'elixirOwl', 'elixirSages', 'greaterMageblood', 'spiritOfZanza',
-    'cerebralCortex', 'nightfinSoup', 'kreegsStout', 'buildOil', 'brilliantWizardOil', 'majorManaPotion', 'demonicRune'];
+    'cerebralCortex', 'nightfinSoup', 'kreegsStout', 'buildOil', 'brilliantWizardOil', 'majorSpellblasting', 'demonicRune'];
   var SIDE_GROUPS = ['buffs', 'debuffs', 'consumables'];
   function gearText(g) { return g.sp + ' SP / ' + g.hitPct + '% hit / ' + g.critPct + '% crit / Int ' + g.int + ' / Spirit ' + g.spi + ' / Stamina ' + g.sta; }
   function applyGearPreset(c, which) {
@@ -363,9 +362,9 @@
   function renderSetupBar() {
     var st = setupState();
     var tips = { 'qgear:default': 'Starter gear: ' + gearText(WL.DEFAULT_CONFIG.gear) + '.',
-      'qgear:hitcap': 'Raid gear at the hit cap: ' + gearText(HITCAP_GEAR) + '. 16% hit caps every build with at least 1 point in Suppression.',
+      'qgear:hitcap': 'Raid gear at the hit cap: ' + gearText(HITCAP_GEAR) + '. 17% hit is the full cap against a boss, with or without Suppression.',
       'qside:default': 'The default raid buffs and boss debuffs; no consumables except the Spellstone / Firestone.',
-      'qside:max': 'Every raid buff, every boss debuff that stacks, and the best consumable of each group (flask, elixirs, food, weapon oil, Major Mana Potion, rune).' };
+      'qside:max': 'Every raid buff, every boss debuff that stacks, and the best consumable of each group (flask, elixirs, food, weapon oil, Major Spellblasting Potion, rune).' };
     Array.prototype.forEach.call(document.querySelectorAll('#quickbar button'), function (b) {
       var kind = b.hasAttribute('data-qgear') ? 'qgear' : 'qside', v = b.getAttribute('data-' + kind);
       b.setAttribute('aria-pressed', (kind === 'qgear' ? st.gear : st.side) === v);
