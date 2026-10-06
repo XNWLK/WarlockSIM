@@ -3,6 +3,11 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v98
+- New priority action with a box you fill in: **Wrack when the shortest DoT has more than _ s left** (default 6 s). It
+  checks the DoTs your priority list keeps up (Corruption, Immolate, Siphon Life, Bane of Agony — not Bane of Doom); when
+  the shortest one has less time left, the list moves on to the filler you put below it (Shadow Bolt, Drain Life, …).
+
 ## v97
 - **Every built-in build now taps early**: "Life Tap when mana is below _% and more than _ s remain" sits right above
   the filler, with the best setting found for each build (for example 80% / 45 s on the Demo Pact builds, 60% / 10 s on

@@ -20,6 +20,21 @@ function dotNeeded(S, key, minTicks) {
   return dotWorthOr(S, key, 0, S.remaining - S.castTime(key) >= s.tickEvery * (minTicks || 2));
 }
 
+// The DoTs a priority list keeps up, for "Wrack when the shortest DoT has more than _ s left" (round 106): action → DoT.
+// "bane" counts only as Bane of Agony — Bane of Doom is left out (user): it cannot be refreshed before it explodes.
+WL.DOT_ACTIONS = { corruption: 'corruption', immolate: 'immolate', siphonLife: 'siphonLife', baneOfAgony: 'baneOfAgony', bane: 'baneOfAgony' };
+// Shortest time left on those DoTs. A DoT that is not on the boss right now is not counted (its own action recasts
+// it, or the end-of-fight check decided against it); Infinity when none is running.
+WL.minDotLeft = function (S) {
+  var rot = S.build.rotation, min = Infinity;
+  for (var i = 0; i < rot.length; i++) {
+    var d = WL.DOT_ACTIONS[rot[i]]; if (!d) continue;
+    var left = S.dotLeft(d);
+    if (left > 0 && left < min) min = left;
+  }
+  return min;
+};
+
 WL.CONFLAG_EXPIRE_S = 3;   // "about to expire" for conflagrateExpire: one Immolate tick interval
 WL.ACTIONS = {
   // Keep Curse of the Elements on the boss. [A34]
@@ -163,7 +178,8 @@ WL.ACTIONS = {
     pick: function (S) {
       if (!S.ready('deathCoil')) return null;
       var rot = S.build.rotation, f = null;
-      for (var i = rot.length - 1; i >= 0 && !f; i--) { var A = WL.ACTIONS[rot[i]]; if (A && A.filler) f = A.pick(S); }
+      // what the list would cast as its filler right now: a conditional filler (preFiller, round 106) when it applies, else the filler
+      for (var i = 0; i < rot.length && !f; i++) { var A = WL.ACTIONS[rot[i]]; if (A && (A.filler || A.preFiller)) f = A.pick(S); }
       var sf = f && WL.SPELLS[f], need = !f ? S.gcd() : sf.kind === 'channel' ? sf.tickEvery : Math.max(S.castTime(f), 0.001);
       var travel = Math.max(0, (S.cfg.fight.travelMs || 0) / 1000);
       return S.remaining < need - 1e-6 && S.remaining > travel + 1e-6 ? 'deathCoil' : null;
@@ -246,6 +262,21 @@ WL.ACTIONS = {
     label: 'Soul Fire on cooldown (spends a Soul Shard outside Decimation)',
     pick: function (S) { return S.ready('soulFire') && (S.buff('decimation') || S.shards > 0) ? 'soulFire' : null; },
   },
+  // Wrack only while your DoTs have time left (round 106, user feedback): starts a Wrack when the shortest of the DoTs
+  // this priority list keeps up (WL.DOT_ACTIONS, Bane of Doom left out) has more than X s left; otherwise it passes and
+  // the list goes on to the filler below it (Shadow Bolt, Drain Life, …). X = build.params.wrackDots.sec (default 6 = one
+  // full Wrack). Not a filler itself: the list still needs one at the end. A running Wrack is clipped as before when
+  // something above it becomes due.
+  wrackDots: {
+    label: 'Wrack when the shortest DoT has more than _ s left',
+    preFiller: true,                                                    // a filler with a condition: sits above the real filler
+    params: [{ key: 'sec', def: 6, min: 0, max: 60, name: 'seconds left on the shortest DoT' }],
+    pick: function (S) {
+      if (!S.has('wrack')) return null;
+      var p = S.build.params && S.build.params.wrackDots, sec = p && p.sec != null ? p.sec : 6;
+      return WL.minDotLeft(S) > sec ? 'wrack' : null;
+    },
+  },
   // Fillers (always available).
   wrack:       { label: 'Wrack (filler channel)', filler: true, pick: function (S) { return S.has('wrack') ? 'wrack' : null; } },
   shadowBolt:  { label: 'Shadow Bolt (filler)',   filler: true, pick: function () { return 'shadowBolt'; } },
@@ -265,7 +296,7 @@ WL.ACTIONS = {
 WL.effectiveRotation = function (build, cfg) {
   var rot = build.rotation.slice(), f = cfg && cfg.fight || {};
   if (f.multiDot && (f.targets || 1) >= 2 && rot.indexOf('multiDot') < 0) {
-    var fi = rot.map(function (a) { return WL.ACTIONS[a] && WL.ACTIONS[a].filler; }).indexOf(true);
+    var fi = rot.map(function (a) { return !!(WL.ACTIONS[a] && (WL.ACTIONS[a].filler || WL.ACTIONS[a].preFiller)); }).indexOf(true);   // before the filler and any conditional filler (round 106)
     var si = rot.indexOf('shadowBoltSpread');
     if (si >= 0 && (fi < 0 || si < fi)) fi = si;
     rot.splice(fi < 0 ? rot.length : fi, 0, 'multiDot');
