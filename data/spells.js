@@ -21,6 +21,8 @@
 //            spell that deals the damage (where the value and SP mod come from) (round 100, A79)
 //   noAgonizingFlames / noMalediction  the talent's spell data does not list this spell (A79)
 //   projectile  travels to the target: lands fight.travelMs after the cast (round 39, A65)
+//   healthCost  health the spell costs you (Life Tap) · selfDamage  every tick also hits you for its base damage (Hellfire)
+//   leech       share of the damage dealt that you get back as health · threatMult  threat per damage (default 1)   (round 119)
 window.WL = window.WL || {};
 
 WL.SPELLS = {
@@ -38,8 +40,8 @@ WL.SPELLS = {
                   base: 266, coef: 0.429, cast: 0, cost: 365, range: 30, cd: 15, shards: 1, talent: 'shadowburn' },
   soulFire:     { id: 17924,   name: 'Soul Fire',      school: 'fire',   tree: 'destruction', kind: 'direct',
                   base: 431, coef: 1.0, cast: 6.0, cost: 335, range: 30, cd: 60, shards: 1, projectile: true },
-  // AoE channels (round 100, user; A79). Damage = the triggered spell's Effect Value − 1 per tick and target. Hellfire's
-  // damage to yourself is not modelled (user). Talents from the spell data: Cataclysm, Ruin, Intensity, Destructive Reach
+  // AoE channels (round 100, user; A79). Damage = the triggered spell's Effect Value − 1 per tick and target. Hellfire
+  // also hits you with every tick (selfDamage, round 119: your health is simulated). Talents from the spell data: Cataclysm, Ruin, Intensity, Destructive Reach
   // (both); Malediction lists Hellfire but not Rain of Fire; Agonizing Flames lists Rain of Fire but not Hellfire.
   hellfire:     { id: 11684,   name: 'Hellfire',       school: 'fire',   tree: 'destruction', kind: 'channel', aoe: true, rank: 3,
                   tickBase: 206, tickCoef: 0.022, tickEvery: 1, duration: 15, cast: 0, cost: 1300, range: 0, radius: 10,

@@ -64,6 +64,8 @@ Click a build for:
 - **Compare two builds** side by side, each with the race you pick: a verdict (how big the gap is and whether it is
   clear), numbers, stats, damage per source, time spent per spell, uptimes, races, talents, priority and DPS spread.
 - **Rank arrows** show which builds moved up or down after you change your settings.
+- **Health and threat:** Life Tap and Hellfire cost health, you set how much healing you get, and every build shows its
+  threat per second (with Blessing of Salvation and Tranquil Air Totem as raid buffs).
 - **Rank for your race**: list the builds for the race you play instead of each build's best race.
 - **Batch compare:** save several setups (e.g. pre-raid vs raid-buffed) and run them all, or add the current run to
   compare later runs against it.
