@@ -1,5 +1,8 @@
 // Talent builds to compare. Each must spend exactly 51 points (validated by tests/test-data.js).
 //   short      nomenclature shown after the talent split: "<split> <short> (<race>)"
+//   notes      shown in a build's details under "About this build": what the build is, in plain words. Round 112 (user):
+//              no round numbers, assumption ids or file references in it — how each build was found is in
+//              docs/03_BUILD_LOG.md and docs/04_EXPLORATION.md (and in the notes of versions/v103-before-round112).
 //   pet        demon kept active during the fight (null = none)
 //   sacrifice  demon sacrificed with Demonic Sacrifice before the pull ('imp' = +15% Shadow, 'succubus' = +15% Fire)
 //   oil        weapon oil key from WL.OILS
@@ -27,7 +30,7 @@ WL.BUILDS = [
   {
     key: 'demo_pact_succ_sb', short: 'Demo Pact Shadow Bolt Succubus',
     name: 'Demonology – Pact, Succubus out, Shadow Bolt',
-    notes: '2/31/18. Imp sacrificed (+15% Shadow, kept by Demonic Pact), Succubus out: Master Demonologist +10% Shadow for you and her, Improved Sayaad, Lash of Pain, melee, Demonic Brand upkeep with Searing Pain. Best build since round 16 (pets at 15% of your spell power); was the Succubus reference row before. Local optimum of the hill-climb; rotation order within noise of the best of 120 orders. Soul Fire during Decimation before Shadow Bolt is equal within noise (+0.03%, round 25), so it is left out. Improved Shadow Bolt 2 / Cataclysm 3 is best self-buffed (ISB up only ~16%, mana is short); with full raid buffs + consumables 5/5 ISB and no Cataclysm is +0.7% (04_EXPLORATION §11). Round 30 (Eureka! mana -50% -> -10%, beta 2026-09-24): -1 Suppression +1 Improved Life Tap is now +0.5% (mana got scarcer); Human and Gnome tie as best race (§18). Round 61 (raid buffs + Judgement of Wisdom on by default, v52): mana is no longer short, so -3 Cataclysm +3 Improved Shadow Bolt (5/5) and -1 Improved Life Tap +1 Suppression: +0.62% Human (701.73 -> 706.11), +0.48% Gnome, 10,000 fights (04_EXPLORATION §28). Round 71: Death Coil as the finisher on top +0.41% (10,000 fights).',
+    notes: '2/31/18. Imp sacrificed (+15% Shadow, kept by Demonic Pact) with the Succubus out: Master Demonologist gives +10% Shadow to you and to her, and she adds Lash of Pain, melee and the Demonic Brand bonus. Searing Pain keeps Demonic Brand up, Shadow Bolt is the filler with 5/5 Improved Shadow Bolt, Death Coil finishes the fight.',
     talents: {
       suppression: 1, improvedCorruption: 1,   // round 61: -1 Improved Life Tap +1 Suppression (round 30 had moved it the other way)
       unholyPower: 5, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, improvedSayaad: 3, masterSummoner: 2,
@@ -41,7 +44,7 @@ WL.BUILDS = [
   {
     key: 'aff_pact_succ_sb', short: 'Aff Pact Shadow Bolt Succubus',
     name: 'Affliction/Demonology – Pact, Succubus out, Shadow Bolt',
-    notes: '15/31/5 (new in round 16). Affliction side (Suppression, Improved Corruption, Improved Life Tap, Malediction, Pandemic) with the Pact tree, Imp sacrificed, Succubus out, Shadow Bolt filler. Within 0.7% of the best; local optimum of the hill-climb. Round 61 (v52 defaults): -2 Malediction +2 Improved Shadow Bolt -> 13/31/7, +0.58% Undead (688.97 -> 692.99), +0.64% Gnome, 10,000 fights (04_EXPLORATION §28). Round 71: Death Coil as the finisher on top +0.45% (10,000 fights).',
+    notes: '13/31/7. The same Succubus Pact tree with an Affliction side instead of deep Destruction: Suppression 5/5, Improved Corruption, Improved Life Tap, Malediction and Pandemic. Imp sacrificed (+15% Shadow), Succubus out, Shadow Bolt filler, Searing Pain to keep Demonic Brand up.',
     talents: {
       suppression: 5, improvedCorruption: 2, improvedLifeTap: 2, malediction: 1, pandemic: 3,   // round 61: -2 Malediction +2 Improved Shadow Bolt
       unholyPower: 5, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, improvedSayaad: 3, masterSummoner: 2,
@@ -55,7 +58,7 @@ WL.BUILDS = [
   {
     key: 'demo_pact_fire', short: 'Demo Pact Fire Imp',
     name: 'Demonology – Pact, Imp out, Fire',
-    notes: '2/31/18 (round 10: −2 Cataclysm +2 Suppression; round 16: −1 Suppression +1 Improved Corruption, +0.6%). Succubus sacrificed (+15% Fire), Imp out (Master Demonologist +10% Fire for you and the Imp), Agonizing Flames. Searing Pain filler, Soul Fire during Decimation. Best build while pets were assumed to use 100% of your spell power (rounds 3–15), and best again since round 31 (pet scaling measured in Forever: 10% SP, and Demonic Knowledge now reaches the Imp). Round 71: Death Coil as the finisher on top +0.13% (10,000 fights). Round 74 (user: apply Demonic Brand early): the Brand upkeep near the top of the priority +0.12% (10,000 fights).',
+    notes: '2/31/18. Succubus sacrificed (+15% Fire, kept by Demonic Pact) with the Imp out: Master Demonologist gives +10% Fire to you and to the Imp. Searing Pain is the filler and keeps Demonic Brand up by itself; Soul Fire is cast in the execute phase (Decimation). Aftermath and Agonizing Flames strengthen Immolate and Searing Pain, and Life Tap also refills the Imp (Demonic Energies).',
     talents: {
       suppression: 1, improvedCorruption: 1,
       unholyPower: 5, improvedImp: 3, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, masterSummoner: 2,
@@ -69,7 +72,7 @@ WL.BUILDS = [
   {
     key: 'destro_incin_succ', short: 'Destro Incinerate Succubus',
     name: 'Destruction – Incinerate, Succubus out',
-    notes: '18/0/33 (new in round 16; hill-climb −2 Improved Bane of Agony +2 Improved Life Tap, +2.6%; rotation search: Bane > CoE > Immolate > Corruption > Conflagrate > Shadowburn > Incinerate, +0.9%). No Demonology: the Succubus fights on her own (base melee + Lash of Pain). Round 30: -2 Improved Corruption +2 Pandemic +0.55% on Human (now its best race; Corruption 0.8 s cast instead of instant) (§18). Round 71: Death Coil as the finisher on top +0.20% (10,000 fights).',
+    notes: '18/0/33. Incinerate with Shadow and Flame, Conflagrate and Shadowburn; the Affliction points go to Suppression, Improved Corruption, Malediction, Pandemic and Improved Life Tap. No Demonology points: the Succubus fights on her own (melee and Lash of Pain). With a second target, Bane of Havoc copies part of your damage to it.',
     talents: {
       suppression: 5, improvedCorruption: 3, malediction: 5, pandemic: 3, improvedLifeTap: 2,   // round 30: -2 Improved Corruption +2 Pandemic (+0.55% Human)
       bane: 5, cataclysm: 3, aftermath: 5, ruin: 5, shadowburn: 1, agonizingFlames: 3, conflagrate: 1,
@@ -82,7 +85,7 @@ WL.BUILDS = [
   {
     key: 'demo_pact_imp_sb', short: 'Demo Pact Shadow Bolt Imp',
     name: 'Demonology – Pact, Imp out, Shadow Bolt',
-    notes: '2/31/18 (round 13: −3 Improved Shadow Bolt +3 Cataclysm). Succubus sacrificed (+15% Fire for Immolate/Soul Fire), Imp out with Improved Imp and Demonic Energies. Shadow Bolt filler. Unchanged in round 16 (best move +0.46%). With full raid buffs + consumables 5/5 Improved Shadow Bolt and no Cataclysm is +1.2% (04_EXPLORATION §11). Round 61 (v52 defaults): -1 Demonic Brand +1 Improved Health Funnel, -1 Suppression +1 Improved Corruption: +0.54% Human (653.61 -> 657.12), +0.59% Undead, 10,000 fights. Brand 2/3 = 4 charges: the Imp spends them before the 10 s brand expires (3/3 lost charges to the timer), so more charges land (64.5 vs 61.8 per fight) and the extra Searing Pains out-damage the Shadow Bolts they replace; Improved Health Funnel itself does nothing (04_EXPLORATION §28). Round 71: Death Coil as the finisher on top +0.28% (10,000 fights). Round 74 (user: apply Demonic Brand early): the Brand upkeep near the top of the priority +0.03% (10,000 fights). Round 82 (2-minute default fight, user): Searing Pain in the execute phase above the Shadow Bolt filler +1.57% (665.82 → 676.25 Undead, 10,000 fights; talents unchanged — no 1–3 point move gains ≥ 0.5%).',
+    notes: '2/31/18. Succubus sacrificed (+15% Fire for Immolate and Soul Fire) with the Imp out (Improved Imp, Demonic Energies). Shadow Bolt is the filler; in the execute phase Soul Fire and Searing Pain take over (Decimation). Demonic Brand is at 2/3 on purpose: the Imp uses up its charges before the brand runs out, so the third point would add nothing — the spare point sits in Improved Health Funnel.',
     talents: {
       suppression: 1, improvedCorruption: 1, improvedHealthFunnel: 1,   // round 61: -1 Suppression +1 Improved Corruption; Health Funnel = row-1 filler for the Brand point
       unholyPower: 5, improvedImp: 3, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, masterSummoner: 2,
@@ -96,7 +99,7 @@ WL.BUILDS = [
   {
     key: 'destro_incin_imp', short: 'Destro Incinerate Imp',
     name: 'Destruction – Incinerate, Imp out',
-    notes: '14/6/31 (round 16 hill-climb: −3 Unholy Power +3 Pandemic, +0.8%; −1 Demonic Energies +1 Amplify Curse, +0.6%). Incinerate capstone + Shadow and Flame; Imp out with Improved Imp. Round 71: Death Coil as the finisher on top +0.20% (10,000 fights).',
+    notes: '14/6/31. Incinerate with Shadow and Flame, Conflagrate and Shadowburn, the Imp out with Improved Imp. The Affliction points go to Suppression, Improved Corruption, Improved Life Tap, Pandemic and Amplify Curse. With a second target, Bane of Havoc copies part of your damage to it.',
     talents: {
       suppression: 5, improvedCorruption: 3, improvedLifeTap: 2, pandemic: 3, amplifyCurse: 1,
       unholyPower: 2, improvedImp: 3, demonicEnergies: 1,
@@ -112,7 +115,7 @@ WL.BUILDS = [
   {
     key: 'sm_ruin_classic', short: 'SM Ruin (classic)',
     name: 'SM Ruin (classic) – Affliction / Destruction, Succubus out, Shadow Bolt',
-    notes: '30/0/21 since round 83 (user: adopt the round 82 search result −3 Improved Corruption +3 Cataclysm, +0.67% at 120 s, 603.95 → 607.98 Human, 10,000 fights); was 33/0/18 (user, round 65): the classic Shadow Mastery / Ruin layout — Suppression, Improved Corruption, Improved Life Tap, Malediction, Pandemic, Malevolence, Nightfall, Siphon Life, Shadow Mastery; Bane, Improved Shadow Bolt, Ruin, Agonizing Flames. No Demonology, so no sacrifice: the Succubus is out (Imp -10%), Spellstone (Firestone -0.8%); Human best. Priority = best of all 720 orders (+0.30% over the starting order, the top 5 within 0.3%); every action pays (without Bane -12.5%, Corruption -7.7%, Curse of the Elements -7.5%, Immolate -3.0%, Siphon Life -1.0%; Shadow Trance action neutral), Shadow Bolt Rank 2 filler -0.3% (Rank 2 since gutted in Forever, removed round 81), Searing Pain -11% (04_EXPLORATION §30). Round 71: Death Coil as the finisher on top +0.47% (10,000 fights).',
+    notes: '30/0/21. The classic Shadow Mastery / Ruin layout: Suppression, Improved Corruption, Improved Life Tap, Malediction, Pandemic, Malevolence, Nightfall, Siphon Life and Shadow Mastery with Bane, Improved Shadow Bolt, Cataclysm, Ruin and Agonizing Flames. No Demonology, so nothing is sacrificed: the Succubus is out. Shadow Bolt filler, instant Shadow Bolts on Shadow Trance.',
     talents: {
       suppression: 5, improvedCorruption: 2, improvedLifeTap: 2, malediction: 5, pandemic: 3, malevolence: 5, nightfall: 2,
       siphonLife: 1, shadowMastery: 5,
@@ -125,8 +128,7 @@ WL.BUILDS = [
   {
     key: 'wrack_succubus', short: 'Wrack Succubus',
     name: 'Wrack Succubus – Affliction (Wrack) / Destruction (Improved Shadow Bolt), Succubus out',
-    notes: '40/0/11 (user, round 77: replaces Wrack DS 1:1). Round 83 (user: adopt the round 82 search result): "Shadow Bolt (max rank) to keep Improved Shadow Bolt up" above Shadow Trance, +4.12% at 120 s (504.05 → 524.85 Human, 10,000 fights) — Wrack stays the filler. Talents: Suppression, Improved Corruption, Malediction, Pandemic, Malevolence, Siphon Life, Nightfall 2, Shadow Mastery, Soul Siphon, Wrack, Improved Bane of Agony 2, Improved Drains 3; Improved Shadow Bolt, Bane, Ruin. No Demonology points: the 11 Demonology points of Wrack DS moved to Improved Bane of Agony, Improved Drains, Bane and Ruin; Succubus out instead of the Imp sacrifice, Spellstone; Bane of Agony only (never Bane of Doom). At the v67 defaults (1,000 fights) Human 499.9 vs Wrack DS 464.2 (Undead), +7.7%. ' +
-           'Previous build, Wrack DS — 35/11/5 (user, round 65): Suppression, Improved Corruption, Malediction, Pandemic, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon, Wrack; Fel Vitality, Demonic Embrace, Demonic Aegis, Demonic Sacrifice; Improved Shadow Bolt. Imp sacrificed (+15% Shadow), no pet out, Spellstone; Undead best (Human within 0.2%). Wrack checked first: 36 + 14.3% SP per second for 6 s, 200 mana, +10% on Corruption and Bane of Agony while it channels (the spell data lists only those two; the tooltip says "other Shadow damage over time effects" — with Siphon Life +0.43%, with Bane of Doom too +1.21%). Priority = best of all 720 orders (+0.39%, top 5 within 0.1%); without Bane -19.2%, Corruption -15.9%, Curse of the Elements -8.7%, Shadow Trance -3.6%, Siphon Life -3.3%, Immolate -2.8%; Drain Life filler -5.6%. Wrack is the weakest filler of this build: Shadow Bolt instead +5.4%, Wrack with "keep ISB up" above it +4.4% (04_EXPLORATION §30). Round 71: Death Coil as the finisher on top +0.18% (10,000 fights).',
+    notes: '40/0/11. Deep Affliction with Wrack as the filler: while it channels, Corruption and Bane of Agony deal 10% more. Suppression, Improved Corruption, Malediction, Pandemic, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon, Improved Bane of Agony and Improved Drains; a Shadow Bolt keeps Improved Shadow Bolt up whenever it is about to run out. Succubus out, Bane of Agony only (never Bane of Doom).',
     talents: {
       suppression: 5, improvedCorruption: 5, malediction: 5, pandemic: 3, malevolence: 5, siphonLife: 1, nightfall: 2,
       shadowMastery: 5, soulSiphon: 3, wrack: 1, improvedBaneOfAgony: 2, improvedDrains: 3,

@@ -3,6 +3,11 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v104
+- Tidied the texts on the page: no more internal reference codes (like "A58") in gear set names, tooltips or the footnote.
+- Each build's details now have a short "About this build" description instead of the old research notes.
+- The "Default" preset is named after the buffs and debuffs that really are the defaults.
+
 ## v103
 - Quick setup: hit-capped gear is now 1000 SP / 17% hit (was 800 SP / 16%), and "Max" uses the Major Spellblasting Potion
   instead of the Major Mana Potion.

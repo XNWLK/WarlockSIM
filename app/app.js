@@ -993,7 +993,7 @@
     if (!hid.length) return '';
     return '<tr class="hidnote"><td colspan="' + ncols() + '" class="meta">' + hid.length + ' more build' + (hid.length > 1 ? 's are' : ' is') + ' simulated but hidden (more than ' +
       cutPct() + '% behind the best): ' + hid.map(function (r) { return split(r.build) + ' ' + esc(r.build.short) + ' ' + fmt(r.dps, 1) + ' (' + ((r.dps / top - 1) * 100).toFixed(1) + '%)'; }).join(' · ') +
-      '. Change the cut-off in Fight &amp; pets → Advanced (0 = show all), or show a build again by pinning it (📌) while the cut-off is 0.</td></tr>';
+      '. Change the cut-off in Fight &amp; pets → Run (0 = show all), or show a build again by pinning it (📌) while the cut-off is 0.</td></tr>';
   }
 
   // ---------- detail ----------
@@ -1052,7 +1052,7 @@
         }).join('');
         var val = s[4] ? (s[1] > 0 ? '+' : '') + fmt(s[1], 1) + '%' : fmt(s[1], s[3]);
         return '<tr><td>' + esc(s[0]) + '</td><td class="n"><b>' + val + '</b></td><td class="srcs">' + (src || '<span class="meta">–</span>') + '</td></tr>';
-      }).join('') + '</tbody></table></div><p class="meta">Talent damage modifiers (Shadow Mastery, Malediction, …) are not in these rows: they add up per spell (A68).</p></div>';
+      }).join('') + '</tbody></table></div><p class="meta">Talent damage modifiers (Shadow Mastery, Malediction, …) are not in these rows: they add up per spell.</p></div>';
 
     // ---- spells ----
     var keys = Object.keys(r.bySpell).sort(function (a, c) { return r.bySpell[c].dmg - r.bySpell[a].dmg; });
@@ -1099,8 +1099,8 @@
       }).join('') + '</div></div>';
     h += manaBlock(r) + histBlock(r) + uptimeBlock(r);
 
-    // ---- how the build was found (folded: it is our research history, not needed to read the build) ----
-    if (b.notes) h += '<div class="wide"><details class="bd"><summary>How this build was found</summary><p class="meta notes">' + esc(b.notes) + '</p></details></div>';
+    // ---- about the build (folded): a plain description, no research history (round 112, user) ----
+    if (b.notes) h += '<div class="wide"><details class="bd"><summary>About this build</summary><p class="meta notes">' + esc(b.notes) + '</p></details></div>';
 
     var mode = logMode[id(r)] || 'casts';
     var ev = r.log.filter(function (e) { return mode === 'all' || e.type === 'cast' || e.type === 'racial' || e.type === 'consumable' || e.type === 'clip' || e.type === 'miss' || e.type === 'skip' || e.type === 'pushback' || e.type === 'pushResist'; });
@@ -1256,7 +1256,7 @@
         (L.icon ? icon(L.icon, L.label) + ' ' : '') + esc(L.hp ? 'Boss health' : L.label) + (L.hp ? '<span class="meta"> · execute ' + clock(exT).replace(/\.\d+$/, '') + '</span>' : '') + '</div>';
     }).join('') + '</div>';
     return '<div class="wide"><h2>Timeline · fight #1 (' + fmt(D, 1) + ' s)</h2><div class="tl-wrap">' + labels + '<div class="tl-scroll">' + svg + '</div></div>' +
-      '<p class="meta">Boss health falls evenly over the fight (A24); red = execute phase (below ' + exPct + '%, Decimation\'s range), dashed line = when it starts. ' +
+      '<p class="meta">Boss health falls evenly over the fight; red = execute phase (below ' + exPct + '%, Decimation\'s range), dashed line = when it starts. ' +
       'Bars in "Your casts" use the spell colours from the damage split; faded bars are instants (their GCD). Hover any bar for details.</p></div>';
   }
   // Stat weights of this build (round 44): raw DPS per unit incl. Spell Pierce, and each as spell-power equivalent.
@@ -1270,7 +1270,7 @@
         (eq != null ? ' <span class="meta">= ' + eq.toFixed(2) + ' SP</span>' : '') + '</span>';
     }).join('') + '</div><p class="meta">Computed on the build\'s best race with ' + fmt(runCfg.fight.weightIterations) + ' fights per stat (common random numbers). ' +
       'The table shows hit / crit / haste / Int as spell power: "1% hit = 12 SP" means 1% hit adds as much DPS as 12 spell power. ' +
-      'Spell Pierce rests on an assumption flagged as likely wrong (A44), so it is only listed here.</p></div>';
+      'How Spell Pierce works in Forever is not confirmed yet, so its weight is only listed here.</p></div>';
   }
 
   // DoT uptime chart of fight #1 (round 44, user): one lane per DoT (and Curse of the Elements) on the boss — and on the
@@ -1547,9 +1547,9 @@
     var d = JSON.parse(JSON.stringify(WL.SHIPPED_GEAR || WL.DEFAULT_CONFIG.gear));
     var ref = JSON.parse(JSON.stringify(d)); ref.sp = 700; ref.hitPct = 5; ref.critPct = 20; ref.int = 200; ref.spi = 80; ref.sta = 200; ref.mp5 = 0;
     var cap = JSON.parse(JSON.stringify(d)); applyGearPreset({ gear: cap }, 'hitcap');   // round 110 (user): the quick-setup gear
-    return [{ name: 'Default: ' + d.sp + ' SP / ' + d.hitPct + '% hit / ' + d.critPct + '% crit (A58)', gear: d },
+    return [{ name: 'Default: ' + d.sp + ' SP / ' + d.hitPct + '% hit / ' + d.critPct + '% crit', gear: d },
             { name: 'Hit-capped: ' + cap.sp + ' SP / ' + cap.hitPct + '% hit / ' + cap.critPct + '% crit', gear: cap },
-            { name: 'Reference: 700 SP / 5% hit / 20% crit (round 2)', gear: ref }];
+            { name: 'Reference: 700 SP / 5% hit / 20% crit', gear: ref }];
   }
   function renderGear(sel) {
     $('gearSel').innerHTML = '<optgroup label="Built-in">' + builtinGear().map(function (g, i) { return '<option value="b' + i + '">' + esc(g.name) + '</option>'; }).join('') + '</optgroup>' +
@@ -2107,7 +2107,8 @@
     var self = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     Object.keys(self.buffs).forEach(function (k) { self.buffs[k].on = false; });
     Object.keys(self.debuffs).forEach(function (k) { self.debuffs[k].on = k === 'sunderArmor' || k === 'faerieFire'; });
-    return [{ name: 'Default (7 raid buffs, Curse of Recklessness, Judgement of Wisdom)', code: WL.encodeSettings(d), builtin: true },
+    var onNames = function (o) { return Object.keys(o).filter(function (k) { return o[k].on; }).map(function (k) { return o[k].name.replace(/ [×(].*$/, ''); }); };
+    return [{ name: 'Default (' + onNames(d.buffs).length + ' raid buffs; ' + onNames(d.debuffs).join(', ') + ')', code: WL.encodeSettings(d), builtin: true },
             { name: 'Self-buffed (no raid buffs; Sunder Armor + Faerie Fire only)', code: WL.encodeSettings(self), builtin: true },
             { name: 'Hit-capped gear (' + HITCAP_GEAR.sp + ' SP / ' + HITCAP_GEAR.hitPct + '% hit / ' + HITCAP_GEAR.critPct + '% crit)', code: WL.encodeSettings(mk(true, false)), builtin: true },
             { name: 'Max buffs & consumables', code: WL.encodeSettings(mk(false, true)), builtin: true },

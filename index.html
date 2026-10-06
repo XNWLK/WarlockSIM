@@ -665,7 +665,7 @@
         <label class="c" for="t_race">Race <select id="t_race"></select></label>
         <label class="c" for="o_sword" id="swordLbl" title="Sword Specialization (Human): +2% crit with a sword. Only shown while the race above is Human."><input id="o_sword" type="checkbox"> Sword equipped (Human)</label>
         <label class="c" for="o_critAll"><input id="o_critAll" type="checkbox"> Sheet crit % already includes talents, racials &amp; oil</label>
-        <label class="c" for="o_eng" title="Engineering unlocks the explosives in the Consumables tab. No other profession has a DPS effect for a Warlock in Forever (A59)."><input id="o_eng" type="checkbox"> Engineering (explosives)</label>
+        <label class="c" for="o_eng" title="Engineering unlocks the explosives in the Consumables tab. No other profession has a DPS effect for a Warlock in Forever."><input id="o_eng" type="checkbox"> Engineering (explosives)</label>
       </div>
       <div class="btnrow gearrow">
         <label class="c" for="gearSel">Gear set <select id="gearSel"></select></label>
@@ -679,7 +679,7 @@
       <p class="meta"><b>Sheet (gear)</b> = your character sheet with gear only (editable). <b>Total</b> = race base + gear + raid buffs +
         consumables + weapon oil + passive racials (read-only; the per-build Spellstone / Firestone is not included). Talents differ per build and are shown in each build's details.
         Timed effects (potions, Power Infusion, Blood Fury, Berserking, Eureka) are applied in the fight when used.
-        Defaults: 500 SP, 5% hit, 10% crit, Int 148, Spirit 54, Stamina 160, MP5 0 (see A58).</p>
+        Defaults: 500 SP, 5% hit, 10% crit, Int 148, Spirit 54, Stamina 160, MP5 0.</p>
     </div>
 
     <div class="card sidecard">
@@ -744,7 +744,7 @@
           <label class="c" for="o_coe"><input id="o_coe" type="checkbox"> Keep Curse of the Elements up</label>
           <label class="c" for="o_pet"><input id="o_pet" type="checkbox"> Simulate pets</label>
           <label class="c" for="o_bookRanks" title="Off: the highest trainer ranks (Shadow Bolt R9, Immolate R7, Corruption R6). On: the ranks taught by the AQ20 books that drop in Ruins of Ahn'Qiraj (Shadow Bolt R10, Immolate R8, Corruption R7)."><input id="o_bookRanks" type="checkbox"> AQ20 book ranks (Shadow Bolt R10, Immolate R8, Corruption R7)</label>
-          <label class="c" for="o_dotEnd" title="Near the end of the fight a DoT recast often cannot finish before the boss dies. On: the sim adds up the damage the recast would still do (the ticks that land in time, plus Immolate's hit and what the DoT enables: Incinerate's bonus, a Conflagrate, Nightfall procs, Soul Siphon) and recasts only if that beats the filler in the same time. Off: the old rule (recast while at least 2 ticks fit; Bane of Agony with 12 s left)."><input id="o_dotEnd" type="checkbox"> Skip DoT recasts that no longer pay off before the boss dies</label>
+          <label class="c" for="o_dotEnd" title="Near the end of the fight a DoT recast often cannot finish before the boss dies. On: the sim adds up the damage the recast would still do (the ticks that land in time, plus Immolate's hit and what the DoT enables: Incinerate's bonus, a Conflagrate, Nightfall procs, Soul Siphon) and recasts only if that beats the filler in the same time. Off: the simple rule (recast while at least 2 ticks fit; Bane of Agony with 12 s left)."><input id="o_dotEnd" type="checkbox"> Skip DoT recasts that no longer pay off before the boss dies</label>
         </fieldset>
         <fieldset><legend title="The boss itself, before your raid's debuffs (those are in the Buffs &amp; debuffs tab).">Boss armor &amp; resistances</legend>
           <label class="f" for="bossArmor">Boss armor (before debuffs)<input id="bossArmor" type="number" min="0" step="100"></label>
@@ -753,12 +753,12 @@
           <label class="c" for="o_levelRes" title="Classic rule: a boss 3 levels above you has +24 resistance to all schools (8 per level), about 6% partial resists on average. Unknown whether Forever keeps it."><input id="o_levelRes" type="checkbox"> Level resistance (+24, Classic)</label>
         </fieldset>
         <fieldset><legend>Run</legend>
-          <label class="f" for="durVar" title="Each fight lasts the duration ± up to this % (uniform), so results don't hinge on one exact fight length (A56).">Length variation ± %<input id="durVar" type="number" min="0" max="50" step="5"></label>
+          <label class="f" for="durVar" title="Each fight lasts the duration ± up to this % (uniform), so results don't hinge on one exact fight length.">Length variation ± %<input id="durVar" type="number" min="0" max="50" step="5"></label>
           <label class="f" for="weightIterations">Fights per stat weight<input id="weightIterations" type="number" min="10" step="100"></label>
           <label class="f" for="seed" title="Same seed = the same fights = reproducible results.">Random seed<input id="seed" type="number"></label>
           <label class="f" for="showPct" title="Rows more than this % behind the best DPS are hidden (still simulated); applies at once, no rerun. 0 = show all (default). Pinned builds (the pin left of the rank) always stay shown.">Show builds within % of best<input id="showPct" type="number" min="0" max="100" step="1"></label>
         </fieldset>
-        <fieldset><legend title="Measured in Forever (round 31): 10 of your spell power = 1 pet spell power, 6 = 1 pet attack power (the Imp's tooltip: attack power 17% of your spell damage). Demonic Knowledge adds its bonus to the pet directly. Succubus base melee 73.5 DPS and her own 7.52% crit are Season of Discovery values; she adds your spell crit and hit, and against the boss 40% of her swings are glancing blows (65% damage) and her crit is 4.8% lower.">Pet scaling (10% SP / 1 AP per 6 SP — measured in Forever)</legend>
+        <fieldset><legend title="Measured in Forever: 10 of your spell power = 1 pet spell power, 6 = 1 pet attack power (the Imp's tooltip: attack power 17% of your spell damage). Demonic Knowledge adds its bonus to the pet directly. Succubus base melee 73.5 DPS and her own 7.52% crit are Season of Discovery values; she adds your spell crit and hit, and against the boss 40% of her swings are glancing blows (65% damage) and her crit is 4.8% lower.">Pet scaling (10% SP / 1 AP per 6 SP — measured in Forever)</legend>
           <label class="f" for="p_spPct">Pet spells: % of your SP<input id="p_spPct" type="number" min="0" step="1"></label>
           <label class="f" for="p_succAp">Succubus melee: AP per 1 SP<input id="p_succAp" type="number" min="0" step="0.01"></label>
           <label class="f" for="p_succBase">Succubus melee: base DPS<input id="p_succBase" type="number" min="0" step="5"></label>
@@ -923,7 +923,7 @@
   <p class="foot">Click a row for talents, stats, the DoT chart, per-spell numbers, race comparison and the full rotation log; the "+4 races" pill next to the race
     (or Show all races above the table) shows the build's other races. Stat weights: DPS per 1 spell power; hit / crit / haste / Int shown as the spell power they are worth,
     computed on each build's best race with common random numbers (hit/haste carry some noise). Spell Pierce weight: in the details.
-    Data: Wowhead Forever (beta 1.60.1) · assumptions in <code>docs/02_ASSUMPTIONS.md</code>.</p>
+    Data: Wowhead Forever (beta 1.60.1).</p>
 </div>
 
 <script src="data/consumables.js"></script>
