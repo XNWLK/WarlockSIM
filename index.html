@@ -503,6 +503,16 @@
   #quickMsg { flex-basis: 100%; }
   #quickMsg:empty { display: none; }
   .cmpverdict { background: var(--sunk); border-radius: 4px; padding: 8px 10px; }
+  /* ---------- round 116: steps hint, Advanced fold, race picker ---------- */
+  .steps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 12.5px; color: var(--muted); }
+  .steps li { display: inline-flex; align-items: center; gap: 6px; }
+  .steps b { flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); color: var(--surface); font: 700 11px/18px var(--mono); text-align: center; }
+  .steps em { font-style: normal; font-weight: 600; color: var(--accent); }
+  .adv > summary { cursor: pointer; font-weight: 600; font-size: 12px; color: var(--accent); }
+  .adv > summary .meta { font-weight: 400; }
+  .adv[open] > summary { margin-bottom: 8px; }
+  .tabletools label.c select { font-weight: 600; }
+  .tabletools #moveNote { margin-left: 4px; }
   .cmpverdict p { margin: 0; }
   .cmpverdict p + p { margin-top: 4px; }
   /* DPS numbers stand out */
@@ -649,6 +659,12 @@
     <div class="meta" id="runMeta">Starting…</div>
   </header>
 
+  <ol class="steps" id="steps" aria-label="How to use the sim" hidden>
+    <li><b>1</b> Set your gear and buffs — or pick a Quick setup</li>
+    <li><b>2</b> Press <em>Sim!</em></li>
+    <li><b>3</b> Click a build for its details</li>
+  </ol>
+
   <div class="statbar" id="statbar" aria-label="Stats used for this simulation"></div>
 
   <div class="quickbar" id="quickbar" aria-label="Quick setup and presets">
@@ -757,6 +773,10 @@
           <label class="c" for="o_bookRanks" title="Off: the highest trainer ranks (Shadow Bolt R9, Immolate R7, Corruption R6). On: the ranks taught by the AQ20 books that drop in Ruins of Ahn'Qiraj (Shadow Bolt R10, Immolate R8, Corruption R7)."><input id="o_bookRanks" type="checkbox"> AQ20 book ranks (Shadow Bolt R10, Immolate R8, Corruption R7)</label>
           <label class="c" for="o_dotEnd" title="Near the end of the fight a DoT recast often cannot finish before the boss dies. On: the sim adds up the damage the recast would still do (the ticks that land in time, plus Immolate's hit and what the DoT enables: Incinerate's bonus, a Conflagrate, Nightfall procs, Soul Siphon) and recasts only if that beats the filler in the same time. Off: the simple rule (recast while at least 2 ticks fit; Bane of Agony with 12 s left)."><input id="o_dotEnd" type="checkbox"> Skip DoT recasts that no longer pay off before the boss dies</label>
         </fieldset>
+        </div>
+        <details class="adv" id="advFight">
+          <summary>Advanced <span class="meta">— boss armor and resistances, run settings, pet scaling</span> <span class="ctag" id="advChanged" hidden title="At least one of these settings is not at its default">changed</span></summary>
+        <div class="fcols">
         <fieldset><legend title="The boss itself, before your raid's debuffs (those are in the Buffs &amp; debuffs tab).">Boss armor &amp; resistances</legend>
           <label class="f" for="bossArmor">Boss armor (before debuffs)<input id="bossArmor" type="number" min="0" step="100"></label>
           <label class="f" for="resShadow" title="Resistance left after Curse of the Elements (−75) and Spell Pierce is rolled as partial resists (0/25/50/75/100%) on every hit and tick; average = 0.75 × resistance / 300.">Boss Shadow resistance<input id="resShadow" type="number" min="0" step="5"></label>
@@ -775,6 +795,7 @@
           <label class="f" for="p_succBase">Succubus melee: base DPS<input id="p_succBase" type="number" min="0" step="5"></label>
         </fieldset>
         </div>
+        </details>
         <div class="cdbox">
           <div class="cdhead">
             <label class="c" for="o_actives" title="When to pop your short cooldowns for the first time: the racial cooldown (Blood Fury, Berserking, Eureka!), the Major Spellblasting Potion and Power Infusion. After that each one is used again whenever it is ready. 'Bane of Doom explodes' = right before the cast the first explosion falls into; builds that never cast Bane of Doom (or fights where it cannot explode) pop at the pull. Execute = boss below 35% health. Custom timeline = you place every use yourself — also mana potions, runes and explosives; whatever you do not place is used automatically as usual. Every cooldown has a row; its checkbox is the same switch as in the Buffs & debuffs / Consumables tab, and a switched-off row is greyed. The racial row shows one race at a time (Orc, Troll, Gnome buttons) with its real timers; '=' keeps one set of times for all three races. Eureka! (Gnome) is then popped right before the next long cast (Shadow Bolt, Searing Pain, Incinerate, Soul Fire, a channel), so no charge goes to a DoT.">Pop cooldowns (potion, racial, Power Infusion)
@@ -814,10 +835,11 @@
       </div>
       <div class="toolpart">
         <h2>Batch compare</h2>
-        <p class="meta">Save several setups (e.g. pre-raid vs raid-buffed), then run them all: every build × race per setup, best race per build.</p>
+        <p class="meta">Save several setups (e.g. pre-raid vs raid-buffed), then run them all: every build × race per setup, best race per build. "Add this run" keeps the results in the table as they are.</p>
         <div class="btnrow">
           <input id="batchName" type="text" placeholder="Setup name" aria-label="Setup name" maxlength="40">
           <button type="button" id="batchAdd">Add current settings</button>
+          <button type="button" id="addRunBtn" title="Save the run you see in the table (its settings and results) as a frozen entry, to compare later runs against it">Add this run</button>
           <button type="button" id="batchRun" class="primary">Sim batch</button>
         </div>
         <ol id="batchList" class="batchlist"></ol>
@@ -893,9 +915,9 @@
       <span id="staleMsg"><b>Settings changed since this run.</b> The results below are from the previous settings.</span>
       <button type="button" id="staleRun" class="primary">Sim!</button>
     </div>
-    <div class="tabletools"><span class="meta" id="moveNote" hidden><span class="mv up">▲</span> <span class="mv down">▼</span> places gained / lost since the previous run (hover for the DPS change)</span><label class="switch" for="allRaces" title="Open every build's other races and its no-race baseline under its row. The pill next to each race still opens or closes one build."><input id="allRaces" type="checkbox"> Show all races</label></div>
+    <div class="tabletools"><label class="c" for="myRace" title="Rank the builds for the race you play. Each build's best race: every build is listed with whichever race does the most damage with it.">Rank for <select id="myRace"></select></label><span class="meta" id="moveNote" hidden><span class="mv up">▲</span> <span class="mv down">▼</span> places gained / lost since the previous run (hover for the DPS change)</span><label class="switch" for="allRaces" title="Open every build's other races and its no-race baseline under its row. The pill next to each race still opens or closes one build."><input id="allRaces" type="checkbox"> Show all races</label></div>
     <div class="scroll"><table id="results"><thead><tr>
-      <th>#</th><th>Build</th><th title="The build's best race. The +4 races pill shows the other races and the no-race baseline; Show all races (above the table) opens them for every build.">Race</th><th>Pets</th>
+      <th>#</th><th>Build</th><th title="The race the build is listed with: its best race, or your race if you picked one in Rank for (above the table). The +4 races pill shows the other races and the no-race baseline; Show all races opens them for every build.">Race</th><th>Pets</th>
       <th title="Your damaging spells in priority order (left = checked first) with their share of the total damage (bar length relative to the build's biggest source); Bane of Doom and Bane of Agony share one split icon (one Bane per target). Pet, Demonic Brand, Touch of the Grave and explosives after the divider. Curses, Life Tap and racial cooldowns are in the details' full priority list.">Spells &amp; damage</th>
       <th class="n dpsh">DPS</th><th class="n wrap2">vs best</th>
       <th class="n wrap2" title="What the race adds: DPS change vs the same build with no race (Human base stats, no racials).">vs no race</th>

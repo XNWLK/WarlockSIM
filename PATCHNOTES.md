@@ -3,6 +3,13 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v108
+- **Rank for your race**: a race picker above the results ranks the builds for the race you play instead of each build's
+  best race.
+- **Fight & pets is shorter**: boss armor and resistances, run settings and pet scaling are under "Advanced".
+- **Slimmer top strip**: spell power, hit, crit, fight length and Sim!. "Add this run" is now in the batch-compare card.
+- New visitors see three short steps under the title until their first Sim!.
+
 ## v107
 - **Presets moved to the top bar**, next to the quick-setup switches, and replace the gear sets (one way to save and load a
   setup instead of two). Gear sets you saved before are still in the list as "Your gear sets (gear only)".

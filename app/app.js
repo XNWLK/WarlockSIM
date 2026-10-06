@@ -270,7 +270,7 @@
     $('resShadow').value = cfg.combat.targetResist.shadow; $('resFire').value = cfg.combat.targetResist.fire;
     $('o_levelRes').checked = !!(cfg.combat.levelResist && cfg.combat.levelResist.on);
     $('o_actives').value = cfg.options.activesPolicy || 'doom';
-    armorNote(); renderTotals(); tabCounts(); renderCdTl();
+    armorNote(); renderTotals(); tabCounts(); renderCdTl(); advNote();
   }
   var CON_GROUPS = { flask: 'Flask', spElixir: 'Spell power elixir', shadowElixir: 'Shadow elixir', fireElixir: 'Fire elixir',
     intElixir: 'Intellect elixir', spiElixir: 'Spirit elixir', manaElixir: 'Mana regeneration elixir', zanza: 'Zanza', cortex: 'Cerebral Cortex',
@@ -380,6 +380,16 @@
       : which === 'max' ? 'Max buffs & consumables: ' + Object.keys(cfg.buffs).length + ' raid buffs, ' + WL.activeConsumables(cfg).length + ' consumables'
       : 'Default buffs & consumables') + ' — press Sim!';
   }
+  function stepsDone() { $('steps').hidden = true; try { localStorage.setItem('wfs.simmed', '1'); } catch (e) { /* page only */ } }
+  // "changed" tag on the folded Advanced block of Fight & pets: one of its settings is not at its default.
+  function advNote() {
+    var D = WL.DEFAULT_CONFIG, m = function (c) { return c.pets.succubus.melee; };
+    var same = cfg.combat.bossArmor === D.combat.bossArmor && cfg.combat.targetResist.shadow === D.combat.targetResist.shadow && cfg.combat.targetResist.fire === D.combat.targetResist.fire &&
+      !!cfg.combat.levelResist.on === !!D.combat.levelResist.on && cfg.fight.durationVarPct === D.fight.durationVarPct && cfg.fight.weightIterations === D.fight.weightIterations &&
+      cfg.fight.seed === D.fight.seed && (cfg.options.showWithinPct || 0) === (D.options.showWithinPct || 0) && cfg.petSpPct === D.petSpPct &&
+      m(cfg).apPerSp === m(D).apPerSp && m(cfg).baseDps === m(D).baseDps;
+    $('advChanged').hidden = same;
+  }
   function armorNote() {
     $('armorNote').textContent ='Boss armor after debuffs: ' + fmt(WL.bossArmor(cfg)) + ' → pet melee damage reduced by ' + (100 * WL.armorReduction(cfg)).toFixed(1) + '%. Base armor and resistances: Fight & pets tab.';
   }
@@ -400,6 +410,7 @@
     cfg.pets.succubus.melee.baseDps = num('p_succBase', cfg.pets.succubus.melee.baseDps);
     cfg.fight.iterations = Math.max(1, Math.round(cfg.fight.iterations));
     cfg.fight.weightIterations = Math.max(1, Math.round(cfg.fight.weightIterations));
+    advNote();
   }
 
   // ---------- custom cooldown timeline (rounds 92–93, user; options.activesPolicy 'custom', A77) ----------
@@ -564,23 +575,16 @@
 
   // ---------- stat bar ----------
   function chip(c, value, label) { return '<span class="chip" style="--c:var(' + c + ')"><b>' + value + '</b><span>' + label + '</span></span>'; }
+  // Round 116 (user): only the four numbers people look for — spell power, hit, crit and the fight length of the run in the
+  // table — and the Sim! button. The other twelve chips repeated the settings right below; "Add this run to compare" moved
+  // into the batch-compare card ("Add this run").
   function renderStatbar() {
-    var g = runCfg.gear, f = runCfg.fight, buffs = Object.keys(runCfg.buffs).filter(function (k) { return runCfg.buffs[k].on; }).length;
+    var g = runCfg.gear, f = runCfg.fight;
     $('statbar').innerHTML =
-      chip('--c-sp', fmt(g.sp), 'spell power') + chip('--c-hit', fmt(g.hitPct, 1) + '%', 'hit (gear)') +
-      chip('--c-crit', fmt(g.critPct, 1) + '%', 'crit (sheet)') + chip('--c-haste', fmt(g.hastePct, 1) + '%', 'haste') +
-      chip('--c-pierce', fmt(g.pierce), 'spell pierce') + chip('--c-int', fmt(g.int) + ' / ' + fmt(g.spi), 'int / spi (gear)') +
-      '<span class="sep"></span>' +
-      chip('--c-fight', f.duration + ' s' + (f.durationVarPct ? ' ±' + f.durationVarPct + '%' : ''), 'fight') + chip('--c-fight', fmt(f.iterations), 'fights / combo') +
-      chip('--c-fight', 'L63', 'boss · ' + fmt(runCfg.combat.maxHitPct - runCfg.combat.baseHitPct) + '% hit to cap') + chip('--c-fight', runCfg.options.useCurseOfElements ? 'on' : 'off', 'CoE') +
-      chip('--c-fight', runCfg.options.includePetDamage ? runCfg.petSpPct + '%' : 'off', 'pet SP') + chip('--c-fight', buffs, 'raid buffs') + chip('--c-fight', WL.activeConsumables(runCfg).length, 'consumables') +
-      ((runCfg.professions || {}).engineering ? chip('--c-fight', 'on', 'engineering') : '') +chip('--c-fight', Object.keys(runCfg.debuffs).filter(function (k) { return runCfg.debuffs[k].on; }).length, 'boss debuffs') +
-      (runCfg.options.bookRanks ? chip('--c-fight', 'on', 'AQ20 ranks') : '') +
-      (runCfg.options.dotEndCheck === false ? chip('--c-fight', 'off', 'end-of-fight DoT check') : '') +
-      '<span class="end">' +
-      // Round 44 (user): "Pin as reference" merged into batch compare — the run is saved there as a frozen entry.
-      '<button type="button" id="addRunBtn"' + (running || !results.length ? ' disabled' : '') + ' title="Save this run (settings + results) as an entry in Batch compare, to compare later runs against it">Add this run to compare</button>' +
-      '<button class="primary" id="runBtn" type="button"' + (running ? ' disabled' : '') + '>' + (running ? 'Simming…' : 'Sim!') + '</button></span>';
+      chip('--c-sp', fmt(g.sp), 'spell power') + chip('--c-hit', fmt(g.hitPct, 1) + '%', 'hit') + chip('--c-crit', fmt(g.critPct, 1) + '%', 'crit') +
+      chip('--c-fight', f.duration + ' s' + (f.durationVarPct ? ' ±' + f.durationVarPct + '%' : ''), (f.targets > 1 ? f.targets + ' targets · ' : '') + 'fight') +
+      '<span class="end"><button class="primary" id="runBtn" type="button"' + (running ? ' disabled' : '') + '>' + (running ? 'Simming…' : 'Sim!') + '</button></span>';
+    $('addRunBtn').disabled = running || !results.length;
   }
 
   // ---------- run ----------
@@ -608,7 +612,7 @@
       results = results.filter(function (r) { return keys.indexOf(r.build.key) >= 0; });
       Object.keys(weights).forEach(function (k) { if (keys.indexOf(k) < 0) delete weights[k]; });
     } else {
-      if (results.length) prevRun = bestOfRun();                         // round 110: for the rank arrows of the new run
+      if (results.length) prevRun = runByRace();                         // round 110: for the rank arrows of the new run
       runCfg = JSON.parse(JSON.stringify(cfg)); weights = {};
     }
     // Round 76: the jobs run on a pool of Web Workers (app/sim-pool.js) — one per CPU core — or on the page when workers
@@ -618,6 +622,7 @@
     var nCombos = combos.length, out = keep ? results.slice() : [], base = out.length, done = 0, nWeights = 0, wDone = 0, t0 = performance.now();
     combos.forEach(function (j, k) { j.idx = base + k; });
     running = true; dirty = false; showStale();
+    $('quickMsg').textContent = '';                                     // its "press Sim!" is done
     renderStatbar();
     function progress() {
       $('runMeta').textContent = (done < nCombos ? 'Simulating ' + (keep ? 'new builds ' : 'builds ') + done + ' / ' + nCombos
@@ -694,22 +699,32 @@
     return results.filter(function (x) { return x.build.key === key && !isBase(x); }).sort(function (a, c) { return c.dps - a.dps; })[0];
   }
   function baseRow(key) { return results.filter(function (x) { return x.build.key === key && isBase(x); })[0]; }
+  // "Rank for" (round 116, user): the race the list is ranked for. '' = each build's best race (the rule since round 44);
+  // a race = every build is listed with that race's row, and "best", the DPS bars, the cut-off, the tree tags and the rank
+  // arrows are all taken among the rows of that race. Remembered per browser. Stat weights stay those of the build's best
+  // race (their tooltip names it).
+  var myRace = '';
+  try { var mr0 = localStorage.getItem('wfs.myRace'); if (mr0 && WL.RACE_KEYS.indexOf(mr0) >= 0) myRace = mr0; } catch (e) { myRace = ''; }
+  function mainRow(key) {            // the row a build is listed with
+    if (myRace) { var r = results.filter(function (x) { return x.build.key === key && x.race === myRace; })[0]; if (r) return r; }
+    return bestRow(key);
+  }
   // Best build of each tree (at least minPoints in it) is always shown, however far behind it is, and tagged
   // (user: Affliction in round 28, Demonology and Destruction in round 29). [options.alwaysShowBestTrees]
   // Returns [{ tree, minPoints, key }] for the trees that have a qualifying build in this run (cached per results list).
   function treePoints(b, tree) { return Object.keys(b.talents).reduce(function (s, k) { return s + (WL.TALENT_BY_KEY[k].tree === tree ? b.talents[k] : 0); }, 0); }
   var anchorCache = { res: null, len: -1, val: [] };
   function anchors() {
-    if (anchorCache.res === results && anchorCache.len === results.length) return anchorCache.val;
+    if (anchorCache.res === results && anchorCache.len === results.length && anchorCache.race === myRace) return anchorCache.val;
     var val = ((runCfg.options || {}).alwaysShowBestTrees || []).map(function (o) {
       var top = null;
       results.forEach(function (r) {
-        if (isBase(r) || treePoints(r.build, o.tree) < o.minPoints) return;
+        if (isBase(r) || (myRace && r.race !== myRace) || treePoints(r.build, o.tree) < o.minPoints) return;
         if (!top || r.dps > top.dps) top = r;
       });
       return top ? { tree: o.tree, minPoints: o.minPoints, key: top.build.key } : null;
     }).filter(Boolean);
-    anchorCache = { res: results, len: results.length, val: val };
+    anchorCache = { res: results, len: results.length, race: myRace, val: val };
     return val;
   }
   function isAnchor(b) { return anchors().some(function (a) { return a.key === b.key; }); }
@@ -729,13 +744,11 @@
   function withinCut(r) {
     var p = cutPct();
     if (r.build.custom || pins[r.build.key] || isAnchor(r.build)) return true;
-    if (isBase(r)) { var br = bestRow(r.build.key); return !!br && withinCut(br); }
+    if (isBase(r)) { var br = mainRow(r.build.key); return !!br && withinCut(br); }
     return !p || r.dps >= best() * (1 - p / 100) - 1e-9;
   }
   function hiddenBuilds() {
-    var by = {};
-    results.forEach(function (r) { if (!isBase(r) && (!by[r.build.key] || r.dps > by[r.build.key].dps)) by[r.build.key] = r; });
-    return Object.keys(by).map(function (k) { return by[k]; }).filter(function (r) { return !withinCut(r); }).sort(function (a, b) { return b.dps - a.dps; });
+    return buildKeys().map(mainRow).filter(Boolean).filter(function (r) { return !withinCut(r); }).sort(function (a, b) { return b.dps - a.dps; });
   }
 
   // ---------- helpers ----------
@@ -812,13 +825,13 @@
       return ga !== gb ? (ga < gb ? -1 : 1) : ord(a) - ord(b);
     });
   }
-  function best() { return results.reduce(function (m, r) { return !isBase(r) && r.dps > m ? r.dps : m; }, 0); }   // real races only
+  // Best DPS of the list: over every real race, or over the rows of your race if you picked one (round 116).
+  function best() { return results.reduce(function (m, r) { return !isBase(r) && (!myRace || r.race === myRace) && r.dps > m ? r.dps : m; }, 0); }
   // One row per build = its best race (round 44, user; replaces the "Best race / All races" switch). The other races and
   // the "No race" baseline open underneath with the race toggle.
+  function buildKeys() { var seen = {}; results.forEach(function (r) { seen[r.build.key] = 1; }); return Object.keys(seen); }
   function rowsForView() {
-    var by = {};
-    results.forEach(function (r) { if (!isBase(r) && (!by[r.build.key] || r.dps > by[r.build.key].dps)) by[r.build.key] = r; });
-    return Object.keys(by).map(function (k) { return by[k]; }).filter(withinCut).sort(function (a, b) { return b.dps - a.dps; });
+    return buildKeys().map(mainRow).filter(Boolean).filter(withinCut).sort(function (a, b) { return b.dps - a.dps; });
   }
   function otherRaces(r) {           // the build's other real races (best first), then its baseline
     var rest = results.filter(function (x) { return x.build.key === r.build.key && x !== r && !isBase(x); }).sort(function (a, c) { return c.dps - a.dps; });
@@ -919,15 +932,23 @@
   }
   var PIN_SVG = '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M10.5 1.5l4 4-2 1-2.5 2.5.5 3-1.5 1.5-3-3-3.5 3.5-.9-.9L5.1 9.6l-3-3L3.6 5.1l3 .5L9.1 3.1z" fill="currentColor"/></svg>';
   // Rank arrows (round 110, user): after a rerun with other settings, every build shows how many places it gained (▲) or
-  // lost (▼) against the run before — best race vs best race, counted among the builds that are in both runs, so adding
-  // or removing a build moves nobody. prevRun = that earlier run's best row per build ({ dps, err, race }).
+  // lost (▼) against the run before — the listed race then vs now (best race, or your race), counted among the builds that
+  // are in both runs, so adding or removing a build moves nobody. prevRun = that earlier run's DPS per build and race.
   var prevRun = null;
+  function runByRace() {              // { buildKey: { race: dps } } of the real races
+    var o = {}; results.forEach(function (r) { if (!isBase(r)) (o[r.build.key] = o[r.build.key] || {})[r.race] = r.dps; }); return o;
+  }
+  function listedDps(by) {            // the DPS a build is listed with: your race's, else its best race's
+    if (!by) return null;
+    if (myRace) return by[myRace] != null ? by[myRace] : null;
+    var m = null; Object.keys(by).forEach(function (k) { if (m == null || by[k] > m) m = by[k]; }); return m;
+  }
   function rankMoves() {
     if (!prevRun) return {};
-    var now = bestOfRun(), keys = Object.keys(now).filter(function (k) { return prevRun[k]; }), out = {};
-    var order = function (src) { return keys.slice().sort(function (a, b) { return src[b].dps - src[a].dps; }); };
+    var now = runByRace(), keys = Object.keys(now).filter(function (k) { return listedDps(prevRun[k]) != null && listedDps(now[k]) != null; }), out = {};
+    var order = function (src) { return keys.slice().sort(function (a, b) { return listedDps(src[b]) - listedDps(src[a]); }); };
     var was = order(prevRun), is = order(now);
-    keys.forEach(function (k) { out[k] = { by: was.indexOf(k) - is.indexOf(k), was: was.indexOf(k) + 1, prev: prevRun[k].dps, now: now[k].dps }; });
+    keys.forEach(function (k) { out[k] = { by: was.indexOf(k) - is.indexOf(k), was: was.indexOf(k) + 1, prev: listedDps(prevRun[k]), now: listedDps(now[k]) }; });
     return out;
   }
   function moveTag(m) {
@@ -949,7 +970,7 @@
       var pets = (b.sacrifice ? '<span class="sac" title="Sacrificed: ' + esc(b.sacrifice) + '">' + icon('pet_' + b.sacrifice, 'Sacrificed ' + b.sacrifice) + '</span>' : '') +
                  (b.pet ? icon('pet_' + b.pet, 'Active: ' + b.pet) : '');
       var others = otherRaces(r), rOpen = racesShown(bk), nReal = others.filter(function (x) { return !isBase(x); }).length;
-      var raceTd = '<td><div class="racecell">' + icon('race_' + r.race, WL.RACES[r.race].name + ' (best race for this build)', 'lg') +
+      var raceTd = '<td><div class="racecell">' + icon('race_' + r.race, WL.RACES[r.race].name + (myRace ? ' (the race you rank for)' : ' (best race for this build)'), 'lg') +
         (others.length ? '<button type="button" class="rtog" data-races="' + esc(bk) + '" aria-expanded="' + rOpen + '" title="' + (rOpen ? 'Hide' : 'Show') +
           ' the other races and the no-race baseline">' + (rOpen ? 'Hide' : '+' + nReal + ' races') + '<span class="chev" aria-hidden="true"></span></button>' : '') + '</div></td>';
       var h = '<tr class="row' + (isOpen ? ' open' : '') + '" tabindex="0" data-id="' + esc(key) + '" aria-expanded="' + isOpen + '">' +
@@ -974,9 +995,9 @@
       '<td></td><td class="rname">' + esc(WL.RACES[x.race].name) + (base ? ' <span class="meta">— baseline: Human base stats, no racials</span>' :
         ' <span class="meta">' + WL.RACES[x.race].racials.map(function (y) { return esc(y.name); }).join(', ') + '</span>') + '</td>' +
       '<td>' + (base ? '<span class="norace" title="No race: Human base stats, no racials (baseline)">–</span>' : icon('race_' + x.race, WL.RACES[x.race].name)) + '</td>' +
-      '<td></td><td class="meta rvs">' + dB.toFixed(2) + '% vs ' + esc(WL.RACES[bestOfBuild.race].name) + '</td>' +
+      '<td></td><td class="meta rvs">' + (dB > 0 ? '+' : '') + dB.toFixed(2) + '% vs ' + esc(WL.RACES[bestOfBuild.race].name) + '</td>' +
       '<td class="n dps"><b>' + fmt(x.dps, 1) + '</b><span class="err">±' + fmt(x.dpsErr, 1) + '</span>' + dpsBar(x.dps, top) + '</td>' +
-      '<td class="n delta neg">' + d.toFixed(2) + '%</td>' + raceCell(x) + '<td colspan="' + STATS.length + '"></td></tr>';
+      '<td class="n delta ' + (d > 0 ? 'best' : 'neg') + '">' + (d > 0 ? '+' : '') + d.toFixed(2) + '%</td>' + raceCell(x) + '<td colspan="' + STATS.length + '"></td></tr>';
     if (isOpen) h += '<tr class="detail"><td colspan="' + ncols() + '">' + detail(x) + '</td></tr>';
     return h;
   }
@@ -994,7 +1015,7 @@
     if (!hid.length) return '';
     return '<tr class="hidnote"><td colspan="' + ncols() + '" class="meta">' + hid.length + ' more build' + (hid.length > 1 ? 's are' : ' is') + ' simulated but hidden (more than ' +
       cutPct() + '% behind the best): ' + hid.map(function (r) { return split(r.build) + ' ' + esc(r.build.short) + ' ' + fmt(r.dps, 1) + ' (' + ((r.dps / top - 1) * 100).toFixed(1) + '%)'; }).join(' · ') +
-      '. Change the cut-off in Fight &amp; pets → Run (0 = show all), or show a build again by pinning it (📌) while the cut-off is 0.</td></tr>';
+      '. Change the cut-off in Fight &amp; pets → Advanced (0 = show all), or show a build again by pinning it (📌) while the cut-off is 0.</td></tr>';
   }
 
   // ---------- detail ----------
@@ -2185,7 +2206,7 @@
       return '<li><b>' + esc(s.name) + '</b>' + (s.res ? ' <span class="ctag snap" title="Results saved from a run — not simulated again">run · ' + esc(s.when || '') + '</span>' : '') +
         '<button type="button" data-bload="' + i + '" title="Load into the settings">Load</button>' +
         '<button type="button" data-brm="' + i + '" aria-label="Remove ' + esc(s.name) + '">Remove</button><span class="meta">' + esc(d) + '</span></li>';
-    }).join('') : '<li class="meta" style="list-style:none;margin-left:-20px">No setups yet — "Add current settings", or "Add this run to compare" in the bar above the results. Add at least two.</li>';
+    }).join('') : '<li class="meta" style="list-style:none;margin-left:-20px">No setups yet — "Add current settings", or "Add this run" to keep the results in the table. Add at least two.</li>';
   }
   function addSetup() {
     readSettings();
@@ -2257,7 +2278,7 @@
   // ---------- events ----------
   document.addEventListener('click', function (e) {
     var t = e.target;
-    if (t.closest('#runBtn')) { if (batchRunning) return; run(); return; }
+    if (t.closest('#runBtn')) { if (batchRunning) return; stepsDone(); run(); return; }
     if (t.closest('#resetSide')) { resetSide(); return; }
     if (t.closest('#resetStats')) { resetStats(); return; }
     if (t.closest('#editor') && editorClick(t, e)) return;
@@ -2265,7 +2286,7 @@
     if (t.closest('#presetSave')) { savePreset(); return; }
     if (t.closest('#presetDel')) { deletePreset(); return; }
     if (t.closest('#addRunBtn')) { addRunToCompare(); return; }
-    if (t.closest('#staleRun')) { if (!batchRunning) run(); return; }
+    if (t.closest('#staleRun')) { if (!batchRunning) { stepsDone(); run(); } return; }
     if (t.closest('#cmpSwap')) {                                         // swap the builds and their races
       var a0 = $('cmpA').value, ar0 = $('cmpAR').value, br0 = $('cmpBR').value;
       $('cmpA').value = $('cmpB').value; $('cmpB').value = a0; cmpRaceOptions('A'); cmpRaceOptions('B');
@@ -2309,6 +2330,23 @@
     $('cmp' + s).addEventListener('change', function () { cmpRaceOptions(s); renderCompare(); });
     $('cmp' + s + 'R').addEventListener('change', renderCompare);
   });
+  // Rank for (round 116): each build's best race, or the race you play.
+  $('myRace').innerHTML = '<option value="">each build\'s best race</option>' + WL.RACE_KEYS.map(function (r) { return '<option value="' + r + '">' + esc(WL.RACES[r].name) + '</option>'; }).join('');
+  $('myRace').value = myRace;
+  $('myRace').addEventListener('change', function () {
+    myRace = this.value; raceOpen = {};
+    try { if (myRace) localStorage.setItem('wfs.myRace', myRace); else localStorage.removeItem('wfs.myRace'); } catch (e) { /* page only */ }
+    if (myRace) { $('t_race').value = myRace; renderTotals(); }      // the Stats panel shows the same race's totals
+    render(); showStale();
+  });
+  if (myRace) { $('t_race').value = myRace; renderTotals(); }
+  // Three steps under the title (round 116): shown until you press Sim! yourself for the first time.
+  var simmed = false;
+  try { simmed = localStorage.getItem('wfs.simmed') === '1'; } catch (e) { simmed = false; }
+  $('steps').hidden = simmed;
+  // Advanced fold of Fight & pets (round 116): open / closed is remembered.
+  try { $('advFight').open = localStorage.getItem('wfs.adv') === '1'; } catch (e) { /* closed */ }
+  $('advFight').addEventListener('toggle', function () { try { localStorage.setItem('wfs.adv', this.open ? '1' : '0'); } catch (e) { /* page only */ } });
   $('allRaces').checked = allRaces;
   $('allRaces').addEventListener('change', function () {
     allRaces = this.checked; raceOpen = {};
