@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v100
+- **Touch of the Grave (Undead) now scales with Shadow damage %**: Improved Shadow Bolt and Curse of the Elements on the
+  target, Demonic Sacrifice (Imp), Master Demonologist (Succubus), Soul Link, Shadow and Flame, Power Infusion. It still
+  scales with Stamina and not with spell power. Undead rows gain 0.2% to 0.8%; Undead is now the best race for 12 of
+  the 13 builds.
+
 ## v99
 - Fixed: **Soul Fire's cooldown now starts when the cast finishes**, not when it begins. In the execute phase that means
   fewer Soul Fires; the five builds that use it lose 0.35% to 0.73% (Demo Pact Fire Imp 725.6 → 722.4).

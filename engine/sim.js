@@ -473,7 +473,7 @@ window.WL = window.WL || {};
         if (isSB(key) && crit && tv('improvedShadowBolt') && isbLands(xkey(ti, 'isb'))) { S.xdeb[ti].isb = S.t + 12; L('debuff', xkey(ti, 'isb')); }
       }
       if (s.kind !== 'direct') { applyDotX(ti, key, makeSnap(key, eureka, baseMult)); L('apply', rk); }
-      touchOfTheGrave();                                                  // any landed damaging cast, as on the boss [A29]
+      touchOfTheGrave(ti);                                                // any landed damaging cast, as on the boss [A29]
       return true;
     }
 
@@ -577,11 +577,23 @@ window.WL = window.WL || {};
     // Touch of the Grave (Undead) [A29]: rolls once per landed cast of a spell with a damage component — direct spells,
     // DoTs and channels on cast, never on periodic ticks, never on curses / Life Tap (beta build 2026-09-24, S12:
     // "Shadow Word: Pain activates it on cast, but not on periodic damage"). Before round 30: direct casts only.
-    function touchOfTheGrave() {
+    // Damage (round 108, user): 5% of your maximum health — so it scales with Stamina — times every Shadow damage %:
+    // your Shadow auras (Demonic Sacrifice, Master Demonologist, Soul Link) and, on the target it hits, Improved Shadow
+    // Bolt and Curse of the Elements, plus Shadow and Flame and Power Infusion. No spell power, no talent spell
+    // modifiers (Shadow Mastery lists its own spells), no crit, no resist / Spell Pierce roll. `ti` > 1 = an extra target.
+    function togMult(ti) {
+      var x = ti > 1, m = (stats.mult.shadow || 1) * stats.mult.all;
+      if (x ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe')) m *= 1 + SPELLS.curseOfElements.dmgTakenPct / 100;
+      if (x ? S.xDebLeft(ti, 'isb') > 0 : S.buff('isb')) m *= 1 + tv('improvedShadowBolt', 'debuffPct') / 100;
+      if (PI && S.buff('powerInfusion')) m *= 1 + PI.spellDmgPct / 100;
+      if (S.buff('snfShadow')) m *= 1 + tv('shadowAndFlame', 'schoolPct') / 100;
+      return m;
+    }
+    function touchOfTheGrave(ti) {
       var tog = racialOf('proc');
       if (tog && R.proc() * 100 < tog.chancePct) {
-        var td = stats.maxHealth * tog.maxHealthPct / 100;
-        deal('touchOfTheGrave', td, false, false); row('touchOfTheGrave').casts++;
+        var td = stats.maxHealth * tog.maxHealthPct / 100 * togMult(ti);
+        deal('touchOfTheGrave', td, false, false, ti > 1 ? ti : undefined); row('touchOfTheGrave').casts++;
         L('hit', 'touchOfTheGrave', { dmg: Math.round(td) });
       }
     }
