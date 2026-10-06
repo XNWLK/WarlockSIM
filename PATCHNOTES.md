@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v101
+- The early Life Tap settings were searched again with the corrected Soul Fire cooldown. They hold; only Demo Pact Fire
+  Succubus moves (80% / 60 s → 70% / 45 s, +0.2%).
+
 ## v100
 - **Touch of the Grave (Undead) now scales with Shadow damage %**: Improved Shadow Bolt and Curse of the Elements on the
   target, Demonic Sacrifice (Imp), Master Demonologist (Succubus), Soul Link, Shadow and Flame, Power Infusion. It still

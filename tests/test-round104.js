@@ -70,7 +70,7 @@
     T.ok(old.params === undefined && old.rotation.indexOf('lifeTapBelow') < 0, 'older codes without the action still load');
 
     T.group('built-in builds (round 105, user: the best setting found, on every build)');
-    var WANT = { demo_pact_succ_sb: '80/45', aff_pact_succ_sb: '80/45', demo_pact_succ_fire: '80/60', demo_pact_fire: '80/45', destro_incin_succ: '50/25', aff_pact_fire: '80/45',
+    var WANT = { demo_pact_succ_sb: '80/45', aff_pact_succ_sb: '80/45', demo_pact_succ_fire: '70/45', demo_pact_fire: '80/45', destro_incin_succ: '50/25', aff_pact_fire: '80/45',
       demo_pact_imp_sb: '60/10', aff_pact_succ_drain: '60/10', destro_incin_imp: '40/60', aff_succ_sb: '60/10', sm_ruin_classic: '40/25', ds_ruin_classic: '50/25', wrack_succubus: '60/25' };
     var own = WL.BUILDS.filter(function (b) { return !b.custom; });
     T.eq(own.length, Object.keys(WANT).length, own.length + ' built-in builds');

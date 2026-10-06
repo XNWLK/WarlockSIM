@@ -8,6 +8,7 @@
 //
 // Round 105 (user): every build got "Life Tap when mana is below _% and more than _ s remain" right above its filler, each
 // with the best setting of the round-104 grid (04_EXPLORATION §41) — the user asked for all builds, also those under +0.5%.
+// Round 109: grid redone with the cooldown rule of round 107 — the settings hold; only Demo Pact Fire Succubus moved.
 //
 // Round 16 (2026-09-24): list re-derived after pet spell power 100% → 15% (A26/A49) and Succubus melee 40 → 100 DPS
 // (A46). Full search + point-shift hill-climb + rotation search at the new defaults: docs/04_EXPLORATION.md section 8.
@@ -60,7 +61,7 @@ WL.BUILDS = [
     },
     pet: 'succubus', sacrifice: 'imp', oil: 'firestone',
     rotation: ['deathCoilFinisher', 'bane', 'searingPainBrand', 'curseOfElements', 'immolate', 'corruption', 'soulFire', 'lifeTapBelow', 'searingPain'],   // round 25: + Soul Fire during Decimation (+1.8%)
-    params: { lifeTapBelow: { pct: 80, sec: 60 } },   // round 105 (user): Life Tap below 80% mana with more than 60 s left, +0.88% (10,000 fights)
+    params: { lifeTapBelow: { pct: 70, sec: 45 } },   // round 105 (user): Life Tap early; round 109 (search redone after the cooldown fix): 70% / 45 s, +0.93% (was 80% / 60 s, +0.76%)
   },
   {
     key: 'demo_pact_fire', short: 'Demo Pact Fire Imp',
