@@ -2,6 +2,8 @@
 // (https://www.wowhead.com/forever/item=<id>&xml, retrieved 2026-09-24). `text` = the tooltip's "Use:" line.
 // group: only one consumable per group can be active (Classic-style categories; Forever rules unknown) [A57].
 // Effect fields: sp, schoolSp{shadow,fire}, int, spi, sta, critPct, hitPct, hastePct, mp5, maxMana (flat, after %),
+//   critGroup (round 110, user: Elixir of the Owl and Elixir of Sages do not stack their 2% crit — of the active items
+//   with the same critGroup only the highest crit counts; their other stats still add up),
 //   oil (weapon oil; stacks with the Spellstone/Firestone), spPotion {sp, duration} (popped with the other cooldowns:
 //   options.activesPolicy, then on cooldown),
 //   manaRestore {amount | pct} (used when the missing mana ≥ the amount), cd (s), cdGroup ('potion' | 'rune').
@@ -35,9 +37,9 @@ WL.CONSUMABLES = {
                          text: 'Increases spell shadow damage by up to 40 for 30 min.' },
   firePower:           { on: false, id: 6373, icon: 'inv_potion_33', cat: 'Elixir', group: 'fireElixir', name: 'Elixir of Fire Power', desc: '+10 Fire spell damage', schoolSp: { fire: 10 },
                          text: 'Increases spell fire damage by up to 10 for 30 min.' },
-  elixirOwl:           { on: false, id: 250337, icon: 'inv_potion_164', cat: 'Elixir', group: 'intElixir', name: 'Elixir of the Owl', desc: '+25 Intellect, +2% crit', int: 25, critPct: 2,
+  elixirOwl:           { on: false, id: 250337, icon: 'inv_potion_164', cat: 'Elixir', group: 'intElixir', name: 'Elixir of the Owl', desc: '+25 Intellect, +2% crit (the crit does not stack with Elixir of Sages)', int: 25, critPct: 2, critGroup: 'elixirCrit',
                          text: 'Drink to increase your Intellect by 25 and chance to critically hit by 2%. Lasts for 30 min.' },
-  elixirSages:         { on: false, id: 250338, icon: 'inv_potion_165', cat: 'Elixir', group: 'spiElixir', name: 'Elixir of Sages', desc: '+25 Spirit, +2% crit', spi: 25, critPct: 2,
+  elixirSages:         { on: false, id: 250338, icon: 'inv_potion_165', cat: 'Elixir', group: 'spiElixir', name: 'Elixir of Sages', desc: '+25 Spirit, +2% crit (the crit does not stack with Elixir of the Owl)', spi: 25, critPct: 2, critGroup: 'elixirCrit',
                          text: 'Drink to increase your Spirit by 25 and chance to critically hit by 2%. Lasts for 30 min.' },
   greaterMageblood:    { on: false, id: 250341, icon: 'inv_potion_168', cat: 'Elixir', group: 'manaElixir', name: 'Greater Mageblood Elixir', desc: '20 mana every 5 s', mp5: 20,
                          text: 'Drink to regenerate 20 mana every 5 seconds. Lasts for 30 min.' },

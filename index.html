@@ -486,6 +486,92 @@
   .tlblk.bad { border: 2px solid var(--bad); }
   .tlblk.late { opacity: .45; }
   .tlsel input[type=number] { width: 70px; }
+  /* ---------- round 110 (user feedback) ---------- */
+  [hidden] { display: none !important; }
+  /* quick setup: gear and buffs / consumables presets, always in view */
+  .quickbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+  .quickbar .qlabel { font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+  .quickbar .qgroup { display: inline-flex; align-items: center; gap: 6px; }
+  .quickbar .seg button { padding: 3px 10px; font-size: 12px; }
+  .quickbar .seg button[aria-pressed=true] { font-weight: 600; }
+  /* DPS numbers stand out */
+  #results > thead th.dpsh { color: var(--accent); }
+  #results > tbody > tr.row:not(.racerow) > td.dps b { font-size: 15.5px; font-weight: 700; color: var(--accent); letter-spacing: -.01em; }
+  #results > tbody > tr.racerow > td.dps b { font-size: 12.5px; font-weight: 600; }
+  #results > tbody > tr.baserow > td.dps b { font-weight: 500; }
+  .dbar { height: 4px; }
+  /* rank arrows: places gained / lost since the previous run */
+  .mv { font: 600 10px var(--mono); margin-left: 3px; }
+  .mv.up { color: var(--good); }
+  .mv.down { color: var(--bad); }
+  .mv.same { color: var(--muted); opacity: .5; }
+  .tabletools { justify-content: space-between; align-items: center; gap: 4px 12px; flex-wrap: wrap; }
+  .tabletools .switch { margin-left: auto; }
+  .tabletools .mv { margin: 0; font-size: 11px; }
+  /* build editor: quick sim next to the talent trees */
+  .edmain { display: grid; grid-template-columns: fit-content(620px) minmax(300px, 1fr); gap: 14px; align-items: start; }
+  .edleft { display: grid; gap: 12px; min-width: 0; }
+  .edleft .edcols { grid-template-columns: minmax(0, 1fr); }
+  @media (max-width: 980px) { .edmain { grid-template-columns: minmax(0, 1fr); } }
+  .edquick { background: var(--ground); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: grid; gap: 10px; min-width: 0; }
+  .edquick .cardhead h2 { margin: 0; }
+  .edquick .qempty { margin: 0; max-width: 60ch; }
+  .quick { border: 0; border-radius: 0; padding: 0; background: none; gap: 10px; }
+  .quick.old > :not(.qold) { opacity: .45; }
+  .qold { margin: 0; color: var(--c-crit); font-weight: 600; }
+  .qhead { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--accent); border-radius: 6px; }
+  .qdps { display: flex; align-items: baseline; gap: 6px; }
+  .qdps b { font: 700 30px/1 var(--mono); color: var(--accent); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .qdps span { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+  .qsub { display: grid; gap: 2px; min-width: 0; }
+  .qsub .qname { font-weight: 600; }
+  .qsub .ico { width: 16px; height: 16px; }
+  .qvs { font: 700 13px var(--mono); }
+  .quick h3 { margin: 0 0 4px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; }
+  .quick h3 .meta { text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 11px; }
+  .quick .qfoot { margin: 0; font-size: 11px; }
+  .qraces { display: grid; gap: 2px; }
+  .qrace { display: grid; grid-template-columns: 22px minmax(56px, 76px) minmax(40px, 1fr) 54px 58px; align-items: center; gap: 8px; width: 100%; padding: 3px 6px;
+           border: 1px solid transparent; border-radius: 4px; background: none; font: 500 12px var(--sans); text-align: left; cursor: pointer; }
+  .qrace:hover { background: var(--sunk); }
+  .qrace[aria-pressed=true] { border-color: var(--accent); background: var(--accent-soft); }
+  .qrace .n b { font-weight: 700; font-size: 13px; }
+  .qrace .d { text-align: right; font: 600 11px var(--mono); }
+  .qbar { display: block; height: 8px; border-radius: 4px; background: var(--sunk); overflow: hidden; }
+  .qbar i { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
+  .qrace[aria-pressed=true] .qbar { background: var(--surface); }
+  .qdmg { display: grid; grid-template-columns: 20px minmax(0, max-content) minmax(40px, 1fr) 42px 50px; gap: 3px 8px; align-items: center; }
+  .qdmg .ico { width: 18px; height: 18px; }
+  .qdmg .qn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* compare two builds: one build list + a race list per side, A = accent, B = teal everywhere */
+  .cmpbar { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: center; }
+  @media (max-width: 760px) { .cmpbar { grid-template-columns: minmax(0, 1fr); } #cmpSwap { justify-self: start; } }
+  .cmpside { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+  .cmpside select { flex: 1 1 200px; min-width: 0; }
+  .cmpside select.cmprace { flex: 0 1 190px; }
+  .cmptag { flex: none; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font: 700 12px var(--mono); color: var(--surface); background: var(--accent); }
+  .cmptag.b { background: var(--c-hit); }
+  .cmpgrid { grid-template-columns: repeat(auto-fit, minmax(min(480px, 100%), 1fr)); }   /* two columns: the cards come in pairs */
+  .cmpt.cmptal { max-width: 640px; }
+  .cmpfold { margin-top: 8px; }
+  .cmphead > div { border-left: 4px solid var(--accent); }
+  .cmphead > div.b { border-left-color: var(--c-hit); }
+  .cmphead .dps b { font-size: 24px; font-weight: 700; }
+  .cmpt th.a { color: var(--accent); }
+  .cmpt th.b { color: var(--c-hit); }
+  .cmpt td .ico { width: 16px; height: 16px; }
+  .twin { display: grid; gap: 2px; min-width: 90px; }
+  .twin i { display: block; height: 5px; border-radius: 3px; background: var(--accent); min-width: 1px; }
+  .twin i.b { background: var(--c-hit); }
+  .cmpup { display: grid; grid-template-columns: minmax(0, max-content) minmax(60px, 1fr) repeat(3, auto); gap: 3px 10px; align-items: center; font-size: 12px; }
+  .cmpup .uhead { grid-column: 1 / -1; font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-top: 4px; }
+  .cmpup .ch { font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; color: var(--muted); text-align: right; }
+  .cmpup .ch.a { color: var(--accent); }
+  .cmpup .ch.b { color: var(--c-hit); }
+  .cmpup .ulabel { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .cmpup .ulabel .ico { width: 16px; height: 16px; }
+  .cmpfold > summary { cursor: pointer; color: var(--accent); font-size: 12px; }
+  .cmpfold .cmp2 { margin-top: 8px; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 <script>
@@ -554,6 +640,21 @@
 
   <div class="statbar" id="statbar" aria-label="Stats used for this simulation"></div>
 
+  <div class="quickbar" id="quickbar" aria-label="Quick setup">
+    <span class="qlabel">Quick setup</span>
+    <span class="qgroup"><span class="meta">Gear</span>
+      <span class="seg" role="group" aria-label="Gear preset">
+        <button type="button" data-qgear="default" aria-pressed="false">Default</button>
+        <button type="button" data-qgear="hitcap" aria-pressed="false">Hit-capped</button>
+      </span></span>
+    <span class="qgroup"><span class="meta">Buffs &amp; consumables</span>
+      <span class="seg" role="group" aria-label="Buffs and consumables preset">
+        <button type="button" data-qside="default" aria-pressed="false">Default</button>
+        <button type="button" data-qside="max" aria-pressed="false">Max</button>
+      </span></span>
+    <span class="meta" id="quickMsg" role="status"></span>
+  </div>
+
   <section class="setup" id="settings" aria-label="Stats and fight settings">
     <div class="card statcard">
       <div class="cardhead">
@@ -562,7 +663,7 @@
       </div>
       <div class="totbar">
         <label class="c" for="t_race">Race <select id="t_race"></select></label>
-        <label class="c" for="o_sword"><input id="o_sword" type="checkbox"> Sword equipped (Human)</label>
+        <label class="c" for="o_sword" id="swordLbl" title="Sword Specialization (Human): +2% crit with a sword. Only shown while the race above is Human."><input id="o_sword" type="checkbox"> Sword equipped (Human)</label>
         <label class="c" for="o_critAll"><input id="o_critAll" type="checkbox"> Sheet crit % already includes talents, racials &amp; oil</label>
         <label class="c" for="o_eng" title="Engineering unlocks the explosives in the Consumables tab. No other profession has a DPS effect for a Warlock in Forever (A59)."><input id="o_eng" type="checkbox"> Engineering (explosives)</label>
       </div>
@@ -738,16 +839,27 @@
       <button type="button" id="edResetAll" class="resetbtn" title="Remove every talent point in all three trees (pet, weapon and priority stay)">Reset all talents</button>
     </div>
     <p class="meta">Click a talent to add a point; Shift+click or right-click removes one. Hover for the tooltip.</p>
-    <div id="edTrees" class="trees"></div>
-    <div class="edcols">
-      <div>
-        <h2>Priority (top = checked first)</h2>
-        <ol id="edRot" class="edrot"></ol>
-        <div class="btnrow"><select id="edAddAct" aria-label="Action to add"></select><button type="button" id="edAdd">Add to the priority</button></div>
+    <div class="edmain">
+      <div class="edleft">
+        <div id="edTrees" class="trees"></div>
+        <div class="edcols">
+          <div>
+            <h2>Priority (top = checked first)</h2>
+            <ol id="edRot" class="edrot"></ol>
+            <div class="btnrow"><select id="edAddAct" aria-label="Action to add"></select><button type="button" id="edAdd">Add to the priority</button></div>
+          </div>
+          <div>
+            <h2>Checks</h2>
+            <ul id="edErrs" class="ederrs"></ul>
+          </div>
+        </div>
       </div>
-      <div>
-        <h2>Checks</h2>
-        <ul id="edErrs" class="ederrs"></ul>
+      <div class="edquick" aria-label="Quick sim of the build in the editor">
+        <div class="cardhead">
+          <h2>Quick sim</h2>
+          <button type="button" id="edQuick" class="primary" title="Simulate only this build: 300 fights per race with the current settings, next to the sheet's best build on the same fights">Quick sim this build</button>
+        </div>
+        <div id="edQuickOut" role="status"></div>
       </div>
     </div>
     <label class="c tlon" for="edTlOn" title="Script the fight yourself: drag spells onto a timeline at the exact moment you want them cast. The priority above still runs: it fills every gap, recasts what misses and takes over when the timeline ends."><input id="edTlOn" type="checkbox"> Super advanced: fight timeline</label>
@@ -765,14 +877,12 @@
     </div>
     <div class="btnrow">
       <button type="button" id="edSave" class="primary">Add to the sheet</button>
-      <button type="button" id="edQuick" title="Simulate only this build: 300 fights per race with the current settings, next to the sheet's best build on the same fights">Quick sim this build</button>
       <button type="button" id="edNew">New build</button>
       <button type="button" id="edCopy">Copy build code</button>
       <input id="edCode" type="text" placeholder="WFB1:…" aria-label="Build code">
       <button type="button" id="edLoadCode">Load build code</button>
     </div>
     <p class="meta" id="edMsg" role="status"></p>
-    <div id="edQuickOut" role="status"></div>
     <h2>Your builds</h2>
     <ol id="edList" class="batchlist"></ol>
   </details>
@@ -782,11 +892,11 @@
       <span id="staleMsg"><b>Settings changed since this run.</b> The results below are from the previous settings.</span>
       <button type="button" id="staleRun" class="primary">Sim!</button>
     </div>
-    <div class="tabletools"><label class="switch" for="allRaces" title="Open every build's other races and its no-race baseline under its row. The pill next to each race still opens or closes one build."><input id="allRaces" type="checkbox"> Show all races</label></div>
+    <div class="tabletools"><span class="meta" id="moveNote" hidden><span class="mv up">▲</span> <span class="mv down">▼</span> places gained / lost since the previous run (hover for the DPS change)</span><label class="switch" for="allRaces" title="Open every build's other races and its no-race baseline under its row. The pill next to each race still opens or closes one build."><input id="allRaces" type="checkbox"> Show all races</label></div>
     <div class="scroll"><table id="results"><thead><tr>
       <th>#</th><th>Build</th><th title="The build's best race. The +4 races pill shows the other races and the no-race baseline; Show all races (above the table) opens them for every build.">Race</th><th>Pets</th>
       <th title="Your damaging spells in priority order (left = checked first) with their share of the total damage (bar length relative to the build's biggest source); Bane of Doom and Bane of Agony share one split icon (one Bane per target). Pet, Demonic Brand, Touch of the Grave and explosives after the divider. Curses, Life Tap and racial cooldowns are in the details' full priority list.">Spells &amp; damage</th>
-      <th class="n">DPS</th><th class="n wrap2">vs best</th>
+      <th class="n dpsh">DPS</th><th class="n wrap2">vs best</th>
       <th class="n wrap2" title="What the race adds: DPS change vs the same build with no race (Human base stats, no racials).">vs no race</th>
       <th class="w" style="--c:var(--c-sp)" title="DPS per 1 spell power">SP<span class="sub">DPS per 1</span></th>
       <th class="w" style="--c:var(--c-hit)" title="1% hit is worth this much spell power (hit weight ÷ SP weight)">Hit<span class="sub">SP per 1%</span></th>
@@ -798,10 +908,14 @@
 
   <details class="card toolcard" id="compare">
     <summary>Compare two builds</summary>
-    <div class="btnrow cmpbar">
-      <label class="c" for="cmpA">A <select id="cmpA"></select></label>
+    <div class="cmpbar">
+      <div class="cmpside"><b class="cmptag a">A</b>
+        <select id="cmpA" aria-label="Build A"></select>
+        <select id="cmpAR" class="cmprace" aria-label="Race of build A"></select></div>
       <button type="button" id="cmpSwap" title="Swap A and B" aria-label="Swap A and B">⇄</button>
-      <label class="c" for="cmpB">B <select id="cmpB"></select></label>
+      <div class="cmpside"><b class="cmptag b">B</b>
+        <select id="cmpB" aria-label="Build B"></select>
+        <select id="cmpBR" class="cmprace" aria-label="Race of build B"></select></div>
     </div>
     <div id="cmpOut"></div>
   </details>

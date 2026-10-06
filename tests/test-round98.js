@@ -9,7 +9,7 @@
   }
   function tb(rot, t) { return { key: 't98', short: 't', name: 't', notes: '', talents: t || { decimation: 2 }, pet: null, sacrifice: null, oil: 'none', rotation: rot }; }
   function casts(r, k) { return r.log.filter(function (e) { return e.type === 'cast' && (!k || e.spell === k); }); }
-  function shipped(k) { return JSON.parse(JSON.stringify(WL.BUILDS.filter(function (x) { return x.key === k; })[0])); }
+  function shipped(k) { return JSON.parse(JSON.stringify(WL.findBuild(k))); }   // round 110: also the builds taken off the sheet
   var DUR = 120, EX = DUR * (1 - WL.DEFAULT_CONFIG.fight.executePct / 100);   // boss health falls evenly: execute from 78 s
 
   T.run('round 98: Searing Pain only to trigger Decimation', function () {

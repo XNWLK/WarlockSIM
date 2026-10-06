@@ -17,7 +17,7 @@
     });
 
     T.group('Affliction build: filler talents without a DPS effect');
-    var aff = WL.BUILDS.filter(function (b) { return b.key === 'aff_succ_sb'; })[0], cfg = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
+    var aff = WL.findBuild('aff_succ_sb'), cfg = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     // Round 30: the sheet build now has Demonic Embrace 2 / Demonic Energies 1 / no Master Summoner (user). `old` is the
     // round-28 version (Master Summoner 1, Demonic Energies 2); `de0` drops Demonic Energies entirely.
     T.eq(JSON.stringify([aff.talents.demonicEmbrace, aff.talents.demonicEnergies, aff.talents.masterSummoner || 0]), '[2,1,0]', 'sheet build: Embrace 2, Demonic Energies 1, no Master Summoner (round 30)');

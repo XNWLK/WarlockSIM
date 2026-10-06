@@ -7,7 +7,7 @@
     T.group('C: the base weight run equals the combo run (same build, race, settings, seeds)');
     var cfg = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)); cfg.fight.iterations = cfg.fight.weightIterations = 150;
     ['demo_pact_fire', 'aff_pact_succ_drain', 'wrack_succubus'].forEach(function (k) {
-      var b = WL.BUILDS.filter(function (x) { return x.key === k; })[0];
+      var b = WL.findBuild(k);
       T.eq(WL.statWeightRun(b, 'undead', cfg, cfg.fight.weightIterations, null), WL.simulate(b, 'undead', cfg).dps, k + ': identical DPS');
     });
     var c2 = JSON.parse(JSON.stringify(cfg)); c2.fight.hitEvery = 2; c2.fight.targets = 2; c2.fight.multiDot = true;

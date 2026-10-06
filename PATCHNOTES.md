@@ -3,6 +3,20 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v102
+- **Eight builds instead of thirteen**: Aff Pact Fire Imp, Demo Pact Fire Succubus, Aff Pact Drain Life Succubus, Aff Shadow Bolt
+  Succubus and DS Ruin are off the sheet. The other builds' numbers are unchanged.
+- **Quick setup** above the settings: Gear (Default | Hit-capped: 800 SP / 16% hit / 20% crit) and Buffs & consumables
+  (Default | Max). Each switch changes only its own part, so you can combine them. Also in the Presets list.
+- **Rank arrows**: after you change settings and sim again, every build shows how many places it moved up or down.
+- **Quick sim** now has its own panel next to the talent trees: a big DPS number, every race with a bar, and the damage
+  breakdown per spell (click a race to see its breakdown).
+- **Compare two builds** is rebuilt: pick a build and a race per side; numbers, stats, damage per source, uptimes, races,
+  talents, priority and DPS spread side by side.
+- DPS numbers in the results table are bigger and coloured.
+- Elixir of the Owl and Elixir of Sages no longer stack their 2% crit (their Intellect and Spirit still both count).
+- "Sword equipped (Human)" is only shown while the race is set to Human.
+
 ## v101
 - The early Life Tap settings were searched again with the corrected Soul Fire cooldown. They hold; only Demo Pact Fire
   Succubus moves (80% / 60 s → 70% / 45 s, +0.2%).

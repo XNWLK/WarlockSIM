@@ -33,7 +33,8 @@ Click a build for:
 
 ### Your setup
 - **Stats:** spell power (also Shadow / Fire only), hit, crit, haste, Intellect, Spirit, Stamina, MP5, Spell Pierce;
-  save and load **gear sets**.
+  save and load **gear sets**. A **quick setup** bar switches between starter and hit-capped gear, and between the default
+  and the maximum set of buffs and consumables.
 - **Raid buffs:** Arcane Intellect, Mark of the Wild, Fortitude, Divine Spirit, Kings, Wisdom, Mana Spring (+ Restorative
   Totems), Mana Tide, Innervate, Moonkin aura, Power Infusion.
 - **Boss debuffs:** Sunder / Expose Armor, Faerie Fire, Curse of Recklessness, another Warlock's Curse of the Elements,
@@ -55,11 +56,14 @@ Click a build for:
   Firestone / oil), and arrange the spell priority with drag and drop.
 - Live checks that the build is valid (talent points, requirements, pet rules).
 - Mid-fight pet swap at execute (Demonic Sacrifice + Fel Domination + summon).
-- **Quick sim** a build on its own, or add it to the ranking; edit a copy of any build straight from the results.
+- **Quick sim** a build on its own — DPS per race and the damage breakdown right next to the talent trees — or add it to
+  the ranking; edit a copy of any build straight from the results.
 - Share builds as a code.
 
 ### Compare
-- **Compare two builds** side by side: DPS per source, talents and priority differences.
+- **Compare two builds** side by side, each with the race you pick: numbers, stats, damage per source, uptimes, races,
+  talents, priority and DPS spread.
+- **Rank arrows** show which builds moved up or down after you change your settings.
 - **Batch compare:** save several setups (e.g. pre-raid vs raid-buffed) and run them all, or add the current run to
   compare later runs against it.
 - Save settings as **presets**, or share them as a code.

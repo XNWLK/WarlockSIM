@@ -72,8 +72,9 @@
     T.group('built-in builds (round 105, user: the best setting found, on every build)');
     var WANT = { demo_pact_succ_sb: '80/45', aff_pact_succ_sb: '80/45', demo_pact_succ_fire: '70/45', demo_pact_fire: '80/45', destro_incin_succ: '50/25', aff_pact_fire: '80/45',
       demo_pact_imp_sb: '60/10', aff_pact_succ_drain: '60/10', destro_incin_imp: '40/60', aff_succ_sb: '60/10', sm_ruin_classic: '40/25', ds_ruin_classic: '50/25', wrack_succubus: '60/25' };
-    var own = WL.BUILDS.filter(function (b) { return !b.custom; });
-    T.eq(own.length, Object.keys(WANT).length, own.length + ' built-in builds');
+    // Round 110: five of them were taken off the sheet (tests/retired-builds.js); their settings are still checked.
+    var own = WL.BUILDS.filter(function (b) { return !b.custom; }).concat(WL.RETIRED_BUILDS);
+    T.eq(own.length, Object.keys(WANT).length, own.length + ' builds: ' + (own.length - WL.RETIRED_BUILDS.length) + ' on the sheet + ' + WL.RETIRED_BUILDS.length + ' taken off it in round 110');
     own.forEach(function (b) {
       var p = WL.actionParams(b, 'lifeTapBelow'), n = b.rotation.length;
       T.ok(b.rotation[n - 2] === 'lifeTapBelow' && WL.ACTIONS[b.rotation[n - 1]].filler && b.rotation.indexOf('lifeTapBelow') === n - 2, b.short + ': the action sits right above the filler, once');

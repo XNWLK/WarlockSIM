@@ -9,12 +9,15 @@
 // Round 105 (user): every build got "Life Tap when mana is below _% and more than _ s remain" right above its filler, each
 // with the best setting of the round-104 grid (04_EXPLORATION §41) — the user asked for all builds, also those under +0.5%.
 // Round 109: grid redone with the cooldown rule of round 107 — the settings hold; only Demo Pact Fire Succubus moved.
+// Round 110 (user): five builds taken off the sheet — Aff Pact Fire Imp, Demo Pact Fire Succubus, Aff Pact Drain Life
+// Succubus, Aff Shadow Bolt Succubus and DS Ruin (classic). Eight builds remain. The five live on as test fixtures in
+// tests/retired-builds.js (several tests use them); their history is in docs/03_BUILD_LOG.md.
 //
 // Round 16 (2026-09-24): list re-derived after pet spell power 100% → 15% (A26/A49) and Succubus melee 40 → 100 DPS
 // (A46). Full search + point-shift hill-climb + rotation search at the new defaults: docs/04_EXPLORATION.md section 8.
 // Rule unchanged: keep every build within 20% of the best; adopt talent/rotation moves of at least +0.5%.
 // Round 28 (user): the best build with at least 25 Affliction points is on the sheet and always shown, however far
-// behind it is (aff_succ_sb, 04_EXPLORATION §16); round 29: the same for Demonology and Destruction
+// behind it is (aff_succ_sb until round 110, 04_EXPLORATION §16; SM Ruin since); round 29: the same for Demonology and Destruction
 // (options.alwaysShowBestTrees — those two are already the top builds of their tree). Every build is also simulated with
 // "No race" (A62) as a baseline for the racials.
 // History of the earlier (Imp-first) list: rounds 3–13 in docs/03_BUILD_LOG.md.
@@ -50,20 +53,6 @@ WL.BUILDS = [
     params: { lifeTapBelow: { pct: 80, sec: 45 } },   // round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.43% (10,000 fights)
   },
   {
-    key: 'demo_pact_succ_fire', short: 'Demo Pact Fire Succubus',
-    name: 'Demonology – Pact, Succubus out, Searing Pain',
-    notes: '2/31/18 (new in round 16; hill-climb −2 Improved Shadow Bolt +2 Aftermath, +0.7%). Same Succubus Pact tree with a Fire filler: Searing Pain keeps Demonic Brand up by itself, Firestone. Round 25: Soul Fire during Decimation added before the filler (+1.8%, 10,000 fights). Round 71: Death Coil as the finisher on top +0.18% (10,000 fights). Round 74 (user: apply Demonic Brand early): the Brand upkeep near the top of the priority +0.09% (10,000 fights).',
-    talents: {
-      suppression: 1, improvedCorruption: 1,
-      unholyPower: 5, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, improvedSayaad: 3, masterSummoner: 2,
-      decimation: 2, demonicBrand: 3, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
-      bane: 5, cataclysm: 3, aftermath: 2, ruin: 5, agonizingFlames: 3,
-    },
-    pet: 'succubus', sacrifice: 'imp', oil: 'firestone',
-    rotation: ['deathCoilFinisher', 'bane', 'searingPainBrand', 'curseOfElements', 'immolate', 'corruption', 'soulFire', 'lifeTapBelow', 'searingPain'],   // round 25: + Soul Fire during Decimation (+1.8%)
-    params: { lifeTapBelow: { pct: 70, sec: 45 } },   // round 105 (user): Life Tap early; round 109 (search redone after the cooldown fix): 70% / 45 s, +0.93% (was 80% / 60 s, +0.76%)
-  },
-  {
     key: 'demo_pact_fire', short: 'Demo Pact Fire Imp',
     name: 'Demonology – Pact, Imp out, Fire',
     notes: '2/31/18 (round 10: −2 Cataclysm +2 Suppression; round 16: −1 Suppression +1 Improved Corruption, +0.6%). Succubus sacrificed (+15% Fire), Imp out (Master Demonologist +10% Fire for you and the Imp), Agonizing Flames. Searing Pain filler, Soul Fire during Decimation. Best build while pets were assumed to use 100% of your spell power (rounds 3–15), and best again since round 31 (pet scaling measured in Forever: 10% SP, and Demonic Knowledge now reaches the Imp). Round 71: Death Coil as the finisher on top +0.13% (10,000 fights). Round 74 (user: apply Demonic Brand early): the Brand upkeep near the top of the priority +0.12% (10,000 fights).',
@@ -91,20 +80,6 @@ WL.BUILDS = [
     params: { lifeTapBelow: { pct: 50, sec: 25 } },   // round 105 (user): Life Tap below 50% mana with more than 25 s left, +0.36% (10,000 fights)
   },
   {
-    key: 'aff_pact_fire', short: 'Aff Pact Fire Imp',
-    name: 'Affliction/Demonology – Pact, Imp out, Fire',
-    notes: '15/31/5 (round 10). Suppression, Pandemic and Malediction with the Imp Pact tree. Searing Pain filler. Unchanged in round 16 (local optimum). Round 71: Death Coil as the finisher on top +0.22% (10,000 fights). Round 74 (user: apply Demonic Brand early): the Brand upkeep near the top of the priority +0.16% (10,000 fights).',
-    talents: {
-      suppression: 5, improvedCorruption: 2, improvedLifeTap: 2, malediction: 3, pandemic: 3,
-      unholyPower: 5, improvedImp: 3, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, masterSummoner: 2,
-      decimation: 2, demonicBrand: 3, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
-      bane: 5,
-    },
-    pet: 'imp', sacrifice: 'succubus', oil: 'firestone',
-    rotation: ['deathCoilFinisher', 'bane', 'searingPainBrand', 'curseOfElements', 'corruption', 'immolate', 'lifeTapPet', 'soulFire', 'lifeTapBelow', 'searingPain'],
-    params: { lifeTapBelow: { pct: 80, sec: 45 } },   // round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.93% (10,000 fights)
-  },
-  {
     key: 'demo_pact_imp_sb', short: 'Demo Pact Shadow Bolt Imp',
     name: 'Demonology – Pact, Imp out, Shadow Bolt',
     notes: '2/31/18 (round 13: −3 Improved Shadow Bolt +3 Cataclysm). Succubus sacrificed (+15% Fire for Immolate/Soul Fire), Imp out with Improved Imp and Demonic Energies. Shadow Bolt filler. Unchanged in round 16 (best move +0.46%). With full raid buffs + consumables 5/5 Improved Shadow Bolt and no Cataclysm is +1.2% (04_EXPLORATION §11). Round 61 (v52 defaults): -1 Demonic Brand +1 Improved Health Funnel, -1 Suppression +1 Improved Corruption: +0.54% Human (653.61 -> 657.12), +0.59% Undead, 10,000 fights. Brand 2/3 = 4 charges: the Imp spends them before the 10 s brand expires (3/3 lost charges to the timer), so more charges land (64.5 vs 61.8 per fight) and the extra Searing Pains out-damage the Shadow Bolts they replace; Improved Health Funnel itself does nothing (04_EXPLORATION §28). Round 71: Death Coil as the finisher on top +0.28% (10,000 fights). Round 74 (user: apply Demonic Brand early): the Brand upkeep near the top of the priority +0.03% (10,000 fights). Round 82 (2-minute default fight, user): Searing Pain in the execute phase above the Shadow Bolt filler +1.57% (665.82 → 676.25 Undead, 10,000 fights; talents unchanged — no 1–3 point move gains ≥ 0.5%).',
@@ -117,19 +92,6 @@ WL.BUILDS = [
     pet: 'imp', sacrifice: 'succubus', oil: 'spellstone',
     rotation: ['deathCoilFinisher', 'searingPainBrand', 'lifeTapPet', 'bane', 'curseOfElements', 'immolate', 'corruption', 'soulFire', 'searingPainExecute', 'lifeTapBelow', 'shadowBolt'],   // round 82: + Searing Pain at execute
     params: { lifeTapBelow: { pct: 60, sec: 10 } },   // round 105 (user): Life Tap below 60% mana with more than 10 s left, +1.43% (10,000 fights)
-  },
-  {
-    key: 'aff_pact_succ_drain', short: 'Aff Pact Drain Life Succubus',
-    name: 'Affliction/Demonology – Pact, Succubus out, Drain Life',
-    notes: '20/31/0 (new in round 24, user: drain-filler builds). Improved Drains 3/3, Pandemic, Nightfall (instant Shadow Bolts via Shadow Trance), Malediction, Improved Life Tap with the Succubus Pact tree; Drain Life filler. Hill-climbed from a 20/31/0 start (−1 Improved Bane of Agony +1 Improved Corruption, −2 Malevolence +2 Improved Life Tap); rotation order within 0.1% of the best of 720. About 13% behind the Shadow Bolt builds: Drain Life does ~210 damage per cast-second vs ~490 for Shadow Bolt, even with Improved Drains. Deep-Affliction Wrack builds are 23–29% behind (04_EXPLORATION §13). Round 71: Death Coil as the finisher on top +0.17% (10,000 fights). Round 82 (2-minute default fight, user): Searing Pain in the execute phase above Soul Fire +1.35% (587.98 → 595.92 Human, 10,000 fights); best race now Undead.',
-    talents: {
-      suppression: 5, improvedCorruption: 1, improvedLifeTap: 2, improvedDrains: 3, malediction: 2, pandemic: 3, amplifyCurse: 1, nightfall: 2, malevolence: 1,
-      unholyPower: 5, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, improvedSayaad: 3, masterSummoner: 2,
-      decimation: 2, demonicBrand: 3, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
-    },
-    pet: 'succubus', sacrifice: 'imp', oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'shadowTrance', 'searingPainBrand', 'corruption', 'immolate', 'searingPainExecute', 'soulFire', 'lifeTapBelow', 'drainLife'],   // round 25: + Soul Fire during Decimation (+1.1%); round 82: + Searing Pain at execute
-    params: { lifeTapBelow: { pct: 60, sec: 10 } },   // round 105 (user): Life Tap below 60% mana with more than 10 s left, +0.60% (10,000 fights)
   },
   {
     key: 'destro_incin_imp', short: 'Destro Incinerate Imp',
@@ -145,20 +107,6 @@ WL.BUILDS = [
     rotation: ['deathCoilFinisher', 'bane', 'corruption', 'immolate', 'lifeTapPet', 'conflagrate', 'curseOfElements', 'shadowburn', 'lifeTapBelow', 'incinerate'],
     params: { lifeTapBelow: { pct: 40, sec: 60 } },   // round 105 (user): Life Tap below 40% mana with more than 60 s left, +0.32% (10,000 fights)
   },
-  {
-    key: 'aff_succ_sb', short: 'Aff Shadow Bolt Succubus',
-    name: 'Affliction (25 points) – Succubus out, Shadow Bolt',
-    notes: '25/24/2 (new in round 28, user: always show the best build with at least 25 Affliction points). Best of 24 starting builds (25/26/0, 30/21/0, 31/20/0 Wrack, 30/0/21, 40/11/0 families; Shadow Bolt / Wrack / Searing Pain fillers — Drain Life fillers lost in round 24; Succubus / Imp / sacrifice) after hill-climbs kept at >= 25 Affliction points (04_EXPLORATION §16): the climb from 30/21/0 moved Shadow Mastery out into Demonic Knowledge, Soul Link and Bane (moves >= +0.5% only). No Demonic Pact (needs 31 Demonology), so no sacrifice: the Succubus is out with Improved Sayaad, Demonic Brand, Soul Link and Demonic Knowledge. About 13% behind the best build. Every action pays (without Siphon Life -1.4%, Soul Fire -0.6%); best of 720 priority orders +0.37% (kept); Spellstone > Firestone. Round 29 (user checks, 10,000 fights): Master Summoner / Demonic Energies -> Demonic Embrace give identical DPS (none of the three adds damage; the Succubus never runs out of mana, so Demonic Energies does nothing here — the points are only row-gate fillers; Embrace is +0.01% per point for Undead via Touch of the Grave); Bane 2 -> Shadow Mastery 2 -0.74%, -> Soul Siphon 3/3 -1.74% (drains only). Round 30 (user): Master Summoner 1 -> Demonic Embrace, Demonic Energies 2 -> 1 (+1 Embrace) adopted anyway — same DPS, more Stamina (and slightly more Touch of the Grave for Undead). Round 61 (v52 defaults): -1 Soul Siphon (it only helps drains) -1 Improved Corruption +2 Malevolence (5/5): +0.51% Undead (598.60 -> 601.67), +0.49% Human, 10,000 fights (04_EXPLORATION §28). Round 71: Death Coil as the finisher on top +0.39% (10,000 fights). Round 82 (2-minute default fight, user): Searing Pain in the execute phase above the Shadow Bolt filler +0.53% (595.17 → 598.33 Undead, 10,000 fights).',
-    talents: {
-      suppression: 5, improvedCorruption: 4, improvedLifeTap: 2, malediction: 5, pandemic: 3, malevolence: 5, siphonLife: 1,   // round 61: -1 Soul Siphon -1 Improved Corruption +2 Malevolence
-      unholyPower: 5, demonicEmbrace: 2, felVitality: 3, demonicEnergies: 1, improvedSayaad: 3, demonicSacrifice: 1,
-      decimation: 2, demonicBrand: 3, soulLink: 1, demonicKnowledge: 3,
-      bane: 2,
-    },
-    pet: 'succubus', sacrifice: null, oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'searingPainBrand', 'corruption', 'siphonLife', 'immolate', 'soulFire', 'searingPainExecute', 'lifeTapBelow', 'shadowBolt'],   // round 82: + Searing Pain at execute
-    params: { lifeTapBelow: { pct: 60, sec: 10 } },   // round 105 (user): Life Tap below 60% mana with more than 10 s left, +0.84% (10,000 fights)
-  },
   // ---- Reference builds (round 65, user): classic layouts. Round 66: every build is shown by default (no cut-off), so they
   //      need no special flag; anyone can pin any build (📌) to keep it shown when a cut-off is set. ----
   {
@@ -173,19 +121,6 @@ WL.BUILDS = [
     pet: 'succubus', sacrifice: null, oil: 'spellstone',
     rotation: ['deathCoilFinisher', 'bane', 'corruption', 'shadowTrance', 'siphonLife', 'curseOfElements', 'immolate', 'lifeTapBelow', 'shadowBolt'],
     params: { lifeTapBelow: { pct: 40, sec: 25 } },   // round 105 (user): Life Tap below 40% mana with more than 25 s left, +0.23% (10,000 fights)
-  },
-  {
-    key: 'ds_ruin_classic', short: 'DS Ruin (classic)',
-    name: 'DS Ruin (classic) – Demonic Sacrifice (Imp) / Destruction, Shadow Bolt',
-    notes: '22/11/18; round 83 (user: adopt the round 82 search result −2 Improved Corruption +2 Improved Life Tap, +1.20% at 120 s, 565.60 → 572.37 Human, 10,000 fights). Round 65 (user): the classic Demonic Sacrifice / Ruin layout — Suppression, Improved Corruption, Malediction 2, Pandemic, Nightfall, Malevolence; Demonic Embrace, Fel Vitality, Demonic Aegis, Demonic Sacrifice; Bane, Improved Shadow Bolt, Ruin, Agonizing Flames. Imp sacrificed (+15% Shadow; Succubus sacrifice +15% Fire is -10%), no pet out, Spellstone; Human best. Priority = best of all 120 orders (+0.35%); without Bane -14.8%, Corruption -9.1%, Curse of the Elements -8.4%, Immolate -2.3%, Shadow Trance neutral; Searing Pain filler -17.5%. Shadow Bolt Rank 2 filler +1.1% if Forever had no low-rank penalty (A70) — not used; Rank 2 since gutted in Forever, removed round 81 (04_EXPLORATION §30). Round 71: Death Coil as the finisher on top +0.50% (10,000 fights).',
-    talents: {
-      suppression: 5, improvedCorruption: 3, improvedLifeTap: 2, malediction: 2, pandemic: 3, nightfall: 2, malevolence: 5,   // round 82/83: −2 Improved Corruption +2 Improved Life Tap
-      demonicEmbrace: 5, felVitality: 3, demonicAegis: 2, demonicSacrifice: 1,
-      bane: 5, improvedShadowBolt: 5, ruin: 5, agonizingFlames: 3,
-    },
-    pet: null, sacrifice: 'imp', oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'bane', 'corruption', 'immolate', 'shadowTrance', 'curseOfElements', 'lifeTapBelow', 'shadowBolt'],
-    params: { lifeTapBelow: { pct: 50, sec: 25 } },   // round 105 (user): Life Tap below 50% mana with more than 25 s left, +0.37% (10,000 fights)
   },
   {
     key: 'wrack_succubus', short: 'Wrack Succubus',

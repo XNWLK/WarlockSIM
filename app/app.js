@@ -308,6 +308,8 @@
     // Weapon effects come from the Consumables tab: the Spellstone / Firestone and a weapon oil stack (round 86). The stone
     // depends on the build, so it is left out of the total and named in the note instead; the oil is in the total.
     var race = $('t_race').value || 'human';
+    $('swordLbl').hidden = race !== 'human';                // round 110 (user): the sword box only concerns Humans
+    renderSetupBar();
     var perBuild = WL.activeConsumables(cfg).some(function (c) { return c.group === 'stone' && c.buildOil; });
     var s = WL.computeStats({ talents: {}, pet: null, sacrifice: null, oil: 'none', rotation: [] }, race, cfg);
     var hide = /^(Gear|Stat-weight test)$/;
@@ -324,8 +326,63 @@
       cfg.combat.maxHitPct + '%, before Suppression). Weapon: ' + (perBuild ? 'Spellstone / Firestone per build, not in the total ' +
       '(Spellstone +2% haste, +21 Shadow SP · Firestone +2% crit, +21 Fire SP)' + (s.oilName !== WL.OILS.none.name ? ' + ' + s.oilName + ' (in the total).' : '; no weapon oil.') : s.oilName + '.');
   }
+  // ---------- quick setup (round 110, user): hit-capped gear / max buffs & consumables / both ----------
+  // Two switches above the settings: Gear (Default | Hit-capped) and Buffs & consumables (Default | Max). Each changes
+  // only its own part — the sheet values, or which raid buffs / boss debuffs / consumables are ticked — so "both" is
+  // simply both set to the right. Fight settings, options and professions are never touched. A button is lit while the
+  // settings match it exactly. The same setups are in the Presets list (as whole setups, for batch compare).
+  // Hit-capped: 16% hit caps every build with at least 1 point in Suppression (83 + 1 + 16); the other values are a
+  // well-geared raid set chosen for this preset, not a measured item list.
+  var GEAR_KEYS = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'agi', 'int', 'spi', 'sta', 'mp5'];
+  var HITCAP_GEAR = { sp: 800, shadowSp: 0, fireSp: 0, hitPct: 16, critPct: 20, hastePct: 0, pierce: 0, agi: 0, int: 250, spi: 100, sta: 300, mp5: 0 };
+  // Max: every raid buff, every boss debuff that stacks (no second Warlock's Curse of the Elements — that changes your
+  // rotation), and the best consumable of every group. Potion: Major Mana Potion — on the shared potion cooldown it adds
+  // +1.3 … +2.7% for the three mana-hungry Pact builds (Spellblasting +0.7 … +1.0% there); for the other builds
+  // Spellblasting is 0.3 … 0.9% better (04_EXPLORATION §44). No Engineering explosives: that is a profession, switched on in the Stats panel.
+  var MAX_CONS = ['flaskSupremePower', 'greaterArcaneElixir', 'shadowPower', 'firePower', 'elixirOwl', 'elixirSages', 'greaterMageblood', 'spiritOfZanza',
+    'cerebralCortex', 'nightfinSoup', 'kreegsStout', 'buildOil', 'brilliantWizardOil', 'majorManaPotion', 'demonicRune'];
+  var SIDE_GROUPS = ['buffs', 'debuffs', 'consumables'];
+  function gearText(g) { return g.sp + ' SP / ' + g.hitPct + '% hit / ' + g.critPct + '% crit / Int ' + g.int + ' / Spirit ' + g.spi + ' / Stamina ' + g.sta; }
+  function applyGearPreset(c, which) {
+    var g = which === 'hitcap' ? HITCAP_GEAR : WL.DEFAULT_CONFIG.gear;
+    GEAR_KEYS.forEach(function (k) { c.gear[k] = g[k] || 0; });
+  }
+  function applySidePreset(c, which) {
+    if (which !== 'max') { SIDE_GROUPS.forEach(function (g) { Object.keys(c[g]).forEach(function (k) { c[g][k].on = !!WL.DEFAULT_CONFIG[g][k].on; }); }); return; }
+    Object.keys(c.buffs).forEach(function (k) { c.buffs[k].on = true; });
+    var seen = {};
+    Object.keys(c.debuffs).forEach(function (k) { var d = c.debuffs[k]; d.on = !d.coe && !(d.group && seen[d.group]); if (d.on && d.group) seen[d.group] = 1; });
+    Object.keys(c.consumables).forEach(function (k) { c.consumables[k].on = MAX_CONS.indexOf(k) >= 0; });
+  }
+  function setupState() {                                  // which button of each switch matches the current settings
+    var gearIs = function (which) { var p = { gear: {} }; applyGearPreset(p, which); return GEAR_KEYS.every(function (k) { return (cfg.gear[k] || 0) === p.gear[k]; }); };
+    var onList = function (c) { return JSON.stringify(SIDE_GROUPS.map(function (g) { return Object.keys(c[g]).filter(function (k) { return c[g][k].on; }); })); };
+    var sideIs = function (which) { var p = JSON.parse(JSON.stringify({ buffs: cfg.buffs, debuffs: cfg.debuffs, consumables: cfg.consumables })); applySidePreset(p, which); return onList(p) === onList(cfg); };
+    return { gear: gearIs('default') ? 'default' : gearIs('hitcap') ? 'hitcap' : null, side: sideIs('default') ? 'default' : sideIs('max') ? 'max' : null };
+  }
+  function renderSetupBar() {
+    var st = setupState();
+    var tips = { 'qgear:default': 'Starter gear: ' + gearText(WL.DEFAULT_CONFIG.gear) + '.',
+      'qgear:hitcap': 'Raid gear at the hit cap: ' + gearText(HITCAP_GEAR) + '. 16% hit caps every build with at least 1 point in Suppression.',
+      'qside:default': 'The default raid buffs and boss debuffs; no consumables except the Spellstone / Firestone.',
+      'qside:max': 'Every raid buff, every boss debuff that stacks, and the best consumable of each group (flask, elixirs, food, weapon oil, Major Mana Potion, rune).' };
+    Array.prototype.forEach.call(document.querySelectorAll('#quickbar button'), function (b) {
+      var kind = b.hasAttribute('data-qgear') ? 'qgear' : 'qside', v = b.getAttribute('data-' + kind);
+      b.setAttribute('aria-pressed', (kind === 'qgear' ? st.gear : st.side) === v);
+      b.title = tips[kind + ':' + v] + ' Changes only ' + (kind === 'qgear' ? 'the Sheet (gear) values.' : 'which buffs, debuffs and consumables are ticked.');
+    });
+  }
+  function quickSetup(kind, which) {
+    readSettings();
+    var race = $('t_race').value;
+    if (kind === 'gear') applyGearPreset(cfg, which); else applySidePreset(cfg, which);
+    initSettings(); $('t_race').value = race; renderTotals(); markDirty();
+    $('quickMsg').textContent = (kind === 'gear' ? (which === 'hitcap' ? 'Hit-capped gear: ' : 'Default gear: ') + gearText(cfg.gear)
+      : which === 'max' ? 'Max buffs & consumables: ' + Object.keys(cfg.buffs).length + ' raid buffs, ' + WL.activeConsumables(cfg).length + ' consumables'
+      : 'Default buffs & consumables') + ' — press Sim!';
+  }
   function armorNote() {
-    $('armorNote').textContent = 'Boss armor after debuffs: ' + fmt(WL.bossArmor(cfg)) + ' → pet melee damage reduced by ' + (100 * WL.armorReduction(cfg)).toFixed(1) + '%. Base armor and resistances: Fight & pets tab.';
+    $('armorNote').textContent ='Boss armor after debuffs: ' + fmt(WL.bossArmor(cfg)) + ' → pet melee damage reduced by ' + (100 * WL.armorReduction(cfg)).toFixed(1) + '%. Base armor and resistances: Fight & pets tab.';
   }
   function readSettings() {
     numFields.forEach(function (f) { var v = parseFloat($(f[0]).value); if (isFinite(v)) cfg[f[1]][f[2]] = v; });
@@ -551,7 +608,10 @@
       var keys = builds.map(function (b) { return b.key; });
       results = results.filter(function (r) { return keys.indexOf(r.build.key) >= 0; });
       Object.keys(weights).forEach(function (k) { if (keys.indexOf(k) < 0) delete weights[k]; });
-    } else { runCfg = JSON.parse(JSON.stringify(cfg)); weights = {}; }
+    } else {
+      if (results.length) prevRun = bestOfRun();                         // round 110: for the rank arrows of the new run
+      runCfg = JSON.parse(JSON.stringify(cfg)); weights = {};
+    }
     // Round 76: the jobs run on a pool of Web Workers (app/sim-pool.js) — one per CPU core — or on the page when workers
     // are not available. Results come back without fight #1's log; WL.hydrateResult rebuilds it from its seed on demand.
     var combos = [];
@@ -858,8 +918,29 @@
     return '<span class="dbar" title="Bar: from ' + win + '% behind the best (empty) to the best build (full)"><i style="width:' + (100 * f).toFixed(1) + '%"></i></span>';
   }
   var PIN_SVG = '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M10.5 1.5l4 4-2 1-2.5 2.5.5 3-1.5 1.5-3-3-3.5 3.5-.9-.9L5.1 9.6l-3-3L3.6 5.1l3 .5L9.1 3.1z" fill="currentColor"/></svg>';
+  // Rank arrows (round 110, user): after a rerun with other settings, every build shows how many places it gained (▲) or
+  // lost (▼) against the run before — best race vs best race, counted among the builds that are in both runs, so adding
+  // or removing a build moves nobody. prevRun = that earlier run's best row per build ({ dps, err, race }).
+  var prevRun = null;
+  function rankMoves() {
+    if (!prevRun) return {};
+    var now = bestOfRun(), keys = Object.keys(now).filter(function (k) { return prevRun[k]; }), out = {};
+    var order = function (src) { return keys.slice().sort(function (a, b) { return src[b].dps - src[a].dps; }); };
+    var was = order(prevRun), is = order(now);
+    keys.forEach(function (k) { out[k] = { by: was.indexOf(k) - is.indexOf(k), was: was.indexOf(k) + 1, prev: prevRun[k].dps, now: now[k].dps }; });
+    return out;
+  }
+  function moveTag(m) {
+    if (!m) return '';
+    var d = (m.now / m.prev - 1) * 100, n = Math.abs(m.by);
+    var tip = (m.by ? (m.by > 0 ? 'Up ' : 'Down ') + n + (n === 1 ? ' place' : ' places') : 'Same place') + ' since the previous run (was #' + m.was + '). DPS ' +
+      fmt(m.prev, 1) + ' → ' + fmt(m.now, 1) + ' (' + (d >= 0 ? '+' : '') + d.toFixed(2) + '%)';
+    return '<span class="mv ' + (m.by > 0 ? 'up' : m.by < 0 ? 'down' : 'same') + '" title="' + esc(tip) + '">' + (m.by > 0 ? '▲' + n : m.by < 0 ? '▼' + n : '–') + '</span>';
+  }
   function render() {
-    var tb = document.querySelector('#results tbody'), top = best(), rows = rowsForView();
+    var tb = document.querySelector('#results tbody'), top = best(), rows = rowsForView(), moves = rankMoves();
+    $('moveNote').hidden = !Object.keys(moves).length;
+    if (ed.b && !quickRunning) renderQuickOut();                          // the quick-sim panel can show a sheet build's results
     if (!rows.length) { tb.innerHTML = '<tr><td colspan="' + ncols() + '" class="meta">Simulating…</td></tr>'; return; }
     var rank = 0;
     tb.innerHTML = rows.map(function (r) {
@@ -874,7 +955,7 @@
       var h = '<tr class="row' + (isOpen ? ' open' : '') + '" tabindex="0" data-id="' + esc(key) + '" aria-expanded="' + isOpen + '">' +
         '<td class="n meta rankcell"><button type="button" class="pinbtn" data-pin="' + esc(bk) + '" aria-pressed="' + !!pins[bk] + '" title="' +
           (pins[bk] ? 'Pinned: always shown, whatever the cut-off. Click to unpin.' : 'Pin: keep this build shown when a cut-off hides builds behind the best') +
-          '" aria-label="' + (pins[bk] ? 'Unpin ' : 'Pin ') + esc(b.short) + '">' + PIN_SVG + '</button>' + rank + '</td>' +
+          '" aria-label="' + (pins[bk] ? 'Unpin ' : 'Pin ') + esc(b.short) + '">' + PIN_SVG + '</button>' + rank + moveTag(moves[bk]) + '</td>' +
         '<td class="bname">' + buildName(r, true) + '</td>' + raceTd +
         '<td><div class="pets">' + (pets || '<span class="none">–</span>') + '</div></td>' +
         '<td><div class="pdrow">' + prioDamage(r, r.avgDuration || r.firstFight.duration) + '</div></td>' +
@@ -994,15 +1075,7 @@
 
     // ---- talents ----
     // Talent trees laid out like the in-game calculator (7 rows × 4 columns); untaken talents are greyed out.
-    h += '<div class="wide"><h2>Talents · ' + split(b) + '</h2><div class="trees">' + ['affliction', 'demonology', 'destruction'].map(function (tr) {
-      var pts = 0, cells = '';
-      WL.TALENTS.filter(function (t) { return t.tree === tr; }).forEach(function (t) {
-        var n = b.talents[t.key] || 0; pts += n;
-        cells += '<div class="tcell' + (n ? (n === t.ranks ? ' max' : ' part') : ' off') + '" style="grid-row:' + (t.row + 1) + ';grid-column:' + (t.col + 1) + '">' + icon('talent_' + t.key, t.name + ' ' + n + '/' + t.ranks, '', talentTip(t, n)) + '<span class="rk">' + n + '/' + t.ranks + '</span></div>';
-      });
-      return '<div class="tree"><div class="thead">' + icon('tree_' + tr, WL.TREES[tr].name) + ' <b>' + WL.TREES[tr].name + '</b> <span class="meta">' + pts + '</span></div>' +
-        '<div class="tgrid">' + cells + '</div></div>';
-    }).join('') + '</div></div>';
+    h += '<div class="wide"><h2>Talents · ' + split(b) + '</h2>' + treesHtml(b) + '</div>';
 
     // ---- smaller cards ----
     var rcd = WL.RACES[r.race].racials.filter(function (x) { return x.effect === 'cooldown'; })[0];
@@ -1055,6 +1128,18 @@
       }).join('') + '</tbody></table></div></div>';
     return h + '</div>';
   }
+  // A build's three talent trees, read-only (details and compare; the editor draws its own clickable ones).
+  function treesHtml(b) {
+    return '<div class="trees">' + ['affliction', 'demonology', 'destruction'].map(function (tr) {
+      var pts = 0, cells = '';
+      WL.TALENTS.filter(function (t) { return t.tree === tr; }).forEach(function (t) {
+        var n = b.talents[t.key] || 0; pts += n;
+        cells += '<div class="tcell' + (n ? (n === t.ranks ? ' max' : ' part') : ' off') + '" style="grid-row:' + (t.row + 1) + ';grid-column:' + (t.col + 1) + '">' + icon('talent_' + t.key, t.name + ' ' + n + '/' + t.ranks, '', talentTip(t, n)) + '<span class="rk">' + n + '/' + t.ranks + '</span></div>';
+      });
+      return '<div class="tree"><div class="thead">' + icon('tree_' + tr, WL.TREES[tr].name) + ' <b>' + WL.TREES[tr].name + '</b> <span class="meta">' + pts + '</span></div>' +
+        '<div class="tgrid">' + cells + '</div></div>';
+    }).join('') + '</div>';
+  }
   // W4: average uptime of every tracked buff / debuff over all fights.
   function uptimeBlock(r) {
     var u = r.uptimePct || {}, keys = auraKeys(u).filter(function (k) { return u[k] > 0.05; });
@@ -1068,7 +1153,7 @@
     }).join('') + '</div></div>';
   }
   // W6: histogram of the per-fight DPS (24 bins), mean marked.
-  function histBlock(r) {
+  function histBlock(r, pre) {                            // pre: a prefix for the heading (compare: 'A · ')
     var hg = r.dpsHist; if (!hg) return '';
     var W = 360, H = 110, pad = 18, max = Math.max.apply(null, hg.counts), bw = (W - 2 * pad) / hg.counts.length;
     var x = function (v) { return pad + (hg.max > hg.min ? (v - hg.min) / (hg.max - hg.min) : 0.5) * (W - 2 * pad); };
@@ -1078,7 +1163,7 @@
         fmt(lo, 0) + '–' + fmt(lo + hg.width, 0) + ' DPS: ' + c + ' fights</title></rect>';
     }).join('');
     var mx = x(r.dps);
-    return '<div><h2>DPS distribution · ' + fmt(r.iterations) + ' fights</h2><svg class="hist" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Histogram of fight DPS">' + bars +
+    return '<div><h2>' + (pre || '') + 'DPS distribution · ' + fmt(r.iterations) + ' fights</h2><svg class="hist" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Histogram of fight DPS">' + bars +
       '<line x1="' + mx.toFixed(1) + '" x2="' + mx.toFixed(1) + '" y1="8" y2="' + (H - 20) + '" class="hmean"/>' +
       '<text x="' + mx.toFixed(1) + '" y="7" text-anchor="middle" class="hlab">mean ' + fmt(r.dps, 1) + '</text>' +
       '<text x="' + pad + '" y="' + (H - 6) + '" class="hlab">' + fmt(hg.min, 0) + '</text>' +
@@ -1292,73 +1377,165 @@
     edMsg(src.custom ? 'Editing "' + src.short + '" — press "Update on the sheet" when done.' : 'Loaded a copy of "' + src.short + '" — change it and press "Add to the sheet".');
     $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+  // Compare two builds (round 44; round 110, user: one entry per build + a race list per side instead of one entry per
+  // build × race, and most of what a build's details show, side by side: numbers, damage per source, uptimes, stats,
+  // races, talents, priority, DPS spread). A = accent colour, B = teal, everywhere.
   function compareFrom(rid) {
+    var key = rid.split('|')[0], race = rid.split('|')[1];
     renderCompareOptions();
-    $('cmpA').value = rid;
-    if ($('cmpB').value === rid) {                      // pick the best other build as B
-      var other = rowsForView().filter(function (x) { return id(x) !== rid && x.build.key !== rid.split('|')[0]; })[0];
-      if (other) $('cmpB').value = id(other);
+    $('cmpA').value = key; cmpRaceOptions('A');
+    var bestOfA = bestRow(key);
+    $('cmpAR').value = bestOfA && bestOfA.race === race ? 'best' : race;
+    if ($('cmpB').value === key) {                      // pick the best other build as B
+      var other = cmpBuilds().filter(function (x) { return x.build.key !== key; })[0];
+      if (other) { $('cmpB').value = other.build.key; cmpRaceOptions('B'); }
     }
     $('compare').open = true; renderCompare();
     $('compare').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+  function cmpBuilds() {             // every build's best row, best first (hidden builds too)
+    var by = {};
+    results.forEach(function (r) { if (!isBase(r) && (!by[r.build.key] || r.dps > by[r.build.key].dps)) by[r.build.key] = r; });
+    return Object.keys(by).map(function (k) { return by[k]; }).sort(function (x, y) { return y.dps - x.dps; });
+  }
+  // The race list of one side: "Best race" (default), every race with its DPS, the no-race baseline.
+  function cmpRaceOptions(side) {
+    var sel = $('cmp' + side + 'R'), key = $('cmp' + side).value, was = sel.value || 'best';
+    var rows = results.filter(function (r) { return r.build.key === key; }).sort(function (x, y) { return isBase(x) - isBase(y) || y.dps - x.dps; });
+    var top = rows.filter(function (r) { return !isBase(r); })[0];
+    sel.innerHTML = (top ? '<option value="best">Best race (' + esc(WL.RACES[top.race].name) + ')</option>' : '') + rows.map(function (r) {
+      return '<option value="' + r.race + '">' + esc(WL.RACES[r.race].name) + (isBase(r) ? ' (baseline)' : '') + ' · ' + fmt(r.dps, 1) + '</option>'; }).join('');
+    sel.value = was === 'best' || rows.some(function (r) { return r.race === was; }) ? was : 'best';
+  }
   function renderCompareOptions() {
-    var a = $('cmpA').value, b = $('cmpB').value;
-    var rows = results.filter(function (r) { return !isBase(r); }).sort(function (x, y) { return y.dps - x.dps; });
-    var opts = rows.map(function (r) { return '<option value="' + esc(id(r)) + '">' + split(r.build) + ' ' + esc(r.build.short) + ' · ' + esc(WL.RACES[r.race].name) + ' · ' + fmt(r.dps, 1) + '</option>'; }).join('');
+    var a = $('cmpA').value, b = $('cmpB').value, tops = cmpBuilds();
+    var opts = tops.map(function (r) { return '<option value="' + esc(r.build.key) + '">' + split(r.build) + ' ' + esc(r.build.short) + (r.build.custom ? ' (yours)' : '') + ' · ' + fmt(r.dps, 1) + '</option>'; }).join('');
     $('cmpA').innerHTML = opts; $('cmpB').innerHTML = opts;
-    var has = function (v) { return rows.some(function (r) { return id(r) === v; }); };
-    var tops = rowsForView();
-    $('cmpA').value = has(a) ? a : (tops[0] ? id(tops[0]) : '');
-    $('cmpB').value = has(b) ? b : (tops[1] ? id(tops[1]) : $('cmpA').value);
+    var has = function (v) { return tops.some(function (r) { return r.build.key === v; }); };
+    $('cmpA').value = has(a) ? a : (tops[0] ? tops[0].build.key : '');
+    $('cmpB').value = has(b) ? b : (tops[1] ? tops[1].build.key : $('cmpA').value);
+    cmpRaceOptions('A'); cmpRaceOptions('B');
     if ($('compare').open) renderCompare();
   }
-  function rowById(v) { return results.filter(function (r) { return id(r) === v; })[0]; }
+  function cmpRow(side) {
+    var key = $('cmp' + side).value, rv = $('cmp' + side + 'R').value;
+    return rv && rv !== 'best' ? results.filter(function (r) { return r.build.key === key && r.race === rv; })[0] : bestRow(key);
+  }
   function renderCompare() {
-    var A = rowById($('cmpA').value), B = rowById($('cmpB').value), out = $('cmpOut');
+    var A = cmpRow('A'), B = cmpRow('B'), out = $('cmpOut');
     if (!A || !B) { out.innerHTML = '<p class="meta">Run the sim first, then pick two builds.</p>'; return; }
-    var dd = function (a, b, d) { var x = (b / a - 1) * 100; return '<span style="color:var(' + (Math.abs(x) < 0.005 ? '--muted' : x > 0 ? '--good' : '--bad') + ')">' + (x > 0 ? '+' : '') + x.toFixed(d == null ? 2 : d) + '%</span>'; };
-    var nm = function (r) { return '<span class="split">' + split(r.build) + '</span>' + esc(r.build.short) + ' <span class="meta">' + esc(WL.RACES[r.race].name) + '</span>'; };
+    var tone = function (x, eps) { return Math.abs(x) < (eps || 0.005) ? '--muted' : x > 0 ? '--good' : '--bad'; };
+    var dd = function (a, b, d) { if (!(a > 0)) return ''; var x = (b / a - 1) * 100; return '<span style="color:var(' + tone(x) + ')">' + (x > 0 ? '+' : '') + x.toFixed(d == null ? 2 : d) + '%</span>'; };
+    var diff = function (x, d, unit) { return '<span style="color:var(' + tone(x, 0.5 * Math.pow(10, -(d || 0))) + ')">' + (x > 0 ? '+' : '') + fmt(x, d || 0) + (unit || '') + '</span>'; };
+    var raceOf = function (r) { return (isBase(r) ? '<span class="norace">–</span>' : icon('race_' + r.race, WL.RACES[r.race].name)) + ' ' + esc(WL.RACES[r.race].name) + (isBase(r) ? ' — baseline' : ''); };
+    var nm = function (r) { return '<span class="split">' + split(r.build) + '</span>' + esc(r.build.short) + ' <span class="meta">' + raceOf(r) + '</span>'; };
+    var dA = A.avgDuration || A.firstFight.duration, dB = B.avgDuration || B.firstFight.duration;
+    var th = '<th class="n a">A</th><th class="n b">B</th>';
     var h = '<div class="cmpgrid">';
-    // headline
-    h += '<div class="cmphead"><div><h2>A</h2><div class="bname">' + nm(A) + '</div><div class="dps"><b>' + fmt(A.dps, 1) + '</b> <span class="meta">±' + fmt(A.dpsErr, 1) + '</span></div></div>' +
-      '<div><h2>B</h2><div class="bname">' + nm(B) + '</div><div class="dps"><b>' + fmt(B.dps, 1) + '</b> <span class="meta">±' + fmt(B.dpsErr, 1) + '</span> ' + dd(A.dps, B.dps) + '</div></div></div>';
-    // key numbers
-    var row = function (label, a, b, d, noPct) { return '<tr><td>' + esc(label) + '</td><td class="n">' + a + '</td><td class="n">' + b + '</td><td class="n">' + (noPct ? '' : d) + '</td></tr>'; };
-    var wA = weights[A.build.key], wB = weights[B.build.key];
-    h += '<div><h2>Numbers</h2><div class="scroll"><table class="cmpt"><thead><tr><th></th><th class="n">A</th><th class="n">B</th><th class="n">B vs A</th></tr></thead><tbody>' +
-      row('DPS', fmt(A.dps, 1), fmt(B.dps, 1), dd(A.dps, B.dps)) +
-      (A.dpsPre != null ? row('DPS above ' + (A.execPct || 35) + '%', fmt(A.dpsPre, 1), fmt(B.dpsPre, 1), dd(A.dpsPre, B.dpsPre)) +
-        row('DPS in execute', fmt(A.dpsExec, 1), fmt(B.dpsExec, 1), dd(A.dpsExec, B.dpsExec)) : '') +
-      row('Life Taps per fight', fmt(A.lifeTaps, 1), fmt(B.lifeTaps, 1), '', true) +
-      row('Pet / sacrificed', esc((PET_NAMES[A.build.pet] || '–') + ' / ' + (PET_NAMES[A.build.sacrifice] || '–')), esc((PET_NAMES[B.build.pet] || '–') + ' / ' + (PET_NAMES[B.build.sacrifice] || '–')), '', true) +
-      row('Weapon stone', esc(WL.OILS[A.build.oil].name), esc(WL.OILS[B.build.oil].name), '', true) +
+
+    // ---- headline ----
+    h += '<div class="cmphead"><div><h2>A</h2><div class="bname">' + nm(A) + '</div><div class="dps"><b>' + fmt(A.dps, 1) + '</b> <span class="meta">±' + fmt(A.dpsErr, 1) + ' DPS</span></div></div>' +
+      '<div class="b"><h2>B</h2><div class="bname">' + nm(B) + '</div><div class="dps"><b>' + fmt(B.dps, 1) + '</b> <span class="meta">±' + fmt(B.dpsErr, 1) + ' DPS</span> ' + dd(A.dps, B.dps) + '</div></div></div>';
+
+    // ---- numbers ----
+    var row = function (label, a, b, d) { return '<tr><td>' + esc(label) + '</td><td class="n">' + a + '</td><td class="n">' + b + '</td><td class="n">' + (d || '') + '</td></tr>'; };
+    var num = function (label, a, b, dec, pct) { return a == null || b == null ? '' : row(label, fmt(a, dec), fmt(b, dec), pct ? dd(a, b) : diff(b - a, dec)); };
+    var mA = A.mana || {}, mB = B.mana || {}, wA = weights[A.build.key], wB = weights[B.build.key], exP = A.execPct != null ? A.execPct : 35;
+    var pets = function (r) { return esc((PET_NAMES[r.build.pet] || '–') + ' / ' + (PET_NAMES[r.build.sacrifice] || '–')); };
+    h += '<div><h2>Numbers</h2><div class="scroll"><table class="cmpt"><thead><tr><th></th>' + th + '<th class="n">B vs A</th></tr></thead><tbody>' +
+      num('DPS (' + fmt(A.iterations) + ' fights)', A.dps, B.dps, 1, true) +
+      (A.dpsPre != null && B.dpsPre != null ? num('DPS above ' + exP + '% boss health', A.dpsPre, B.dpsPre, 1, true) + num('DPS in execute', A.dpsExec, B.dpsExec, 1, true) : '') +
+      num('Median fight', A.dpsMedian, B.dpsMedian, 1, true) + num('Worst fight', A.dpsMin, B.dpsMin, 0, true) + num('Best fight', A.dpsMax, B.dpsMax, 0, true) +
+      num('Spread between fights (1 SD)', A.dpsSd, B.dpsSd, 1) +
+      num('Life Taps per fight', A.lifeTaps, B.lifeTaps, 1) + num('Time spent Life Tapping (% of the fight)', mA.tapTimePct, mB.tapTimePct, 1) +
+      num('Lowest mana in any fight', A.minMana, B.minMana, 0) +
+      (A.clipped > 0.05 || B.clipped > 0.05 ? num('Channels clipped per fight', A.clipped, B.clipped, 1) : '') +
+      (mA.idleSecAvg > 0.05 || mB.idleSecAvg > 0.05 ? num('Idle time per fight (s)', mA.idleSecAvg, mB.idleSecAvg, 1) : '') +
+      (A.build.pet || B.build.pet ? row('Fights where the pet ran out of mana', A.build.pet ? fmt(mA.petOomFightsPct, 0) + '%' : '–', B.build.pet ? fmt(mB.petOomFightsPct, 0) + '%' : '–') : '') +
+      row('Pet / sacrificed', pets(A), pets(B)) + row('Weapon stone', esc(WL.OILS[A.build.oil].name), esc(WL.OILS[B.build.oil].name)) +
+      '</tbody></table></div></div>';
+
+    // ---- stats used in the fight + stat weights ----
+    var pctOf = function (m) { return (m - 1) * 100; }, sA = A.stats, sB = B.stats;
+    var st = [['Intellect', sA.int, sB.int, 0], ['Spirit', sA.spi, sB.spi, 0], ['Stamina', sA.sta, sB.sta, 0], ['Maximum mana', sA.maxMana, sB.maxMana, 0],
+      ['Spell power', sA.sp, sB.sp, 0], ['+ Shadow spell power', sA.schoolSp.shadow, sB.schoolSp.shadow, 0, 1], ['+ Fire spell power', sA.schoolSp.fire, sB.schoolSp.fire, 0, 1],
+      ['Hit chance %', sA.hitPct, sB.hitPct, 1], ['Crit % (before talents)', sA.critPct, sB.critPct, 2], ['Haste %', sA.hastePct, sB.hastePct, 1, 1],
+      ['Melee crit % (Succubus melee)', sA.meleeCritPct, sB.meleeCritPct, 2], ['Spell Pierce', sA.pierce, sB.pierce, 0, 1],
+      ['Shadow damage % (auras)', pctOf(sA.mult.shadow), pctOf(sB.mult.shadow), 1, 1], ['Fire damage % (auras)', pctOf(sA.mult.fire), pctOf(sB.mult.fire), 1, 1],
+      ['All damage % (auras)', pctOf(sA.mult.all), pctOf(sB.mult.all), 1, 1]];
+    h += '<div><h2>Stats used in the fight</h2><div class="scroll"><table class="cmpt"><thead><tr><th></th>' + th + '<th class="n">B − A</th></tr></thead><tbody>' +
+      st.filter(function (s) { return !s[4] || Math.abs(s[1]) > 1e-9 || Math.abs(s[2]) > 1e-9; }).map(function (s) { return num(s[0], s[1], s[2], s[3]); }).join('') +
       (wA && wB ? STATS.map(function (s) {
         var ea = s.k === 'sp' ? wA.w.sp.toFixed(2) + ' DPS' : (wA.w[s.k] / wA.w.sp).toFixed(1) + ' SP', eb = s.k === 'sp' ? wB.w.sp.toFixed(2) + ' DPS' : (wB.w[s.k] / wB.w.sp).toFixed(1) + ' SP';
-        return row('Weight ' + s.unit, ea, eb, '', true);
-      }).join('') : '') + '</tbody></table></div></div>';
-    // talents that differ
+        return row('Weight of ' + s.unit, ea, eb);
+      }).join('') : '') + '</tbody></table></div><p class="meta">Same gear, buffs and consumables for both: the differences come from talents, race, pet and weapon stone.' +
+      (wA && wB ? ' Stat weights are measured on each build\'s best race.' : '') + '</p></div>';
+
+    // ---- damage per source ----
+    var src = {}; Object.keys(A.bySpell).concat(Object.keys(B.bySpell)).forEach(function (k) { if ((A.bySpell[k] || {}).dmg || (B.bySpell[k] || {}).dmg) src[k] = 1; });
+    var tot = function (r) { return Object.keys(r.bySpell).reduce(function (a, k) { return a + r.bySpell[k].dmg; }, 0); }, tA = tot(A), tB = tot(B);
+    var dps = function (r, k, d) { return r.bySpell[k] ? r.bySpell[k].dmg / d : 0; };
+    var list = Object.keys(src).sort(function (x, y) { return Math.max(dps(A, y, dA), dps(B, y, dB)) - Math.max(dps(A, x, dA), dps(B, x, dB)); });
+    var maxD = list.reduce(function (m, k) { return Math.max(m, dps(A, k, dA), dps(B, k, dB)); }, 1e-9);
+    var cell = function (r, k, f) { var x = r.bySpell[k]; return '<td class="n">' + (x ? f(x) : '–') + '</td>'; };
+    var casts = function (x) { return x.casts ? fmt(x.casts, 1) : '–'; };
+    var critPct = function (x) { var ev = x.hits + x.ticks; return ev ? fmt(100 * (x.crits + x.tickCrits) / ev, 1) : '–'; };
+    var perCast = function (x) { return x.casts && x.dmg ? fmt(x.dmg / x.casts, 0) : '–'; };
+    h += '<div class="wide"><h2>Damage per source (average per fight)</h2><div class="scroll"><table class="cmpt"><thead><tr><th>Source</th>' +
+      '<th class="n a">A DPS</th><th class="n a">A %</th><th title="Top bar = A, bottom bar = B; the longest bar is the biggest source of either build">A / B</th><th class="n b">B DPS</th><th class="n b">B %</th><th class="n">B − A</th>' +
+      '<th class="n a">A casts</th><th class="n b">B casts</th><th class="n a">A crit %</th><th class="n b">B crit %</th><th class="n a">A dmg / cast</th><th class="n b">B dmg / cast</th></tr></thead><tbody>' +
+      list.map(function (k) {
+        var a = dps(A, k, dA), b = dps(B, k, dB);
+        return '<tr><td><span class="sw" style="background:' + colorOf(k) + '"></span>' + icon(iconKeyOf(k), spellName(k), '', spellTipByKey(baseKey(k))) + ' ' + esc(spellName(k)) + '</td>' +
+          '<td class="n">' + (a ? fmt(a, 1) : '–') + '</td><td class="n">' + (a ? fmt(100 * A.bySpell[k].dmg / tA, 1) : '–') + '</td>' +
+          '<td><span class="twin"><i style="width:' + (100 * a / maxD).toFixed(1) + '%"></i><i class="b" style="width:' + (100 * b / maxD).toFixed(1) + '%"></i></span></td>' +
+          '<td class="n">' + (b ? fmt(b, 1) : '–') + '</td><td class="n">' + (b ? fmt(100 * B.bySpell[k].dmg / tB, 1) : '–') + '</td><td class="n">' + diff(b - a, 1) + '</td>' +
+          cell(A, k, casts) + cell(B, k, casts) + cell(A, k, critPct) + cell(B, k, critPct) + cell(A, k, perCast) + cell(B, k, perCast) + '</tr>'; }).join('') +
+      '<tr><td><b>Total</b></td><td class="n"><b>' + fmt(A.dps, 1) + '</b></td><td class="n">100.0</td><td></td><td class="n"><b>' + fmt(B.dps, 1) + '</b></td><td class="n">100.0</td><td class="n">' + diff(B.dps - A.dps, 1) + '</td><td colspan="6"></td></tr>' +
+      '</tbody></table></div></div>';
+
+    // ---- buff & debuff uptime ----
+    var uA = A.uptimePct || {}, uB = B.uptimePct || {}, up = {};
+    [uA, uB].forEach(function (u) { Object.keys(u).forEach(function (k) { if (u[k] > 0.05) up[k] = 1; }); });
+    var grp = '';
+    h += '<div><h2>Buff &amp; debuff uptime (average of all fights)</h2>' + (Object.keys(up).length ? '<div class="cmpup"><span></span><span></span><span class="ch a">A</span><span class="ch b">B</span><span class="ch">B − A</span>' +
+      auraKeys(up).map(function (k) {
+        var ai = auraInfo(k), g = ai ? ai[2] : 'you', head = g !== grp ? '<span class="uhead">' + (g === 'boss' ? 'On the boss' : g === 'extra' ? 'On the extra targets' : 'On you') + '</span>' : '';
+        var a = uA[k] || 0, b = uB[k] || 0; grp = g;
+        return head + '<span class="ulabel">' + icon(ai ? ai[1] : '', auraName(k)) + ' ' + esc(auraName(k)) + '</span>' +
+          '<span class="twin"><i style="width:' + Math.min(100, a).toFixed(1) + '%"></i><i class="b" style="width:' + Math.min(100, b).toFixed(1) + '%"></i></span>' +
+          '<span class="n">' + (a ? fmt(a, 1) + '%' : '–') + '</span><span class="n">' + (b ? fmt(b, 1) + '%' : '–') + '</span><span class="n">' + diff(b - a, 1) + '</span>';
+      }).join('') + '</div>' : '<p class="meta">Nothing tracked for these two builds.</p>') + '</div>';
+
+    // ---- races ----
+    var rowsOf = function (r) { var by = {}; results.forEach(function (x) { if (x.build.key === r.build.key) by[x.race] = x; }); return by; };
+    var rA = rowsOf(A), rB = rowsOf(B), topOf = function (by) { return Math.max.apply(null, WL.RACE_KEYS.map(function (k) { return by[k] ? by[k].dps : 0; })); }, tRA = topOf(rA), tRB = topOf(rB);
+    var raceDps = function (x, topDps, me) { return !x ? '–' : (me ? '<b>' : '') + fmt(x.dps, 1) + (me ? '</b>' : '') + ' <span class="meta">' + (isBase(x) ? '' : x.dps >= topDps - 1e-9 ? 'best' : ((x.dps / topDps - 1) * 100).toFixed(2) + '%') + '</span>'; };
+    h += '<div><h2>Races</h2><div class="scroll"><table class="cmpt"><thead><tr><th>Race</th>' + th + '<th class="n">B vs A</th></tr></thead><tbody>' +
+      WL.SIM_RACE_KEYS.filter(function (k) { return rA[k] || rB[k]; }).map(function (k) {
+        var base = k === WL.BASELINE_RACE;
+        return '<tr><td>' + (base ? '<span class="norace">–</span>' : icon('race_' + k, WL.RACES[k].name)) + ' ' + esc(WL.RACES[k].name) + (base ? ' <span class="meta">baseline</span>' : '') + '</td>' +
+          '<td class="n">' + raceDps(rA[k], tRA, A.race === k) + '</td><td class="n">' + raceDps(rB[k], tRB, B.race === k) + '</td><td class="n">' + (rA[k] && rB[k] ? dd(rA[k].dps, rB[k].dps) : '') + '</td></tr>'; }).join('') +
+      '</tbody></table></div><p class="meta">Bold = the rows compared above. Next to each number: how far that race is behind the build\'s best race.</p></div>';
+
+    // ---- talents ----
     var keys = {}; Object.keys(A.build.talents).concat(Object.keys(B.build.talents)).forEach(function (k) { keys[k] = 1; });
-    var diff = WL.TALENTS.filter(function (t) { return keys[t.key] && (A.build.talents[t.key] || 0) !== (B.build.talents[t.key] || 0); });
-    h += '<div><h2>Talents that differ · ' + split(A.build) + ' vs ' + split(B.build) + '</h2>' + (diff.length ? '<div class="scroll"><table class="cmpt"><thead><tr><th>Talent</th><th class="n">A</th><th class="n">B</th></tr></thead><tbody>' +
-      diff.map(function (t) { var a = A.build.talents[t.key] || 0, b = B.build.talents[t.key] || 0;
+    var tdiff = WL.TALENTS.filter(function (t) { return keys[t.key] && (A.build.talents[t.key] || 0) !== (B.build.talents[t.key] || 0); });
+    h += '<div class="wide"><h2>Talents that differ · ' + split(A.build) + ' vs ' + split(B.build) + '</h2>' + (tdiff.length ? '<div class="scroll"><table class="cmpt cmptal"><thead><tr><th>Talent</th>' + th + '</tr></thead><tbody>' +
+      tdiff.map(function (t) { var a = A.build.talents[t.key] || 0, b = B.build.talents[t.key] || 0;
         return '<tr><td>' + icon('talent_' + t.key, t.name, '', talentTip(t, Math.max(a, b))) + ' ' + esc(t.name) + ' <span class="meta">' + esc(WL.TREES[t.tree].name) + '</span></td>' +
           '<td class="n' + (a > b ? ' more' : '') + '">' + a + '/' + t.ranks + '</td><td class="n' + (b > a ? ' more' : '') + '">' + b + '/' + t.ranks + '</td></tr>'; }).join('') + '</tbody></table></div>'
-      : '<p class="meta">Same talents.</p>') + '</div>';
-    // priority lists side by side
+      : '<p class="meta">Same talents.</p>') +
+      '<details class="cmpfold"><summary>Full talent trees of both builds</summary><div class="cmp2"><div><b class="cmptag">A</b> ' + split(A.build) + treesHtml(A.build) + '</div>' +
+      '<div><b class="cmptag b">B</b> ' + split(B.build) + treesHtml(B.build) + '</div></div></details></div>';   // the fold sits in the talents card
+
+    // ---- priority lists side by side ----
     var ra = shownRotation(A.build, runCfg), rb = shownRotation(B.build, runCfg);
-    var lst = function (rot, other, bd) { return '<ol class="cmprot">' + rot.map(function (a) { return '<li' + (other.indexOf(a) < 0 ? ' class="only"' : '') + '>' + icon(ACTION_ICON[a], actLabel(a, bd)) + ' ' + esc(actLabel(a, bd)) + '</li>'; }).join('') + '</ol>'; };
-    h += '<div class="wide"><h2>Priority (highlighted = only in that build)</h2><div class="cmp2"><div><b>A</b>' + lst(ra, rb, A.build) + '</div><div><b>B</b>' + lst(rb, ra, B.build) + '</div></div></div>';
-    // damage per source
-    var src = {}; Object.keys(A.bySpell).concat(Object.keys(B.bySpell)).forEach(function (k) { if ((A.bySpell[k] || {}).dmg || (B.bySpell[k] || {}).dmg) src[k] = 1; });
-    var dA = A.avgDuration || A.firstFight.duration, dB = B.avgDuration || B.firstFight.duration;
-    var dps = function (r, k, d) { return r.bySpell[k] ? r.bySpell[k].dmg / d : 0; };
-    var list = Object.keys(src).sort(function (x, y) { return (dps(B, y, dB) - dps(A, y, dA)) - (dps(B, x, dB) - dps(A, x, dA)); });
-    h += '<div class="wide"><h2>DPS per source (sorted by B − A)</h2><div class="scroll"><table class="cmpt"><thead><tr><th>Source</th><th class="n">A</th><th class="n">B</th><th class="n">B − A</th></tr></thead><tbody>' +
-      list.map(function (k) { var a = dps(A, k, dA), b = dps(B, k, dB), x = b - a;
-        return '<tr><td><span class="sw" style="background:' + colorOf(k) + '"></span>' + esc(spellName(k)) + '</td><td class="n">' + fmt(a, 1) + '</td><td class="n">' + fmt(b, 1) + '</td>' +
-          '<td class="n" style="color:var(' + (Math.abs(x) < 0.05 ? '--muted' : x > 0 ? '--good' : '--bad') + ')">' + (x > 0 ? '+' : '') + fmt(x, 1) + '</td></tr>'; }).join('') +
-      '</tbody></table></div></div>';
+    var lst = function (rot, other, bd) { return '<ol class="cmprot">' + rot.map(function (a) { return '<li' + (other.indexOf(a) < 0 ? ' class="only"' : '') + '>' + icon(ACTION_ICON[a], actLabel(a, bd), '', actionTip(a, bd)) + ' ' + esc(actLabel(a, bd)) + '</li>'; }).join('') + '</ol>'; };
+    h += '<div class="wide"><h2>Priority (highlighted = only in that build)</h2><div class="cmp2"><div><b class="cmptag">A</b>' + lst(ra, rb, A.build) + '</div><div><b class="cmptag b">B</b>' + lst(rb, ra, B.build) + '</div></div></div>';
+
+    // ---- DPS spread ----
+    h += histBlock(A, 'A · ') + histBlock(B, 'B · ');
     out.innerHTML = h + '</div>';
   }
 
@@ -1370,7 +1547,9 @@
   function builtinGear() {
     var d = JSON.parse(JSON.stringify(WL.SHIPPED_GEAR || WL.DEFAULT_CONFIG.gear));
     var ref = JSON.parse(JSON.stringify(d)); ref.sp = 700; ref.hitPct = 5; ref.critPct = 20; ref.int = 200; ref.spi = 80; ref.sta = 200; ref.mp5 = 0;
+    var cap = JSON.parse(JSON.stringify(d)); applyGearPreset({ gear: cap }, 'hitcap');   // round 110 (user): the quick-setup gear
     return [{ name: 'Default: ' + d.sp + ' SP / ' + d.hitPct + '% hit / ' + d.critPct + '% crit (A58)', gear: d },
+            { name: 'Hit-capped: ' + cap.sp + ' SP / ' + cap.hitPct + '% hit / ' + cap.critPct + '% crit', gear: cap },
             { name: 'Reference: 700 SP / 5% hit / 20% crit (round 2)', gear: ref }];
   }
   function renderGear(sel) {
@@ -1526,13 +1705,14 @@
       params: src.params ? JSON.parse(JSON.stringify(src.params)) : undefined }
       : { short: 'My build', talents: {}, pet: null, sacrifice: null, oil: 'spellstone', rotation: ['bane', 'curseOfElements', 'corruption', 'immolate', 'shadowBolt'] };
     ed.editing = src && src.custom ? src.key : null;
+    ed.from = src ? src.key : null; quick = null; quickSel = null;   // round 110: the quick-sim panel starts over
     tl.sel = -1; $('edTlOn').checked = !!ed.b.timeline;
     $('edFrom').value = src ? src.key : '';
     renderEditor();
   }
   // Puts a decoded build into the editor as a new build (build code loaded, round 102).
   function edLoadBuild(d) {
-    ed.b = d; ed.editing = null;
+    ed.b = d; ed.editing = null; ed.from = null; quick = null; quickSel = null;
     tl.sel = -1; $('edTlOn').checked = !!d.timeline; $('edFrom').value = '';
     renderEditor();
     return d;
@@ -1594,6 +1774,7 @@
     $('edErrs').innerHTML = errs.length ? errs.map(function (e) { return '<li>' + esc(e) + '</li>'; }).join('') : '<li class="ok">Legal build — ready to add.</li>';
     $('edSave').disabled = !!errs.length;
     $('edSave').textContent = ed.editing ? 'Update on the sheet' : 'Add to the sheet';
+    if (!quickRunning) renderQuickOut();                                 // marks an older quick sim as out of date
     $('edList').innerHTML = customBuilds().length ? customBuilds().map(function (c) {
       return '<li><b>' + split(c) + ' ' + esc(c.short) + '</b><button type="button" data-edit="' + esc(c.key) + '">Edit</button><button type="button" data-edremove="' + esc(c.key) + '">Remove</button></li>';
     }).join('') : '<li class="meta" style="list-style:none;margin-left:-20px">None yet.</li>';
@@ -1652,33 +1833,95 @@
   });
   $('edRot').addEventListener('dragend', function () { dragFrom = null; renderEditor(); });
 
-  // Quick sim of the build in the editor (round 44): 300 fights per race with the current settings, next to the
-  // sheet's best build simulated with exactly the same fights, so the difference is like for like.
-  var quickRunning = false;
+  // Quick sim of the build in the editor (round 44; round 110, user: a panel right of the talent trees with a big DPS
+  // number, one row per race and the damage breakdown). 300 fights per race with the current settings, next to the
+  // sheet's best build simulated with exactly the same fights, so the difference is like for like. Runs on the worker
+  // pool, so the page stays usable; nothing is added to the sheet.
+  //   quick = { sig, n, name, changed, rows: [{ race, dps, err, bySpell, dur }] (best first), ref: { b, race, dps } | null }
+  // While the editor holds an unchanged build of the sheet and the results are current, the panel shows that build's sheet
+  // results right away (quickFromSheet) — no button press needed. quickSel = the race whose breakdown is shown.
+  var quickRunning = false, quick = null, quickSel = null;
+  function buildSig(b) {                                   // what decides a build's numbers (its name does not)
+    var t = b.talents || {};
+    return JSON.stringify([Object.keys(t).sort().map(function (k) { return k + t[k]; }), b.pet || null, b.sacrifice || null, b.oil, b.rotation,
+      b.timeline && b.timeline.length ? b.timeline : null, WL.cleanParams(b.params, b.rotation) || null]);
+  }
+  function quickFromSheet() {
+    if (!ed.from || running || dirty) return null;
+    var src = WL.BUILDS.filter(function (b) { return b.key === ed.from; })[0];
+    if (!src || buildSig(src) !== buildSig(ed.b)) return null;
+    var rows = results.filter(function (r) { return r.build.key === src.key && !isBase(r); });
+    if (!rows.length) return null;
+    var top = cmpBuilds()[0];
+    return { sheet: true, sig: buildSig(ed.b), n: rows[0].iterations, name: ed.b.short,
+      rows: rows.map(function (r) { return { race: r.race, dps: r.dps, err: r.dpsErr, bySpell: r.bySpell, dur: r.avgDuration }; }).sort(function (a, z) { return z.dps - a.dps; }),
+      ref: top && top.build.key !== src.key ? { b: top.build, race: top.race, dps: top.dps } : null };
+  }
   function quickSim() {
     if (quickRunning || running || batchRunning) { edMsg('Wait for the current run to finish.', true); return; }
     var errs = WL.validateBuild(ed.b).concat(timelineErrors().map(function (x) { return 'Timeline: ' + x.msg; }));
     if (errs.length) { edMsg('Fix the checks first: ' + errs[0], true); return; }
     readSettings();
-    var c = JSON.parse(JSON.stringify(cfg)), n = 300, b = makeCustom(ed.b, 'quick_preview');
-    var top = rowsForView()[0], jobs = WL.RACE_KEYS.map(function (rk) { return { b: b, r: rk }; });
-    if (top && top.build.key !== ed.editing) jobs.push({ b: top.build, r: top.race, ref: true });
-    var out = [], i = 0; quickRunning = true; $('edQuick').disabled = true;
-    $('edQuickOut').innerHTML = '<p class="meta">Simulating…</p>';
-    (function step() {
-      var j = jobs[i++], res = WL.simulate(j.b, j.r, c, { iterations: n, log: false });
-      out.push({ job: j, dps: res.dps, err: res.dpsErr });
-      $('edQuickOut').innerHTML = '<p class="meta">Simulating… ' + i + ' / ' + jobs.length + '</p>';
-      if (i < jobs.length) { setTimeout(step, 0); return; }
+    var c = JSON.parse(JSON.stringify(cfg)), n = 300, b = makeCustom(ed.b, 'quick_preview'), sig = buildSig(ed.b), name = ed.b.short, changed = dirty;
+    c.fight.iterations = n;
+    var top = cmpBuilds()[0], jobs = WL.RACE_KEYS.map(function (rk) { return { kind: 'combo', build: b, race: rk, cfg: c }; });
+    if (top && top.build.key !== ed.editing) jobs.push({ kind: 'combo', build: top.build, race: top.race, cfg: c, ref: true });
+    var out = [], done = 0; quickRunning = true; $('edQuick').disabled = true;
+    renderQuickOut('Simulating… 0 / ' + jobs.length);
+    WL.SimPool.run(jobs, function (j, res) {
+      out.push({ job: j, r: res.r }); renderQuickOut('Simulating… ' + (++done) + ' / ' + jobs.length);
+    }, function () {
       quickRunning = false; $('edQuick').disabled = false;
-      var mine = out.filter(function (o) { return !o.job.ref; }).sort(function (a, z) { return z.dps - a.dps; }), ref = out.filter(function (o) { return o.job.ref; })[0];
-      var bestM = mine[0];
-      $('edQuickOut').innerHTML = '<div class="quick"><div><b>' + esc(ed.b.short) + '</b> · best race ' + esc(WL.RACES[bestM.job.r].name) + ': <b class="big">' + fmt(bestM.dps, 1) + '</b> <span class="meta">±' + fmt(bestM.err, 1) + '</span>' +
-        (ref ? ' · vs ' + split(ref.job.b) + ' ' + esc(ref.job.b.short) + ' (' + esc(WL.RACES[ref.job.r].name) + ', same fights): <b style="color:var(' + (bestM.dps >= ref.dps ? '--good' : '--bad') + ')">' +
-          ((bestM.dps / ref.dps - 1) * 100 >= 0 ? '+' : '') + ((bestM.dps / ref.dps - 1) * 100).toFixed(2) + '%</b>' : '') + '</div>' +
-        '<div class="meta">' + mine.map(function (o) { return esc(WL.RACES[o.job.r].name) + ' ' + fmt(o.dps, 1); }).join(' · ') + ' — ' + n + ' fights per race, current settings' +
-        (dirty ? ' (changed since the last Sim!)' : '') + '. Quick look only: ± is about ±' + fmt(bestM.err, 0) + ' DPS; "Add to the sheet" + Sim! for the full run.</div></div>';
-    })();
+      var ref = out.filter(function (o) { return o.job.ref; })[0];
+      quick = { sig: sig, n: n, name: name, changed: changed,
+        rows: out.filter(function (o) { return !o.job.ref; }).map(function (o) { return { race: o.job.race, dps: o.r.dps, err: o.r.dpsErr, bySpell: o.r.bySpell, dur: o.r.avgDuration }; })
+          .sort(function (a, z) { return z.dps - a.dps; }),
+        ref: ref ? { b: ref.job.build, race: ref.job.race, dps: ref.r.dps } : null };
+      quickSel = null; renderQuickOut();
+    });
+  }
+  function renderQuickOut(msg) {
+    var box = $('edQuickOut');
+    if (msg) { box.innerHTML = '<p class="meta qempty">' + esc(msg) + '</p>'; return; }
+    var q = quick || quickFromSheet();
+    if (!q) {
+      box.innerHTML = '<p class="meta qempty">Press <b>Quick sim this build</b> to see its DPS for every race and where the damage comes from: 300 fights per race ' +
+        'with the current settings, without adding the build to the sheet.</p>';
+      return;
+    }
+    var rows = q.rows, bestM = rows[0], sel = rows.filter(function (r) { return r.race === quickSel; })[0] || bestM, ref = q.ref;
+    var old = q.sig !== buildSig(ed.b), hi = bestM.dps, lo = rows[rows.length - 1].dps, vs = ref ? (bestM.dps / ref.dps - 1) * 100 : null;
+    var h = '<div class="quick' + (old ? ' old' : '') + '">';
+    if (old) h += '<p class="qold">The build changed since this quick sim — run it again.</p>';
+    h += '<div class="qhead"><div class="qdps"><b>' + fmt(bestM.dps, 1) + '</b><span>DPS</span></div><div class="qsub">' +
+      '<span class="qname">' + esc(q.name) + '</span>' +
+      '<span>' + icon('race_' + bestM.race, WL.RACES[bestM.race].name) + ' ' + esc(WL.RACES[bestM.race].name) + ' <span class="meta">best race · ±' + fmt(bestM.err, 1) + '</span></span>' +
+      (ref ? '<span><b class="qvs" style="color:var(' + (vs >= 0 ? '--good' : '--bad') + ')">' + (vs >= 0 ? '+' : '') + vs.toFixed(2) + '%</b> <span class="meta">vs the sheet\'s best, ' +
+        split(ref.b) + ' ' + esc(ref.b.short) + ' (' + esc(WL.RACES[ref.race].name) + '), on the same fights</span></span>'
+        : q.sheet ? '<span class="meta">the best build on the sheet</span>' : '') +
+      '</div></div>';
+    // one row per race: bar from the weakest race (short) to the best (full), so gaps of 1–2% are visible
+    h += '<div><h3>Races <span class="meta">— click one for its damage breakdown</span></h3><div class="qraces">' + rows.map(function (r) {
+      var d = (r.dps / hi - 1) * 100, w = hi > lo ? 30 + 70 * (r.dps - lo) / (hi - lo) : 100, R = WL.RACES[r.race];
+      return '<button type="button" class="qrace" data-qrace="' + r.race + '" aria-pressed="' + (r === sel) + '" title="' +
+        esc(R.name + ': ' + R.racials.map(function (y) { return y.name; }).join(', ') + ' — ±' + fmt(r.err, 1) + ' DPS. Bar: from the weakest race to the best.') + '">' +
+        (icon('race_' + r.race, R.name) || '<span></span>') + '<span>' + esc(R.name) + '</span><span class="qbar"><i style="width:' + w.toFixed(1) + '%"></i></span>' +
+        '<span class="n"><b>' + fmt(r.dps, 1) + '</b></span><span class="d" style="color:var(' + (r === bestM ? '--good' : '--bad') + ')">' + (r === bestM ? 'best' : d.toFixed(2) + '%') + '</span></button>';
+    }).join('') + '</div></div>';
+    // damage breakdown of the picked race (damage on extra targets counts toward its spell)
+    var by = {}, total = 0;
+    Object.keys(sel.bySpell).forEach(function (k) { var dm = sel.bySpell[k].dmg; if (!(dm > 0)) return; var bk = baseKey(k); by[bk] = (by[bk] || 0) + dm; total += dm; });
+    var keys = Object.keys(by).sort(function (a, z) { return by[z] - by[a]; }), max = keys.length ? by[keys[0]] : 1;
+    h += '<div><h3>Damage breakdown · ' + esc(WL.RACES[sel.race].name) + ' <span class="meta">— share of the damage · DPS</span></h3><div class="qdmg">' + keys.map(function (k) {
+      return (icon(iconKeyOf(k), spellName(k), '', spellTipByKey(k)) || '<span></span>') + '<span class="qn">' + esc(spellName(k)) + '</span>' +
+        '<span class="qbar"><i style="width:' + (100 * by[k] / max).toFixed(1) + '%;background:' + colorOf(k) + '"></i></span>' +
+        '<span class="n">' + fmt(100 * by[k] / total, 1) + '%</span><span class="n meta">' + fmt(by[k] / sel.dur, 1) + '</span>';
+    }).join('') + '</div></div>';
+    h += '<p class="meta qfoot">' + (q.sheet
+      ? 'These are this build\'s results on the sheet (' + fmt(q.n) + ' fights per race). Change a talent or the priority, then press Quick sim to see what it does.'
+      : fmt(q.n) + ' fights per race with the current settings' + (q.changed ? ' (changed since the last Sim!)' : '') + '. A quick look: the DPS is good to about ±' + fmt(bestM.err, 0) +
+        '; "Add to the sheet" + Sim! for the full run.') + '</p>';
+    box.innerHTML = h + '</div>';
   }
 
   // ---------- W7+ fight timeline, "super advanced" (round 70, user; A73) ----------
@@ -1811,6 +2054,7 @@
   document.addEventListener('input', function (e) { if (e.target.id === 'edName' && ed.b) ed.b.short = e.target.value.slice(0, 40); });
   function editorClick(t, ev) {
     if (timelineClick(t)) return true;
+    var qr = t.closest('[data-qrace]'); if (qr) { quickSel = qr.getAttribute('data-qrace'); renderQuickOut(); return true; }   // quick sim: breakdown of that race
     var c = t.closest('#edTrees [data-ed]'); if (c) { edTalent(c.getAttribute('data-ed'), ev.shiftKey ? -1 : 1); return true; }
     var b = ed.b, x;
     if ((x = t.closest('[data-edresettree]'))) {       // clear one tree
@@ -1856,10 +2100,9 @@
   try { userPresets = JSON.parse(localStorage.getItem('wfs.presets') || '[]') || []; } catch (e) { userPresets = []; }
   function builtinPresets() {
     var d = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
-    var raid = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
-    Object.keys(raid.buffs).forEach(function (k) { raid.buffs[k].on = true; });
-    ['flaskSupremePower', 'greaterArcaneElixir', 'shadowPower', 'elixirOwl', 'nightfinSoup', 'majorManaPotion', 'demonicRune']
-      .forEach(function (k) { if (raid.consumables[k]) raid.consumables[k].on = true; });
+    // Round 110 (user): hit-capped gear / max buffs & consumables / both — the quick-setup switches as whole setups
+    // (the old "Full raid buffs + caster consumables" preset is replaced by the fuller "max" one).
+    var mk = function (gear, side) { var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)); if (gear) applyGearPreset(c, 'hitcap'); if (side) applySidePreset(c, 'max'); return c; };
     // Round 60: the defaults have 7 raid buffs + Curse of Recklessness + Judgement of Wisdom on; "self-buffed" = the old
     // defaults (every raid buff off, only Sunder Armor + Faerie Fire on the boss).
     var self = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
@@ -1867,7 +2110,9 @@
     Object.keys(self.debuffs).forEach(function (k) { self.debuffs[k].on = k === 'sunderArmor' || k === 'faerieFire'; });
     return [{ name: 'Default (7 raid buffs, Curse of Recklessness, Judgement of Wisdom)', code: WL.encodeSettings(d), builtin: true },
             { name: 'Self-buffed (no raid buffs; Sunder Armor + Faerie Fire only)', code: WL.encodeSettings(self), builtin: true },
-            { name: 'Full raid buffs + caster consumables', code: WL.encodeSettings(raid), builtin: true }];
+            { name: 'Hit-capped gear (' + HITCAP_GEAR.sp + ' SP / ' + HITCAP_GEAR.hitPct + '% hit / ' + HITCAP_GEAR.critPct + '% crit)', code: WL.encodeSettings(mk(true, false)), builtin: true },
+            { name: 'Max buffs & consumables', code: WL.encodeSettings(mk(false, true)), builtin: true },
+            { name: 'Hit-capped gear + max buffs & consumables', code: WL.encodeSettings(mk(true, true)), builtin: true }];
   }
   function savePresets() { try { localStorage.setItem('wfs.presets', JSON.stringify(userPresets)); } catch (e) { /* page only */ } }
   function renderPresets(sel) {
@@ -1996,7 +2241,13 @@
     if (t.closest('#gearLoad')) { loadGear(); return; }
     if (t.closest('#gearSave')) { saveGear(); return; }
     if (t.closest('#gearDel')) { deleteGear(); return; }
-    if (t.closest('#cmpSwap')) { var a0 = $('cmpA').value; $('cmpA').value = $('cmpB').value; $('cmpB').value = a0; renderCompare(); return; }
+    if (t.closest('#cmpSwap')) {                                         // swap the builds and their races
+      var a0 = $('cmpA').value, ar0 = $('cmpAR').value, br0 = $('cmpBR').value;
+      $('cmpA').value = $('cmpB').value; $('cmpB').value = a0; cmpRaceOptions('A'); cmpRaceOptions('B');
+      $('cmpAR').value = br0; $('cmpBR').value = ar0; renderCompare(); return;
+    }
+    var qb = t.closest('#quickbar button');                              // quick setup (round 110)
+    if (qb) { if (qb.hasAttribute('data-qgear')) quickSetup('gear', qb.getAttribute('data-qgear')); else quickSetup('side', qb.getAttribute('data-qside')); return; }
     var ec = t.closest('button[data-editcopy]');
     if (ec) { editFromResults(ec.getAttribute('data-editcopy')); return; }
     var cb = t.closest('button[data-cmp]');
@@ -2029,7 +2280,10 @@
   renderSetups();
   renderPresets();
   renderGear();
-  ['cmpA', 'cmpB'].forEach(function (x) { $(x).addEventListener('change', renderCompare); });
+  ['A', 'B'].forEach(function (s) {
+    $('cmp' + s).addEventListener('change', function () { cmpRaceOptions(s); renderCompare(); });
+    $('cmp' + s + 'R').addEventListener('change', renderCompare);
+  });
   $('allRaces').checked = allRaces;
   $('allRaces').addEventListener('change', function () {
     allRaces = this.checked; raceOpen = {};

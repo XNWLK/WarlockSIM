@@ -19,7 +19,7 @@
 
     T.group('Touch of the Grave: on every landed damaging cast, never on ticks');
     var foundDot = false, foundChan = false, badTick = false, badUtil = false;
-    var drain = WL.BUILDS.filter(function (b) { return b.key === 'aff_pact_succ_drain'; })[0];
+    var drain = WL.findBuild('aff_pact_succ_drain');
     [top, drain].forEach(function (b) {
       for (var s = 1; s <= 25; s++) {
         var x = WL.simulateOnce(b, 'undead', cfg, { seed: s, duration: 120, log: true });

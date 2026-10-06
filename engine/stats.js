@@ -82,6 +82,20 @@ WL.computeStats = function (build, raceKey, cfg) {
     cons.forEach(function (c) { if (c[s]) sum += add(s, c.name, c[s]); });
     return sum;
   };
+  // Crit from consumables (round 110, user): items that share a critGroup do not stack their crit — only the highest of the
+  // active ones counts (Elixir of the Owl + Elixir of Sages = 2%, not 4%). Their other stats are not affected.
+  var conCrit = function () {
+    var sum = 0, best = {};
+    cons.forEach(function (c) { if (c.critPct && c.critGroup && (!best[c.critGroup] || c.critPct > best[c.critGroup].critPct)) best[c.critGroup] = c; });
+    cons.forEach(function (c) {
+      if (!c.critPct) return;
+      if (!c.critGroup) { sum += add('critPct', c.name, c.critPct); return; }
+      if (best[c.critGroup] !== c) return;
+      var same = cons.filter(function (x) { return x !== c && x.critPct && x.critGroup === c.critGroup; }).map(function (x) { return x.name; });
+      sum += add('critPct', c.name + (same.length ? ' (does not stack with ' + same.join(', ') + ')' : ''), c.critPct);
+    });
+    return sum;
+  };
   var kingsPct = WL.activeBuffs(cfg).reduce(function (a, b) { return a + (b.statPct || 0); }, 0);
   var ex = cfg.extra || {};
   var intFlat = add('int', 'Base (L60 Warlock) [A09]', base.int) + add('int', race.name + ' offset', race.offset.int)
@@ -146,9 +160,9 @@ WL.computeStats = function (build, raceKey, cfg) {
   // are not on the character sheet and are still added per spell in spelltable.js.
   var intAboveSheet = int - (base.int + race.offset.int + gear.int);
   var critPct = add('critPct', gear.critIncludesAll ? 'Character sheet total incl. talents, racials, oil [A42]' : 'Character sheet (base + Int + gear) [A42]', gear.critPct || 0)
-              + add('critPct', 'Extra Int ' + intAboveSheet + ' / 60', intAboveSheet * cb.critPerInt)
+              + add('critPct', 'Extra Int ' + Math.round(intAboveSheet * 10) / 10 + ' / 60', intAboveSheet * cb.critPerInt)   // label rounded (round 110); the value is exact
               + add('critPct', 'Stat-weight test', ex.critPct || 0);
-  critPct += buffStat('critPct') + conStat('critPct');                   // e.g. Moonkin Form aura, Elixir of the Owl
+  critPct += buffStat('critPct') + conCrit();                            // e.g. Moonkin Form aura, Elixir of the Owl
   if (!gear.critIncludesAll) {
     critPct += oilStat('critPct');
     var sword = racial('critPctIfSword');

@@ -61,7 +61,7 @@
       return e ? e.t : Infinity;
     };
     ['demo_pact_succ_fire', 'demo_pact_fire', 'demo_pact_imp_sb', 'aff_pact_fire'].forEach(function (k) {
-      var b = WL.BUILDS.filter(function (x) { return x.key === k; })[0], i = b.rotation.indexOf('searingPainBrand');
+      var b = WL.findBuild(k), i = b.rotation.indexOf('searingPainBrand');
       var without = JSON.parse(JSON.stringify(b)); without.rotation = b.rotation.filter(function (a) { return a !== 'searingPainBrand'; });
       var tNow = first(b), tWas = first(without);
       T.ok(i >= 0 && i <= 2 && i < b.rotation.indexOf('curseOfElements') && tNow < tWas && tNow < 4,
@@ -69,7 +69,7 @@
     });
     T.group('Shadow Bolt Succubus builds keep Brand after Bane and Curse of the Elements (earlier loses 0.3 … 0.9%)');
     ['demo_pact_succ_sb', 'aff_pact_succ_sb', 'aff_succ_sb'].forEach(function (k) {
-      var r = WL.BUILDS.filter(function (x) { return x.key === k; })[0].rotation;
+      var r = WL.findBuild(k).rotation;
       T.ok(r.indexOf('searingPainBrand') > r.indexOf('curseOfElements') && r.indexOf('curseOfElements') > r.indexOf('bane'), k + ': ' + r.join(' > '));
     });
   });
