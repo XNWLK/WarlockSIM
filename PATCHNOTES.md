@@ -3,6 +3,18 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v112
+- Cooldown timeline: a placed use can follow the **execute phase** or the **first Bane of Doom explosion** instead of a fixed
+  second (select the block, then "At execute" / "At the Doom explosion"). New rows for **Amplify Curse** and the **pet swap**.
+
+## v111
+- **Health:** Life Tap costs 430 health, Hellfire burns you too, a Demonic Rune costs 800. New setting in Fight & pets:
+  "Healing you receive" — healed for X every Y seconds (default 1000 every 10 s). Drain Life, Siphon Life, Death Coil and
+  Touch of the Grave give health back. Without enough health a Life Tap has to wait.
+- **Voidwalker and Felhunter sacrifice** (2% mana / 3% health every 4 s) can be picked in the build editor.
+- **Threat:** threat per second in a build's details and in compare; Searing Pain counts double (less with Demonic Brand),
+  Suppression reduces it; new raid buffs Blessing of Salvation (−30%) and Tranquil Air Totem (−20%).
+
 ## v110
 - Wrack's +10% now also applies to Siphon Life and Bane of Doom.
 - Grace of Air Totem and the Scroll of Agility no longer stack (only the bigger one counts).

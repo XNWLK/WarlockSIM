@@ -14,7 +14,7 @@ WL.TREES = {
 WL.TALENTS = [
   // ---------------- Affliction (Wowhead tree 302 "WarlockCurses") ----------------
   { key: 'improvedLifeTap',     tree: 'affliction', wid: 105921, name: 'Improved Life Tap',     row: 0, col: 0, ranks: 2, v: { manaPct: [10, 20] } },
-  { key: 'suppression',         tree: 'affliction', wid: 105925, name: 'Suppression',           row: 0, col: 1, ranks: 5, v: { hitPct: [1, 2, 3, 4, 5] } },
+  { key: 'suppression',         tree: 'affliction', wid: 105925, name: 'Suppression',           row: 0, col: 1, ranks: 5, v: { hitPct: [1, 2, 3, 4, 5], threatPct: [4, 8, 12, 16, 20] } },
   { key: 'improvedCorruption',  tree: 'affliction', wid: 105924, name: 'Improved Corruption',   row: 0, col: 2, ranks: 5, v: { castRed: [0.4, 0.8, 1.2, 1.6, 2], dmgPct: [2, 4, 6, 8, 10] } },
   { key: 'malediction',         tree: 'affliction', wid: 105923, name: 'Malediction',           row: 1, col: 0, ranks: 5, v: { periodicPct: [1, 2, 3, 4, 5] } },
   { key: 'soulHarvesting',      tree: 'affliction', wid: 105922, name: 'Soul Harvesting',       row: 1, col: 1, ranks: 2, v: {} },

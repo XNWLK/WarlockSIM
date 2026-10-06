@@ -31,13 +31,24 @@ window.WL = window.WL || {};
   // and one per consumable key. The round 92 names are mapped: potion → the ticked potion (else the Spellblasting
   // potion), rune → Demonic Rune, sapper → Goblin Sapper, explosive → the ticked explosive (else Dense Dynamite);
   // a list under the item's own key wins. Used by the engine and the page.
+  // Round 120: an entry is a second, or 'exec' (the moment the boss reaches fight.executePct) or 'doom' (the first Bane of
+  // Doom explosion: for the buffs right before the cast it falls into, as with the 'doom' setting; for the other rows as
+  // soon as it has exploded). WL.cdTime gives the second such an entry stands for on the page and for sorting.
+  WL.cdTime = function (x, cfg, dur) {
+    if (x === 'exec') return (dur || cfg.fight.duration) * (1 - cfg.fight.executePct / 100);
+    if (x === 'doom') return 60;
+    return x;
+  };
   WL.activesTimelineOf = function (cfg) {
     var src = (cfg.options && cfg.options.activesTimeline) || {}, C = cfg.consumables || {}, out = {};
     var first = function (test, fallback) { var k = Object.keys(C).filter(function (x) { return C[x].on && test(C[x]); })[0]; return k || fallback; };
     var legacy = { potion: first(function (c) { return c.cdGroup === 'potion'; }, 'majorSpellblasting'), rune: 'demonicRune', sapper: 'goblinSapper',
                    explosive: first(function (c) { return c.explosive && c.explosive.cdGroup !== 'sapper'; }, 'denseDynamite') };
     var put = function (k, v) {
-      var a = (Array.isArray(v) ? v : []).map(Number).filter(function (x) { return isFinite(x) && x >= 0; }).sort(function (x, y) { return x - y; });
+      var a = (Array.isArray(v) ? v : []).map(function (x) { return x === 'exec' || x === 'doom' ? x : Number(x); })
+        .filter(function (x) { return typeof x === 'string' || (isFinite(x) && x >= 0); })
+        .filter(function (x, i, arr) { return arr.indexOf(x) === i; })
+        .sort(function (x, y) { return WL.cdTime(x, cfg) - WL.cdTime(y, cfg); });
       if (a.length) out[k] = a;
     };
     Object.keys(src).forEach(function (k) { if (legacy[k]) put(legacy[k], src[k]); });
@@ -69,17 +80,20 @@ window.WL = window.WL || {};
     // ---------- state ----------
     var S = {
       t: 0, remaining: dur, cfg: cfg, build: build,
-      mana: stats.maxMana, shards: Infinity,                // soul shards never run out (round 118, user; 30 per fight before) [A25]
+      mana: stats.maxMana, health: stats.maxHealth, shards: Infinity,                // soul shards never run out (round 118, user; 30 per fight before) [A25]
       busyUntil: 0, gcdReady: 0, lastRegen: 0,
       lastSpend: -Infinity, spendAt: null, innervateUntil: 0,   // 5-second rule (round 114): last mana spent, cast in progress, Innervate window
       cds: {}, dots: {}, buffs: {}, channel: null, eurekaCharges: 0, eurekaPending: 0,
       targetHpPct: 100,
     };
     var inst = 0, decideToken = 0;
-    var res = { bySpell: {}, lifeTaps: 0, manaFromTaps: 0, manaFromSpirit: 0, fsrOutTime: 0, minMana: stats.maxMana, total: 0, oom: 0, clipped: 0, idle: 0, pushbacks: 0, pushbackTime: 0, pushResisted: 0, vulnHits: {}, petOomTime: 0, exDmg: 0 };
+    var res = { bySpell: {}, lifeTaps: 0, manaFromTaps: 0, manaFromSpirit: 0, fsrOutTime: 0, manaFromSac: 0, threat: 0,
+      // health (round 119): lowest point, health paid for Life Tap / lost to your own spells and items, health gained from the
+      // healing setting / leeching spells / the Felhunter sacrifice, seconds a Life Tap had to wait for health
+      health: { min: stats.maxHealth, tap: 0, self: 0, healed: 0, leech: 0, sac: 0, blocked: 0 }, minMana: stats.maxMana, total: 0, oom: 0, clipped: 0, idle: 0, pushbacks: 0, pushbackTime: 0, pushResisted: 0, vulnHits: {}, petOomTime: 0, exDmg: 0 };
 
     function row(key) {
-      return res.bySpell[key] || (res.bySpell[key] = { casts: 0, landed: 0, misses: 0, crits: 0, hits: 0, ticks: 0, tickCrits: 0, dmg: 0, castTime: 0, glances: 0 });
+      return res.bySpell[key] || (res.bySpell[key] = { casts: 0, landed: 0, misses: 0, crits: 0, hits: 0, ticks: 0, tickCrits: 0, dmg: 0, castTime: 0, glances: 0, threat: 0 });
     }
     function L(type, spell, extra) {
       if (!logOn) return;
@@ -196,6 +210,30 @@ window.WL = window.WL || {};
     var buffList = WL.activeBuffs(cfg);
     var PI = buffList.filter(function (b) { return b.spellDmgPct; })[0] || null;
     var manaBuffs = buffList.filter(function (b) { return b.tide || b.innervate; }).map(function (b) { return { b: b, used: false }; });
+    // ---------- health (round 119, user) [A83] ----------
+    // Your health starts full. It pays for Life Tap (430), Hellfire's ticks on yourself, the Demonic Rune (800) and the Goblin
+    // Sapper; it comes back from the healing setting (fight.healAmount every fight.healEvery s), from Drain Life, Siphon Life,
+    // Death Coil and Touch of the Grave (their damage) and from the Felhunter sacrifice. Nothing may take you to 0: a Life Tap
+    // waits for health, a rune / Sapper is not used, Hellfire is only started when the whole channel is affordable (counting
+    // the heals due during it) and ends early if the next tick would kill you. Damage from the boss is not modelled.
+    var HEAL = cfg.fight.healAmount > 0 && cfg.fight.healEvery > 0 ? { amt: cfg.fight.healAmount, every: cfg.fight.healEvery } : null;
+    var TAP_HP = SPELLS.lifeTap.healthCost || 0;
+    function gainHealth(amt, src) { var before = S.health; S.health = Math.min(stats.maxHealth, S.health + amt); res.health[src] += S.health - before; }
+    function loseHealth(amt, src) { S.health -= amt; res.health[src] += amt; if (S.health < res.health.min) res.health.min = S.health; }
+    function canTap() { return S.health > TAP_HP; }
+    function selfTick(key) { var s = SPELLS[key]; return s.selfDamage ? Math.round(s.tickBase + s.tickCoef * spNow(table[key])) : 0; }
+    function healsDue(until) { return HEAL ? HEAL.amt * (Math.floor((until + EPS) / HEAL.every) - Math.floor((S.t + EPS) / HEAL.every)) : 0; }
+    function healthOk(k) { var s = SPELLS[k]; return !s || !s.selfDamage || S.health + healsDue(S.t + s.duration) > selfTick(k) * table[k].ticks; }
+    // ---------- threat (round 119, user) [A84] ----------
+    // 1 damage = 1 threat, Searing Pain twice that ("a high amount of threat"; less with Demonic Brand), all of it reduced by
+    // Suppression (4% per point) and by Blessing of Salvation / Tranquil Air Totem (they multiply). Your pet's damage is the
+    // pet's threat, not yours. Not counted: threat from healing yourself, from mana gains and from applying curses.
+    var THREAT_ALL = (1 - tv('suppression', 'threatPct') / 100) * buffList.reduce(function (m, b) { return m * (1 - (b.threatPct || 0) / 100); }, 1);
+    function threatMult(bk) {
+      var s = SPELLS[bk], m = THREAT_ALL * ((s && s.threatMult) || 1);
+      if (bk === 'searingPain') m *= 1 - tv('demonicBrand', 'threatRedPct') / 100;
+      return m;
+    }
     function manaBuffCheck() {
       if (!manaBuffs.length || S.mana >= 0.5 * stats.maxMana) return;
       manaBuffs.forEach(function (mb) {
@@ -232,16 +270,33 @@ window.WL = window.WL || {};
     if (ACT_POL === 'custom') {
       ACT_TL = {};
       var tlSrc = WL.activesTimelineOf(cfg);
-      Object.keys(tlSrc).forEach(function (k) { ACT_TL[k] = { t: tlSrc[k], i: 0 }; });
+      // 'exec' becomes this fight's own execute second; 'doom' stays open until the explosion is due (round 120)
+      Object.keys(tlSrc).forEach(function (k) { ACT_TL[k] = { t: tlSrc[k].map(function (x) { return x === 'exec' ? WL.cdTime(x, cfg, dur) : x; }), i: 0 }; });
     }
     // 0 = hold (a placed use is still ahead) · 1 = a placed time has come: use it now · 2 = automatic (nothing placed, or
     // every placed use is done). Without a custom timeline always 2.
     var RSLOT = cfg.options && cfg.options.activesRacialSplit ? 'racial_' + raceKey : 'racial';   // racial slot: shared, or one per race (round 95)
-    function slotGate(k) { var sl = ACT_TL && ACT_TL[k]; if (!sl || sl.i >= sl.t.length) return 2; return S.t >= sl.t[sl.i] - EPS ? 1 : 0; }
-    function slotUsed(k) { var sl = ACT_TL && ACT_TL[k]; if (sl && sl.i < sl.t.length && S.t >= sl.t[sl.i] - EPS) sl.i++; }
+    // gateKey: the spell about to be cast (set by popActives), so a 'doom' entry of a buff row opens right before the cast the
+    // explosion falls into; rows without a cast (mana items, explosives, pet swap) open once Doom has exploded.
+    var gateKey = null;
+    function doomDue() {
+      if (ACT_DOOM === null) ACT_DOOM = ROT.indexOf('bane') >= 0 || (build.timeline || []).some(function (e) { return e.k === 'baneOfDoom'; });
+      var d = S.dots.baneOfDoom;
+      if (d) doomSeen = true;
+      if (!d || d.expires <= S.t + EPS) return doomSeen || !ACT_DOOM || !!S.dots.baneOfAgony;      // exploded, or it never will
+      var toBoom = d.expires - S.t;
+      if (toBoom > S.remaining) return true;                                                      // will not explode in this fight
+      if (!gateKey) return false;
+      var sp = SPELLS[gateKey], len = sp.kind === 'channel' ? sp.duration : Math.max(S.castTime(gateKey), S.gcd());
+      return toBoom <= len + EPS;
+    }
+    function slotDue(x) { return x === 'doom' ? doomDue() : S.t >= x - EPS; }
+    function slotGate(k) { var sl = ACT_TL && ACT_TL[k]; if (!sl || sl.i >= sl.t.length) return 2; return slotDue(sl.t[sl.i]) ? 1 : 0; }
+    function slotUsed(k) { var sl = ACT_TL && ACT_TL[k]; if (sl && sl.i < sl.t.length && slotDue(sl.t[sl.i])) sl.i++; }
     // Racial cooldown, Spellblasting potion and Power Infusion, right before a damaging cast.
     function popActives(key) {
       if (!ACT_TL) { if (activesOk(key)) { useRacials(key); useSpPotion(); usePowerInfusion(); } return; }
+      gateKey = key;
       var g = slotGate(RSLOT);
       if (g === 1 || (g === 2 && (ACT_TL[RSLOT] || activesOk(key)))) { if (useRacials(key)) slotUsed(RSLOT); }
       if (spPot) {
@@ -250,6 +305,7 @@ window.WL = window.WL || {};
       }
       g = slotGate('pi');
       if (g === 1 || (g === 2 && (ACT_TL.pi || activesOk(key)))) { if (usePowerInfusion()) slotUsed('pi'); }
+      gateKey = null;
     }
     function activesOk(key) {
       if (actOpen) return true;
@@ -280,6 +336,7 @@ window.WL = window.WL || {};
         var amt = c.manaRestore.amount || stats.maxMana * c.manaRestore.pct / 100, miss = stats.maxMana - S.mana;
         var slot = c.key, g = slotGate(slot);
         if (g === 0 || !S.ready('cd:' + c.cdGroup) || (g === 1 ? miss <= EPS : miss < amt)) return;
+        if (c.healthCost) { if (S.health <= c.healthCost) return; loseHealth(c.healthCost, 'self'); }   // Demonic Rune: 800 health (round 119)
         if (amt > miss) amt = miss;
         S.cds['cd:' + c.cdGroup] = S.t + c.cd; S.mana += amt;
         res.manaFromConsumables = (res.manaFromConsumables || 0) + amt;
@@ -295,6 +352,7 @@ window.WL = window.WL || {};
       for (var i = 0; i < explosives.length; i++) {
         var c = explosives[i], x = c.explosive, key = 'item:' + c.key, r = row(key), xslot = c.key;
         if (!S.ready('cd:' + x.cdGroup) || slotGate(xslot) === 0) continue;           // custom timeline: held for its placed time
+        if (x.selfMax) { if (S.health <= x.selfMax) continue; loseHealth((x.selfMin + x.selfMax) / 2, 'self'); }   // Sapper: its average damage to you (round 119)
         S.cds['cd:' + x.cdGroup] = S.t + x.cd; slotUsed(xslot);
         r.casts++; r.castTime += cb.minGcd;
         S.busyUntil = S.t; S.gcdReady = S.t + cb.minGcd;
@@ -371,6 +429,12 @@ window.WL = window.WL || {};
       var copied = 0;
       if (HAV && key.indexOf('pet:') !== 0 && target !== HAV_T && S.buff('havoc')) { var h = row('baneOfHavoc'); copied = amount * HAV; h.dmg += copied; h.hits++; res.total += copied; }
       if (S.targetHpPct < cfg.fight.executePct) res.exDmg += amount + copied;       // execute-phase damage (round 44)
+      if (key.indexOf('pet:') !== 0) {                                              // threat and leeched health (round 119)
+        var bk = key.charAt(0) === 'x' && key.charAt(2) === ':' ? key.slice(3) : key, th = (amount + copied) * threatMult(bk);
+        r.threat += th; res.threat += th;
+        var lz = bk === 'touchOfTheGrave' ? 1 : (SPELLS[bk] && SPELLS[bk].leech) || 0;
+        if (lz) gainHealth(amount * lz, 'leech');
+      }
     }
 
     // ---------- scheduling ----------
@@ -539,6 +603,7 @@ window.WL = window.WL || {};
         deal(rk, amt, crit, true, ti);
         if (logOn) L('tick', rk, Object.assign({ dmg: Math.round(amt), crit: crit, n: i + 1, of: e.ticks }, vulnLog(amt)));
       }
+      if (s.selfDamage) loseHealth(selfTick(key), 'self');     // Hellfire: the tick's base damage to yourself, no talents, no crit (round 119)
     }
 
     // Improved Shadow Bolt (round 54, user; A20): after a Shadow Bolt crit the debuff rolls its own spell-hit check with
@@ -654,8 +719,8 @@ window.WL = window.WL || {};
       // Amplify Curse: off the GCD, next Bane of Agony +50%; 3 min cooldown. [A52] Its aura is "Modifies Spell
       // Effectiveness" (spell 18288), which scales the base value only — the spell-power part is not amplified (user, round 25).
       var baseMult = 1;
-      if (key === 'baneOfAgony' && tv('amplifyCurse') && S.ready('amplifyCurse')) {
-        baseMult = 1 + tv('amplifyCurse', 'boaPct') / 100; S.cds.amplifyCurse = S.t + 180; L('buff', 'amplifyCurse');
+      if (key === 'baneOfAgony' && tv('amplifyCurse') && S.ready('amplifyCurse') && slotGate('amplifyCurse') !== 0) {   // timeline row (round 120): held for its placed time
+        baseMult = 1 + tv('amplifyCurse', 'boaPct') / 100; S.cds.amplifyCurse = S.t + 180; L('buff', 'amplifyCurse'); slotUsed('amplifyCurse');
       }
       if (s.shards && !(key === 'soulFire' && S.buff('decimation'))) S.shards -= s.shards;
       if (key === 'soulFire' && S.buff('decimation')) delete S.buffs.decimation;
@@ -706,6 +771,8 @@ window.WL = window.WL || {};
     S.minManaCheck = function () { if (S.mana < res.minMana) res.minMana = S.mana; };
 
     function lifeTap(moving) {
+      if (!canTap()) { res.health.blocked += 0.1; res.idle += 0.1; scheduleDecide(S.t + 0.1); return; }   // not enough health: wait for a heal (round 119)
+      loseHealth(TAP_HP, 'tap');
       var gain = (SPELLS.lifeTap.manaBase + stats.spi) * (1 + tv('improvedLifeTap', 'manaPct') / 100); // [A12]
       var before = S.mana;
       S.mana = Math.min(stats.maxMana, S.mana + gain);
@@ -853,7 +920,8 @@ window.WL = window.WL || {};
     var PS = cfg.petSwap || null;
     S.swapped = false;
     S.canSwap = function (to) {
-      return !!PS && !S.swapped && !!build.pet && build.pet !== to && S.targetHpPct < cfg.fight.executePct &&
+      var gs = slotGate('petSwap');                                 // timeline row (round 120): its placed time replaces "at execute"
+      return !!PS && !S.swapped && !!build.pet && build.pet !== to && (gs === 1 || (gs === 2 && !(ACT_TL && ACT_TL.petSwap) && S.targetHpPct < cfg.fight.executePct)) &&
         tv('felDomination') > 0 && tv('demonicSacrifice') > 0 && tv('demonicPact') > 0 && S.ready('felDomination');
     };
     function summonCost(to) {
@@ -870,7 +938,7 @@ window.WL = window.WL || {};
       var cost = summonCost(to);
       if (S.mana < cost) { lifeTap(); return; }
       var from = build.pet, nb = JSON.parse(JSON.stringify(build));
-      S.swapped = true; res.swapAt = S.t;
+      S.swapped = true; res.swapAt = S.t; slotUsed('petSwap');
       nb.sacrifice = from; nb.pet = null; P = null; rebuild(nb);                 // 1. Demonic Sacrifice (off the GCD)
       L('cast', 'demonicSacrifice', { castTime: 0, gcd: 0, pet: from });
       S.cds.felDomination = S.t + PS.felDom.cd;                                   // 2. Fel Domination (off the GCD)
@@ -949,7 +1017,7 @@ window.WL = window.WL || {};
       var f = altBelow(S.actionIndex), fRate = f ? expCast(f, 0, key === 'immolate') / (occupies(f) + LAT) : 0;
       var cost = (occupies(key) + LAT) * fRate;
       var end = Math.min(dur, tL + s.duration), gcd = S.gcd(), value = 0;
-      var baseMult = key === 'baneOfAgony' && tv('amplifyCurse') && S.ready('amplifyCurse') ? 1 + tv('amplifyCurse', 'boaPct') / 100 : 1;
+      var baseMult = key === 'baneOfAgony' && tv('amplifyCurse') && S.ready('amplifyCurse') && slotGate('amplifyCurse') !== 0 ? 1 + tv('amplifyCurse', 'boaPct') / 100 : 1;
       var tickAmt = (s.tickBase * baseMult + s.tickCoef * spNow(e)) * e.periodicMult * lmult(key, ti, true) * expVuln(s.school, ti) * expCrit(e.critPct, e.critMult);
       if (f === 'wrack' && SPELLS.wrack.debuffSpells.indexOf(key) >= 0) tickAmt *= 1 + SPELLS.wrack.debuffPct / 100;   // ticks during the Wrack filler
       // Conflagrate (Destruction): a new Immolate lets the next Conflagrate happen, which then consumes it (unless
@@ -1017,7 +1085,8 @@ window.WL = window.WL || {};
         var k = a.pick(S);
         if (k && k.indexOf('swap:') === 0) return { key: k, index: i, target: 0 };   // pet swap (instant summon, round 35)
         if (k && fitBy != null && table[k] && SPELLS[k].kind !== 'channel' && S.t + tlOccupies(k) > fitBy + EPS) continue;   // does not fit the gap
-        if (k && table[k] && canCastNow(k)) return { key: k, index: i, target: S.nextTarget || 0 };   // movement: only instants while moving (W11)
+        if (k === 'lifeTap' && !canTap()) continue;                      // an optional Life Tap is skipped without the health for it (round 119)
+        if (k && table[k] && canCastNow(k) && healthOk(k)) return { key: k, index: i, target: S.nextTarget || 0 };   // movement: only instants while moving (W11)
       }
       return null;
     }
@@ -1040,7 +1109,7 @@ window.WL = window.WL || {};
       // Life Tap while moving (round 62, user; A71): when movement leaves nothing castable (moving: only instants; just before
       // a movement phase: no cast would finish in time) and the priority has no instant to cast, Life Tap (instant) instead of
       // waiting — whenever it restores any mana.
-      if (!p && MV && cfg.fight.lifeTapWhileMoving && S.mana < stats.maxMana - EPS) { lifeTap(true); return; }
+      if (!p && MV && cfg.fight.lifeTapWhileMoving && S.mana < stats.maxMana - EPS && canTap()) { lifeTap(true); return; }
       if (!p) { res.idle += 0.1; scheduleDecide(S.t + 0.1); return; }
       if (p.key === 'lifeTap') { lifeTap(); return; }                      // explicit Life Tap action (e.g. to feed the pet)
       if (p.key.indexOf('swap:') === 0) { doSwap(p.key.slice(5)); return; } // mid-fight pet swap (round 35)
@@ -1093,6 +1162,9 @@ window.WL = window.WL || {};
     // Pre-pull: Demonic Sacrifice is handled statically in computeStats (buff lasts 2 h).
     if (cfg.debuffs && cfg.debuffs.coeOther && cfg.debuffs.coeOther.on) S.buffs.coe = dur + 1;   // another Warlock keeps CoE up
     scheduleDecide(0);
+    if (HEAL) for (var ht = HEAL.every; ht < dur - EPS; ht += HEAL.every) H.push({ t: ht, o: 0, type: 'heal' });
+    var SAC = cfg.demonicSacrifice;
+    if (SAC && (build.sacrifice === 'voidwalker' || build.sacrifice === 'felhunter')) for (var st = SAC.every; st < dur - EPS; st += SAC.every) H.push({ t: st, o: 0, type: 'sacTick' });
     if (HIT) H.push({ t: R.push() * HIT, o: 1, type: 'dmgTaken' });             // first hit at a random point of the first interval
     if (P) {
       if (P.c.spell) H.push({ t: 0, o: 2, type: 'petAct', gen: P.gen });
@@ -1133,6 +1205,12 @@ window.WL = window.WL || {};
         if (!dx || dx.inst !== ev.inst) continue;
         periodicTickX(ev.ti, ev.key, dx.snap, ev.i);
         if (ev.i === dx.ticks - 1) delete S.xdots[ev.ti][ev.key];
+      } else if (ev.type === 'heal') {                              // the healing setting (round 119)
+        var hb = S.health; gainHealth(HEAL.amt, 'healed'); L('heal', 'heal', { gain: Math.round(S.health - hb) });
+      } else if (ev.type === 'sacTick') {                           // Voidwalker / Felhunter sacrifice (round 119)
+        if (!stats.sacrificeActive) continue;
+        if (build.sacrifice === 'voidwalker') { var vb = S.mana; S.mana = Math.min(stats.maxMana, S.mana + stats.maxMana * SAC.voidwalker.manaPct / 100); res.manaFromSac += S.mana - vb; }
+        else if (build.sacrifice === 'felhunter') gainHealth(stats.maxHealth * SAC.felhunter.healthPct / 100, 'sac');
       } else if (ev.type === 'dmgTaken') {                          // damage taken (round 78)
         takeHit();
         H.push({ t: S.t + HIT, o: 1, type: 'dmgTaken' });
@@ -1148,6 +1226,11 @@ window.WL = window.WL || {};
         if (SPELLS[ev.key].aoe) aoeTick(ev.key, ev.i); else periodicTick(ev.key, c.snap, ev.i, true);
         var last = ev.i === table[ev.key].ticks - 1;
         if (last) { if (c.eurekaHeld) eurekaRelease(); S.channel = null; continue; }
+        if (SPELLS[ev.key].selfDamage && S.health <= selfTick(ev.key)) {   // the next Hellfire tick would kill you: stop channelling (round 119)
+          if (c.eurekaHeld) eurekaRelease();
+          S.channel = null; res.clipped++; row(ev.key).castTime -= (c.end - S.t);
+          S.busyUntil = S.t; L('clip', ev.key, { for: 'health' }); scheduleDecide(Math.max(S.t, S.gcdReady)); continue;
+        }
         // A priority channel in a timeline gap ends when the next timeline entry is due (round 70).
         if (TL && TL.i < TL.list.length && TL.list[TL.i].t <= S.t + EPS && !c.tl) {
           if (c.eurekaHeld) eurekaRelease();
@@ -1180,6 +1263,7 @@ window.WL = window.WL || {};
     res.log = log;
     res.endMana = S.mana;
     res.shardsLeft = S.shards;
+    res.health.end = S.health;                                // health at the end of the fight (round 119)
     return res;
   };
 
@@ -1217,7 +1301,8 @@ window.WL = window.WL || {};
     var stats = WL.computeStats(build, raceKey, cfg);
     var table = WL.buildSpellTable(build, stats, cfg);
     var dpsList = [], agg = {}, first = null, lifeTaps = 0, movingTaps = 0, minMana = Infinity, clipped = 0, durSum = 0, push = { n: 0, time: 0, resisted: 0 }, upPct = {};
-    var tapPct = 0, petOomFights = 0, petOomSec = 0, idleSec = 0, spiRegen = 0, fsrOut = 0;             // W3 mana / pet-mana summary
+    var tapPct = 0, petOomFights = 0, petOomSec = 0, idleSec = 0, spiRegen = 0, fsrOut = 0, sacMana = 0;
+    var tpsSum = 0, hp = { min: Infinity, tap: 0, self: 0, healed: 0, leech: 0, sac: 0, blocked: 0 };   // threat and health (round 119)             // W3 mana / pet-mana summary
     var exDmg = 0, exTime = 0, preDmg = 0, preTime = 0;                        // execute split (round 44)
     var skipAgg = {};                                                          // end-of-fight DoT skips (round 53)
     for (var i = 0; i < n; i++) {
@@ -1226,7 +1311,9 @@ window.WL = window.WL || {};
       if (i === 0) first = r;
       dpsList.push(r.dps); durSum += r.duration; lifeTaps += r.lifeTaps; movingTaps += r.movingTaps || 0; clipped += r.clipped; push.n += r.pushbacks; push.time += r.pushbackTime; push.resisted += r.pushResisted; minMana = Math.min(minMana, r.minMana);
       Object.keys(r.uptime).forEach(function (k) { upPct[k] = (upPct[k] || 0) + 100 * r.uptime[k] / r.duration; });
-      tapPct += 100 * (r.tapTime || 0) / r.duration; idleSec += r.idle; spiRegen += r.manaFromSpirit || 0; fsrOut += r.fsrOutTime || 0;
+      tapPct += 100 * (r.tapTime || 0) / r.duration; idleSec += r.idle; spiRegen += r.manaFromSpirit || 0; fsrOut += r.fsrOutTime || 0; sacMana += r.manaFromSac || 0;
+      tpsSum += r.threat / r.duration; hp.min = Math.min(hp.min, r.health.min);
+      ['tap', 'self', 'healed', 'leech', 'sac', 'blocked'].forEach(function (k) { hp[k] += r.health[k]; });
       exDmg += r.exDmg; exTime += r.exTime; preDmg += r.preDmg; preTime += r.preTime;
       Object.keys(r.dotSkips || {}).forEach(function (k) {
         var x = r.dotSkips[k], a = skipAgg[k] || (skipAgg[k] = { key: x.key, target: x.target, fights: 0, left: 0, value: 0, cost: 0, alt: {} });
@@ -1234,12 +1321,13 @@ window.WL = window.WL || {};
       });
       if (r.petOomTime > 1e-9) { petOomFights++; petOomSec += r.petOomTime; }
       Object.keys(r.bySpell).forEach(function (k) {
-        var a = agg[k] || (agg[k] = { casts: 0, landed: 0, misses: 0, crits: 0, hits: 0, ticks: 0, tickCrits: 0, dmg: 0, castTime: 0, glances: 0 });
+        var a = agg[k] || (agg[k] = { casts: 0, landed: 0, misses: 0, crits: 0, hits: 0, ticks: 0, tickCrits: 0, dmg: 0, castTime: 0, glances: 0, threat: 0 });
         var b = r.bySpell[k];
         Object.keys(a).forEach(function (f) { a[f] += b[f] || 0; });
       });
     }
     Object.keys(agg).forEach(function (k) { Object.keys(agg[k]).forEach(function (f) { agg[k][f] /= n; }); });
+    ['tap', 'self', 'healed', 'leech', 'sac', 'blocked'].forEach(function (k) { hp[k] /= n; });
     var mean = dpsList.reduce(function (a, b) { return a + b; }, 0) / n;
     var sorted = dpsList.slice().sort(function (a, b) { return a - b; });
     var median = n % 2 ? sorted[(n - 1) / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
@@ -1253,7 +1341,9 @@ window.WL = window.WL || {};
     dpsList.forEach(function (x) { counts[Math.min(nb - 1, Math.floor((x - lo) / w))]++; });
     return {
       uptimePct: upPct, dpsHist: { min: lo, max: hi, width: w, counts: counts },
-      mana: { spiritRegenAvg: spiRegen / n, fsrOutSecAvg: fsrOut / n, tapTimePct: tapPct / n, petOomFightsPct: 100 * petOomFights / n, petOomSecAvg: petOomFights ? petOomSec / petOomFights : 0, idleSecAvg: idleSec / n },
+      tps: tpsSum / n,                                                            // threat per second (round 119)
+      health: { max: stats.maxHealth, min: hp.min, tapAvg: hp.tap, selfAvg: hp.self, healedAvg: hp.healed, leechAvg: hp.leech, sacAvg: hp.sac, blockedSecAvg: hp.blocked },
+      mana: { sacAvg: sacMana / n, spiritRegenAvg: spiRegen / n, fsrOutSecAvg: fsrOut / n, tapTimePct: tapPct / n, petOomFightsPct: 100 * petOomFights / n, petOomSecAvg: petOomFights ? petOomSec / petOomFights : 0, idleSecAvg: idleSec / n },
       build: build, race: raceKey, stats: stats, table: table, iterations: n,
       dps: mean, dpsMedian: median, dpsSd: sd, dpsMin: sorted[0], dpsMax: sorted[n - 1],
       dpsErr: 1.96 * sd / Math.sqrt(n),

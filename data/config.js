@@ -19,6 +19,9 @@ WL.DEFAULT_CONFIG = {
     lifeTapWhileMoving: false, // round 62 (user): Life Tap (instant) when nothing else can be cast because of movement [A71]
     targets: 1,             // 2-3 targets: Bane of Havoc (talent) on target 2 copies 15% of your damage to it
     multiDot: false,        // with 2-3 targets: keep your DoTs on the extra targets too (A61)
+    // Healing you receive (round 119, user): healAmount health every healEvery seconds, first at healEvery. Your health pays
+    // for Life Tap (430), Hellfire's damage to yourself, the Demonic Rune and the Goblin Sapper. 0 = nobody heals you. [A83]
+    healAmount: 1000, healEvery: 10,
   },
   combat: {
     baseHitPct: 83,         // L63 boss: 17% miss [A01] (user-confirmed)
@@ -101,6 +104,9 @@ WL.DEFAULT_CONFIG = {
     innervate:        { on: false, id: 29166, name: 'Innervate',                     cls: 'Druid',   desc: '5× mana regen while casting for 20 s, once, when you drop below 50% mana', innervate: { mult: 5, duration: 20 } },
     moonkinAura:      { on: true, id: 24858, name: 'Moonkin Form aura',             cls: 'Druid',   desc: '+3% crit (party)', critPct: 3 },
     scrollOfAgility:  { on: true, id: 12174, name: 'Scroll of Agility IV',                  cls: 'Scroll',  desc: '+17 Agility (melee crit for the Succubus; does not stack with Grace of Air)', agi: 17, group: 'agility' },
+    // Threat reduction (round 119, user). Classic values — neither tooltip is in the archived Forever data [A84].
+    blessingOfSalvation: { on: false, id: 1038, name: 'Blessing of Salvation',       cls: 'Paladin', desc: '−30% threat', threatPct: 30 },
+    tranquilAir:      { on: false, id: 25908, name: 'Tranquil Air Totem',            cls: 'Shaman',  desc: '−20% threat', threatPct: 20 },
     powerInfusion:    { on: false, id: 10060, name: 'Power Infusion',                cls: 'Priest',  desc: '+20% spell damage for 15 s (3 min cooldown); cast on you when you pop your cooldowns', spellDmgPct: 20, duration: 15, cd: 180 },
   },
   // Consumables (data/consumables.js, loaded before this file). Only the per-build weapon oil is on by default. [A57]
@@ -164,6 +170,10 @@ WL.DEFAULT_CONFIG = {
   // Demonic Brand (Wowhead 1293695, R3 tooltip): each pet attack on a branded target adds
   // ((60 − 26) × 1.5 + 14…17 + 0.078 × Shadow spell power) × (pet damage modifiers) Fire/Shadow damage. [A51]
   demonicBrand: { baseMin: 65, baseMax: 68, shadowSpCoef: 0.078, duration: 10 },
+  // Demonic Sacrifice, the two sacrifices without a damage bonus (round 119, user: "make sure they work"; Forever tooltip:
+  // Voidwalker restores 2% of your total mana every 4 s, Felhunter 3% of your total health every 4 s). Imp +15% Shadow and
+  // Succubus +15% Fire are in engine/stats.js.
+  demonicSacrifice: { every: 4, voidwalker: { manaPct: 2 }, felhunter: { healthPct: 3 } },
   // % of the Warlock's spell power that the pet gets as its OWN spell power; pet spells then apply their coefficient
   // (Firebolt 45 + 0.571 × pet SP). Round 31: **10**, measured in Forever by the user ("10 SP = 1 pet SP"; pet AP:
   // "6 SP = 1 pet AP", the Imp's tooltip says AP = 17% of the master's spell damage). History: 100 (rounds 2–15), 15

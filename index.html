@@ -344,6 +344,8 @@
   .cdblk { position: absolute; top: 0; height: 14px; min-width: 7px; box-sizing: border-box; background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 3px;
            color: var(--accent); font: 600 10px/12px var(--mono); padding: 0 3px; white-space: nowrap; overflow: hidden; cursor: grab; touch-action: none; }
   .cdblk.sel { background: var(--accent); color: var(--surface); }
+  .cdblk.snap { border-style: dashed; }               /* follows the execute phase / the Doom explosion (round 120) */
+  .cdedit .resetbtn[aria-pressed=true] { color: var(--accent); border-color: var(--accent); }
   .cdblk.bad { border-color: var(--bad); color: var(--bad); }
   .cdblk.bad.sel { background: var(--bad); color: var(--surface); }
   /* switched off (round 93): the whole bar is greyed, placed uses stay but do nothing */
@@ -743,6 +745,10 @@
           <label class="f" for="duration">Duration (s)<input id="duration" type="number" min="10" step="10"></label>
           <label class="f" for="iterations">Fights per combo<input id="iterations" type="number" min="10" step="100"></label>
           <label class="f" for="executePct">Execute below (% HP)<input id="executePct" type="number" min="0" max="100"></label>
+        </fieldset>
+        <fieldset><legend title="Your health is simulated: Life Tap costs 430 health, Hellfire burns you every second, a Demonic Rune costs 800 and a Goblin Sapper hurts you too. Drain Life, Siphon Life, Death Coil and Touch of the Grave give health back. Without enough health a Life Tap has to wait. Damage from the boss is not simulated.">Healing you receive</legend>
+          <label class="f" for="healAmount" title="Health you are healed for each time. 0 = nobody heals you.">Healed for (health)<input id="healAmount" type="number" min="0" step="100"></label>
+          <label class="f" for="healEvery" title="Seconds between two heals; the first one comes after this many seconds.">… every (s)<input id="healEvery" type="number" min="0" step="1"></label>
         </fieldset>
         <fieldset><legend>Encounter</legend>
           <label class="f" for="encPreset">Preset<select id="encPreset">

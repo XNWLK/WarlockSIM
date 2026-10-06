@@ -6,7 +6,7 @@ window.WL = window.WL || {};
 
 WL.BUILD_CODE_PREFIX = 'WFB1:';
 WL.PET_KEYS = ['imp', 'succubus', 'felhunter', 'voidwalker'];
-WL.SACRIFICE_KEYS = ['imp', 'succubus'];   // the only sacrifices with a damage effect in the engine
+WL.SACRIFICE_KEYS = ['imp', 'succubus', 'voidwalker', 'felhunter'];   // Voidwalker (mana) and Felhunter (health) since round 119
 
 // Returns a list of problems (empty = legal and simulatable).
 WL.validateBuild = function (b) {

@@ -75,7 +75,7 @@ WL.CONSUMABLES = {
   // ---------------- Engineering explosives (require the Engineering profession, W14 / A59) ----------------
   // Damage is fixed (no spell power / talents); explosives share a 1 min cooldown, the Sapper has its own 5 min cooldown.
   // range / radius in yards (round 99; range 0 = explodes around you). Not used by the fight engine.
-  goblinSapper:        { on: false, id: 10646, icon: 'spell_fire_selfdestruct', cat: 'Engineering', group: 'sapper', requires: 'engineering', name: 'Goblin Sapper Charge', desc: '450–750 Fire, 5 min cooldown (self-damage ignored)', explosive: { min: 450, max: 750, cd: 300, cdGroup: 'sapper', range: 0, radius: 10 },
+  goblinSapper:        { on: false, id: 10646, icon: 'spell_fire_selfdestruct', cat: 'Engineering', group: 'sapper', requires: 'engineering', name: 'Goblin Sapper Charge', desc: '450–750 Fire, 5 min cooldown; 375–625 damage to you', explosive: { min: 450, max: 750, cd: 300, cdGroup: 'sapper', range: 0, radius: 10, selfMin: 375, selfMax: 625 },
                          text: 'Explodes when triggered dealing 450 to 750 Fire damage to all enemies nearby and 375 to 625 damage to you. (5 Min Cooldown)' },
   denseDynamite:       { on: false, id: 18641, icon: 'inv_misc_bomb_06', cat: 'Engineering', group: 'explosive', requires: 'engineering', name: 'Dense Dynamite', desc: '340–460 Fire, 1 min cooldown', explosive: { min: 340, max: 460, cd: 60, cdGroup: 'explosive', range: 30, radius: 5 },
                          text: 'Inflicts 340 to 460 Fire damage in a 5 yard radius. (1 Min Cooldown)' },
@@ -83,6 +83,6 @@ WL.CONSUMABLES = {
                          text: 'Inflicts 300 to 500 Fire damage and stuns targets for 3 sec in a 3 yard radius. Any damage will break the effect. (1 Min Cooldown)' },
 
   // ---------------- Runes (own 2 min cooldown) ----------------
-  demonicRune:         { on: false, id: 12662, icon: 'inv_misc_rune_04', cat: 'Rune', group: 'rune', name: 'Demonic / Dark Rune', desc: '1200 mana for 800 health, 2 min cooldown', manaRestore: { amount: 1200 }, cd: 120, cdGroup: 'rune',
+  demonicRune:         { on: false, id: 12662, icon: 'inv_misc_rune_04', cat: 'Rune', group: 'rune', name: 'Demonic / Dark Rune', desc: '1200 mana for 800 health, 2 min cooldown', manaRestore: { amount: 1200 }, healthCost: 800, cd: 120, cdGroup: 'rune',
                          text: 'Restores 1200 mana at the cost of 800 life. (2 Min Cooldown)' },
 };

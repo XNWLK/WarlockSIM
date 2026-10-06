@@ -208,6 +208,7 @@
     ['g_sta', 'gear', 'sta'], ['g_agi', 'gear', 'agi'], ['g_shadowSp', 'gear', 'shadowSp'], ['g_fireSp', 'gear', 'fireSp'],
     ['showPct', 'options', 'showWithinPct'],
     ['latencyMs', 'fight', 'latencyMs'], ['travelMs', 'fight', 'travelMs'], ['moveEvery', 'fight', 'moveEvery'], ['moveDuration', 'fight', 'moveDuration'], ['hitEvery', 'fight', 'hitEvery'], ['targets', 'fight', 'targets'],
+    ['healAmount', 'fight', 'healAmount'], ['healEvery', 'fight', 'healEvery'],   // round 119: healing you receive
   ];
   // Encounter presets (W11): fill the fight fields; everything else stays as it is.
   var ENCOUNTERS = {
@@ -306,6 +307,7 @@
     { k: 'agi', label: 'Agility', gear: function (g) { return g.agi || 0; }, tot: function (s) { return s.agi; } },
     { k: 'meleeCritPct', label: 'Melee crit % (Succubus melee)', c: '--c-crit', d: 2, gear: null, tot: function (s) { return s.meleeCritPct; } },
     { k: 'maxMana', label: 'Maximum mana', gear: null, tot: function (s) { return s.maxMana; } },
+    { k: 'maxHealth', label: 'Maximum health', gear: null, tot: function (s) { return s.maxHealth; } },   // round 119: it pays for Life Tap
     { k: 'mp5', label: 'MP5', gear: function (g) { return g.mp5; }, tot: function (s) { return s.mp5; } },
   ];
   function renderTotals() {
@@ -426,7 +428,12 @@
   // shows where it is automatic again (after its last placed use). The striped end = the fight may already be over
   // (± length variation). Click a lane to place, drag to move, click a block to edit its time or remove it.
   var cdSel = null, cdDrag = null;                        // selected block { k, t }; drag { k, idx }
-  var CD_AUTO = { buff: 'Auto: at the first Bane of Doom explosion, then whenever ready', mana: 'Auto: when that much mana is missing', cd: 'Auto: on cooldown' };
+  var CD_AUTO = { buff: 'Auto: at the first Bane of Doom explosion, then whenever ready', mana: 'Auto: when that much mana is missing', cd: 'Auto: on cooldown',
+    amp: 'Auto: with the next Bane of Agony (builds with the talent)', swap: 'Auto: at execute (builds with a pet-swap action)' };
+  // A placed use is a second, or 'exec' / 'doom' (round 120): it then follows the execute phase / the first Bane of Doom
+  // explosion in every fight instead of a fixed second. cdPos = where such a block sits on the page's timeline.
+  function cdPos(x) { return typeof x === 'string' ? Math.round(WL.cdTime(x, cfg)) : x; }
+  function cdSnapName(x) { return x === 'exec' ? 'the execute phase' : 'the first Bane of Doom explosion'; }
   function cdStore() {
     var tl = cfg.options.activesTimeline || (cfg.options.activesTimeline = {});
     if (tl.potion || tl.rune || tl.sapper || tl.explosive) tl = cfg.options.activesTimeline = WL.activesTimelineOf(cfg);   // round 92 slot names
@@ -452,6 +459,10 @@
     // Row order (round 94, user): Spellblasting, mana potions, rune, then the Engineering items; anything new goes last.
     var keys = Object.keys(cfg.consumables).filter(function (k) { var c = cfg.consumables[k]; return c.spPotion || c.manaRestore || c.explosive; });
     keys.sort(function (a, b) { var ia = CD_ORDER.indexOf(a), ib = CD_ORDER.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
+    rows.push({ k: 'amplifyCurse', name: 'Amplify Curse', icon: 'talent_amplifyCurse', dur: 0, cd: 180, auto: 'amp', on: true, box: null,
+      tip: 'Amplify Curse (talent): the next Bane of Agony deals more damage, 3 min cooldown. A placed time holds it back until then; it is then used with the next Bane of Agony. Only builds with the talent use this row' });
+    rows.push({ k: 'petSwap', name: 'Pet swap', icon: 'talent_felDomination', dur: 0, cd: 300, auto: 'swap', on: true, box: null,
+      tip: 'Mid-fight pet swap (builds with a pet-swap action in their priority): sacrifice the pet, Fel Domination, summon the other one — once per fight. A placed time replaces "at execute"' });
     keys.forEach(function (k) {
       var c = cfg.consumables[k];
       rows.push({ k: k, name: c.name, icon: 'consumable_' + k, dur: c.spPotion ? c.spPotion.duration : 0, cd: c.explosive ? c.explosive.cd : c.cd,
@@ -475,7 +486,7 @@
     if (cdSel && !rows.some(function (r) { return r.k === cdSel.k && (tl[r.k] || []).indexOf(cdSel.t) >= 0; })) cdSel = null;
     var h = '<div class="cdgrid">', selRow = null;
     rows.forEach(function (r) {
-      var arr = (tl[r.k] || []).slice().sort(function (a, b) { return a - b; }), off = r.on ? '' : ' off';
+      var arr = (tl[r.k] || []).slice().sort(function (a, b) { return cdPos(a) - cdPos(b); }), off = r.on ? '' : ' off';
       if (r.racial) {
         var split = !!cfg.options.activesRacialSplit;
         h += '<div class="cdrow racial"><button type="button" id="cdLink" class="cdlink" aria-pressed="' + !split + '" title="' +
@@ -492,13 +503,15 @@
         icon(r.icon, r.name) + '<span>' + esc(r.name) + '</span></button></div>';
       h += '<div class="cdlane' + off + (r.racial ? ' racial' : '') + '" data-cdk="' + r.k + '">' + back;
       if (!arr.length) h += '<span class="cdauto">' + (r.on ? CD_AUTO[r.auto] : r.need || 'Off') + '</span>';
-      arr.forEach(function (t, i) {
-        var bad = i > 0 && t - arr[i - 1] < r.cd - 1e-9, ready = t + r.cd, sel = cdSel && cdSel.k === r.k && cdSel.t === t;
+      arr.forEach(function (raw, i) {
+        var t = cdPos(raw), snap = typeof raw === 'string';
+        var bad = i > 0 && t - cdPos(arr[i - 1]) < r.cd - 1e-9, ready = t + r.cd, sel = cdSel && cdSel.k === r.k && cdSel.t === raw;
         if (sel) selRow = r;
         h += '<span class="cdcool" style="left:' + pct(t) + ';width:' + pct(Math.min(r.cd, D - t)) + '"></span>';
         if (i === arr.length - 1 && ready < D - 1) h += '<span class="cdghost" style="left:' + pct(ready) + ';width:' + pct(D - ready) + '">auto</span>';
-        h += '<span class="cdblk' + (bad ? ' bad' : '') + (sel ? ' sel' : '') + '" data-cdt="' + t + '" style="left:' + pct(t) + ';width:' + pct(Math.max(r.dur, D * 0.022)) + '" title="' +
-          esc(r.name + ' at ' + t + ' s' + (r.on ? '' : ' — switched off: not used') + (bad ? ' — still on cooldown from the use before it (used as soon as it is ready)' : '')) + '">' + (r.dur ? t + ' s' : '') + '</span>';
+        h += '<span class="cdblk' + (bad ? ' bad' : '') + (sel ? ' sel' : '') + (snap ? ' snap' : '') + '" data-cdt="' + raw + '" style="left:' + pct(t) + ';width:' + pct(Math.max(r.dur, D * (snap ? 0.07 : 0.022))) + '" title="' +
+          esc(r.name + (snap ? ' at ' + cdSnapName(raw) + ' — follows it in every fight (about ' + t + ' s here)' : ' at ' + t + ' s') + (r.on ? '' : ' — switched off: not used') + (bad ? ' — still on cooldown from the use before it (used as soon as it is ready)' : '')) + '">' +
+          (snap ? (raw === 'exec' ? 'execute' : 'Doom') : r.dur ? t + ' s' : '') + '</span>';
       });
       h += '</div>';
     });
@@ -507,7 +520,9 @@
     h += '<span></span><div class="cdaxis">' + ticks + marks.map(function (m) { return '<i class="' + m.side + '" style="left:' + pct(m.t) + '">' + m.l + '</i>'; }).join('') +
       (E0 < D - 1e-9 ? '<i class="end">ends ' + fmt(E0) + '–' + fmt(D) + ' s</i>' : '') + '</div></div>';
     h += '<div class="cdfoot">' + (selRow
-      ? '<span class="cdedit"><label for="cdSelT">' + esc(selRow.name) + ' at <input id="cdSelT" type="number" min="0" max="' + Math.floor(D) + '" step="1" value="' + cdSel.t + '"> s</label> ' +
+      ? '<span class="cdedit"><label for="cdSelT">' + esc(selRow.name) + ' at <input id="cdSelT" type="number" min="0" max="' + Math.floor(D) + '" step="1" value="' + cdPos(cdSel.t) + '"> s</label> ' +
+        '<button type="button" class="resetbtn" data-cdsnap="exec" aria-pressed="' + (cdSel.t === 'exec') + '" title="Tie this use to the execute phase: it follows the moment the boss drops below ' + F.executePct + '% in every fight, whatever the fight length. Click again for a fixed second.">At execute</button>' +
+        (D > 62 ? '<button type="button" class="resetbtn" data-cdsnap="doom" aria-pressed="' + (cdSel.t === 'doom') + '" title="Tie this use to the first Bane of Doom explosion: buffs are popped right before the cast it falls into. Builds that never cast Doom use it at once. Click again for a fixed second.">At the Doom explosion</button>' : '') +
         '<button type="button" id="cdSelRm" class="resetbtn">Remove</button></span>'
       : '<span>Click a lane to place a use · drag to move · click a block to edit or remove it</span>') +
       '<span class="cdkey"><span><u class="k1"></u>placed</span><span><u class="k2"></u>cooldown</span><span><u class="k3"></u>automatic again</span>' +
@@ -523,25 +538,26 @@
   function cdCommit() {                                   // sort, drop duplicates, refresh, mark the results stale
     var tl = cdStore();
     Object.keys(tl).forEach(function (k) {
-      tl[k] = tl[k].filter(function (t, i, a) { return isFinite(t) && a.indexOf(t) === i; }).sort(function (a, b) { return a - b; });
+      tl[k] = tl[k].filter(function (t, i, a) { return (t === 'exec' || t === 'doom' || isFinite(t)) && a.indexOf(t) === i; }).sort(function (a, b) { return cdPos(a) - cdPos(b); });
       if (!tl[k].length) delete tl[k];
     });
     renderCdTl(); markDirty();
   }
   $('cdTl').addEventListener('pointerdown', function (e) {
-    if (e.button || e.target.closest('input, .cdrace, .cdlink')) return;
+    if (e.button || e.target.closest('input, .cdrace, .cdlink, [data-cdsnap], #cdSelRm')) return;
     var blk = e.target.closest('.cdblk'), lane = e.target.closest('.cdlane'), nm = e.target.closest('.cdname'), tl = cdStore(), k, t;
-    if (blk && lane) { k = lane.getAttribute('data-cdk'); t = +blk.getAttribute('data-cdt'); }
+    if (blk && lane) { k = lane.getAttribute('data-cdk'); t = blk.getAttribute('data-cdt'); if (t !== 'exec' && t !== 'doom') t = +t; }
     else if (lane) { k = lane.getAttribute('data-cdk'); t = cdTimeAt(k, e.clientX); (tl[k] = tl[k] || []).push(t); }
     else if (nm) { k = nm.getAttribute('data-cdadd'); t = 0; if ((tl[k] = tl[k] || []).indexOf(0) < 0) tl[k].push(0); }
     else return;
-    cdSel = { k: k, t: t }; cdDrag = { k: k, idx: tl[k].indexOf(t) };
+    cdSel = { k: k, t: t }; cdDrag = { k: k, idx: tl[k].indexOf(t), x0: e.clientX };
     e.preventDefault(); renderCdTl();
   });
   window.addEventListener('pointermove', function (e) {
     if (!cdDrag) return;
     var t = cdTimeAt(cdDrag.k, e.clientX), a = cdStore()[cdDrag.k];
     if (!a || a[cdDrag.idx] === t) return;
+    if (typeof a[cdDrag.idx] === 'string' && Math.abs(e.clientX - cdDrag.x0) < 6) return;   // a click on a block tied to an event does not untie it; a real drag does (round 120)
     a[cdDrag.idx] = t; cdSel = { k: cdDrag.k, t: t }; renderCdTl();
   });
   window.addEventListener('pointerup', function () { if (!cdDrag) return; cdDrag = null; cdCommit(); });
@@ -554,6 +570,14 @@
       if (wasSplit) { tl0.racial = (tl0['racial_' + cdRace] || []).slice(); CD_RACES.forEach(function (rk) { delete tl0['racial_' + rk]; }); }
       else { CD_RACES.forEach(function (rk) { tl0['racial_' + rk] = (tl0.racial || []).slice(); }); delete tl0.racial; }
       cfg.options.activesRacialSplit = !wasSplit; cdSel = null; cdCommit(); return;
+    }
+    var sn = e.target.closest('[data-cdsnap]');                                                     // tie the selected use to an event, or back to its second (round 120)
+    if (sn && cdSel) {
+      var as = cdStore()[cdSel.k] || [], si = as.indexOf(cdSel.t), tok = sn.getAttribute('data-cdsnap');
+      if (si < 0) return;
+      var nv = cdSel.t === tok ? cdPos(tok) : tok;
+      if (as.indexOf(nv) >= 0) as.splice(si, 1); else as[si] = nv;
+      cdSel = { k: cdSel.k, t: nv }; cdCommit(); return;
     }
     if (!e.target.closest('#cdSelRm') || !cdSel) return;
     var a = cdStore()[cdSel.k] || [], i = a.indexOf(cdSel.t);
@@ -575,7 +599,7 @@
     if (i < 0) return;
     v = Math.max(0, Math.min(Math.floor(cdLen()), Math.round(v)));
     a[i] = v; cdSel = { k: cdSel.k, t: v };
-    var tl = cdStore(); tl[cdSel.k] = a.filter(function (t, j, arr) { return arr.indexOf(t) === j; }).sort(function (x, y) { return x - y; });
+    var tl = cdStore(); tl[cdSel.k] = a.filter(function (t, j, arr) { return arr.indexOf(t) === j; }).sort(function (x, y) { return cdPos(x) - cdPos(y); });
   }
 
   // ---------- stat bar ----------
@@ -779,6 +803,8 @@
     if (k === 'pet:firebolt') return 'Firebolt (Imp)';
     if (k === 'pet:brand') return 'Demonic Brand (pet bonus)';
     if (k === 'touchOfTheGrave') return 'Touch of the Grave';
+    if (k === 'heal') return 'Healing received';                                                  // log entries of the health model (round 119)
+    if (k === 'health') return 'low health';
     if (k === 'demonicSacrifice') return 'Demonic Sacrifice';                                     // pet swap (round 35)
     if (k === 'felDomination') return 'Fel Domination';
     if (k.indexOf('summon:') === 0) return 'Summon ' + (PET_NAMES[k.slice(7)] || k.slice(7));
@@ -1044,6 +1070,8 @@
         kv('Execute (below ' + exP + '%)', fmt(r.dpsExec, 1) + ' <span style="color:var(' + (exGain >= 0 ? '--good' : '--bad') + ')">(' + (exGain >= 0 ? '+' : '') + exGain.toFixed(1) + '%)</span>') : '') +
       kv('Median · worst – best fight', fmt(r.dpsMedian, 1) + ' · ' + fmt(r.dpsMin, 0) + ' – ' + fmt(r.dpsMax, 0)) +
       kv('vs best overall', ((r.dps / top - 1) * 100).toFixed(2) + '%') + kv('Life Taps per fight', fmt(r.lifeTaps, 1)) +
+      (r.tps != null ? '<span title="Threat you generate per second: your damage (Searing Pain counts double, less with Demonic Brand), reduced by Suppression, Blessing of Salvation and Tranquil Air Totem. Your pet\'s damage is the pet\'s threat.">Threat per second</span><span class="n">' +
+        fmt(r.tps, 1) + ' <span class="meta">' + fmt(100 * r.tps / r.dps, 0) + '% of the DPS</span></span>' : '') +
       (r.clipped > 0.05 ? kv('Channels clipped per fight', fmt(r.clipped, 1)) : '') +
       (r.pushback && (r.pushback.n > 0.05 || r.pushback.resisted > 0.05) ? kv('Pushbacks per fight', fmt(r.pushback.n, 1) + ' · ' + fmt(r.pushback.time, 1) + ' s lost' + (r.pushback.resisted > 0.05 ? ' · ' + fmt(r.pushback.resisted, 1) + ' resisted' : '')) : '') +   // round 78
       (b.pet ? kv('Pet out of mana (fight #1)', fmt(r.firstFight.petOomTime, 0) + ' s') : '') +
@@ -1066,7 +1094,7 @@
 
     // ---- stats table: value + every source inline (round 45) ----
     var pctOf = function (m) { return (m - 1) * 100; };
-    var statRows = [['Intellect', st.int, 'int', 1], ['Spirit', st.spi, 'spi', 1], ['Maximum mana', st.maxMana, 'maxMana', 0],
+    var statRows = [['Intellect', st.int, 'int', 1], ['Spirit', st.spi, 'spi', 1], ['Maximum mana', st.maxMana, 'maxMana', 0], ['Stamina', st.sta, 'sta', 1], ['Maximum health', st.maxHealth, 'maxHealth', 0],
       ['Spell power', st.sp, 'sp', 0], ['+ Shadow spell power', st.schoolSp.shadow, 'shadowSp', 0], ['+ Fire spell power', st.schoolSp.fire, 'fireSp', 0],
       ['Hit chance %', st.hitPct, 'hitPct', 1], ['Crit % (before talents)', st.critPct, 'critPct', 2], ['Haste %', st.hastePct, 'hastePct', 1],
       ['Agility', st.agi, 'agi', 1], ['Melee crit % (Succubus melee inherits it)', st.meleeCritPct, 'meleeCritPct', 2],
@@ -1084,14 +1112,14 @@
     // ---- spells ----
     var keys = Object.keys(r.bySpell).sort(function (a, c) { return r.bySpell[c].dmg - r.bySpell[a].dmg; });
     h += '<div class="wide"><h2>Spells (average per fight)</h2><div class="scroll"><table><thead><tr>' +
-      '<th>Spell</th><th class="n">% dmg</th><th class="n">DPS</th>' +
+      '<th>Spell</th><th class="n">% dmg</th><th class="n">DPS</th><th class="n" title="Threat per second from this source. Pet damage is the pet\'s threat, not yours.">Threat/s</th>' +
       '<th class="n" title="Damage per execute time: damage ÷ seconds spent casting it (cast time, channel time, or the GCD for instants). DoTs count all their ticks.">DPET</th>' +
       '<th class="n">Casts</th><th class="n">Hits</th><th class="n">Ticks</th>' +
       '<th class="n">Crit %</th><th class="n">Miss %</th><th class="n">Dmg / cast</th><th class="n">Busy s</th></tr></thead><tbody>' +
       keys.map(function (k) {
         var x = r.bySpell[k], att = x.landed + x.misses, crits = x.crits + x.tickCrits, ev = x.hits + x.ticks;
         return '<tr><td><span class="sw" style="background:' + colorOf(k) + '"></span>' + icon(iconKeyOf(k), spellName(k), '', spellTipByKey(k)) + ' ' + esc(spellName(k)) + '</td>' +
-          '<td class="n">' + (total ? fmt(100 * x.dmg / total, 1) : '–') + '</td><td class="n">' + fmt(x.dmg / dur, 1) + '</td>' +
+          '<td class="n">' + (total ? fmt(100 * x.dmg / total, 1) : '–') + '</td><td class="n">' + fmt(x.dmg / dur, 1) + '</td><td class="n">' + (x.threat ? fmt(x.threat / dur, 1) : '–') + '</td>' +
           '<td class="n">' + (x.castTime > 1e-9 && x.dmg ? fmt(x.dmg / x.castTime, 0) : '–') + '</td>' +
           '<td class="n">' + (x.casts ? fmt(x.casts, 1) : '–') + '</td><td class="n">' + (x.hits ? fmt(x.hits, 1) : '–') + '</td>' +
           '<td class="n">' + (x.ticks ? fmt(x.ticks, 1) : '–') + '</td><td class="n">' + (ev ? fmt(100 * crits / ev, 1) : '–') + '</td>' +
@@ -1196,6 +1224,15 @@
       '<text x="' + (W - pad) + '" y="' + (H - 6) + '" text-anchor="end" class="hlab">' + fmt(hg.max, 0) + '</text></svg>' +
       '<p class="meta">Mean ' + fmt(r.dps, 1) + ' ± ' + fmt(r.dpsErr, 1) + ' (95% confidence) · spread (1 SD) ' + fmt(r.dpsSd, 1) + ' · median ' + fmt(r.dpsMedian, 1) + '</p></div>';
   }
+  // Health (round 119): what Life Tap and your own spells cost, what came back, how low it got, time spent waiting for it.
+  function healthRows(r) {
+    var h = r.health; if (!h) return '';
+    return kv('Health spent on Life Tap per fight', fmt(h.tapAvg, 0)) +
+      (h.selfAvg > 0.5 ? kv('Health lost to your own spells and items', fmt(h.selfAvg, 0)) : '') +
+      kv('Health healed back per fight', fmt(h.healedAvg, 0) + (h.leechAvg > 0.5 ? ' + ' + fmt(h.leechAvg, 0) + ' drained' : '') + (h.sacAvg > 0.5 ? ' + ' + fmt(h.sacAvg, 0) + ' Felhunter' : '')) +
+      kv('Lowest health in any fight', fmt(h.min, 0) + ' / ' + fmt(h.max, 0)) +
+      (h.blockedSecAvg > 0.05 ? '<span style="color:var(--bad)">Waiting for health to Life Tap</span><span class="n" style="color:var(--bad)">' + fmt(h.blockedSecAvg, 1) + ' s per fight</span>' : '');
+  }
   // W3: mana summary (all fights) + mana over time in fight #1 (you, and the pet if it casts spells).
   function manaBlock(r) {
     var m = r.mana || {}, log = r.log || [], D = r.firstFight.duration, maxM = r.stats.maxMana;
@@ -1214,11 +1251,12 @@
     var svg = '<svg class="hist" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Mana over time in fight 1">' + grid +
       '<path d="' + line('mana', maxM) + '" class="mline"/>' + (hasPet ? '<path d="' + line('petMana', petMax) + '" class="mline pet"/>' : '') +
       '<text x="' + padL + '" y="' + (H - 4) + '" class="hlab">0 s</text><text x="' + (W - padR) + '" y="' + (H - 4) + '" text-anchor="end" class="hlab">' + fmt(D, 0) + ' s</text></svg>';
-    return '<div><h2>Mana</h2><div class="kv">' +
+    return '<div><h2>Mana &amp; health</h2><div class="kv">' +
       kv('Life Taps per fight', fmt(r.lifeTaps, 1)) + (r.movingTaps > 0.05 ? kv('… of them while moving', fmt(r.movingTaps, 1)) : '') + kv('Time spent Life Tapping', fmt(m.tapTimePct, 1) + '% of the fight') +
       kv('Lowest mana in any fight', fmt(r.minMana, 0) + ' / ' + fmt(maxM, 0)) +
       (m.spiritRegenAvg != null ? '<span title="5-second rule: Spirit only regenerates mana while you have spent none for 5 seconds. Life Tap does not restart the 5 seconds.">Mana from Spirit per fight (outside the 5-second rule)</span><span class="n">' +
         fmt(m.spiritRegenAvg, 0) + ' <span class="meta">in ' + fmt(m.fsrOutSecAvg, 1) + ' s</span></span>' : '') +
+      (m.sacAvg > 0.5 ? kv('Mana from the Voidwalker sacrifice per fight', fmt(m.sacAvg, 0)) : '') + healthRows(r) +
       (r.firstFight.manaFromJow || r.firstFight.petManaFromJow ? kv('Judgement of Wisdom (fight #1)', '+' + fmt(r.firstFight.manaFromJow || 0) + ' you' +
         (r.build.pet ? ' · +' + fmt(r.firstFight.petManaFromJow || 0) + ' pet' : '')) : '') +
       (r.build.pet ? kv('Fights where the pet ran out of mana', fmt(m.petOomFightsPct, 0) + '%' + (m.petOomFightsPct > 0 ? ' (avg ' + fmt(m.petOomSecAvg, 0) + ' s)' : '')) : '') +
@@ -1494,9 +1532,12 @@
       (pA.pet > 0.05 || pB.pet > 0.05 ? num('DPS from the pet (melee, spells, Demonic Brand)', pA.pet, pB.pet, 1) : '') +
       (pA.other > 0.05 || pB.other > 0.05 ? num('DPS from procs and items', pA.other, pB.other, 1) : '') +
       num('Crit % of your hits and ticks', pA.critPct, pB.critPct, 1) + num('Miss % of your casts', pA.missPct, pB.missPct, 1) +
+      num('Threat per second', A.tps, B.tps, 1, true) +
       num('Life Taps per fight', A.lifeTaps, B.lifeTaps, 1) + num('Time spent Life Tapping (% of the fight)', mA.tapTimePct, mB.tapTimePct, 1) +
       num('Lowest mana in any fight', A.minMana, B.minMana, 0) +
       num('Mana from Spirit per fight (5-second rule)', mA.spiritRegenAvg, mB.spiritRegenAvg, 0) +
+      (A.health && B.health ? num('Health spent on Life Tap per fight', A.health.tapAvg, B.health.tapAvg, 0) + num('Lowest health in any fight', A.health.min, B.health.min, 0) +
+        (A.health.blockedSecAvg > 0.05 || B.health.blockedSecAvg > 0.05 ? num('Waiting for health to Life Tap (s per fight)', A.health.blockedSecAvg, B.health.blockedSecAvg, 1) : '') : '') +
       (A.clipped > 0.05 || B.clipped > 0.05 ? num('Channels clipped per fight', A.clipped, B.clipped, 1) : '') +
       (mA.idleSecAvg > 0.05 || mB.idleSecAvg > 0.05 ? num('Idle time per fight (s)', mA.idleSecAvg, mB.idleSecAvg, 1) : '') +
       (A.build.pet || B.build.pet ? row('Fights where the pet ran out of mana', A.build.pet ? fmt(mA.petOomFightsPct, 0) + '%' : '–', B.build.pet ? fmt(mB.petOomFightsPct, 0) + '%' : '–') : '') +
@@ -1766,7 +1807,8 @@
     $('ioBuild').innerHTML = '<option value="__editor">The build in the editor</option>' + WL.BUILDS.map(function (b) {       // input / output card
       return '<option value="' + esc(b.key) + '">' + split(b) + ' ' + esc(b.short) + (b.custom ? ' (yours)' : '') + '</option>'; }).join('');
     $('edPet').innerHTML = '<option value="">none</option>' + WL.PET_KEYS.map(function (k) { return '<option value="' + k + '">' + PET_NAMES[k] + '</option>'; }).join('');
-    $('edSac').innerHTML = '<option value="">none</option><option value="imp">Imp (+15% Shadow)</option><option value="succubus">Succubus (+15% Fire)</option>';
+    $('edSac').innerHTML = '<option value="">none</option><option value="imp">Imp (+15% Shadow)</option><option value="succubus">Succubus (+15% Fire)</option>' +
+      '<option value="voidwalker">Voidwalker (2% mana every 4 s)</option><option value="felhunter">Felhunter (3% health every 4 s)</option>';
     $('edOil').innerHTML = Object.keys(WL.OILS).map(function (k) { return '<option value="' + k + '">' + esc(WL.OILS[k].name) + '</option>'; }).join('');
     // Round 57 (user: the list got crowded): grouped by kind, short names; the full rule is the option's hover text and
     // stays in the priority list. Actions missing from the groups land in "Other", so a new action is never hidden.
