@@ -19,7 +19,7 @@
   var ACTION_ICON = { curseOfElements: 'curseOfElements', shadowTrance: 'shadowTrance', bane: 'baneOfDoom', baneOfAgony: 'baneOfAgony', corruption: 'corruption',
     siphonLife: 'siphonLife', immolate: 'immolate', conflagrate: 'conflagrate', shadowburn: 'shadowburn', soulFire: 'soulFire',
     wrack: 'wrack', shadowBolt: 'shadowBolt', incinerate: 'incinerate', drainLife: 'drainLife', searingPain: 'searingPain', hellfire: 'hellfire', rainOfFire: 'rainOfFire',
-    lifeTapPet: 'lifeTap', soulFireShards: 'soulFire', searingPainBrand: 'searingPain', shadowburnSnF: 'shadowburn', conflagrateSnF: 'conflagrate', conflagrateExpire: 'conflagrate', multiDot: 'corruption', shadowBoltSpread: 'talent_improvedShadowBolt', isbUpkeep: 'talent_improvedShadowBolt', shadowBoltR2LowMana: 'shadowBolt', deathCoil: 'deathCoil', deathCoilFinisher: 'deathCoil', havocAuto: 'baneOfHavoc',
+    lifeTapPet: 'lifeTap', lifeTapBelow: 'lifeTap', soulFireShards: 'soulFire', searingPainBrand: 'searingPain', shadowburnSnF: 'shadowburn', conflagrateSnF: 'conflagrate', conflagrateExpire: 'conflagrate', multiDot: 'corruption', shadowBoltSpread: 'talent_improvedShadowBolt', isbUpkeep: 'talent_improvedShadowBolt', shadowBoltR2LowMana: 'shadowBolt', deathCoil: 'deathCoil', deathCoilFinisher: 'deathCoil', havocAuto: 'baneOfHavoc',
     swapToImp: 'pet_imp', swapToSuccubus: 'pet_succubus', searingPainExecute: 'searingPain', searingPainDecimation: 'searingPain' };
   // Stat weights (round 44): the table shows SP first (DPS per 1 SP), the others as spell-power equivalents
   // (weight ÷ SP weight: "1% hit is worth 12 SP"); Spell Pierce only in the details.
@@ -48,7 +48,7 @@
     firebolt: 'Deals (57.1% of Spell Power) Fire damage to a target.',
     lashOfPain: 'An instant attack that lashes the target, causing (42.9% of Spell Power) Shadow damage.',
   };
-  var ACTION_SPELLS = { bane: ['baneOfDoom', 'baneOfAgony'], shadowTrance: ['shadowBolt'], lifeTapPet: ['lifeTap'],
+  var ACTION_SPELLS = { bane: ['baneOfDoom', 'baneOfAgony'], shadowTrance: ['shadowBolt'], lifeTapPet: ['lifeTap'], lifeTapBelow: ['lifeTap'],
     multiDot: ['curseOfElements', 'corruption', 'baneOfAgony', 'immolate', 'siphonLife'], shadowburnSnF: ['shadowburn'], conflagrateSnF: ['conflagrate'], conflagrateExpire: ['conflagrate'], shadowBoltSpread: ['shadowBolt'], isbUpkeep: ['shadowBolt'], deathCoil: ['deathCoil'], deathCoilFinisher: ['deathCoil'],
     searingPainBrand: ['searingPain'], soulFireShards: ['soulFire'], searingPainExecute: ['searingPain'], searingPainDecimation: ['searingPain'] };
   function para(s) { return esc(s).replace(/\n/g, '<br>'); }
@@ -75,8 +75,8 @@
     var rot = WL.effectiveRotation(b, c);
     return (c.fight.targets || 1) >= 2 && b.talents.baneOfHavoc ? ['havocAuto'].concat(rot) : rot;
   }
-  function actLabel(a) { return a === 'havocAuto' ? HAVOC_LABEL : WL.ACTIONS[a].label; }
-  function actionTip(a) {
+  function actLabel(a, b) { return a === 'havocAuto' ? HAVOC_LABEL : WL.actionLabel(b, a); }   // b: the build, for actions with numbers of their own (round 104)
+  function actionTip(a, b) {
     if (a === 'havocAuto') return spellBlock('baneOfHavoc') + '<div class="tt-rule">' + esc(HAVOC_LABEL) + '</div>';
     if (a === 'swapToImp' || a === 'swapToSuccubus') {             // mid-fight pet swap (round 35)
       var to = a === 'swapToImp' ? 'Imp' : 'Succubus';
@@ -85,7 +85,7 @@
         'Summon ' + to + ' (10 s − 6 s Fel Domination − 4 s Master Summoner 2/2 = instant, one GCD; mana −50% −40%). From then on the new pet fights and the new sacrifice buff applies.</div>' +
         '<div class="tt-rule">Priority rule: ' + esc(WL.ACTIONS[a].label) + '</div>';
     }
-    return (ACTION_SPELLS[a] || [a]).map(spellBlock).join('<hr>') + '<div class="tt-rule">Priority rule: ' + esc(WL.ACTIONS[a].label) + '</div>';
+    return (ACTION_SPELLS[a] || [a]).map(spellBlock).join('<hr>') + '<div class="tt-rule">Priority rule: ' + esc(actLabel(a, b)) + '</div>';
   }
   function racialTip(rc) {
     return '<div class="tt-name">' + esc(rc.name) + '</div><div class="tt-meta">Racial · ' + (rc.cd ? (rc.cd / 60) + ' min cooldown' : 'passive') + '</div>' +
@@ -799,7 +799,7 @@
       (ACTION_DMG[a] || ACTION_SPELLS[a] || [a]).forEach(function (k) {
         if (!byBase[k]) return;
         var s = slotOf(k);
-        (rules[s] = rules[s] || []).indexOf(actLabel(a)) < 0 && rules[s].push(actLabel(a));
+        (rules[s] = rules[s] || []).indexOf(actLabel(a, b)) < 0 && rules[s].push(actLabel(a, b));
         if (!shown[s]) { shown[s] = 1; own.push(s); }
       });
     });
@@ -1009,7 +1009,7 @@
     h += '<div class="dcard"><h2>Rotation priority</h2><ol class="prio">' +
       (rcd ? '<li>' + icon(RACIAL_ICON[rcd.name], rcd.name, '', racialTip(rcd)) + ' ' + esc(rcd.name) + ': ' + esc(racialRule(rcd).replace(/^Used /, '')) + '</li>' : '') +
       shownRotation(b, runCfg).map(function (a) {
-      return '<li>' + icon(ACTION_ICON[a], actLabel(a), '', actionTip(a)) + ' ' + esc(actLabel(a)) +
+      return '<li>' + icon(ACTION_ICON[a], actLabel(a, b), '', actionTip(a, b)) + ' ' + esc(actLabel(a, b)) +
         (a === 'havocAuto' ? ' <span class="meta">(added by Targets ≥ 2)</span>' :
          b.rotation.indexOf(a) < 0 ? ' <span class="meta">(added by the Multi-DoT option)</span>' : '') + '</li>';
     }).join('') + '<li>' + icon('lifeTap', 'Life Tap') + ' Life Tap whenever mana is below the next spell\'s cost</li></ol>' +
@@ -1347,8 +1347,8 @@
       : '<p class="meta">Same talents.</p>') + '</div>';
     // priority lists side by side
     var ra = shownRotation(A.build, runCfg), rb = shownRotation(B.build, runCfg);
-    var lst = function (rot, other) { return '<ol class="cmprot">' + rot.map(function (a) { return '<li' + (other.indexOf(a) < 0 ? ' class="only"' : '') + '>' + icon(ACTION_ICON[a], actLabel(a)) + ' ' + esc(actLabel(a)) + '</li>'; }).join('') + '</ol>'; };
-    h += '<div class="wide"><h2>Priority (highlighted = only in that build)</h2><div class="cmp2"><div><b>A</b>' + lst(ra, rb) + '</div><div><b>B</b>' + lst(rb, ra) + '</div></div></div>';
+    var lst = function (rot, other, bd) { return '<ol class="cmprot">' + rot.map(function (a) { return '<li' + (other.indexOf(a) < 0 ? ' class="only"' : '') + '>' + icon(ACTION_ICON[a], actLabel(a, bd)) + ' ' + esc(actLabel(a, bd)) + '</li>'; }).join('') + '</ol>'; };
+    h += '<div class="wide"><h2>Priority (highlighted = only in that build)</h2><div class="cmp2"><div><b>A</b>' + lst(ra, rb, A.build) + '</div><div><b>B</b>' + lst(rb, ra, B.build) + '</div></div></div>';
     // damage per source
     var src = {}; Object.keys(A.bySpell).concat(Object.keys(B.bySpell)).forEach(function (k) { if ((A.bySpell[k] || {}).dmg || (B.bySpell[k] || {}).dmg) src[k] = 1; });
     var dA = A.avgDuration || A.firstFight.duration, dB = B.avgDuration || B.firstFight.duration;
@@ -1485,7 +1485,7 @@
     ['Curses & DoTs', ['curseOfElements', 'bane', 'baneOfAgony', 'corruption', 'siphonLife', 'immolate']],
     ['Multi-target', ['multiDot', 'shadowBoltSpread']],
     ['Cooldowns & procs', ['shadowTrance', 'isbUpkeep', 'deathCoil', 'deathCoilFinisher', 'conflagrate', 'conflagrateExpire', 'conflagrateSnF', 'shadowburn', 'shadowburnSnF', 'soulFire', 'searingPainBrand', 'searingPainExecute', 'searingPainDecimation']],
-    ['Pet & mana', ['lifeTapPet', 'swapToImp', 'swapToSuccubus']],
+    ['Pet & mana', ['lifeTapPet', 'lifeTapBelow', 'swapToImp', 'swapToSuccubus']],
     ['Fillers (the last entry)', ['shadowBolt', 'incinerate', 'searingPain', 'drainLife', 'wrack', 'hellfire', 'rainOfFire']],
   ];
   var ACTION_SHORT = {
@@ -1495,7 +1495,7 @@
     shadowTrance: 'Shadow Bolt (max rank) on Shadow Trance (Nightfall)', isbUpkeep: 'Shadow Bolt (max rank) to keep ISB up',
     deathCoil: 'Death Coil on cooldown', deathCoilFinisher: 'Death Coil as the finisher', conflagrate: 'Conflagrate', shadowburn: 'Shadowburn on cooldown',
     shadowburnSnF: 'Shadowburn for Shadow and Flame', conflagrateSnF: 'Conflagrate for Shadow and Flame', conflagrateExpire: 'Conflagrate when Immolate is about to expire', soulFire: 'Soul Fire during Decimation', searingPainBrand: 'Searing Pain for Demonic Brand',
-    searingPainExecute: 'Searing Pain in the execute phase', searingPainDecimation: 'Searing Pain to trigger Decimation', lifeTapPet: 'Life Tap to feed the pet',
+    searingPainExecute: 'Searing Pain in the execute phase', searingPainDecimation: 'Searing Pain to trigger Decimation', lifeTapPet: 'Life Tap to feed the pet', lifeTapBelow: 'Life Tap below a mana % (you set it)',
     swapToImp: 'Pet swap at execute → Imp', swapToSuccubus: 'Pet swap at execute → Succubus',
     shadowBolt: 'Shadow Bolt (Rank 9)', incinerate: 'Incinerate', searingPain: 'Searing Pain',
     drainLife: 'Drain Life', wrack: 'Wrack', hellfire: 'Hellfire (hits every target)', rainOfFire: 'Rain of Fire (hits every target)',
@@ -1516,12 +1516,14 @@
     return { key: key || 'custom_' + Date.now().toString(36), short: b.short || 'Custom build', name: 'Custom: ' + (b.short || 'Custom build'),
       notes: 'Your own build (build editor). Build code: ' + WL.encodeBuild(b), talents: JSON.parse(JSON.stringify(b.talents)),
       pet: b.pet || null, sacrifice: b.sacrifice || null, oil: b.oil, rotation: b.rotation.slice(), custom: true,
-      timeline: b.timeline && b.timeline.length ? b.timeline.map(function (e) { return { t: e.t, k: e.k }; }) : undefined };   // round 70
+      timeline: b.timeline && b.timeline.length ? b.timeline.map(function (e) { return { t: e.t, k: e.k }; }) : undefined,   // round 70
+      params: WL.cleanParams(b.params, b.rotation) };                                                                        // round 104
   }
   function edStart(src) {
     ed.b = src ? { short: src.custom ? src.short : src.short + ' (copy)', talents: JSON.parse(JSON.stringify(src.talents)), pet: src.pet || null,
       sacrifice: src.sacrifice || null, oil: src.oil, rotation: src.rotation.slice(),
-      timeline: src.timeline ? src.timeline.map(function (e) { return { t: e.t, k: e.k }; }) : undefined }
+      timeline: src.timeline ? src.timeline.map(function (e) { return { t: e.t, k: e.k }; }) : undefined,
+      params: src.params ? JSON.parse(JSON.stringify(src.params)) : undefined }
       : { short: 'My build', talents: {}, pet: null, sacrifice: null, oil: 'spellstone', rotation: ['bane', 'curseOfElements', 'corruption', 'immolate', 'shadowBolt'] };
     ed.editing = src && src.custom ? src.key : null;
     tl.sel = -1; $('edTlOn').checked = !!ed.b.timeline;
@@ -1572,8 +1574,17 @@
     $('edResetAll').disabled = !total;
     // Round 44: drag an entry by its row (⠿ grip) to reorder; the ↑ ↓ buttons stay for keyboard / touch.
     $('edRot').innerHTML = b.rotation.map(function (a, i) {
-      var A = WL.ACTIONS[a];
-      return '<li draggable="true" data-drag="' + i + '"><span class="grip" aria-hidden="true" title="Drag to reorder">⠿</span>' + icon(ACTION_ICON[a], A ? A.label : a) + '<span class="lbl">' + esc(A ? A.label : a) + '</span>' +
+      var A = WL.ACTIONS[a], lbl = esc(A ? A.label : a);
+      if (A && A.params) {                                               // numbers you fill in yourself (round 104)
+        var pv = WL.actionParams(b, a), pi = 0;
+        lbl = esc(A.label).replace(/_/g, function () {
+          var p = A.params[pi++]; if (!p) return '_';
+          var bad = !(typeof pv[p.key] === 'number' && pv[p.key] >= p.min && pv[p.key] <= p.max);
+          return '<input type="number" class="pnum' + (bad ? ' bad' : '') + '" data-edparam="' + a + ':' + p.key + '" value="' + esc(String(pv[p.key])) + '" min="' + p.min + '" max="' + p.max +
+            '" step="1" inputmode="numeric" aria-label="' + esc(p.name) + '" title="' + esc(p.name + ' (' + p.min + '–' + p.max + ')') + '">';
+        });
+      }
+      return '<li draggable="true" data-drag="' + i + '"><span class="grip" aria-hidden="true" title="Drag to reorder">⠿</span>' + icon(ACTION_ICON[a], A ? WL.actionLabel(b, a) : a) + '<span class="lbl">' + lbl + '</span>' +
         '<button type="button" data-edup="' + i + '" aria-label="Move up"' + (i ? '' : ' disabled') + '>↑</button>' +
         '<button type="button" data-eddown="' + i + '" aria-label="Move down"' + (i < b.rotation.length - 1 ? '' : ' disabled') + '>↓</button>' +
         '<button type="button" data-edrm="' + i + '" aria-label="Remove">✕</button></li>';
@@ -1616,6 +1627,9 @@
   }
   // Drag and drop in the priority list (round 44).
   var dragFrom = null;
+  $('edRot').addEventListener('pointerdown', function (e) {
+    var li = e.target.closest && e.target.closest('li[data-drag]'); if (li) li.draggable = !e.target.closest('input');
+  });
   $('edRot').addEventListener('dragstart', function (e) {
     var li = e.target.closest && e.target.closest('li[data-drag]'); if (!li) return;
     dragFrom = +li.getAttribute('data-drag'); li.classList.add('dragging');
@@ -1767,6 +1781,12 @@
   }
   document.addEventListener('change', function (e) {
     if (!ed.b) return;
+    var ep = e.target.getAttribute && e.target.getAttribute('data-edparam');   // a number of a priority action (round 104)
+    if (ep) {
+      var ak = ep.split(':'), nv = parseFloat(e.target.value);
+      ed.b.params = ed.b.params || {}; (ed.b.params[ak[0]] = ed.b.params[ak[0]] || {})[ak[1]] = isFinite(nv) ? nv : NaN;
+      renderEditor(); return;
+    }
     if (e.target.id === 'edTlOn') {
       if (e.target.checked) { ed.b.timeline = ed.tlStash || ed.b.timeline || []; } else { ed.tlStash = ed.b.timeline; delete ed.b.timeline; }
       tl.sel = -1; renderEditor();

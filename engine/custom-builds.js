@@ -40,6 +40,13 @@ WL.validateBuild = function (b) {
   if (rot.indexOf('shadowburnSnF') >= 0 && !t.shadowburn) errs.push('"' + WL.ACTIONS.shadowburnSnF.label + '" needs the Shadowburn talent');
   if (rot.indexOf('conflagrateSnF') >= 0 && !t.conflagrate) errs.push('"' + WL.ACTIONS.conflagrateSnF.label + '" needs the Conflagrate talent');
   rot.forEach(function (a) { if (gated[a] && !t[gated[a]]) errs.push('"' + WL.ACTIONS[a].label + '" needs the ' + WL.TALENT_BY_KEY[gated[a]].name + ' talent'); });
+  rot.forEach(function (a) {                                             // numbers of an action inside their limits (round 104)
+    var A = WL.ACTIONS[a]; if (!A || !A.params) return;
+    var v = WL.actionParams(b, a);
+    A.params.forEach(function (p) {
+      if (!(typeof v[p.key] === 'number' && v[p.key] >= p.min && v[p.key] <= p.max)) errs.push('"' + A.label.replace(/_/g, '…') + '": ' + p.name + ' must be a number from ' + p.min + ' to ' + p.max);
+    });
+  });
   if ((rot.indexOf('searingPainBrand') >= 0 || rot.indexOf('lifeTapPet') >= 0) && !b.pet) errs.push('Demonic Brand upkeep / Life Tap for the pet need a pet out');
   // Mid-fight pet swap (round 35): sacrifice the pet at execute, Fel Domination, summon the other one.
   [['swapToImp', 'imp'], ['swapToSuccubus', 'succubus']].forEach(function (s) {
@@ -95,9 +102,37 @@ WL.checkTimeline = function (b, cfg) {
   return out;
 };
 
+// Priority actions with numbers of their own (round 104): WL.ACTIONS[key].params = [{ key, def, min, max, name }], the
+// build keeps the values in build.params[actionKey][paramKey]; anything not set is the default.
+WL.actionParams = function (b, key) {
+  var A = WL.ACTIONS[key], out = {}, own = (b && b.params && b.params[key]) || {};
+  ((A && A.params) || []).forEach(function (p) { out[p.key] = own[p.key] != null ? own[p.key] : p.def; });
+  return out;
+};
+// The action's label with the build's numbers in place of the "_".
+WL.actionLabel = function (b, key) {
+  var A = WL.ACTIONS[key]; if (!A) return key;
+  if (!A.params) return A.label;
+  var v = WL.actionParams(b, key), i = 0;
+  return A.label.replace(/_/g, function () { var p = A.params[i++]; return p ? String(v[p.key]) : '_'; });
+};
+// Keeps only numbers of known actions (build codes, saved builds). undefined when nothing is left.
+WL.cleanParams = function (params, rotation) {
+  var out = {}, any = false;
+  Object.keys(params || {}).forEach(function (a) {
+    var A = WL.ACTIONS[a]; if (!A || !A.params || (rotation && rotation.indexOf(a) < 0)) return;
+    A.params.forEach(function (p) {
+      var v = params[a] && params[a][p.key];
+      if (typeof v === 'number' && isFinite(v)) { (out[a] = out[a] || {})[p.key] = v; any = true; }
+    });
+  });
+  return any ? out : undefined;
+};
+
 WL.encodeBuild = function (b) {
   var o = { v: 1, short: b.short, talents: b.talents, pet: b.pet || null, sacrifice: b.sacrifice || null, oil: b.oil, rotation: b.rotation };
   if (b.timeline && b.timeline.length) o.tl = b.timeline.map(function (e) { return [Math.round(e.t * 100) / 100, e.k]; });   // round 70
+  var p = WL.cleanParams(b.params, b.rotation); if (p) o.p = p;                                                        // round 104
   return WL.BUILD_CODE_PREFIX + btoa(unescape(encodeURIComponent(JSON.stringify(o))));
 };
 
@@ -119,6 +154,7 @@ WL.decodeBuild = function (code) {
   if (!o || o.v !== 1 || typeof o.talents !== 'object') throw new Error('Unknown build-code version');
   return { short: String(o.short || 'Custom build').slice(0, 40), talents: o.talents, pet: o.pet || null, sacrifice: o.sacrifice || null,
            oil: o.oil || 'none', rotation: Array.isArray(o.rotation) ? WL.migrateRotation(o.rotation) : [],
+           params: WL.cleanParams(o.p),
            timeline: Array.isArray(o.tl) ? o.tl.map(function (x) { return { t: +x[0], k: String(x[1]) }; }).filter(function (e) { return e.k !== 'shadowBoltR2'; }) : undefined };
 };
 

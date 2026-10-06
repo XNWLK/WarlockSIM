@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v96
+- New priority action with two boxes you fill in: **Life Tap when mana is below _% and more than _ s remain** (default
+  40% / 25 s). The automatic Life Tap when you cannot afford the next spell stays. Build codes carry your numbers.
+
 ## v95
 - Links at the top of the page: this sim's GitHub, the 3D practice sim **Forever Warlocking** and its GitHub.
 

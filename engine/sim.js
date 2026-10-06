@@ -884,7 +884,7 @@ window.WL = window.WL || {};
     // What the rotation would cast instead of the DoT: the first action below it that picks a damaging direct spell or
     // channel right now (Soul Fire under Decimation, Conflagrate, a Shadow Trance bolt, the filler, …). Actions that
     // apply DoTs / curses / Life Tap / pet swaps are passed over (they are not the damage the DoT's time is taken from).
-    var NOT_ALT = { bane: 1, baneOfAgony: 1, corruption: 1, siphonLife: 1, immolate: 1, multiDot: 1, curseOfElements: 1, lifeTapPet: 1,
+    var NOT_ALT = { bane: 1, baneOfAgony: 1, corruption: 1, siphonLife: 1, immolate: 1, multiDot: 1, curseOfElements: 1, lifeTapPet: 1, lifeTapBelow: 1,
                     swapToImp: 1, swapToSuccubus: 1, shadowBoltSpread: 1, isbUpkeep: 1, deathCoilFinisher: 1 };
     function altBelow(idx) {
       for (var i = (idx == null ? -1 : idx) + 1; i < ROT.length; i++) {

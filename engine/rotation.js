@@ -220,6 +220,19 @@ WL.ACTIONS = {
       return S.maxMana - S.mana >= S.tapGain() ? 'lifeTap' : null;
     },
   },
+  // Life Tap early (round 104, user): when mana is below X% of your maximum and more than Y s of the fight remain. X and Y
+  // are the build's own numbers (build.params.lifeTapBelow = { pct, sec }, typed into the build editor; `params` below
+  // lists them with their defaults and limits — the "_" in the label are where they go). The automatic Life Tap (mana
+  // below the next spell's cost) stays as it is.
+  lifeTapBelow: {
+    label: 'Life Tap when mana is below _% and more than _ s remain',
+    params: [{ key: 'pct', def: 40, min: 1, max: 100, name: 'mana %' }, { key: 'sec', def: 25, min: 0, max: 3600, name: 'seconds left' }],
+    pick: function (S) {
+      var p = S.build.params && S.build.params.lifeTapBelow;
+      var pct = p && p.pct != null ? p.pct : 40, sec = p && p.sec != null ? p.sec : 25;
+      return S.mana < S.maxMana * pct / 100 && S.remaining > sec ? 'lifeTap' : null;
+    },
+  },
   // Demonic Brand upkeep: Searing Pain when the brand is down (or out of charges) and a pet is out.
   searingPainBrand: {
     label: 'Searing Pain to (re)apply Demonic Brand when it is down',
