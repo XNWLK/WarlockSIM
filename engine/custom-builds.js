@@ -94,8 +94,9 @@ WL.checkTimeline = function (b, cfg) {
     if (!WL.SPELLS[e.k]) return;
     var sp = WL.timelineSpan(b, cfg, e.k), name = WL.SPELLS[e.k].name;
     if (i > 0 && e.t < lastEnd - 1e-6) out.push({ i: i, msg: name + ' at ' + e.t.toFixed(1) + ' s overlaps the previous spell (busy until ' + lastEnd.toFixed(1) + ' s)' });
-    if (sp.cd && lastCast[e.k] != null && e.t < lastCast[e.k] + sp.cd - 1e-6)
-      out.push({ i: i, msg: name + ' at ' + e.t.toFixed(1) + ' s is still on cooldown (ready at ' + (lastCast[e.k] + sp.cd).toFixed(1) + ' s)' });
+    // the cooldown runs from the END of the previous cast (round 107)
+    if (sp.cd && lastCast[e.k] != null && e.t < lastCast[e.k] + sp.cast + sp.cd - 1e-6)
+      out.push({ i: i, msg: name + ' at ' + e.t.toFixed(1) + ' s is still on cooldown (ready at ' + (lastCast[e.k] + sp.cast + sp.cd).toFixed(1) + ' s)' });
     if (e.t >= dur) out.push({ i: i, msg: name + ' at ' + e.t.toFixed(1) + ' s is after the fight (' + dur + ' s) — only reached in longer fights' });
     lastEnd = Math.max(lastEnd, e.t + sp.span); lastCast[e.k] = e.t;
   });

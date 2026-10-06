@@ -401,6 +401,7 @@ window.WL = window.WL || {};
         lost = end - cs.end; cs.n++;
         if (lost <= EPS) return;
         cs.end = end; cs.ev.dead = true;
+        if (table[cs.key] && table[cs.key].cd && S.cds[cs.key]) S.cds[cs.key] += lost;   // its cooldown starts at the later cast end (round 107)
         cs.ev = Object.assign({}, cs.ev, { t: cs.ev.t + lost, dead: false });
         H.push(cs.ev);
         row(cs.rk).castTime += lost;
@@ -618,7 +619,9 @@ window.WL = window.WL || {};
       if (s.shards && !(key === 'soulFire' && S.buff('decimation'))) S.shards -= s.shards;
       if (key === 'soulFire' && S.buff('decimation')) delete S.buffs.decimation;
       if (instantTrance) delete S.buffs.shadowTrance;
-      if (e.cd) S.cds[key] = S.t + e.cd;
+      // A cooldown starts when the cast is COMPLETE, not when it begins (round 107, user) — matters for Soul Fire, the only
+      // spell with both a cast time and a cooldown. Instants: castT = 0. Pushback moves it along with the cast (takeHit).
+      if (e.cd) S.cds[key] = S.t + castT + e.cd;
       row(rk).casts++;
       S.minManaCheck();
       L('cast', rk, { castTime: +castT.toFixed(3), gcd: +gcdT.toFixed(3), channel: s.kind === 'channel' ? s.duration : undefined,

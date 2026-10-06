@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v99
+- Fixed: **Soul Fire's cooldown now starts when the cast finishes**, not when it begins. In the execute phase that means
+  fewer Soul Fires; the five builds that use it lose 0.35% to 0.73% (Demo Pact Fire Imp 725.6 → 722.4).
+
 ## v98
 - New priority action with a box you fill in: **Wrack when the shortest DoT has more than _ s left** (default 6 s). It
   checks the DoTs your priority list keeps up (Corruption, Immolate, Siphon Life, Bane of Agony — not Bane of Doom); when
