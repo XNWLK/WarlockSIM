@@ -5,7 +5,7 @@
     Object.keys(c.buffs).forEach(function (k) { c.buffs[k].on = false; });
     Object.keys(c.consumables).forEach(function (k) { c.consumables[k].on = false; });
     c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.critPct = 0; c.gear.hitPct = 0; c.gear.weaponIsSword = false;
-    c.options.useCurseOfElements = false;
+    c.options.useCurseOfElements = false; c.combat.levelResist.on = false;
     return c;
   }
   function tb(rot, talents) { return { key: 't', name: 't', talents: talents || {}, pet: null, sacrifice: null, oil: 'none', rotation: rot }; }

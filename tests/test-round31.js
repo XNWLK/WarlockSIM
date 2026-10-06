@@ -15,7 +15,7 @@
 
   T.run('pet scaling measured in Forever (round 31)', function () {
     T.group('Demonic Knowledge reaches the pet in full; the rest is 10% of your SP');
-    var c = shipped(); c.options.useCurseOfElements = false;
+    var c = shipped(); c.options.useCurseOfElements = false; c.combat.levelResist.on = false;
     // Demonic Knowledge 3/3 (+60 SP to you and the pet) and only talents without a damage effect (no Soul Link / Unholy
     // Power / Improved Imp / Master Demonologist), so Firebolt = 44 + 0.571 × pet SP exactly (base 44 = Effect Value 45 − 1
     // since round 42). (The engine does not

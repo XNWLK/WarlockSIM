@@ -1,5 +1,6 @@
 // Resistance and Spell Pierce. [A43][A44]
-// effective resistance R = max(0, targetResist − CoE reduction) − Spell Pierce   (CoE cannot push below 0; Pierce can)
+// effective resistance R = max(0, targetResist + level resistance − CoE reduction) − Spell Pierce
+//   (CoE cannot push below 0; Pierce can. Round 118, user: the curse also removes the level resistance.)
 //   R > 0 → average mitigation m = pierceAvgPerPoint × R, rolled per damage event as 0/25/50/75/100%
 //           partial resists with mean m (round 39; was a flat multiplier 1 − m)                       [A43]
 //   R < 0 → "vulnerable" damage: each hit gains +0%, +10%, +20%, … (10% steps, user) with a
@@ -8,7 +9,7 @@ window.WL = window.WL || {};
 
 WL.effectiveResist = function (cfg, pierce, school, coeActive) {
   var cb = cfg.combat;
-  var base = (cb.targetResist && cb.targetResist[school]) || 0;
+  var base = ((cb.targetResist && cb.targetResist[school]) || 0) + WL.levelResist(cfg);
   return Math.max(0, base - (coeActive ? cb.coeResistReduction : 0)) - (pierce || 0);
 };
 
@@ -46,8 +47,9 @@ WL.partialResistDist = function (m) {
   return weights((lo + hi) / 2).map(function (p, k) { return { pct: -k * 25, p: p }; }).filter(function (o) { return o.p > 1e-12; });
 };
 
-// Level-based resistance (Classic: +8 per level the target is above you; a level-63 boss = +24). Optional, off by
-// default (round 39, user). It is added after Curse of the Elements and Spell Pierce (so Pierce can offset it).
+// Level-based resistance: +8 per level the target is above you; a level-63 boss = +24. On by default since round 118
+// (user: it exists in Forever and Curse of the Elements can reduce it to 0), so it is part of the resistance the curse
+// reduces. Rounds 39–117: optional, off, and added after the curse (Classic: it cannot be reduced).
 WL.levelResist = function (cfg) {
   var lr = cfg.combat.levelResist;
   return lr && lr.on ? lr.perLevel * lr.levelDiff : 0;
@@ -56,7 +58,7 @@ WL.levelResist = function (cfg) {
 // Returns { R, flat, dist, mean } for one school. R > 0 → partial resists (dist of negative steps, flat 1);
 // R < 0 → vulnerable damage from Spell Pierce (positive steps). `mean` = average multiplier − 1.
 WL.resistProfile = function (cfg, pierce, school, coeActive) {
-  var cb = cfg.combat, R = WL.effectiveResist(cfg, pierce, school, coeActive) + WL.levelResist(cfg);
+  var cb = cfg.combat, R = WL.effectiveResist(cfg, pierce, school, coeActive);
   if (R > 0) { var mr = Math.min(0.75, cb.pierceAvgPerPoint * R); return { R: R, flat: 1, dist: WL.partialResistDist(mr), mean: -mr }; }
   if (R === 0) return { R: 0, flat: 1, dist: [{ pct: 0, p: 1 }], mean: 0 };
   var m = cb.pierceAvgPerPoint * -R;

@@ -7,7 +7,7 @@
   }
   function det(c) {
     c.combat.baseHitPct = 100; c.combat.maxHitPct = 100;
-    c.gear.critPct = 0; c.gear.hitPct = 0; c.gear.weaponIsSword = false; c.options.useCurseOfElements = false;
+    c.gear.critPct = 0; c.gear.hitPct = 0; c.gear.weaponIsSword = false; c.options.useCurseOfElements = false; c.combat.levelResist.on = false;
     return c;
   }
   function tb(rot, oil) { return { key: 't', name: 't', talents: {}, pet: null, sacrifice: null, oil: oil || 'none', rotation: rot }; }

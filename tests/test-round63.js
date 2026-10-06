@@ -4,7 +4,7 @@
   function det(f) {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.weaponIsSword = false;
-    c.fight.durationVarPct = 0; c.options.includePetDamage = false; c.options.useCurseOfElements = false;
+    c.fight.durationVarPct = 0; c.options.includePetDamage = false; c.options.useCurseOfElements = false; c.combat.levelResist.on = false;
     if (f) f(c);
     return c;
   }

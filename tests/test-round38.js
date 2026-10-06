@@ -4,7 +4,7 @@
   function det() {                                    // 100% hit, no crit, no curse, no pierce → exact damage
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.weaponIsSword = false;
-    c.gear.pierce = 0; c.options.useCurseOfElements = false; c.fight.durationVarPct = 0;
+    c.gear.pierce = 0; c.options.useCurseOfElements = false; c.combat.levelResist.on = false; c.fight.durationVarPct = 0;
     c.options.activesPolicy = 'pull';                       // cooldowns on the pull (round 87 default: first Doom explosion)
     return c;
   }

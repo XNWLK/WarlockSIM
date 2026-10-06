@@ -3,7 +3,7 @@
   function cfg(gearHit, f) {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     c.gear.hitPct = gearHit; c.gear.critPct = 50; c.gear.weaponIsSword = false;     // many crits = many ISB rolls
-    c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.options.includePetDamage = false;
+    c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.combat.levelResist.on = false; c.options.includePetDamage = false;
     if (f) f(c);
     return c;
   }

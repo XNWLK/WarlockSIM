@@ -4,7 +4,7 @@
   function det() {                                          // 100% hit, no crit, no buffs/debuffs → exact damage
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.weaponIsSword = false;
-    c.gear.pierce = 0; c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.options.includePetDamage = false;
+    c.gear.pierce = 0; c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.combat.levelResist.on = false; c.options.includePetDamage = false;
     Object.keys(c.buffs).forEach(function (k) { c.buffs[k].on = false; });
     Object.keys(c.debuffs).forEach(function (k) { c.debuffs[k].on = false; });
     return c;

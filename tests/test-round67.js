@@ -4,7 +4,7 @@
   function det() {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.fight.durationVarPct = 0;
-    c.options.useCurseOfElements = false; c.options.includePetDamage = false;
+    c.options.useCurseOfElements = false; c.combat.levelResist.on = false; c.options.includePetDamage = false;
     return c;
   }
   function tb(rot, t) { return { key: 't67', short: 't', name: 't', notes: '', talents: t || {}, pet: null, sacrifice: null, oil: 'none', rotation: rot }; }

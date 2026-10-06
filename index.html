@@ -781,7 +781,7 @@
           <label class="f" for="bossArmor">Boss armor (before debuffs)<input id="bossArmor" type="number" min="0" step="100"></label>
           <label class="f" for="resShadow" title="Resistance left after Curse of the Elements (−75) and Spell Pierce is rolled as partial resists (0/25/50/75/100%) on every hit and tick; average = 0.75 × resistance / 300.">Boss Shadow resistance<input id="resShadow" type="number" min="0" step="5"></label>
           <label class="f" for="resFire" title="As Shadow resistance, for Fire spells.">Boss Fire resistance<input id="resFire" type="number" min="0" step="5"></label>
-          <label class="c" for="o_levelRes" title="Classic rule: a boss 3 levels above you has +24 resistance to all schools (8 per level), about 6% partial resists on average. Unknown whether Forever keeps it."><input id="o_levelRes" type="checkbox"> Level resistance (+24, Classic)</label>
+          <label class="c" for="o_levelRes" title="A boss 3 levels above you has +24 resistance to all schools (8 per level): about 6% of your damage is resisted on average — until Curse of the Elements is on the boss, which takes it to 0."><input id="o_levelRes" type="checkbox"> Level resistance (+24, removed by Curse of the Elements)</label>
         </fieldset>
         <fieldset><legend>Run</legend>
           <label class="f" for="durVar" title="Each fight lasts the duration ± up to this % (uniform), so results don't hinge on one exact fight length.">Length variation ± %<input id="durVar" type="number" min="0" max="50" step="5"></label>

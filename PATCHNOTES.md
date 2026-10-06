@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v110
+- Wrack's +10% now also applies to Siphon Life and Bane of Doom.
+- Grace of Air Totem and the Scroll of Agility no longer stack (only the bigger one counts).
+- Bosses have level resistance (+24), and Curse of the Elements removes it: only hits before the curse is up can be partly resisted.
+- Soul shards never run out.
+
 ## v109
 - 5-second rule: Spirit does not regenerate mana while you channel (Drain Life, Wrack, Hellfire, Rain of Fire). It does
   right after the channel if you then Life Tap, because the 5 seconds count from the start of the channel.

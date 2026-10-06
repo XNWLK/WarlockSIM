@@ -2,7 +2,7 @@
 (function () {
   function cfg(hit) {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
-    c.gear.hitPct = hit; c.fight.durationVarPct = 0; c.options.useCurseOfElements = false;
+    c.gear.hitPct = hit; c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.combat.levelResist.on = false;
     return c;
   }
   function tb(rot, t, pet) { return { key: 't48', short: 't', name: 't', notes: '', talents: t || {}, pet: pet || null, sacrifice: null, oil: 'none', rotation: rot }; }

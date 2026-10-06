@@ -4,7 +4,7 @@
   function det(f) {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.weaponIsSword = false;
-    c.gear.pierce = 0; c.fight.durationVarPct = 0; c.options.useCurseOfElements = false;
+    c.gear.pierce = 0; c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.combat.levelResist.on = false;
     if (f) f(c);
     return c;
   }
@@ -24,7 +24,7 @@
     var lr = WL.simulateOnce(tb(['shadowBolt']), 'human', det(function (c) { c.combat.levelResist.on = true; }), { seed: 2, duration: 600, log: true });
     var avgL = hits(lr, 'shadowBolt').reduce(function (s, e) { return s + e.dmg; }, 0) / hits(lr, 'shadowBolt').length / full;
     T.near(avgL, 1 - 0.75 * 24 / 300, 0.012, 'level resistance (+24) → ' + (100 * avgL).toFixed(2) + '% (expected 94%)');
-    T.eq(WL.DEFAULT_CONFIG.combat.levelResist.on, false, 'level resistance is off by default (user)');
+    T.eq(WL.DEFAULT_CONFIG.combat.levelResist.on, true, 'level resistance is on by default since round 118 (user: it exists in Forever; off in rounds 39–117)');
     var lp = WL.simulateOnce(tb(['shadowBolt']), 'human', det(function (c) { c.combat.levelResist.on = true; c.gear.pierce = 24; }), { seed: 2, duration: 100, log: true });
     T.ok(hits(lp, 'shadowBolt').every(function (e) { return Math.abs(e.dmg - full) <= 1; }), '24 Spell Pierce cancels the level resistance');
     var cc = WL.simulateOnce(tb(['curseOfElements', 'shadowBolt']), 'human', det(function (c) { c.combat.targetResist.shadow = 75; c.options.useCurseOfElements = true; }), { seed: 2, duration: 100, log: true });

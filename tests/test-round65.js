@@ -4,7 +4,7 @@
   function det() {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.weaponIsSword = false;
-    c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.options.includePetDamage = false;
+    c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.combat.levelResist.on = false; c.options.includePetDamage = false;
     Object.keys(c.buffs).forEach(function (k) { c.buffs[k].on = false; });
     Object.keys(c.debuffs).forEach(function (k) { c.debuffs[k].on = false; });
     return c;
@@ -32,9 +32,12 @@
     var avg = 46 + 0.133 * sp, ramp = [0.5, 0.5, 0.5, 0.5, 1, 1, 1, 1, 1.5, 1.5, 1.5, 1.5];
     T.ok(boaIn.length > 2 && boaIn.every(function (e) { return ramp.some(function (f) { return e.dmg === Math.round(avg * f * 1.10); }); }), 'Bane of Agony ticks during Wrack = ramp × avg × 1.10');
     var sl = ticks('siphonLife');
-    T.ok(sl.length > 5 && sl.every(function (e) { return e.dmg === Math.round(41 + 0.05 * sp); }), 'Siphon Life never gets the bonus (' + Math.round(41 + 0.05 * sp) + ', not in the affected-spells list)');
+    // Round 118 (user): Wrack's +10% also applies to Siphon Life and Bane of Doom (the tooltip's "your other Shadow damage over time effects").
+    var slIn = sl.filter(function (e) { return during(e.t); }), slOut = sl.filter(function (e) { return !during(e.t); });
+    T.ok(slIn.length > 0 && slIn.every(function (e) { return e.dmg === Math.round((41 + 0.05 * sp) * 1.10); }), 'Siphon Life ticks during Wrack = ' + Math.round((41 + 0.05 * sp) * 1.10) + ' (× 1.10; ' + slIn.length + ' ticks)');
+    T.ok(slOut.length > 0 && slOut.every(function (e) { return e.dmg === Math.round(41 + 0.05 * sp); }), 'Siphon Life ticks outside Wrack = ' + Math.round(41 + 0.05 * sp) + ' (' + slOut.length + ' ticks)');
     T.ok(ticks('wrack').every(function (e) { return e.dmg === Math.round(36 + 0.143 * sp); }), 'Wrack ticks = 36 + 0.143 × SP = ' + Math.round(36 + 0.143 * sp));
-    T.eq(WL.SPELLS.wrack.debuffSpells.slice().sort().join(','), 'baneOfAgony,corruption', 'affected spells: Corruption, Bane of Agony');
+    T.eq(WL.SPELLS.wrack.debuffSpells.slice().sort().join(','), 'baneOfAgony,baneOfDoom,corruption,siphonLife', 'affected spells: Corruption, Bane of Agony, Siphon Life, Bane of Doom (round 118)');
 
     T.group('reference builds (user, round 65); shown by default (round 66)');
     var want = { sm_ruin_classic: '30/0/21', wrack_succubus: '40/0/11' };   // DS Ruin (22/11/18) taken off the sheet in round 110   // SM Ruin 33/0/18 until round 83

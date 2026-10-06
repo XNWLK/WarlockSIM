@@ -10,7 +10,6 @@ WL.DEFAULT_CONFIG = {
     weightIterations: 1000, // fights per stat-weight run
     seed: 12345,            // RNG seed (same seed = reproducible results)
     executePct: 35,         // Decimation threshold [A23]; target HP falls linearly [A24]
-    startingShards: 30,     // [A25]
     // Encounter options (W11, A60): all off by default = one stationary target, no reaction delay.
     latencyMs: 0,           // reaction delay after each of your casts / GCDs
     travelMs: 0,            // travel time of projectiles (Shadow Bolt, Soul Fire, Incinerate, Death Coil, Firebolt); 0 = right in front of the boss (user, round 39) [A65]
@@ -43,7 +42,10 @@ WL.DEFAULT_CONFIG = {
     spiritRegenBase: 8, spiritRegenPerSpi: 0.25, fsrSeconds: 5,
     // Resistance & Spell Pierce [A43][A44]
     targetResist: { shadow: 0, fire: 0 },   // boss resistance before reductions (rolled as partial resists since round 39)
-    levelResist: { on: false, perLevel: 8, levelDiff: 3 },   // Classic level-based resistance (+24 vs a level-63 boss); off by default (user, round 39)
+    // Level-based resistance: +8 per level the boss is above you = +24 vs a level-63 boss. Round 118 (user): it exists in
+    // Forever and Curse of the Elements can take it to 0 — so it is on, and counts as part of the resistance the curse
+    // reduces (rounds 39–117: off by default, and added after the curse as in Classic). [A43]
+    levelResist: { on: true, perLevel: 8, levelDiff: 3 },
     coeResistReduction: 75,                  // Curse of the Elements R4 (cannot go below 0)
     pierceAvgPerPoint: 0.75 / (5 * 60),      // mean vulnerable damage per point of negative resistance (Classic resist formula mirrored)
     vulnerableStepPct: 10,                   // vulnerable damage comes in 10% steps (user)
@@ -93,11 +95,12 @@ WL.DEFAULT_CONFIG = {
     manaSpring:       { on: false, id: 10497, name: 'Mana Spring Totem',             cls: 'Shaman',  desc: '10 mana every 2 s (25 MP5)', mp5: 25 },
     restorativeTotems:{ on: false, id: 16187, name: 'Restorative Totems (on Mana Spring)', cls: 'Shaman', desc: 'Mana Spring +25%', mp5: 6.25, requires: 'manaSpring' },
     // Round 75 (user): Agility for your melee crit (the Succubus' melee inherits it). Classic values, not checked in Forever [A75].
-    graceOfAir:       { on: false, id: 25359, name: 'Grace of Air Totem',            cls: 'Shaman',  desc: '+77 Agility (melee crit for the Succubus)', agi: 77 },
+    // Round 118 (user): Grace of Air and the Scroll of Agility do not stack — same `group`, only the bigger one counts.
+    graceOfAir:       { on: false, id: 25359, name: 'Grace of Air Totem',            cls: 'Shaman',  desc: '+77 Agility (melee crit for the Succubus; does not stack with the Scroll of Agility)', agi: 77, group: 'agility' },
     manaTide:         { on: false, id: 17359, name: 'Mana Tide Totem',               cls: 'Shaman',  desc: '290 mana every 3 s for 12 s, once, when you drop below 50% mana', tide: { amount: 290, every: 3, ticks: 4 } },
     innervate:        { on: false, id: 29166, name: 'Innervate',                     cls: 'Druid',   desc: '5× mana regen while casting for 20 s, once, when you drop below 50% mana', innervate: { mult: 5, duration: 20 } },
     moonkinAura:      { on: true, id: 24858, name: 'Moonkin Form aura',             cls: 'Druid',   desc: '+3% crit (party)', critPct: 3 },
-    scrollOfAgility:  { on: true, id: 12174, name: 'Scroll of Agility IV',                  cls: 'Scroll',  desc: '+17 Agility (melee crit for the Succubus)', agi: 17 },
+    scrollOfAgility:  { on: true, id: 12174, name: 'Scroll of Agility IV',                  cls: 'Scroll',  desc: '+17 Agility (melee crit for the Succubus; does not stack with Grace of Air)', agi: 17, group: 'agility' },
     powerInfusion:    { on: false, id: 10060, name: 'Power Infusion',                cls: 'Priest',  desc: '+20% spell damage for 15 s (3 min cooldown); cast on you when you pop your cooldowns', spellDmgPct: 20, duration: 15, cd: 180 },
   },
   // Consumables (data/consumables.js, loaded before this file). Only the per-build weapon oil is on by default. [A57]

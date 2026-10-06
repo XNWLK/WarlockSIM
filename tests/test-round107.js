@@ -4,8 +4,8 @@
   function det(f) {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.weaponIsSword = false;
-    c.gear.pierce = 0; c.gear.hastePct = 0; c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.options.includePetDamage = false;
-    c.options.activesPolicy = 'pull'; c.fight.startingShards = 10;
+    c.gear.pierce = 0; c.gear.hastePct = 0; c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.combat.levelResist.on = false; c.options.includePetDamage = false;
+    c.options.activesPolicy = 'pull';
     Object.keys(c.buffs).forEach(function (k) { c.buffs[k].on = false; });
     Object.keys(c.debuffs).forEach(function (k) { c.debuffs[k].on = false; });
     Object.keys(c.consumables).forEach(function (k) { c.consumables[k].on = false; });

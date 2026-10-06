@@ -29,8 +29,8 @@
     var s0 = WL.computeStats(nob, 'human', c);
     var cg = shipped(); cg.buffs.graceOfAir.on = true;
     var sg = WL.computeStats(nob, 'human', cg);
-    T.near(sg.agi - s0.agi, 77 * 1.1, 1e-9, 'Grace of Air Totem: +84.7 Agility with Kings');
-    T.near(sg.meleeCritPct - s0.meleeCritPct, 77 * 1.1 / 20, 1e-9, '… = +4.24% melee crit');
+    T.near(sg.agi - s0.agi, (77 - 17) * 1.1, 1e-9, 'Grace of Air Totem on top of the Scroll of Agility: 77 instead of 17, +66 Agility with Kings (they do not stack, round 118)');
+    T.near(sg.meleeCritPct - s0.meleeCritPct, (77 - 17) * 1.1 / 20, 1e-9, '… = +3.30% melee crit');
     T.eq(sg.critPct, s0.critPct, 'and no spell crit');
     // Agility from a consumable (Elixir of Cunning until round 90, when the user removed it): a stand-in keeps the rule tested
     var ce = shipped(); ce.consumables.testAgi = { on: true, group: 'testAgi', name: 'Agility test consumable', agi: 25 };

@@ -2,7 +2,7 @@
 (function () {
   function cfg(f) {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
-    c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.options.includePetDamage = false;
+    c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.combat.levelResist.on = false; c.options.includePetDamage = false;
     if (f) f(c);
     return c;
   }

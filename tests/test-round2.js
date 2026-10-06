@@ -4,7 +4,7 @@
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     c.combat.baseHitPct = 100; c.combat.maxHitPct = 100;
     c.gear.critPct = 0; c.gear.hitPct = 0; c.gear.weaponIsSword = false;
-    c.options.useCurseOfElements = false;
+    c.options.useCurseOfElements = false; c.combat.levelResist.on = false;
     return c;
   }
   function tb(rot, talents, extra) {
@@ -15,7 +15,7 @@
 
   T.run('resist', function () {
     T.group('resistance & Spell Pierce [A43][A44]');
-    var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
+    var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)); c.combat.levelResist.on = false;   // the level resistance (round 118) has its own tests
     T.eq(WL.effectiveResist(c, 0, 'shadow', true), 0, 'boss 0 resist + CoE → 0 (CoE cannot go below 0)');
     T.eq(WL.effectiveResist(c, 15, 'shadow', true), -15, '15 pierce → −15');
     c.combat.targetResist.fire = 100;

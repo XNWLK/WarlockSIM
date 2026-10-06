@@ -67,7 +67,7 @@ WL.SPELLS = {
                   tickBase: 84, tickCoef: 0.10, tickEvery: 3, duration: 15, cast: 0, cost: 290, range: 30 },
   wrack:        { id: 1316697, name: 'Wrack',          school: 'shadow', tree: 'affliction',  kind: 'channel', drain: true,
                   tickBase: 36, tickCoef: 0.143, tickEvery: 1, duration: 6, cast: 0, cost: 200, range: 30, talent: 'wrack',
-                  debuffPct: 10, debuffSpells: ['corruption', 'baneOfAgony'] },   // [A18]
+                  debuffPct: 10, debuffSpells: ['corruption', 'baneOfAgony', 'siphonLife', 'baneOfDoom'] },   // [A18]
   deathCoil:    { id: 17926,   name: 'Death Coil',     school: 'shadow', tree: 'affliction',  kind: 'direct',
                   base: 454, coef: 0.214, cast: 0, cost: 600, range: 30, cd: 120, projectile: true },
   curseOfElements: { id: 1311680, name: 'Curse of the Elements', school: 'shadow', tree: 'affliction', kind: 'utility',

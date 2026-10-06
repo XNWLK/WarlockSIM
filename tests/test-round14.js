@@ -57,7 +57,7 @@
   T.run('settings code (W8)', function () {
     T.group('encode → decode → apply restores every setting the UI can change');
     var a = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
-    a.gear.sp = 612; a.gear.critPct = 12.5; a.fight.duration = 240; a.fight.seed = 99; a.options.useCurseOfElements = false;
+    a.gear.sp = 612; a.gear.critPct = 12.5; a.fight.duration = 240; a.fight.seed = 99; a.options.useCurseOfElements = false; a.combat.levelResist.on = false;
     a.buffs.arcaneIntellect.on = true; a.debuffs.sunderArmor.on = false; a.consumables.elixirOwl.on = true; a.consumables.buildOil.on = false;
     a.consumables.denseDynamite.on = true; a.professions.engineering = true; a.petSpPct = 55; a.pets.succubus.melee.apPerSp = 1.2; a.combat.bossArmor = 4000;
     var code = WL.encodeSettings(a);
@@ -81,7 +81,7 @@
 
   T.run('Engineering explosives (W14)', function () {
     T.group('requires the Engineering profession; shared / own cooldowns; fixed damage');
-    var c = det(base()); c.options.useCurseOfElements = false;
+    var c = det(base()); c.options.useCurseOfElements = false; c.combat.levelResist.on = false;
     c.consumables.denseDynamite.on = true; c.consumables.goblinSapper.on = true;
     var off = WL.simulateOnce(tb(['shadowBolt']), 'human', c, { seed: 5, duration: 130, log: true });
     T.ok(!off.bySpell['item:denseDynamite'] && !off.bySpell['item:goblinSapper'], 'without Engineering nothing is thrown');

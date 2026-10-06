@@ -6,7 +6,8 @@ window.WL = window.WL || {};
 
 WL.SETTINGS_CODE_PREFIX = 'WFS1:';
 // Settings that no longer exist: old codes may still carry them; they are dropped without a notice.
-WL.RETIRED_SETTINGS = ['options.eurekaPolicy'];   // round 88: Eureka! follows the cooldown setting
+WL.RETIRED_SETTINGS = ['options.eurekaPolicy',    // round 88: Eureka! follows the cooldown setting
+  'fight.startingShards'];                        // round 118: soul shards are unlimited
 
 WL.settingsSnapshot = function (c) {
   var on = function (o) { return Object.keys(o || {}).filter(function (k) { return o[k].on; }); };

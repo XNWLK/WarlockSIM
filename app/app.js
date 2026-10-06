@@ -164,6 +164,10 @@
       var dg = (cfg.debuffs[t.id.slice(2)] || {}).group;
       if (dg) Object.keys(cfg.debuffs).forEach(function (k) { if (cfg.debuffs[k].group === dg && 'd_' + k !== t.id) $('d_' + k).checked = false; });
     }
+    if (t.id && t.id.indexOf('b_') === 0 && t.checked) {               // raid buffs of one group do not stack either (round 118)
+      var bg = (cfg.buffs[t.id.slice(2)] || {}).group;
+      if (bg) Object.keys(cfg.buffs).forEach(function (k) { if (cfg.buffs[k].group === bg && 'b_' + k !== t.id) $('b_' + k).checked = false; });
+    }
     if (t.id === 'cdSelT') cdSetSelTime(parseFloat(t.value));          // seconds box of the selected timeline block (round 92)
     readSettings();
     if (t.id === 'showPct') { if (results.length && !running) { render(); showStale(); } return; }   // display only (round 66)
@@ -348,7 +352,8 @@
   }
   function applySidePreset(c, which) {
     if (which !== 'max') { SIDE_GROUPS.forEach(function (g) { Object.keys(c[g]).forEach(function (k) { c[g][k].on = !!WL.DEFAULT_CONFIG[g][k].on; }); }); return; }
-    Object.keys(c.buffs).forEach(function (k) { c.buffs[k].on = true; });
+    var seenB = {};                                         // one buff per group: the first listed (Grace of Air before the scroll)
+    Object.keys(c.buffs).forEach(function (k) { var b = c.buffs[k]; b.on = !(b.group && seenB[b.group]); if (b.on && b.group) seenB[b.group] = 1; });
     var seen = {};
     Object.keys(c.debuffs).forEach(function (k) { var d = c.debuffs[k]; d.on = !d.coe && !(d.group && seen[d.group]); if (d.on && d.group) seen[d.group] = 1; });
     Object.keys(c.consumables).forEach(function (k) { c.consumables[k].on = MAX_CONS.indexOf(k) >= 0; });
@@ -377,7 +382,7 @@
     if (kind === 'gear') applyGearPreset(cfg, which); else applySidePreset(cfg, which);
     initSettings(); $('t_race').value = race; renderTotals(); markDirty();
     $('quickMsg').textContent = (kind === 'gear' ? (which === 'hitcap' ? 'Hit-capped gear: ' : 'Default gear: ') + gearText(cfg.gear)
-      : which === 'max' ? 'Max buffs & consumables: ' + Object.keys(cfg.buffs).length + ' raid buffs, ' + WL.activeConsumables(cfg).length + ' consumables'
+      : which === 'max' ? 'Max buffs & consumables: ' + WL.activeBuffs(cfg).length + ' raid buffs, ' + WL.activeConsumables(cfg).length + ' consumables'
       : 'Default buffs & consumables') + ' — press Sim!';
   }
   function stepsDone() { $('steps').hidden = true; try { localStorage.setItem('wfs.simmed', '1'); } catch (e) { /* page only */ } }

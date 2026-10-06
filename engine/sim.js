@@ -69,7 +69,7 @@ window.WL = window.WL || {};
     // ---------- state ----------
     var S = {
       t: 0, remaining: dur, cfg: cfg, build: build,
-      mana: stats.maxMana, shards: cfg.fight.startingShards,
+      mana: stats.maxMana, shards: Infinity,                // soul shards never run out (round 118, user; 30 per fight before) [A25]
       busyUntil: 0, gcdReady: 0, lastRegen: 0,
       lastSpend: -Infinity, spendAt: null, innervateUntil: 0,   // 5-second rule (round 114): last mana spent, cast in progress, Innervate window
       cds: {}, dots: {}, buffs: {}, channel: null, eurekaCharges: 0, eurekaPending: 0,

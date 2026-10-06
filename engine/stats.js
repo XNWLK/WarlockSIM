@@ -71,9 +71,12 @@ WL.computeStats = function (build, raceKey, cfg) {
   }
 
   // --- Primary stats ---
+  // Buffs that share a `group` do not stack: of the active ones only the biggest value of a stat counts (round 118, user:
+  // Grace of Air Totem + Scroll of Agility = 77 Agility, not 94).
   var buffStat = function (s) {
-    var sum = 0;
-    WL.activeBuffs(cfg).forEach(function (b) { if (b[s]) sum += add(s, b.name, b[s]); });
+    var sum = 0, best = {}, act = WL.activeBuffs(cfg);
+    act.forEach(function (b) { if (b[s] && b.group && (!best[b.group] || b[s] > best[b.group][s])) best[b.group] = b; });
+    act.forEach(function (b) { if (b[s] && (!b.group || best[b.group] === b)) sum += add(s, b.name, b[s]); });
     return sum;
   };
   var cons = WL.activeConsumables(cfg).filter(function (c) { return c.group !== 'weapon' && c.group !== 'stone'; });

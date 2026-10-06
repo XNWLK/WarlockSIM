@@ -4,7 +4,7 @@
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     c.combat.baseHitPct = 100; c.combat.maxHitPct = 100;
     c.gear.critPct = 0; c.gear.hitPct = 0; c.gear.weaponIsSword = false;
-    c.options.useCurseOfElements = false;
+    c.options.useCurseOfElements = false; c.combat.levelResist.on = false;
     return c;
   }
   function tb(rot, talents, extra) {
