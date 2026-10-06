@@ -20,7 +20,9 @@
     var gains = on.log.filter(function (e) { return e.type === 'mana' && e.spell === 'Judgement of Wisdom'; });
     T.ok(gains.length > 5 && gains.every(function (e) { return e.gain <= 59; }), 'on: ' + gains.length + ' procs of up to 59 mana (' + Math.round(on.manaFromJow) + ' mana)');
     T.ok(on.lifeTaps < off.lifeTaps, 'fewer Life Taps (' + off.lifeTaps + ' → ' + on.lifeTaps + ')');
-    T.ok(on.dps > off.dps, 'more DPS (' + off.dps.toFixed(1) + ' → ' + on.dps.toFixed(1) + ')');
+    // DPS: averaged over 200 fights — a single fight can go either way (the Life Taps move, round 105)
+    var aOff = WL.simulate(top, 'human', cfgJ(false), { iterations: 200, log: false }), aOn = WL.simulate(top, 'human', cfgJ(true), { iterations: 200, log: false });
+    T.ok(aOn.dps > aOff.dps && aOn.lifeTaps < aOff.lifeTaps, 'more DPS on average over 200 fights (' + aOff.dps.toFixed(1) + ' → ' + aOn.dps.toFixed(1) + ', Life Taps ' + aOff.lifeTaps.toFixed(1) + ' → ' + aOn.lifeTaps.toFixed(1) + ')');
     // procs only right after a landed spell at the boss (hit / apply / debuff / channel cast), never after a tick or Life Tap
     var bad = gains.filter(function (e) {
       var i = on.log.indexOf(e), p = on.log[i - 1];

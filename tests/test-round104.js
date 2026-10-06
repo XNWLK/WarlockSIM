@@ -17,6 +17,8 @@
   // Every Life Tap of a fight: when, and the mana right before it.
   function taps(r) { return r.log.filter(function (e) { return e.type === 'cast' && e.spell === 'lifeTap'; }).map(function (e) { return { t: e.t, before: e.mana - e.gain }; }); }
   function shipped(k) { return JSON.parse(JSON.stringify(WL.BUILDS.filter(function (x) { return x.key === k; })[0])); }
+  // A built-in build as it was before round 105: without the action and its numbers.
+  function bare(k) { var b = shipped(k); b.rotation = b.rotation.filter(function (a) { return a !== 'lifeTapBelow'; }); delete b.params; return b; }
 
   T.run('round 104: Life Tap below a mana % with time left', function () {
     T.group('the action and its numbers');
@@ -51,8 +53,8 @@
     T.eq(low.total, plain.total, 'placed after the filler it is never reached');
 
     T.group('checks and build codes');
-    var ok = shipped('demo_pact_succ_sb'); ok.rotation.splice(ok.rotation.length - 1, 0, 'lifeTapBelow');
-    T.eq(WL.validateBuild(ok).join(' | '), '', 'legal in a built-in build with the defaults');
+    var ok = bare('demo_pact_succ_sb'); ok.rotation.splice(ok.rotation.length - 1, 0, 'lifeTapBelow');
+    T.eq(WL.validateBuild(ok).join(' | '), '', 'legal in a build with the defaults');
     [{ pct: 0, sec: 25 }, { pct: 150, sec: 25 }, { pct: 40, sec: -1 }, { pct: NaN, sec: 25 }].forEach(function (p) {
       var bad = JSON.parse(JSON.stringify(ok)); bad.params = { lifeTapBelow: p };
       T.ok(WL.validateBuild(bad).some(function (e) { return /must be a number from/.test(e); }), 'refused: ' + p.pct + '% / ' + p.sec + ' s');
@@ -64,9 +66,20 @@
     T.ok(WL.decodeBuild(WL.encodeBuild(ok)).params === undefined, 'defaults are not written into the code');
     var gone = JSON.parse(JSON.stringify(mine)); gone.rotation = gone.rotation.filter(function (a) { return a !== 'lifeTapBelow'; });
     T.ok(WL.decodeBuild(WL.encodeBuild(gone)).params === undefined, 'numbers of an action that is not in the list are left out');
-    T.ok(WL.decodeBuild(WL.encodeBuild(shipped('sm_ruin_classic'))).params === undefined, 'older codes without numbers still load');
+    var old = WL.decodeBuild(WL.encodeBuild(bare('sm_ruin_classic')));
+    T.ok(old.params === undefined && old.rotation.indexOf('lifeTapBelow') < 0, 'older codes without the action still load');
 
-    T.group('shipped builds unchanged');
-    T.ok(WL.BUILDS.every(function (b) { return b.custom || b.rotation.indexOf('lifeTapBelow') < 0; }), 'no built-in build uses it');
+    T.group('built-in builds (round 105, user: the best setting found, on every build)');
+    var WANT = { demo_pact_succ_sb: '80/45', aff_pact_succ_sb: '80/45', demo_pact_succ_fire: '80/60', demo_pact_fire: '80/45', destro_incin_succ: '50/25', aff_pact_fire: '80/45',
+      demo_pact_imp_sb: '60/10', aff_pact_succ_drain: '60/10', destro_incin_imp: '40/60', aff_succ_sb: '60/10', sm_ruin_classic: '40/25', ds_ruin_classic: '50/25', wrack_succubus: '60/25' };
+    var own = WL.BUILDS.filter(function (b) { return !b.custom; });
+    T.eq(own.length, Object.keys(WANT).length, own.length + ' built-in builds');
+    own.forEach(function (b) {
+      var p = WL.actionParams(b, 'lifeTapBelow'), n = b.rotation.length;
+      T.ok(b.rotation[n - 2] === 'lifeTapBelow' && WL.ACTIONS[b.rotation[n - 1]].filler && b.rotation.indexOf('lifeTapBelow') === n - 2, b.short + ': the action sits right above the filler, once');
+      T.eq(p.pct + '/' + p.sec, WANT[b.key], b.short + ': ' + WL.actionLabel(b, 'lifeTapBelow'));
+      T.eq(WL.validateBuild(b).join(' | '), '', b.short + ': still a legal build');
+      T.eq(JSON.stringify(WL.decodeBuild(WL.encodeBuild(b)).params), JSON.stringify(b.params), b.short + ': its build code carries the numbers');
+    });
   });
 })();

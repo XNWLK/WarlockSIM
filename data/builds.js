@@ -4,6 +4,10 @@
 //   sacrifice  demon sacrificed with Demonic Sacrifice before the pull ('imp' = +15% Shadow, 'succubus' = +15% Fire)
 //   oil        weapon oil key from WL.OILS
 //   rotation   ordered priority list; the engine casts the first action whose condition is met (engine/rotation.js).
+//   params     numbers of priority actions that have their own (round 104): { actionKey: { paramKey: value } }
+//
+// Round 105 (user): every build got "Life Tap when mana is below _% and more than _ s remain" right above its filler, each
+// with the best setting of the round-104 grid (04_EXPLORATION §41) — the user asked for all builds, also those under +0.5%.
 //
 // Round 16 (2026-09-24): list re-derived after pet spell power 100% → 15% (A26/A49) and Succubus melee 40 → 100 DPS
 // (A46). Full search + point-shift hill-climb + rotation search at the new defaults: docs/04_EXPLORATION.md section 8.
@@ -27,7 +31,8 @@ WL.BUILDS = [
       improvedShadowBolt: 5, bane: 5, ruin: 5, agonizingFlames: 3,   // round 61: -3 Cataclysm +3 Improved Shadow Bolt
     },
     pet: 'succubus', sacrifice: 'imp', oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'searingPainBrand', 'immolate', 'corruption', 'shadowBolt'],
+    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'searingPainBrand', 'immolate', 'corruption', 'lifeTapBelow', 'shadowBolt'],
+    params: { lifeTapBelow: { pct: 80, sec: 45 } },   // round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.59% (10,000 fights)
   },
   {
     key: 'aff_pact_succ_sb', short: 'Aff Pact Shadow Bolt Succubus',
@@ -40,7 +45,8 @@ WL.BUILDS = [
       improvedShadowBolt: 2, bane: 5,
     },
     pet: 'succubus', sacrifice: 'imp', oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'searingPainBrand', 'corruption', 'immolate', 'shadowBolt'],
+    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'searingPainBrand', 'corruption', 'immolate', 'lifeTapBelow', 'shadowBolt'],
+    params: { lifeTapBelow: { pct: 80, sec: 45 } },   // round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.43% (10,000 fights)
   },
   {
     key: 'demo_pact_succ_fire', short: 'Demo Pact Fire Succubus',
@@ -53,7 +59,8 @@ WL.BUILDS = [
       bane: 5, cataclysm: 3, aftermath: 2, ruin: 5, agonizingFlames: 3,
     },
     pet: 'succubus', sacrifice: 'imp', oil: 'firestone',
-    rotation: ['deathCoilFinisher', 'bane', 'searingPainBrand', 'curseOfElements', 'immolate', 'corruption', 'soulFire', 'searingPain'],   // round 25: + Soul Fire during Decimation (+1.8%)
+    rotation: ['deathCoilFinisher', 'bane', 'searingPainBrand', 'curseOfElements', 'immolate', 'corruption', 'soulFire', 'lifeTapBelow', 'searingPain'],   // round 25: + Soul Fire during Decimation (+1.8%)
+    params: { lifeTapBelow: { pct: 80, sec: 60 } },   // round 105 (user): Life Tap below 80% mana with more than 60 s left, +0.88% (10,000 fights)
   },
   {
     key: 'demo_pact_fire', short: 'Demo Pact Fire Imp',
@@ -66,7 +73,8 @@ WL.BUILDS = [
       bane: 5, aftermath: 5, ruin: 5, agonizingFlames: 3,
     },
     pet: 'imp', sacrifice: 'succubus', oil: 'firestone',
-    rotation: ['deathCoilFinisher', 'searingPainBrand', 'lifeTapPet', 'bane', 'curseOfElements', 'immolate', 'soulFire', 'corruption', 'searingPain'],
+    rotation: ['deathCoilFinisher', 'searingPainBrand', 'lifeTapPet', 'bane', 'curseOfElements', 'immolate', 'soulFire', 'corruption', 'lifeTapBelow', 'searingPain'],
+    params: { lifeTapBelow: { pct: 80, sec: 45 } },   // round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.95% (10,000 fights)
   },
   {
     key: 'destro_incin_succ', short: 'Destro Incinerate Succubus',
@@ -78,7 +86,8 @@ WL.BUILDS = [
       baneOfHavoc: 1, fireAndBrimstone: 3, shadowAndFlame: 5, incinerate: 1,
     },
     pet: 'succubus', sacrifice: null, oil: 'firestone',
-    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'immolate', 'corruption', 'conflagrate', 'shadowburn', 'incinerate'],
+    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'immolate', 'corruption', 'conflagrate', 'shadowburn', 'lifeTapBelow', 'incinerate'],
+    params: { lifeTapBelow: { pct: 50, sec: 25 } },   // round 105 (user): Life Tap below 50% mana with more than 25 s left, +0.36% (10,000 fights)
   },
   {
     key: 'aff_pact_fire', short: 'Aff Pact Fire Imp',
@@ -91,7 +100,8 @@ WL.BUILDS = [
       bane: 5,
     },
     pet: 'imp', sacrifice: 'succubus', oil: 'firestone',
-    rotation: ['deathCoilFinisher', 'bane', 'searingPainBrand', 'curseOfElements', 'corruption', 'immolate', 'lifeTapPet', 'soulFire', 'searingPain'],
+    rotation: ['deathCoilFinisher', 'bane', 'searingPainBrand', 'curseOfElements', 'corruption', 'immolate', 'lifeTapPet', 'soulFire', 'lifeTapBelow', 'searingPain'],
+    params: { lifeTapBelow: { pct: 80, sec: 45 } },   // round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.93% (10,000 fights)
   },
   {
     key: 'demo_pact_imp_sb', short: 'Demo Pact Shadow Bolt Imp',
@@ -104,7 +114,8 @@ WL.BUILDS = [
       improvedShadowBolt: 2, bane: 5, cataclysm: 3, ruin: 5, agonizingFlames: 3,
     },
     pet: 'imp', sacrifice: 'succubus', oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'searingPainBrand', 'lifeTapPet', 'bane', 'curseOfElements', 'immolate', 'corruption', 'soulFire', 'searingPainExecute', 'shadowBolt'],   // round 82: + Searing Pain at execute
+    rotation: ['deathCoilFinisher', 'searingPainBrand', 'lifeTapPet', 'bane', 'curseOfElements', 'immolate', 'corruption', 'soulFire', 'searingPainExecute', 'lifeTapBelow', 'shadowBolt'],   // round 82: + Searing Pain at execute
+    params: { lifeTapBelow: { pct: 60, sec: 10 } },   // round 105 (user): Life Tap below 60% mana with more than 10 s left, +1.43% (10,000 fights)
   },
   {
     key: 'aff_pact_succ_drain', short: 'Aff Pact Drain Life Succubus',
@@ -116,7 +127,8 @@ WL.BUILDS = [
       decimation: 2, demonicBrand: 3, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
     },
     pet: 'succubus', sacrifice: 'imp', oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'shadowTrance', 'searingPainBrand', 'corruption', 'immolate', 'searingPainExecute', 'soulFire', 'drainLife'],   // round 25: + Soul Fire during Decimation (+1.1%); round 82: + Searing Pain at execute
+    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'shadowTrance', 'searingPainBrand', 'corruption', 'immolate', 'searingPainExecute', 'soulFire', 'lifeTapBelow', 'drainLife'],   // round 25: + Soul Fire during Decimation (+1.1%); round 82: + Searing Pain at execute
+    params: { lifeTapBelow: { pct: 60, sec: 10 } },   // round 105 (user): Life Tap below 60% mana with more than 10 s left, +0.60% (10,000 fights)
   },
   {
     key: 'destro_incin_imp', short: 'Destro Incinerate Imp',
@@ -129,7 +141,8 @@ WL.BUILDS = [
       baneOfHavoc: 1, fireAndBrimstone: 3, shadowAndFlame: 5, incinerate: 1,
     },
     pet: 'imp', sacrifice: null, oil: 'firestone',
-    rotation: ['deathCoilFinisher', 'bane', 'corruption', 'immolate', 'lifeTapPet', 'conflagrate', 'curseOfElements', 'shadowburn', 'incinerate'],
+    rotation: ['deathCoilFinisher', 'bane', 'corruption', 'immolate', 'lifeTapPet', 'conflagrate', 'curseOfElements', 'shadowburn', 'lifeTapBelow', 'incinerate'],
+    params: { lifeTapBelow: { pct: 40, sec: 60 } },   // round 105 (user): Life Tap below 40% mana with more than 60 s left, +0.32% (10,000 fights)
   },
   {
     key: 'aff_succ_sb', short: 'Aff Shadow Bolt Succubus',
@@ -142,7 +155,8 @@ WL.BUILDS = [
       bane: 2,
     },
     pet: 'succubus', sacrifice: null, oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'searingPainBrand', 'corruption', 'siphonLife', 'immolate', 'soulFire', 'searingPainExecute', 'shadowBolt'],   // round 82: + Searing Pain at execute
+    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'searingPainBrand', 'corruption', 'siphonLife', 'immolate', 'soulFire', 'searingPainExecute', 'lifeTapBelow', 'shadowBolt'],   // round 82: + Searing Pain at execute
+    params: { lifeTapBelow: { pct: 60, sec: 10 } },   // round 105 (user): Life Tap below 60% mana with more than 10 s left, +0.84% (10,000 fights)
   },
   // ---- Reference builds (round 65, user): classic layouts. Round 66: every build is shown by default (no cut-off), so they
   //      need no special flag; anyone can pin any build (📌) to keep it shown when a cut-off is set. ----
@@ -156,7 +170,8 @@ WL.BUILDS = [
       bane: 5, improvedShadowBolt: 5, cataclysm: 3, ruin: 5, agonizingFlames: 3,   // round 82/83: −3 Improved Corruption +3 Cataclysm
     },
     pet: 'succubus', sacrifice: null, oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'bane', 'corruption', 'shadowTrance', 'siphonLife', 'curseOfElements', 'immolate', 'shadowBolt'],
+    rotation: ['deathCoilFinisher', 'bane', 'corruption', 'shadowTrance', 'siphonLife', 'curseOfElements', 'immolate', 'lifeTapBelow', 'shadowBolt'],
+    params: { lifeTapBelow: { pct: 40, sec: 25 } },   // round 105 (user): Life Tap below 40% mana with more than 25 s left, +0.23% (10,000 fights)
   },
   {
     key: 'ds_ruin_classic', short: 'DS Ruin (classic)',
@@ -168,7 +183,8 @@ WL.BUILDS = [
       bane: 5, improvedShadowBolt: 5, ruin: 5, agonizingFlames: 3,
     },
     pet: null, sacrifice: 'imp', oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'bane', 'corruption', 'immolate', 'shadowTrance', 'curseOfElements', 'shadowBolt'],
+    rotation: ['deathCoilFinisher', 'bane', 'corruption', 'immolate', 'shadowTrance', 'curseOfElements', 'lifeTapBelow', 'shadowBolt'],
+    params: { lifeTapBelow: { pct: 50, sec: 25 } },   // round 105 (user): Life Tap below 50% mana with more than 25 s left, +0.37% (10,000 fights)
   },
   {
     key: 'wrack_succubus', short: 'Wrack Succubus',
@@ -181,6 +197,7 @@ WL.BUILDS = [
       improvedShadowBolt: 5, bane: 5, ruin: 1,
     },
     pet: 'succubus', sacrifice: null, oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'baneOfAgony', 'corruption', 'siphonLife', 'curseOfElements', 'immolate', 'isbUpkeep', 'shadowTrance', 'wrack'],   // round 82/83: + ISB upkeep
+    rotation: ['deathCoilFinisher', 'baneOfAgony', 'corruption', 'siphonLife', 'curseOfElements', 'immolate', 'isbUpkeep', 'shadowTrance', 'lifeTapBelow', 'wrack'],   // round 82/83: + ISB upkeep
+    params: { lifeTapBelow: { pct: 60, sec: 25 } },   // round 105 (user): Life Tap below 60% mana with more than 25 s left, +0.21% (10,000 fights)
   },
 ];

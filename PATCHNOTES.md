@@ -3,6 +3,14 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v97
+- **Every built-in build now taps early**: "Life Tap when mana is below _% and more than _ s remain" sits right above
+  the filler, with the best setting found for each build (for example 80% / 45 s on the Demo Pact builds, 60% / 10 s on
+  Demo Pact Shadow Bolt Imp). Gains: +0.1% to +1.4%.
+- Why it works: the number of Life Taps stays the same, but they move out of the execute phase and stop cutting in
+  front of DoT refreshes and Soul Fire.
+- New top numbers: Demo Pact Fire Imp 725.6, Demo Pact Shadow Bolt Succubus 710.9, Aff Pact Shadow Bolt Succubus 692.7.
+
 ## v96
 - New priority action with two boxes you fill in: **Life Tap when mana is below _% and more than _ s remain** (default
   40% / 25 s). The automatic Life Tap when you cannot afford the next spell stays. Build codes carry your numbers.
