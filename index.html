@@ -494,6 +494,17 @@
   .quickbar .qgroup { display: inline-flex; align-items: center; gap: 6px; }
   .quickbar .seg button { padding: 3px 10px; font-size: 12px; }
   .quickbar .seg button[aria-pressed=true] { font-weight: 600; }
+  /* presets in the same bar (round 115): they replaced the gear-set row of the Stats card */
+  .quickbar .qsep { width: 1px; align-self: stretch; background: var(--line); }
+  .quickbar > .qgroup > button { padding: 3px 10px; font-size: 12px; }
+  .quickbar select { max-width: min(300px, 100%); }
+  .quickbar input[type=text] { width: 200px; max-width: 100%; }
+  .quickbar .qgroup { flex-wrap: wrap; min-width: 0; }
+  #quickMsg { flex-basis: 100%; }
+  #quickMsg:empty { display: none; }
+  .cmpverdict { background: var(--sunk); border-radius: 4px; padding: 8px 10px; }
+  .cmpverdict p { margin: 0; }
+  .cmpverdict p + p { margin-top: 4px; }
   /* DPS numbers stand out */
   #results > thead th.dpsh { color: var(--accent); }
   #results > tbody > tr.row:not(.racerow) > td.dps b { font-size: 15.5px; font-weight: 700; color: var(--accent); letter-spacing: -.01em; }
@@ -640,7 +651,7 @@
 
   <div class="statbar" id="statbar" aria-label="Stats used for this simulation"></div>
 
-  <div class="quickbar" id="quickbar" aria-label="Quick setup">
+  <div class="quickbar" id="quickbar" aria-label="Quick setup and presets">
     <span class="qlabel">Quick setup</span>
     <span class="qgroup"><span class="meta">Gear</span>
       <span class="seg" role="group" aria-label="Gear preset">
@@ -652,6 +663,14 @@
         <button type="button" data-qside="default" aria-pressed="false">Default</button>
         <button type="button" data-qside="max" aria-pressed="false">Max</button>
       </span></span>
+    <span class="qsep" aria-hidden="true"></span>
+    <span class="qgroup"><label class="meta" for="presetSel">Preset</label>
+      <select id="presetSel"></select>
+      <button type="button" id="presetLoad" title="Load the selected preset: a whole setup (stats, buffs, debuffs, consumables, fight and pet settings)">Load</button>
+      <button type="button" id="presetDel" title="Delete the selected preset (only your own)">Delete</button></span>
+    <span class="qgroup">
+      <input id="presetName" type="text" placeholder="Name for your current settings" aria-label="Name for a new preset" maxlength="40">
+      <button type="button" id="presetSave" title="Save everything you have set — stats, buffs, debuffs, consumables, fight and pet settings — under this name. Kept in this browser.">Save as preset</button></span>
     <span class="meta" id="quickMsg" role="status"></span>
   </div>
 
@@ -666,14 +685,6 @@
         <label class="c" for="o_sword" id="swordLbl" title="Sword Specialization (Human): +2% crit with a sword. Only shown while the race above is Human."><input id="o_sword" type="checkbox"> Sword equipped (Human)</label>
         <label class="c" for="o_critAll"><input id="o_critAll" type="checkbox"> Sheet crit % already includes talents, racials &amp; oil</label>
         <label class="c" for="o_eng" title="Engineering unlocks the explosives in the Consumables tab. No other profession has a DPS effect for a Warlock in Forever."><input id="o_eng" type="checkbox"> Engineering (explosives)</label>
-      </div>
-      <div class="btnrow gearrow">
-        <label class="c" for="gearSel">Gear set <select id="gearSel"></select></label>
-        <button type="button" id="gearLoad">Load</button>
-        <input id="gearName" type="text" placeholder="Name for the current gear" aria-label="Gear set name" maxlength="40">
-        <button type="button" id="gearSave">Save gear</button>
-        <button type="button" id="gearDel">Delete</button>
-        <span class="meta" id="gearMsg" role="status"></span>
       </div>
       <div class="scroll"><table class="tot" id="totalTable"></table></div>
       <p class="meta"><b>Sheet (gear)</b> = your character sheet with gear only (editable). <b>Total</b> = race base + gear + raid buffs +
@@ -782,32 +793,22 @@
   </section>
 
   <details class="card toolcard" id="tools">
-    <summary>Presets, share settings &amp; batch compare</summary>
+    <summary>Input / output settings and builds · batch compare</summary>
     <div class="toolgrid">
       <div class="toolpart">
-        <h2>Presets</h2>
-        <p class="meta">Load a whole setup at once (stats, fight, buffs, debuffs, consumables, professions, pets). Your own presets are kept in this browser.</p>
+        <h2>Input / output: settings and builds</h2>
+        <p class="meta">A code is a line of text you can keep or send to someone. A <b>settings code</b> (starts with WFS1:) holds your stats, fight,
+          buffs, debuffs, consumables, professions and pet settings. A <b>build code</b> (WFB1:) holds one build: talents, pet, weapon stone and
+          priority. Make a code here, or paste one and press Load — settings are applied, a build opens in the build editor.</p>
+        <textarea id="codeBox" rows="3" spellcheck="false" aria-label="Settings or build code" placeholder="WFS1:… or WFB1:…"></textarea>
         <div class="btnrow">
-          <select id="presetSel" aria-label="Preset"></select>
-          <button type="button" id="presetLoad" class="primary">Load</button>
-          <button type="button" id="presetDel">Delete</button>
+          <button type="button" id="codeMake">Make settings code</button>
+          <select id="ioBuild" aria-label="Build to make a code for"></select>
+          <button type="button" id="codeMakeBuild">Make build code</button>
         </div>
         <div class="btnrow">
-          <input id="presetName" type="text" placeholder="Preset name" aria-label="New preset name" maxlength="40">
-          <button type="button" id="presetSave">Save current settings</button>
-        </div>
-        <p class="meta" id="presetMsg" role="status"></p>
-      </div>
-      <div class="toolpart">
-        <h2>Share settings (code)</h2>
-        <p class="meta">The code holds your stats, fight, buffs, debuffs, consumables, professions and pet settings. Paste a code and press
-          Load to restore it. Settings codes start with <b>WFS1:</b>; a build's talents and priority are a separate code (<b>WFB1:</b>) made
-          and loaded in the build editor — either box accepts both and puts the code where it belongs.</p>
-        <textarea id="codeBox" rows="3" spellcheck="false" aria-label="Settings code" placeholder="WFS1:…"></textarea>
-        <div class="btnrow">
-          <button type="button" id="codeMake">Make code from current settings</button>
           <button type="button" id="codeCopy">Copy</button>
-          <button type="button" id="codeLoad" class="primary">Load settings code</button>
+          <button type="button" id="codeLoad" class="primary">Load code</button>
         </div>
         <p class="meta" id="codeMsg" role="status"></p>
       </div>

@@ -33,8 +33,8 @@ Click a build for:
 
 ### Your setup
 - **Stats:** spell power (also Shadow / Fire only), hit, crit, haste, Intellect, Spirit, Stamina, MP5, Spell Pierce;
-  save and load **gear sets**. A **quick setup** bar switches between starter and hit-capped gear, and between the default
-  and the maximum set of buffs and consumables.
+  a **quick setup** bar switches between starter and hit-capped gear, and between the default and the maximum set of
+  buffs and consumables, and holds your saved **presets**.
 - **Raid buffs:** Arcane Intellect, Mark of the Wild, Fortitude, Divine Spirit, Kings, Wisdom, Mana Spring (+ Restorative
   Totems), Mana Tide, Innervate, Moonkin aura, Power Infusion.
 - **Boss debuffs:** Sunder / Expose Armor, Faerie Fire, Curse of Recklessness, another Warlock's Curse of the Elements,
@@ -61,8 +61,8 @@ Click a build for:
 - Share builds as a code.
 
 ### Compare
-- **Compare two builds** side by side, each with the race you pick: numbers, stats, damage per source, uptimes, races,
-  talents, priority and DPS spread.
+- **Compare two builds** side by side, each with the race you pick: a verdict (how big the gap is and whether it is
+  clear), numbers, stats, damage per source, time spent per spell, uptimes, races, talents, priority and DPS spread.
 - **Rank arrows** show which builds moved up or down after you change your settings.
 - **Batch compare:** save several setups (e.g. pre-raid vs raid-buffed) and run them all, or add the current run to
   compare later runs against it.

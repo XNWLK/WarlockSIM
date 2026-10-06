@@ -3,6 +3,14 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v107
+- **Presets moved to the top bar**, next to the quick-setup switches, and replace the gear sets (one way to save and load a
+  setup instead of two). Gear sets you saved before are still in the list as "Your gear sets (gear only)".
+- **"Share settings" is now "Input / output: settings and builds"**: one box that makes and loads both settings codes and
+  build codes.
+- **Compare two builds** shows more: a one-line verdict (how big the gap is and whether it is clear or too close to call,
+  and where it comes from), DPS from you / the pet / procs, crit and miss rates, and where each build spends its time.
+
 ## v106
 - **5-second rule**: Spirit now regenerates mana while you have spent none for 5 seconds (8 + Spirit / 4 mana every 2
   seconds). A cast-time spell counts from the end of its cast, an instant or a channel from its start. Life Tap does not
