@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v121
+- Flametongue Totem has its icon.
+
 ## v120
 - New raid buff: **Flametongue Totem** (off by default). Pets with a melee attack — Succubus, Felhunter, Voidwalker — deal 27
   extra Fire damage on every hit (the totem's damage depends on attack speed; theirs is 2.0 s). The extra hit can miss and
