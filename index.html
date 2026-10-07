@@ -90,6 +90,7 @@
   .checks .ico { width: 18px; height: 18px; flex: none; }
   .checks .cls { font: 600 9.5px var(--mono); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); min-width: 52px; }
   .checks .eff { color: var(--muted); font-size: 11px; }
+  .hashelp { cursor: help; border-bottom: 1px dotted var(--muted); }
   /* settings tabs */
   .tabs { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 10px; border-bottom: 1px solid var(--line); }
   .tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; color: var(--muted); font-weight: 500; padding: 6px 10px; margin-bottom: -1px; }
@@ -725,11 +726,8 @@
         <fieldset><legend>Raid buffs</legend>
           <div id="buffBoxes" class="checks"></div>
         </fieldset>
-        <fieldset><legend>Boss debuffs</legend>
+        <fieldset><legend><span id="armorNote" class="hashelp">Boss debuffs</span></legend>
           <div id="debuffBoxes" class="checks"></div>
-          <p class="meta" id="armorNote"></p>
-          <p class="meta">Personal in Forever, so they do not help you: Shadow Weaving, Improved Scorch, Winter's Chill,
-            Stormstrike and other Warlocks' Improved Shadow Bolt (their tooltips say "damage <i>you</i> deal").</p>
         </fieldset>
       </div>
 

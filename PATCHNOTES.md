@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v118
+- The Buffs & debuffs tab fits its card again without a scroll bar. The two notes at its bottom moved into the hover text of
+  the "Boss debuffs" heading.
+
 ## v117
 - Windfury Totem, Grace of Air Totem and Tranquil Air Totem are one totem type: only one of the three can be on.
 - Tranquil Air Totem and Blessing of Salvation do not stack their threat reduction.

@@ -400,7 +400,10 @@
     $('advChanged').hidden = same;
   }
   function armorNote() {
-    $('armorNote').textContent ='Boss armor after debuffs: ' + fmt(WL.bossArmor(cfg)) + ' → pet melee damage reduced by ' + (100 * WL.armorReduction(cfg)).toFixed(1) + '%. Base armor and resistances: Fight & pets tab.';
+    // Hover text of the "Boss debuffs" heading. It was two notes under the list until the buffs tab had to fit the card
+    // without a scroll bar (user).
+    $('armorNote').title = 'Boss armor after debuffs: ' + fmt(WL.bossArmor(cfg)) + ' → pet melee damage reduced by ' + (100 * WL.armorReduction(cfg)).toFixed(1) + '%. Base armor and resistances: Fight & pets tab.\n\n' +
+      'Personal in Forever, so they do not help you: Shadow Weaving, Improved Scorch, Winter\'s Chill, Stormstrike and other Warlocks\' Improved Shadow Bolt (their tooltips say "damage you deal").';
   }
   function readSettings() {
     numFields.forEach(function (f) { var v = parseFloat($(f[0]).value); if (isFinite(v)) cfg[f[1]][f[2]] = v; });
