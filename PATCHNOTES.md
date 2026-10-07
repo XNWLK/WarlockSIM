@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v115
+- **Improved Shadow Bolt**: a Shadow Bolt crit now always applies it. Before, the debuff rolled a second hit check and could
+  miss. Builds with the talent gain up to 0.3% at the default hit chance; nothing changes at the hit cap.
+
 ## v114
 - **Demo Pact Shadow Bolt Imp** was taken off the build list. Seven builds remain; their numbers did not change.
 

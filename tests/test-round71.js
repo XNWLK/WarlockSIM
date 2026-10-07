@@ -49,13 +49,13 @@
     var cd = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     WL.BUILDS.forEach(function (bb) {
       var fights = 0, bad = 0;
-      for (var sd = 1; sd <= 10; sd++) {
+      for (var sd = 1; sd <= 40; sd++) {   // 40 fights since round 123: with a channel filler (Wrack) only about 1 fight in 5 ends in the window, 10 could all miss it
         var d2 = casts(WL.simulateOnce(bb, 'human', cd, { duration: 180, log: true, seed: sd }), 'deathCoil');
         if (d2.length) fights++;
         if (d2.length > 1 || d2.some(function (e) { return e.t < 180 - 3.5; })) bad++;
       }
       T.ok(bb.rotation[0] === 'deathCoilFinisher' && fights > 0 && bad === 0,
-        bb.short + ': finisher first; Death Coil at the very end of ' + fights + ' of 10 fights, never earlier or twice');
+        bb.short + ': finisher first; Death Coil at the very end of ' + fights + ' of 40 fights, never earlier or twice');
     });
   });
 })();
