@@ -3,6 +3,15 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v120
+- New raid buff: **Flametongue Totem** (off by default). Pets with a melee attack — Succubus, Felhunter, Voidwalker — deal 27
+  extra Fire damage on every hit (the totem's damage depends on attack speed; theirs is 2.0 s). The extra hit can miss and
+  crit like the pet's spells and does not use up a Demonic Brand charge.
+- It **stacks with Windfury Totem**, and Windfury's extra attacks trigger it too. Flametongue alone is worth about 2.1–2.7%
+  for Succubus builds, both totems together about 4.6–5.9%.
+- The **Max** buffs & consumables setup now includes it.
+- Shorter descriptions for the two totems, so the Buffs & debuffs tab still fits without a scroll bar.
+
 ## v119
 - New option: **Precast** (Fight & pets → Fight). Pick the spell you start with — Shadow Bolt, Immolate, Incinerate, Searing
   Pain, Soul Fire or Corruption. A precast is started before the pull so that it finishes as the fight timer starts: it lands

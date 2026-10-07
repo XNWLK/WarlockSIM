@@ -68,6 +68,7 @@ Click a build for:
 - **Health and threat:** Life Tap and Hellfire cost health, you set how much healing you get, and every build shows its
   threat per second (with Blessing of Salvation and Tranquil Air Totem as raid buffs).
 - **Windfury Totem** for pets with a melee attack: extra attacks that also use up Demonic Brand charges.
+- **Flametongue Totem** for pets with a melee attack: extra Fire damage on every hit; stacks with Windfury Totem.
 - **Rank for your race**: list the builds for the race you play instead of each build's best race.
 - **Batch compare:** save several setups (e.g. pre-raid vs raid-buffed) and run them all, or add the current run to
   compare later runs against it.

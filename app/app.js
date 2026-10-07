@@ -14,7 +14,7 @@
     wrack: '#6A2D9E', drainLife: '#8C7CC9', shadowburn: '#D0B0FF', deathCoil: '#5C4B8C',
     immolate: '#E0662F', incinerate: '#F2A03D', conflagrate: '#B8401C', soulFire: '#F5CD5E', searingPain: '#D98530',
     hellfire: '#C9302C', rainOfFire: '#EE7B5B',
-    'pet:melee': '#2F8F5F', 'pet:lashOfPain': '#5CC08A', 'pet:firebolt': '#3AA776', 'pet:brand': '#8FD6A8', 'pet:windfury': '#1F7A4F', touchOfTheGrave: '#8A8F98',
+    'pet:melee': '#2F8F5F', 'pet:lashOfPain': '#5CC08A', 'pet:firebolt': '#3AA776', 'pet:brand': '#8FD6A8', 'pet:windfury': '#1F7A4F', 'pet:flametongue': '#A8D45A', touchOfTheGrave: '#8A8F98',
   };
   var ACTION_ICON = { curseOfElements: 'curseOfElements', shadowTrance: 'shadowTrance', bane: 'baneOfDoom', baneOfAgony: 'baneOfAgony', corruption: 'corruption',
     siphonLife: 'siphonLife', immolate: 'immolate', conflagrate: 'conflagrate', shadowburn: 'shadowburn', soulFire: 'soulFire',
@@ -825,6 +825,7 @@
     if (k === 'pet:firebolt') return 'Firebolt (Imp)';
     if (k === 'pet:brand') return 'Demonic Brand (pet bonus)';
     if (k === 'pet:windfury') return 'Windfury extra attacks (pet)';
+    if (k === 'pet:flametongue') return 'Flametongue Totem hits (pet)';
     if (k === 'touchOfTheGrave') return 'Touch of the Grave';
     if (k === 'heal') return 'Healing received';                                                  // log entries of the health model (round 119)
     if (k === 'health') return 'low health';
@@ -845,6 +846,7 @@
     if (k.indexOf('summon:') === 0) return 'pet_' + k.slice(7);
     if (k === 'pet:brand') return 'talent_demonicBrand';            // round 45: the brand bonus had no icon
     if (k === 'pet:windfury') return 'buff_windfuryTotem';
+    if (k === 'pet:flametongue') return 'buff_flametongueTotem';
     return k === 'pet:lashOfPain' ? 'lashOfPain' : k === 'pet:firebolt' ? 'firebolt' : k === 'pet:melee' ? 'pet_succubus' : k.indexOf('item:') === 0 ? 'consumable_' + k.slice(5) : k; }
   // Tracked auras (engine keys) → label, icon, group. Buffs on you vs effects on the boss. (W4, W5)
   var AURAS = {

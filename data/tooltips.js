@@ -97,6 +97,7 @@ WL.SPELL_TEXT = {
   10497: "Summons a Mana Spring Totem with 5 health at the feet of the caster for 5 min that restores 10 mana every 2 seconds to group members within 30 yards.",
   16187: "Increases the effect of your Mana Spring Totem by 5% and increases the effect of your Healing Stream Totem by 5%.",
   10614: "Summons a Windfury Totem with 5 health at the feet of the caster. The totem enhances the melee attacks of all nearby party members. Each main hand hit has a 20% chance of granting the attacker 1 extra attack with 246 extra melee attack power. Lasts 5 min.",
+  16387: "Summons a Flametongue Totem with 5 health at the feet of the caster. The totem enhances the melee attacks of all party members within 30 yards. Each main hand hit causes 17 to 55 additional Fire damage, based on the speed of the weapon. Slower weapons cause more fire damage per swing. Lasts 5 min.",
   25359: "Summons a Grace of Air Totem with 5 health at the feet of the caster.  The totem increases the agility of party members within 30 yards by 89.  Lasts 5 min.",
   17359: "Summons a Mana Tide Totem with 5 health at the feet of the caster for 12 sec that restores 290 mana every 3 seconds to group members within 30 yards.",
   29166: "Increases the target\u0027s Mana regeneration by 400% and allows 100% of the target\u0027s Mana regeneration to continue while casting.  Lasts 20 sec.",

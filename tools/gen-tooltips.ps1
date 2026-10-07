@@ -60,6 +60,9 @@ $override = @{
   # Windfury Totem R3 (round 124): the archived text reads "within 0 yards" and "(246 * 1) extra melee attack power" (an unresolved
   # talent multiplier) - tidied, nothing else changed.
   '10614' = 'Summons a Windfury Totem with 5 health at the feet of the caster. The totem enhances the melee attacks of all nearby party members. Each main hand hit has a 20% chance of granting the attacker 1 extra attack with 246 extra melee attack power. Lasts 5 min.'
+  # Flametongue Totem R4 (round 128): the archived text shows the raw formula '(1363 / 77 * 1 - 1) to (1363 / 25 * 1)' - worked out
+  # (16.7 and 54.5, for attack speeds of 1.3 s and 4.0 s), nothing else changed.
+  '16387' = 'Summons a Flametongue Totem with 5 health at the feet of the caster. The totem enhances the melee attacks of all party members within 30 yards. Each main hand hit causes 17 to 55 additional Fire damage, based on the speed of the weapon. Slower weapons cause more fire damage per swing. Lasts 5 min.'
 }
 $s = 0; $missing = @(); $o = 0
 foreach ($id in ($ids | Select-Object -Unique)) {

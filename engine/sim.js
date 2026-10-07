@@ -69,6 +69,7 @@ window.WL = window.WL || {};
               vuln: WL.makeRng(seed0 ^ 0x27D4EB2F), pet: WL.makeRng(seed0 ^ 0x165667B1),
               jow: WL.makeRng(seed0 ^ 0x3C6EF372),                                                     // Judgement of Wisdom (own stream, round 38)
               wf: WL.makeRng(seed0 ^ 0x9E3779B9),                                                      // Windfury Totem: proc + the extra attack (own stream, round 124)
+              ft: WL.makeRng(seed0 ^ 0x7F4A7C15),                                                      // Flametongue Totem: hit + crit of its Fire hit (own stream, round 128)
               push: WL.makeRng(seed0 ^ 0x61C88647) };                                                  // damage taken / pushback (own stream, round 78)
     var dur = opt.duration || cfg.fight.duration, cb = cfg.combat;                                    // per-fight length [A56]
     var race = WL.RACES[raceKey];
@@ -210,6 +211,7 @@ window.WL = window.WL || {};
     var buffList = WL.activeBuffs(cfg);
     var PI = buffList.filter(function (b) { return b.spellDmgPct; })[0] || null;
     var WF = (buffList.filter(function (b) { return b.windfury; })[0] || {}).windfury || null;       // Windfury Totem for pet melee (round 124)
+    var FT = (buffList.filter(function (b) { return b.flametongue; })[0] || {}).flametongue || null; // Flametongue Totem for pet melee (round 128)
     var manaBuffs = buffList.filter(function (b) { return b.tide || b.innervate; }).map(function (b) { return { b: b, used: false }; });
     // ---------- health (round 119, user) [A83] ----------
     // Your health starts full. It pays for Life Tap (430), Hellfire's ticks on yourself, the Demonic Rune (800) and the Goblin
@@ -919,9 +921,27 @@ window.WL = window.WL || {};
         deal(rk, amt, crit, false);
         if (extraAp) L('pet', rk, { dmg: Math.round(amt), crit: crit });
         brandProc();
+        if (FT) flametongueHit();
         return true;
       }
       r.misses++; return false;
+    }
+    // Flametongue Totem (round 128, user; A88): pets with a melee attack benefit, and it stacks with Windfury Totem. Every
+    // landed swing — glancing blows and Windfury's extra attacks too ("each main hand hit") — adds a Fire hit of
+    // per100 × attack speed / 100 (Rank 4: 1363 → 27.3 for a 2.0 s swing). No spell power part (triggered spell 16368).
+    // Treated as a spell of the pet, like Firebolt and Lash of Pain: it can miss (your hit chance) and crit (your crit,
+    // ×1.5) and takes the pet's damage modifiers and Curse of the Elements. It is not an attack: no Demonic Brand charge,
+    // no Judgement of Wisdom. Its own damage row ('pet:flametongue') and its own random stream, so nothing else moves.
+    function flametongueHit() {
+      var r = row('pet:flametongue');
+      r.casts++;
+      if (R.ft() * 100 >= stats.hitPct) { r.misses++; L('miss', 'pet:flametongue'); return; }
+      r.landed++;
+      var amt = FT.per100 * P.c.melee.swing / 100 * petMult('fire');
+      var crit = R.ft() * 100 < stats.critPct;
+      if (crit) amt *= cb.critMultiplier;
+      deal('pet:flametongue', amt, crit, false);
+      L('pet', 'pet:flametongue', { dmg: Math.round(amt), crit: crit });
     }
 
     // ---------- mid-fight pet swap (round 35, A63) ----------
