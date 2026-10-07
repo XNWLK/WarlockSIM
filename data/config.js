@@ -99,7 +99,11 @@ WL.DEFAULT_CONFIG = {
     restorativeTotems:{ on: false, id: 16187, name: 'Restorative Totems (on Mana Spring)', cls: 'Shaman', desc: 'Mana Spring +25%', mp5: 6.25, requires: 'manaSpring' },
     // Round 75 (user): Agility for your melee crit (the Succubus' melee inherits it). Classic values, not checked in Forever [A75].
     // Round 118 (user): Grace of Air and the Scroll of Agility do not stack — same `group`, only the bigger one counts.
-    graceOfAir:       { on: false, id: 25359, name: 'Grace of Air Totem',            cls: 'Shaman',  desc: '+77 Agility (melee crit for the Succubus; does not stack with the Scroll of Agility)', agi: 77, group: 'agility' },
+    // Round 124 (user): Windfury Totem works for pets with a melee attack; it and Grace of Air are the same totem type in
+    // Forever and do not stack (they did in Classic) — same `excl`: only the first listed one that is on counts, and the page
+    // unticks the other. 20% / 246 attack power = Rank 3 in the archived Forever tooltip (Classic: 315). [A85]
+    windfuryTotem:    { on: false, id: 10614, name: 'Windfury Totem',                cls: 'Shaman',  desc: 'Pets with a melee attack: each hit has a 20% chance of 1 extra attack with 246 extra attack power (does not stack with Grace of Air Totem)', windfury: { procPct: 20, ap: 246 }, excl: 'airTotem' },
+    graceOfAir:       { on: false, id: 25359, name: 'Grace of Air Totem',            cls: 'Shaman',  desc: '+77 Agility (melee crit for the Succubus; does not stack with Windfury Totem or the Scroll of Agility)', agi: 77, group: 'agility', excl: 'airTotem' },
     manaTide:         { on: false, id: 17359, name: 'Mana Tide Totem',               cls: 'Shaman',  desc: '290 mana every 3 s for 12 s, once, when you drop below 50% mana', tide: { amount: 290, every: 3, ticks: 4 } },
     innervate:        { on: false, id: 29166, name: 'Innervate',                     cls: 'Druid',   desc: '5× mana regen while casting for 20 s, once, when you drop below 50% mana', innervate: { mult: 5, duration: 20 } },
     moonkinAura:      { on: true, id: 24858, name: 'Moonkin Form aura',             cls: 'Druid',   desc: '+3% crit (party)', critPct: 3 },

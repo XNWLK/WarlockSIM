@@ -11,10 +11,15 @@ WL.talentValue = function (build, key, field) {
 };
 
 // Buffs that are switched on (a buff with `requires` only counts when that buff is also on, e.g. Restorative Totems).
+// Buffs that share an `excl` cannot be up together (round 124: Windfury Totem / Grace of Air Totem, one totem type): of
+// those that are on only the first listed counts. The page keeps them exclusive; this covers hand-made settings.
 WL.activeBuffs = function (cfg) {
-  var B = cfg.buffs || {};
-  return Object.keys(B).filter(function (k) { return B[k].on && (!B[k].requires || (B[B[k].requires] || {}).on); })
-    .map(function (k) { return B[k]; });
+  var B = cfg.buffs || {}, seen = {};
+  return Object.keys(B).filter(function (k) {
+    var b = B[k]; if (!b.on || (b.requires && !(B[b.requires] || {}).on)) return false;
+    if (b.excl) { if (seen[b.excl]) return false; seen[b.excl] = 1; }
+    return true;
+  }).map(function (k) { return B[k]; });
 };
 
 // Consumables that are switched on; only the first active one per group counts (the UI keeps groups exclusive). [A57]

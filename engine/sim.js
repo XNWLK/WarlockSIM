@@ -68,6 +68,7 @@ window.WL = window.WL || {};
     var R = { hit: WL.makeRng(seed0 ^ 0x1B873593), crit: WL.makeRng(seed0 ^ 0x85EBCA6B), proc: WL.makeRng(seed0 ^ 0xC2B2AE35),
               vuln: WL.makeRng(seed0 ^ 0x27D4EB2F), pet: WL.makeRng(seed0 ^ 0x165667B1),
               jow: WL.makeRng(seed0 ^ 0x3C6EF372),                                                     // Judgement of Wisdom (own stream, round 38)
+              wf: WL.makeRng(seed0 ^ 0x9E3779B9),                                                      // Windfury Totem: proc + the extra attack (own stream, round 124)
               push: WL.makeRng(seed0 ^ 0x61C88647) };                                                  // damage taken / pushback (own stream, round 78)
     var dur = opt.duration || cfg.fight.duration, cb = cfg.combat;                                    // per-fight length [A56]
     var race = WL.RACES[raceKey];
@@ -208,6 +209,7 @@ window.WL = window.WL || {};
     var armorRed = WL.armorReduction(cfg);
     var buffList = WL.activeBuffs(cfg);
     var PI = buffList.filter(function (b) { return b.spellDmgPct; })[0] || null;
+    var WF = (buffList.filter(function (b) { return b.windfury; })[0] || {}).windfury || null;       // Windfury Totem for pet melee (round 124)
     var manaBuffs = buffList.filter(function (b) { return b.tide || b.innervate; }).map(function (b) { return { b: b, used: false }; });
     // ---------- health (round 119, user) [A83] ----------
     // Your health starts full. It pays for Life Tap (430), Hellfire's ticks on yourself, the Demonic Rune (800) and the Goblin
@@ -881,28 +883,38 @@ window.WL = window.WL || {};
       if (sp.cast) { H.push({ t: S.t + sp.cast + (sp.projectile ? TRAVEL : 0), o: 1, type: 'petLand', gen: P.gen }); H.push({ t: S.t + sp.cast, o: 2, type: 'petAct', gen: P.gen }); }
       else { petSpellHit(sp); H.push({ t: P.lashReady || S.t + 1.5, o: 2, type: 'petAct', gen: P.gen }); }
     }
+    // Windfury Totem (round 124, user; A85): pets with a melee attack benefit. Each landed swing has a chance of one extra
+    // attack with extra attack power, at once, on the same attack table. The extra attack is a full pet attack: if it
+    // lands it spends a Demonic Brand charge too (user) and can trigger Judgement of Wisdom; it cannot trigger another
+    // extra attack. Its own damage row ('pet:windfury') and its own random stream, so nothing else moves.
     function petSwing() {
       if (S.t >= dur - EPS) return;
-      var m = P.c.melee, r = row('pet:melee'), tb = cb.petMelee;
+      if (petMeleeAttack('pet:melee', R.pet() * 100, 0) && WF && R.wf() * 100 < WF.procPct) petMeleeAttack('pet:windfury', R.wf() * 100, WF.ap);
+      H.push({ t: S.t + P.c.melee.swing, o: 0, type: 'petSwing', gen: P.gen });
+    }
+    function petMeleeAttack(rk, roll, extraAp) {         // one swing; true if it landed
+      var m = P.c.melee, r = row(rk), tb = cb.petMelee;
       r.casts++;
       // One-roll attack table (round 42) [A46]: miss (8% − your hit above base, first 1% ignored) → dodge 6.5% →
       // glancing 40% at 65% damage → crit (own + your MELEE crit − 4.8%; round 75, was your spell crit since round 32) → hit.
       var hitBonus = Math.max(0, stats.hitPct - cb.baseHitPct - tb.hitSuppressionPct);
-      var miss = Math.max(0, tb.missPct - hitBonus), roll = R.pet() * 100;
+      var miss = Math.max(0, tb.missPct - hitBonus);
       var critCh = Math.max(0, m.critPct + (m.inheritMeleeCrit ? stats.meleeCritPct : 0) - tb.critSuppressionPct);
       if (roll >= miss + tb.dodgePct) {
         r.landed++;
         jowProc(true);                                                   // [A64]
-        var dps = m.baseDps + m.apPerSp * warlockSpNow() / m.apPerDps;                                  // [A46] own AP rule
+        var dps = m.baseDps + (m.apPerSp * warlockSpNow() + extraAp) / m.apPerDps;                      // [A46] own AP rule; + Windfury's attack power
         var amt = dps * m.swing * (1 - armorRed) * petMult('physical');                                  // [A54] boss armor − debuffs
         var glance = roll < miss + tb.dodgePct + tb.glancePct;
         var crit = !glance && roll < miss + tb.dodgePct + tb.glancePct + critCh;
         if (glance) { amt *= tb.glanceDmgPct / 100; r.glances++; }
         if (crit) amt *= 2;
-        deal('pet:melee', amt, crit, false);
+        deal(rk, amt, crit, false);
+        if (extraAp) L('pet', rk, { dmg: Math.round(amt), crit: crit });
         brandProc();
-      } else r.misses++;
-      H.push({ t: S.t + m.swing, o: 0, type: 'petSwing', gen: P.gen });
+        return true;
+      }
+      r.misses++; return false;
     }
 
     // ---------- mid-fight pet swap (round 35, A63) ----------

@@ -57,6 +57,9 @@ $override = @{
   # AoE channels (round 100): values of the triggered damage spells (11682 / 1282385), Effect Value - 1.
   '11684' = 'Ignites the area surrounding the caster, causing 206 Fire damage (+2.2% of Spell Power) to himself and to all nearby enemies every 1 sec. Lasts 15 sec.'
   '11678' = 'Calls down a fiery rain to burn enemies in the area of effect for 880 Fire damage (+33.2% of Spell Power) over 8 sec.'
+  # Windfury Totem R3 (round 124): the archived text reads "within 0 yards" and "(246 * 1) extra melee attack power" (an unresolved
+  # talent multiplier) - tidied, nothing else changed.
+  '10614' = 'Summons a Windfury Totem with 5 health at the feet of the caster. The totem enhances the melee attacks of all nearby party members. Each main hand hit has a 20% chance of granting the attacker 1 extra attack with 246 extra melee attack power. Lasts 5 min.'
 }
 $s = 0; $missing = @(); $o = 0
 foreach ($id in ($ids | Select-Object -Unique)) {

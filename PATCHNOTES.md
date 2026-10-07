@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v116
+- New raid buff: **Windfury Totem** (off by default). Pets with a melee attack — Succubus, Felhunter, Voidwalker — get a 20%
+  chance on every hit of one extra attack with 246 extra attack power. The extra attack uses up a Demonic Brand charge like
+  any other pet attack. Worth about 2–3% for Succubus builds.
+- Windfury Totem and Grace of Air Totem do not stack: ticking one unticks the other.
+
 ## v115
 - **Improved Shadow Bolt**: a Shadow Bolt crit now always applies it. Before, the debuff rolled a second hit check and could
   miss. Builds with the talent gain up to 0.3% at the default hit chance; nothing changes at the hit cap.

@@ -14,7 +14,7 @@
     wrack: '#6A2D9E', drainLife: '#8C7CC9', shadowburn: '#D0B0FF', deathCoil: '#5C4B8C',
     immolate: '#E0662F', incinerate: '#F2A03D', conflagrate: '#B8401C', soulFire: '#F5CD5E', searingPain: '#D98530',
     hellfire: '#C9302C', rainOfFire: '#EE7B5B',
-    'pet:melee': '#2F8F5F', 'pet:lashOfPain': '#5CC08A', 'pet:firebolt': '#3AA776', 'pet:brand': '#8FD6A8', touchOfTheGrave: '#8A8F98',
+    'pet:melee': '#2F8F5F', 'pet:lashOfPain': '#5CC08A', 'pet:firebolt': '#3AA776', 'pet:brand': '#8FD6A8', 'pet:windfury': '#1F7A4F', touchOfTheGrave: '#8A8F98',
   };
   var ACTION_ICON = { curseOfElements: 'curseOfElements', shadowTrance: 'shadowTrance', bane: 'baneOfDoom', baneOfAgony: 'baneOfAgony', corruption: 'corruption',
     siphonLife: 'siphonLife', immolate: 'immolate', conflagrate: 'conflagrate', shadowburn: 'shadowburn', soulFire: 'soulFire',
@@ -167,6 +167,8 @@
     if (t.id && t.id.indexOf('b_') === 0 && t.checked) {               // raid buffs of one group do not stack either (round 118)
       var bg = (cfg.buffs[t.id.slice(2)] || {}).group;
       if (bg) Object.keys(cfg.buffs).forEach(function (k) { if (cfg.buffs[k].group === bg && 'b_' + k !== t.id) $('b_' + k).checked = false; });
+      var bx = (cfg.buffs[t.id.slice(2)] || {}).excl;                // … nor do buffs that cannot be up together (Windfury / Grace of Air Totem)
+      if (bx) Object.keys(cfg.buffs).forEach(function (k) { if (cfg.buffs[k].excl === bx && 'b_' + k !== t.id) $('b_' + k).checked = false; });
     }
     if (t.id === 'cdSelT') cdSetSelTime(parseFloat(t.value));          // seconds box of the selected timeline block (round 92)
     readSettings();
@@ -354,8 +356,8 @@
   }
   function applySidePreset(c, which) {
     if (which !== 'max') { SIDE_GROUPS.forEach(function (g) { Object.keys(c[g]).forEach(function (k) { c[g][k].on = !!WL.DEFAULT_CONFIG[g][k].on; }); }); return; }
-    var seenB = {};                                         // one buff per group: the first listed (Grace of Air before the scroll)
-    Object.keys(c.buffs).forEach(function (k) { var b = c.buffs[k]; b.on = !(b.group && seenB[b.group]); if (b.on && b.group) seenB[b.group] = 1; });
+    var seenB = {}, seenX = {};                             // one buff per group and per totem type: the first listed (Windfury before Grace of Air)
+    Object.keys(c.buffs).forEach(function (k) { var b = c.buffs[k]; b.on = !(b.group && seenB[b.group]) && !(b.excl && seenX[b.excl]); if (b.on && b.group) seenB[b.group] = 1; if (b.on && b.excl) seenX[b.excl] = 1; });
     var seen = {};
     Object.keys(c.debuffs).forEach(function (k) { var d = c.debuffs[k]; d.on = !d.coe && !(d.group && seen[d.group]); if (d.on && d.group) seen[d.group] = 1; });
     Object.keys(c.consumables).forEach(function (k) { c.consumables[k].on = MAX_CONS.indexOf(k) >= 0; });
@@ -802,6 +804,7 @@
     if (k === 'pet:lashOfPain') return 'Lash of Pain (Succubus)';
     if (k === 'pet:firebolt') return 'Firebolt (Imp)';
     if (k === 'pet:brand') return 'Demonic Brand (pet bonus)';
+    if (k === 'pet:windfury') return 'Windfury extra attacks (pet)';
     if (k === 'touchOfTheGrave') return 'Touch of the Grave';
     if (k === 'heal') return 'Healing received';                                                  // log entries of the health model (round 119)
     if (k === 'health') return 'low health';
@@ -821,6 +824,7 @@
     if (k === 'demonicSacrifice' || k === 'felDomination') return 'talent_' + k;
     if (k.indexOf('summon:') === 0) return 'pet_' + k.slice(7);
     if (k === 'pet:brand') return 'talent_demonicBrand';            // round 45: the brand bonus had no icon
+    if (k === 'pet:windfury') return 'buff_windfuryTotem';
     return k === 'pet:lashOfPain' ? 'lashOfPain' : k === 'pet:firebolt' ? 'firebolt' : k === 'pet:melee' ? 'pet_succubus' : k.indexOf('item:') === 0 ? 'consumable_' + k.slice(5) : k; }
   // Tracked auras (engine keys) → label, icon, group. Buffs on you vs effects on the boss. (W4, W5)
   var AURAS = {
