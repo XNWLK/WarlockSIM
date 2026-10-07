@@ -30,9 +30,9 @@
     var base = agi([]);
     T.eq(WL.DEFAULT_CONFIG.buffs.graceOfAir.group, WL.DEFAULT_CONFIG.buffs.scrollOfAgility.group, 'both carry the same group');
     T.near(agi(['scrollOfAgility']) - base, 17, 1e-9, 'scroll alone: +17 Agility');
-    T.near(agi(['graceOfAir']) - base, 77, 1e-9, 'totem alone: +77');
-    T.near(agi(['graceOfAir', 'scrollOfAgility']) - base, 77, 1e-9, 'both: +77, not +94');
-    T.near(agi(['graceOfAir', 'scrollOfAgility', 'markOfTheWild']) - base, 77 + 16, 1e-9, 'Mark of the Wild (no group) still adds: +93');
+    T.near(agi(['graceOfAir']) - base, 89, 1e-9, 'totem alone: +89 (round 125: was 77)');
+    T.near(agi(['graceOfAir', 'scrollOfAgility']) - base, 89, 1e-9, 'both: +89, not +106');
+    T.near(agi(['graceOfAir', 'scrollOfAgility', 'markOfTheWild']) - base, 89 + 16, 1e-9, 'Mark of the Wild (no group) still adds: +105');
     var both = WL.computeStats(b0, 'human', det(function (c) { c.buffs.graceOfAir.on = c.buffs.scrollOfAgility.on = true; }));
     T.eq(both.breakdown.filter(function (x) { return x.stat === 'agi' && /Grace|Scroll/.test(x.source); }).map(function (x) { return x.source; }).join(','), 'Grace of Air Totem', 'the stat breakdown lists only the totem');
 

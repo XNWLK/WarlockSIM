@@ -104,7 +104,7 @@
     var ts = run(tb(['shadowBolt']), det(function (c) { c.buffs.blessingOfSalvation.on = true; }), 60);
     var tst = run(tb(['shadowBolt']), det(function (c) { c.buffs.blessingOfSalvation.on = true; c.buffs.tranquilAir.on = true; }), 60);
     T.ok(near(ts.threat / ts.total, 0.70, 1e-9) && near(ts.total, t0.total), 'Salvation: threat × 0.70, damage unchanged');
-    T.ok(near(tst.threat / tst.total, 0.56, 1e-9), 'Salvation + Tranquil Air: × 0.70 × 0.80 = 0.56');
+    T.ok(near(tst.threat / tst.total, 0.70, 1e-9), 'Salvation + Tranquil Air do not stack (round 125): × 0.70, the bigger of the two');
     var cpet = det(function (c) { c.options.includePetDamage = true; }), tpet = run(tb(['shadowBolt'], {}, { pet: 'imp' }), cpet, 60), petDmg = 0;
     Object.keys(tpet.bySpell).forEach(function (k) { if (k.indexOf('pet:') === 0) { petDmg += tpet.bySpell[k].dmg; if (tpet.bySpell[k].threat) petDmg = NaN; } });
     T.ok(petDmg > 0 && near(tpet.threat, tpet.total - petDmg, 1e-6), 'the pet\'s damage is its own threat: yours = your damage only (' + Math.round(tpet.threat) + ' of ' + Math.round(tpet.total) + ')');

@@ -167,7 +167,7 @@
     if (t.id && t.id.indexOf('b_') === 0 && t.checked) {               // raid buffs of one group do not stack either (round 118)
       var bg = (cfg.buffs[t.id.slice(2)] || {}).group;
       if (bg) Object.keys(cfg.buffs).forEach(function (k) { if (cfg.buffs[k].group === bg && 'b_' + k !== t.id) $('b_' + k).checked = false; });
-      var bx = (cfg.buffs[t.id.slice(2)] || {}).excl;                // … nor do buffs that cannot be up together (Windfury / Grace of Air Totem)
+      var bx = (cfg.buffs[t.id.slice(2)] || {}).excl;                // … nor do buffs that cannot be up together (Windfury / Grace of Air / Tranquil Air Totem)
       if (bx) Object.keys(cfg.buffs).forEach(function (k) { if (cfg.buffs[k].excl === bx && 'b_' + k !== t.id) $('b_' + k).checked = false; });
     }
     if (t.id === 'cdSelT') cdSetSelTime(parseFloat(t.value));          // seconds box of the selected timeline block (round 92)

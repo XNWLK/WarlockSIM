@@ -229,7 +229,14 @@ window.WL = window.WL || {};
     // 1 damage = 1 threat, Searing Pain twice that ("a high amount of threat"; less with Demonic Brand), all of it reduced by
     // Suppression (4% per point) and by Blessing of Salvation / Tranquil Air Totem (they multiply). Your pet's damage is the
     // pet's threat, not yours. Not counted: threat from healing yourself, from mana gains and from applying curses.
-    var THREAT_ALL = (1 - tv('suppression', 'threatPct') / 100) * buffList.reduce(function (m, b) { return m * (1 - (b.threatPct || 0) / 100); }, 1);
+    // Threat buffs of one `group` do not stack (round 125, user: Blessing of Salvation / Tranquil Air Totem): the biggest counts.
+    var THREAT_BUFFS = (function () {
+      var m = 1, best = {};
+      buffList.forEach(function (b) { if (!b.threatPct) return; if (b.group) best[b.group] = Math.max(best[b.group] || 0, b.threatPct); else m *= 1 - b.threatPct / 100; });
+      Object.keys(best).forEach(function (g) { m *= 1 - best[g] / 100; });
+      return m;
+    })();
+    var THREAT_ALL = (1 - tv('suppression', 'threatPct') / 100) * THREAT_BUFFS;
     function threatMult(bk) {
       var s = SPELLS[bk], m = THREAT_ALL * ((s && s.threatMult) || 1);
       if (bk === 'searingPain') m *= 1 - tv('demonicBrand', 'threatRedPct') / 100;

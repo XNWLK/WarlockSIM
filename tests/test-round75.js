@@ -15,7 +15,7 @@
   T.run('round 75: melee crit from Agility, Succubus melee inherits it', function () {
     T.group('Defaults: Grace of Air Totem off, Scroll of Agility IV on; Mark of the Wild +16 Agility');
     var B = WL.DEFAULT_CONFIG.buffs;
-    T.ok(B.graceOfAir && !WL.SHIPPED_ON.buffs.graceOfAir && B.graceOfAir.agi === 77, 'Grace of Air Totem: +77 Agility, off by default');
+    T.ok(B.graceOfAir && !WL.SHIPPED_ON.buffs.graceOfAir && B.graceOfAir.agi === 89, 'Grace of Air Totem: +89 Agility (round 125: was 77), off by default');
     T.ok(B.scrollOfAgility && WL.SHIPPED_ON.buffs.scrollOfAgility && B.scrollOfAgility.agi === 17, 'Scroll of Agility IV: +17 Agility, on by default');
     T.eq(B.markOfTheWild.agi, 16, 'Mark of the Wild gives Agility too');
 
@@ -29,8 +29,8 @@
     var s0 = WL.computeStats(nob, 'human', c);
     var cg = shipped(); cg.buffs.graceOfAir.on = true;
     var sg = WL.computeStats(nob, 'human', cg);
-    T.near(sg.agi - s0.agi, (77 - 17) * 1.1, 1e-9, 'Grace of Air Totem on top of the Scroll of Agility: 77 instead of 17, +66 Agility with Kings (they do not stack, round 118)');
-    T.near(sg.meleeCritPct - s0.meleeCritPct, (77 - 17) * 1.1 / 20, 1e-9, '… = +3.30% melee crit');
+    T.near(sg.agi - s0.agi, (89 - 17) * 1.1, 1e-9, 'Grace of Air Totem on top of the Scroll of Agility: 89 instead of 17, +79.2 Agility with Kings (they do not stack, round 118)');
+    T.near(sg.meleeCritPct - s0.meleeCritPct, (89 - 17) * 1.1 / 20, 1e-9, '… = +3.96% melee crit');
     T.eq(sg.critPct, s0.critPct, 'and no spell crit');
     // Agility from a consumable (Elixir of Cunning until round 90, when the user removed it): a stand-in keeps the rule tested
     var ce = shipped(); ce.consumables.testAgi = { on: true, group: 'testAgi', name: 'Agility test consumable', agi: 25 };

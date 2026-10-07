@@ -97,20 +97,23 @@ WL.DEFAULT_CONFIG = {
     blessingOfWisdom: { on: true, id: 25290, name: 'Blessing of Wisdom',            cls: 'Paladin', desc: '40 mana every 5 s', mp5: 40 },
     manaSpring:       { on: false, id: 10497, name: 'Mana Spring Totem',             cls: 'Shaman',  desc: '10 mana every 2 s (25 MP5)', mp5: 25 },
     restorativeTotems:{ on: false, id: 16187, name: 'Restorative Totems (on Mana Spring)', cls: 'Shaman', desc: 'Mana Spring +25%', mp5: 6.25, requires: 'manaSpring' },
-    // Round 75 (user): Agility for your melee crit (the Succubus' melee inherits it). Classic values, not checked in Forever [A75].
+    // Round 75 (user): Agility for your melee crit (the Succubus' melee inherits it). [A75] Round 125 (user): Grace of Air Totem
+    // gives 89 Agility — the archived Forever tooltip of Rank 3 (25359); it was 77, the Classic value. The scroll: Classic value.
     // Round 118 (user): Grace of Air and the Scroll of Agility do not stack — same `group`, only the bigger one counts.
     // Round 124 (user): Windfury Totem works for pets with a melee attack; it and Grace of Air are the same totem type in
     // Forever and do not stack (they did in Classic) — same `excl`: only the first listed one that is on counts, and the page
     // unticks the other. 20% / 246 attack power = Rank 3 in the archived Forever tooltip (Classic: 315). [A85]
-    windfuryTotem:    { on: false, id: 10614, name: 'Windfury Totem',                cls: 'Shaman',  desc: 'Pets with a melee attack: each hit has a 20% chance of 1 extra attack with 246 extra attack power (does not stack with Grace of Air Totem)', windfury: { procPct: 20, ap: 246 }, excl: 'airTotem' },
-    graceOfAir:       { on: false, id: 25359, name: 'Grace of Air Totem',            cls: 'Shaman',  desc: '+77 Agility (melee crit for the Succubus; does not stack with Windfury Totem or the Scroll of Agility)', agi: 77, group: 'agility', excl: 'airTotem' },
+    // Round 125 (user): Tranquil Air Totem is that totem type too — it stacks with neither Windfury nor Grace of Air.
+    windfuryTotem:    { on: false, id: 10614, name: 'Windfury Totem',                cls: 'Shaman',  desc: 'Pets with a melee attack: each hit has a 20% chance of 1 extra attack with 246 extra attack power (does not stack with Grace of Air Totem or Tranquil Air Totem)', windfury: { procPct: 20, ap: 246 }, excl: 'airTotem' },
+    graceOfAir:       { on: false, id: 25359, name: 'Grace of Air Totem',            cls: 'Shaman',  desc: '+89 Agility (melee crit for the Succubus; does not stack with Windfury Totem, Tranquil Air Totem or the Scroll of Agility)', agi: 89, group: 'agility', excl: 'airTotem' },
     manaTide:         { on: false, id: 17359, name: 'Mana Tide Totem',               cls: 'Shaman',  desc: '290 mana every 3 s for 12 s, once, when you drop below 50% mana', tide: { amount: 290, every: 3, ticks: 4 } },
     innervate:        { on: false, id: 29166, name: 'Innervate',                     cls: 'Druid',   desc: '5× mana regen while casting for 20 s, once, when you drop below 50% mana', innervate: { mult: 5, duration: 20 } },
     moonkinAura:      { on: true, id: 24858, name: 'Moonkin Form aura',             cls: 'Druid',   desc: '+3% crit (party)', critPct: 3 },
     scrollOfAgility:  { on: true, id: 12174, name: 'Scroll of Agility IV',                  cls: 'Scroll',  desc: '+17 Agility (melee crit for the Succubus; does not stack with Grace of Air)', agi: 17, group: 'agility' },
     // Threat reduction (round 119, user). Classic values — neither tooltip is in the archived Forever data [A84].
-    blessingOfSalvation: { on: false, id: 1038, name: 'Blessing of Salvation',       cls: 'Paladin', desc: '−30% threat', threatPct: 30 },
-    tranquilAir:      { on: false, id: 25908, name: 'Tranquil Air Totem',            cls: 'Shaman',  desc: '−20% threat', threatPct: 20 },
+    // Round 125 (user): the two do not stack — same `group`, only the bigger reduction counts.
+    blessingOfSalvation: { on: false, id: 1038, name: 'Blessing of Salvation',       cls: 'Paladin', desc: '−30% threat (does not stack with Tranquil Air Totem)', threatPct: 30, group: 'threat' },
+    tranquilAir:      { on: false, id: 25908, name: 'Tranquil Air Totem',            cls: 'Shaman',  desc: '−20% threat (does not stack with Blessing of Salvation, Windfury Totem or Grace of Air Totem)', threatPct: 20, group: 'threat', excl: 'airTotem' },
     powerInfusion:    { on: false, id: 10060, name: 'Power Infusion',                cls: 'Priest',  desc: '+20% spell damage for 15 s (3 min cooldown); cast on you when you pop your cooldowns', spellDmgPct: 20, duration: 15, cd: 180 },
   },
   // Consumables (data/consumables.js, loaded before this file). Only the per-build weapon oil is on by default. [A57]

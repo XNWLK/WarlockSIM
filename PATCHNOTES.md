@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v117
+- Windfury Totem, Grace of Air Totem and Tranquil Air Totem are one totem type: only one of the three can be on.
+- Tranquil Air Totem and Blessing of Salvation do not stack their threat reduction.
+- Grace of Air Totem gives 89 Agility (was 77).
+- Windfury Totem has its icon.
+
 ## v116
 - New raid buff: **Windfury Totem** (off by default). Pets with a melee attack — Succubus, Felhunter, Voidwalker — get a 20%
   chance on every hit of one extra attack with 246 extra attack power. The extra attack uses up a Demonic Brand charge like

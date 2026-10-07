@@ -11,7 +11,7 @@ WL.talentValue = function (build, key, field) {
 };
 
 // Buffs that are switched on (a buff with `requires` only counts when that buff is also on, e.g. Restorative Totems).
-// Buffs that share an `excl` cannot be up together (round 124: Windfury Totem / Grace of Air Totem, one totem type): of
+// Buffs that share an `excl` cannot be up together (Windfury / Grace of Air / Tranquil Air Totem, one totem type): of
 // those that are on only the first listed counts. The page keeps them exclusive; this covers hand-made settings.
 WL.activeBuffs = function (cfg) {
   var B = cfg.buffs || {}, seen = {};
@@ -77,7 +77,7 @@ WL.computeStats = function (build, raceKey, cfg) {
 
   // --- Primary stats ---
   // Buffs that share a `group` do not stack: of the active ones only the biggest value of a stat counts (round 118, user:
-  // Grace of Air Totem + Scroll of Agility = 77 Agility, not 94).
+  // Grace of Air Totem + Scroll of Agility = 89 Agility, not 106).
   var buffStat = function (s) {
     var sum = 0, best = {}, act = WL.activeBuffs(cfg);
     act.forEach(function (b) { if (b[s] && b.group && (!best[b.group] || b[s] > best[b.group][s])) best[b.group] = b; });
