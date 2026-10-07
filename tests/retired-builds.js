@@ -1,4 +1,5 @@
-// Builds that were on the sheet until round 110 (user: taken off the sheet). Kept here, exactly as they were, because
+// Builds that were on the sheet until round 110 (user: taken off the sheet) — and, last in the list, Demo Pact Shadow Bolt
+// Imp, taken off in round 122. Kept here, exactly as they were, because
 // tests of earlier rounds use them (drain filler, Demonic Brand upkeep, filler talents, Life Tap settings …).
 // WL.findBuild(key): a build of the sheet, else one of these.
 window.WL = window.WL || {};
@@ -71,6 +72,20 @@ WL.RETIRED_BUILDS = [
     pet: null, sacrifice: 'imp', oil: 'spellstone',
     rotation: ['deathCoilFinisher', 'bane', 'corruption', 'immolate', 'shadowTrance', 'curseOfElements', 'lifeTapBelow', 'shadowBolt'],
     params: { lifeTapBelow: { pct: 50, sec: 25 } },   // round 105 (user): Life Tap below 50% mana with more than 25 s left, +0.37% (10,000 fights)
+  },
+  {
+    key: 'demo_pact_imp_sb', short: 'Demo Pact Shadow Bolt Imp',
+    name: 'Demonology – Pact, Imp out, Shadow Bolt',
+    notes: '2/31/18. Succubus sacrificed (+15% Fire for Immolate and Soul Fire) with the Imp out (Improved Imp, Demonic Energies). Shadow Bolt is the filler; in the execute phase Soul Fire and Searing Pain take over (Decimation). Demonic Brand is at 2/3 on purpose: the Imp uses up its charges before the brand runs out, so the third point would add nothing — the spare point sits in Improved Health Funnel.',
+    talents: {
+      suppression: 1, improvedCorruption: 1, improvedHealthFunnel: 1,   // round 61: -1 Suppression +1 Improved Corruption; Health Funnel = row-1 filler for the Brand point
+      unholyPower: 5, improvedImp: 3, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, masterSummoner: 2,
+      decimation: 2, demonicBrand: 2, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
+      improvedShadowBolt: 2, bane: 5, cataclysm: 3, ruin: 5, agonizingFlames: 3,
+    },
+    pet: 'imp', sacrifice: 'succubus', oil: 'spellstone',
+    rotation: ['deathCoilFinisher', 'searingPainBrand', 'lifeTapPet', 'bane', 'curseOfElements', 'immolate', 'corruption', 'soulFire', 'searingPainExecute', 'lifeTapBelow', 'shadowBolt'],   // round 82: + Searing Pain at execute
+    params: { lifeTapBelow: { pct: 60, sec: 10 } },   // round 105 (user): Life Tap below 60% mana with more than 10 s left, +1.43% (10,000 fights)
   },
 ];
 

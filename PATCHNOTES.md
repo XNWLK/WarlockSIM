@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v114
+- **Demo Pact Shadow Bolt Imp** was taken off the build list. Seven builds remain; their numbers did not change.
+
 ## v113
 - Blessing of Salvation and Tranquil Air Totem have their icons.
 

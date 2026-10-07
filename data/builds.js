@@ -15,6 +15,7 @@
 // Round 110 (user): five builds taken off the sheet — Aff Pact Fire Imp, Demo Pact Fire Succubus, Aff Pact Drain Life
 // Succubus, Aff Shadow Bolt Succubus and DS Ruin (classic). Eight builds remain. The five live on as test fixtures in
 // tests/retired-builds.js (several tests use them); their history is in docs/03_BUILD_LOG.md.
+// Round 122 (user): Demo Pact Shadow Bolt Imp taken off the sheet as well — seven builds remain; it joined the fixtures.
 //
 // Round 16 (2026-09-24): list re-derived after pet spell power 100% → 15% (A26/A49) and Succubus melee 40 → 100 DPS
 // (A46). Full search + point-shift hill-climb + rotation search at the new defaults: docs/04_EXPLORATION.md section 8.
@@ -81,20 +82,6 @@ WL.BUILDS = [
     pet: 'succubus', sacrifice: null, oil: 'firestone',
     rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'immolate', 'corruption', 'conflagrate', 'shadowburn', 'lifeTapBelow', 'incinerate'],
     params: { lifeTapBelow: { pct: 50, sec: 25 } },   // round 105 (user): Life Tap below 50% mana with more than 25 s left, +0.36% (10,000 fights)
-  },
-  {
-    key: 'demo_pact_imp_sb', short: 'Demo Pact Shadow Bolt Imp',
-    name: 'Demonology – Pact, Imp out, Shadow Bolt',
-    notes: '2/31/18. Succubus sacrificed (+15% Fire for Immolate and Soul Fire) with the Imp out (Improved Imp, Demonic Energies). Shadow Bolt is the filler; in the execute phase Soul Fire and Searing Pain take over (Decimation). Demonic Brand is at 2/3 on purpose: the Imp uses up its charges before the brand runs out, so the third point would add nothing — the spare point sits in Improved Health Funnel.',
-    talents: {
-      suppression: 1, improvedCorruption: 1, improvedHealthFunnel: 1,   // round 61: -1 Suppression +1 Improved Corruption; Health Funnel = row-1 filler for the Brand point
-      unholyPower: 5, improvedImp: 3, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, masterSummoner: 2,
-      decimation: 2, demonicBrand: 2, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
-      improvedShadowBolt: 2, bane: 5, cataclysm: 3, ruin: 5, agonizingFlames: 3,
-    },
-    pet: 'imp', sacrifice: 'succubus', oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'searingPainBrand', 'lifeTapPet', 'bane', 'curseOfElements', 'immolate', 'corruption', 'soulFire', 'searingPainExecute', 'lifeTapBelow', 'shadowBolt'],   // round 82: + Searing Pain at execute
-    params: { lifeTapBelow: { pct: 60, sec: 10 } },   // round 105 (user): Life Tap below 60% mana with more than 10 s left, +1.43% (10,000 fights)
   },
   {
     key: 'destro_incin_imp', short: 'Destro Incinerate Imp',
