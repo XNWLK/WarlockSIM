@@ -303,3 +303,15 @@ WL.effectiveRotation = function (build, cfg) {
   }
   return rot;
 };
+
+// Precast (round 127, user; A87): "a spell that finishes before the fight timer starts". Only a spell with a cast bar
+// can do that — an instant or a channel would start the fight. In the order of WL.SPELLS.
+WL.PRECAST_SPELLS = Object.keys(WL.SPELLS).filter(function (k) { var s = WL.SPELLS[k]; return s.cast > 0 && s.kind !== 'channel' && s.kind !== 'utility'; });
+// The spell this build precasts under these settings, or null: nothing chosen (fight.precast ''), the build cannot cast
+// it (talent spell without the talent), or its talents make it an instant (Corruption with Improved Corruption 5/5).
+// `table` = the build's spell table (WL.buildSpellTable).
+WL.precastOf = function (build, cfg, table) {
+  var k = cfg && cfg.fight && cfg.fight.precast;
+  if (!k || WL.PRECAST_SPELLS.indexOf(k) < 0 || !table || !table[k] || !(table[k].cast > 0)) return null;
+  return k;
+};

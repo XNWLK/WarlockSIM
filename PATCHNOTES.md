@@ -3,6 +3,16 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v119
+- New option: **Precast** (Fight & pets → Fight). Pick the spell you start with — Shadow Bolt, Immolate, Incinerate, Searing
+  Pain, Soul Fire or Corruption. A precast is started before the pull so that it finishes as the fight timer starts: it lands
+  at second 0, its cast time costs no fight time, its mana is already spent and its cooldown starts at second 0.
+- Off by default, so the default results are unchanged. A Soul Fire precast is worth about 1.0–1.3%, the other spells
+  0.3–1.0% depending on the build.
+- A build that cannot precast the chosen spell (Incinerate without the talent, Corruption made instant by talents) starts
+  the fight as usual; its details say so.
+- Your cooldowns are not used for the precast: they follow "Pop cooldowns" from the first cast of the fight on.
+
 ## v118
 - The Buffs & debuffs tab fits its card again without a scroll bar. The two notes at its bottom moved into the hover text of
   the "Boss debuffs" heading.

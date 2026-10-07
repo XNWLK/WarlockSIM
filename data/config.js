@@ -13,6 +13,7 @@ WL.DEFAULT_CONFIG = {
     // Encounter options (W11, A60): all off by default = one stationary target, no reaction delay.
     latencyMs: 0,           // reaction delay after each of your casts / GCDs
     travelMs: 0,            // travel time of projectiles (Shadow Bolt, Soul Fire, Incinerate, Death Coil, Firebolt); 0 = right in front of the boss (user, round 39) [A65]
+    precast: '',            // round 127 (user): a spell with a cast bar that you start before the pull so that it completes as the fight timer starts ('' = none; one of WL.PRECAST_SPELLS) [A87]
     moveEvery: 0,           // every N s ...
     moveDuration: 0,        // ... you move for M s (only instants while moving). 0 = no movement
     hitEvery: 0,            // round 78 (user): you take a direct hit every N s (0 = never) → pushback on casts / channels [A76]

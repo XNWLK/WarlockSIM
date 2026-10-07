@@ -743,6 +743,7 @@
           <label class="f" for="duration">Duration (s)<input id="duration" type="number" min="10" step="10"></label>
           <label class="f" for="iterations">Fights per combo<input id="iterations" type="number" min="10" step="100"></label>
           <label class="f" for="executePct">Execute below (% HP)<input id="executePct" type="number" min="0" max="100"></label>
+          <label class="f" for="precast" style="grid-template-columns: minmax(0, 96px) minmax(56px, 114px)" title="A precast is a spell you start before the pull so that its cast finishes as the fight timer starts. It lands at second 0, its cast time costs no fight time, its mana is already spent and its cooldown starts at second 0. Only spells with a cast bar can be precast. A build that cannot precast the chosen spell (Incinerate without the talent, Corruption made instant by talents) starts the fight as usual. Your cooldowns are not used for it.">Precast<select id="precast"></select></label>
         </fieldset>
         <fieldset><legend title="Your health is simulated: Life Tap costs 430 health, Hellfire burns you every second, a Demonic Rune costs 800 and a Goblin Sapper hurts you too. Drain Life, Siphon Life, Death Coil and Touch of the Grave give health back. Without enough health a Life Tap has to wait. Damage from the boss is not simulated.">Healing you receive</legend>
           <label class="f" for="healAmount" title="Health you are healed for each time. 0 = nobody heals you.">Healed for (health)<input id="healAmount" type="number" min="0" step="100"></label>

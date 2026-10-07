@@ -71,12 +71,26 @@
   // Bane of Havoc is not a priority action: with 2+ targets the engine casts it on target 2 by itself (off the GCD). It is
   // shown at the top of the priority list anyway, so the Destruction builds visibly use it (user report, round 40).
   var HAVOC_LABEL = 'Bane of Havoc on target 2 (automatic with 2+ targets: at the pull and whenever it is missing, off the GCD)';
+  // A precast (round 127, user) is not a priority action either: when the run's settings name one and this build can
+  // precast it, it is shown first, before everything else. Whether a build can depends on its talents only, so the
+  // baseline race does for the spell table.
+  function precastFor(b, c) {
+    if (!(c.fight && c.fight.precast)) return null;
+    return WL.precastOf(b, c, WL.buildSpellTable(b, WL.computeStats(b, WL.BASELINE_RACE, c), c));
+  }
+  function precastName(k) { return (WL.SPELLS[k] || {}).name || k; }
+  var PRECAST_RULE = 'Started before the pull so that the cast finishes as the fight timer starts: it lands at second 0, its cast time costs no fight time, its mana is already spent and its cooldown starts at second 0. Your cooldowns are not used for it.';
   function shownRotation(b, c) {
     var rot = WL.effectiveRotation(b, c);
-    return (c.fight.targets || 1) >= 2 && b.talents.baneOfHavoc ? ['havocAuto'].concat(rot) : rot;
+    if ((c.fight.targets || 1) >= 2 && b.talents.baneOfHavoc) rot = ['havocAuto'].concat(rot);
+    return precastFor(b, c) ? ['precastAuto'].concat(rot) : rot;
   }
-  function actLabel(a, b) { return a === 'havocAuto' ? HAVOC_LABEL : WL.actionLabel(b, a); }   // b: the build, for actions with numbers of their own (round 104)
+  function actIcon(a, b) { return a === 'precastAuto' ? precastFor(b, runCfg) : ACTION_ICON[a]; }
+  function actLabel(a, b) {                                   // b: the build, for actions with numbers of their own (round 104)
+    return a === 'havocAuto' ? HAVOC_LABEL : a === 'precastAuto' ? 'Precast: ' + precastName(precastFor(b, runCfg)) + ' (lands as the fight starts)' : WL.actionLabel(b, a);
+  }
   function actionTip(a, b) {
+    if (a === 'precastAuto') return spellBlock(precastFor(b, runCfg)) + '<div class="tt-rule">' + esc(PRECAST_RULE) + '</div>';
     if (a === 'havocAuto') return spellBlock('baneOfHavoc') + '<div class="tt-rule">' + esc(HAVOC_LABEL) + '</div>';
     if (a === 'swapToImp' || a === 'swapToSuccubus') {             // mid-fight pet swap (round 35)
       var to = a === 'swapToImp' ? 'Imp' : 'Succubus';
@@ -277,6 +291,8 @@
     $('resShadow').value = cfg.combat.targetResist.shadow; $('resFire').value = cfg.combat.targetResist.fire;
     $('o_levelRes').checked = !!(cfg.combat.levelResist && cfg.combat.levelResist.on);
     $('o_actives').value = cfg.options.activesPolicy || 'doom';
+    $('precast').innerHTML = '<option value="">None</option>' + WL.PRECAST_SPELLS.map(function (k) { return '<option value="' + k + '">' + esc(WL.SPELLS[k].name) + '</option>'; }).join('');
+    $('precast').value = WL.PRECAST_SPELLS.indexOf(cfg.fight.precast) >= 0 ? cfg.fight.precast : '';
     armorNote(); renderTotals(); tabCounts(); renderCdTl(); advNote();
   }
   var CON_GROUPS = { flask: 'Flask', spElixir: 'Spell power elixir', shadowElixir: 'Shadow elixir', fireElixir: 'Fire elixir',
@@ -415,6 +431,7 @@
     ['Shadow', 'Fire'].forEach(function (s) { var v = parseFloat($('res' + s).value); if (isFinite(v)) cfg.combat.targetResist[s.toLowerCase()] = Math.max(0, v); });
     cfg.combat.levelResist.on = $('o_levelRes').checked;
     cfg.options.activesPolicy = $('o_actives').value;
+    cfg.fight.precast = $('precast').value;
     armorNote(); renderTotals(); tabCounts(); renderCdTl();
     var num = function (id, fallback) { var v = parseFloat($(id).value); return isFinite(v) ? v : fallback; };
     cfg.petSpPct = num('p_spPct', cfg.petSpPct);
@@ -616,7 +633,7 @@
     var g = runCfg.gear, f = runCfg.fight;
     $('statbar').innerHTML =
       chip('--c-sp', fmt(g.sp), 'spell power') + chip('--c-hit', fmt(g.hitPct, 1) + '%', 'hit') + chip('--c-crit', fmt(g.critPct, 1) + '%', 'crit') +
-      chip('--c-fight', f.duration + ' s' + (f.durationVarPct ? ' ±' + f.durationVarPct + '%' : ''), (f.targets > 1 ? f.targets + ' targets · ' : '') + 'fight') +
+      chip('--c-fight', f.duration + ' s' + (f.durationVarPct ? ' ±' + f.durationVarPct + '%' : ''), (f.targets > 1 ? f.targets + ' targets · ' : '') + 'fight' + (WL.PRECAST_SPELLS.indexOf(f.precast) >= 0 ? ' · ' + esc(precastName(f.precast)) + ' precast' : '')) +
       '<span class="end"><button class="primary" id="runBtn" type="button"' + (running ? ' disabled' : '') + '>' + (running ? 'Simming…' : 'Sim!') + '</button></span>';
     $('addRunBtn').disabled = running || !results.length;
   }
@@ -892,7 +909,7 @@
   // Round 46 (user): the Warlock part has a fixed width of 8 slots, so the pet part lines up in every row; Bane of Doom
   // and Bane of Agony (mutually exclusive: one Bane per target) share ONE slot with a diagonally split icon (Doom top
   // left, Agony bottom right), their damage added together; the bar shows both parts in their own colours.
-  var ACTION_DMG = { havocAuto: ['baneOfHavoc'] };
+  var ACTION_DMG = { havocAuto: ['baneOfHavoc'], precastAuto: [] };   // the precast takes no slot of its own: its spell keeps its place in the priority
   var OWN_SLOTS = 8;
   function prioDamage(r, dur) {
     var b = r.build, byBase = {}, total = 0;
@@ -1140,13 +1157,17 @@
 
     // ---- smaller cards ----
     var rcd = WL.RACES[r.race].racials.filter(function (x) { return x.effect === 'cooldown'; })[0];
+    var rotShown = shownRotation(b, runCfg), preAct = rotShown[0] === 'precastAuto' ? rotShown.shift() : null;
+    var preSet = runCfg.fight.precast && WL.PRECAST_SPELLS.indexOf(runCfg.fight.precast) >= 0 ? runCfg.fight.precast : null;
     h += '<div class="dcard"><h2>Rotation priority</h2><ol class="prio">' +
+      (preAct ? '<li>' + icon(actIcon(preAct, b), actLabel(preAct, b), '', actionTip(preAct, b)) + ' ' + esc(actLabel(preAct, b)) + ' <span class="meta">(set by Precast in Fight &amp; pets)</span></li>' : '') +
       (rcd ? '<li>' + icon(RACIAL_ICON[rcd.name], rcd.name, '', racialTip(rcd)) + ' ' + esc(rcd.name) + ': ' + esc(racialRule(rcd).replace(/^Used /, '')) + '</li>' : '') +
-      shownRotation(b, runCfg).map(function (a) {
-      return '<li>' + icon(ACTION_ICON[a], actLabel(a, b), '', actionTip(a, b)) + ' ' + esc(actLabel(a, b)) +
+      rotShown.map(function (a) {
+      return '<li>' + icon(actIcon(a, b), actLabel(a, b), '', actionTip(a, b)) + ' ' + esc(actLabel(a, b)) +
         (a === 'havocAuto' ? ' <span class="meta">(added by Targets ≥ 2)</span>' :
          b.rotation.indexOf(a) < 0 ? ' <span class="meta">(added by the Multi-DoT option)</span>' : '') + '</li>';
     }).join('') + '<li>' + icon('lifeTap', 'Life Tap') + ' Life Tap whenever mana is below the next spell\'s cost</li></ol>' +
+      (preSet && !preAct ? '<p class="meta"><b>No precast:</b> this build cannot precast ' + esc(precastName(preSet)) + ' (it does not have the spell, or its talents make it an instant), so it starts the fight as usual.</p>' : '') +
       '<p class="meta">Racial cooldowns, the Spellblasting potion and Power Infusion are first popped ' + activesWhen() + ', then whenever ready; channels are clipped when a higher-priority action is ready.' +
       (WL.activeConsumables(runCfg).some(function (c) { return c.manaRestore || c.spPotion; }) ? ' Mana potions / runes are used when at least their amount of mana is missing.' : '') + '</p>' +
       (b.timeline && b.timeline.length ? '<p class="meta"><b>Fight timeline:</b> ' + b.timeline.length + ' spells at fixed times (' +
@@ -1174,7 +1195,8 @@
       ev.map(function (e) {
         var cls = e.type === 'cast' ? 'cast' : (e.type === 'tick' || e.type === 'apply' || e.type === 'debuff' || e.type === 'pet') ? 'minor' : '';
         var note = [];
-        if (e.castTime != null) note.push(e.castTime ? e.castTime.toFixed(2) + ' s cast' : 'instant');
+        if (e.precast != null) note.push('precast: its ' + e.precast.toFixed(2) + ' s cast ended as the fight started');
+        else if (e.castTime != null) note.push(e.castTime ? e.castTime.toFixed(2) + ' s cast' : 'instant');
         if (e.timeline) note.push('timeline'); if (e.trance) note.push('Shadow Trance'); if (e.moving) note.push('while moving'); if (e.eureka) note.push('Eureka!');
         if (e.n) note.push('tick ' + e.n + '/' + e.of); if (e.gain) note.push('+' + e.gain + ' mana');
         if (e.for) note.push('for ' + spellName(e.for));
@@ -1281,7 +1303,7 @@
       // off-GCD instants (gcd 0: Bane of Havoc, Demonic Sacrifice, Fel Domination) are drawn as a thin marker
       var end = e.t + (e.channel || (e.castTime > 1e-9 ? e.castTime : (e.gcd != null ? e.gcd : 1.5)));
       if (e.channel) { var c = clips.filter(function (x) { return x.spell === e.spell && x.t > e.t - 1e-9 && x.t < end; })[0]; if (c) end = c.t; }
-      casts.push({ a: e.t, b: Math.min(end, D), k: e.spell, instant: !e.channel && !(e.castTime > 1e-9), tip: clock(e.t) + ' ' + spellName(e.spell) + (e.channel ? ' (channel)' : e.castTime > 1e-9 ? ' (' + e.castTime.toFixed(2) + ' s cast)' : e.gcd === 0 ? ' (instant, off the GCD)' : ' (instant, GCD)') });
+      casts.push({ a: e.t, b: Math.min(end, D), k: e.spell, instant: !e.channel && !(e.castTime > 1e-9), tip: clock(e.t) + ' ' + spellName(e.spell) + (e.precast != null ? ' (precast: its ' + e.precast.toFixed(2) + ' s cast ended as the fight started)' : e.channel ? ' (channel)' : e.castTime > 1e-9 ? ' (' + e.castTime.toFixed(2) + ' s cast)' : e.gcd === 0 ? ' (instant, off the GCD)' : ' (instant, GCD)') });
     });
     // Boss health (round 34): HP falls linearly 100% → 0% over the fight [A24]; the execute phase (below executePct,
     // Decimation's range) is drawn in red and marked by a dashed line through every lane.
@@ -1655,7 +1677,7 @@
 
     // ---- priority lists side by side ----
     var ra = shownRotation(A.build, runCfg), rb = shownRotation(B.build, runCfg);
-    var lst = function (rot, other, bd) { return '<ol class="cmprot">' + rot.map(function (a) { return '<li' + (other.indexOf(a) < 0 ? ' class="only"' : '') + '>' + icon(ACTION_ICON[a], actLabel(a, bd), '', actionTip(a, bd)) + ' ' + esc(actLabel(a, bd)) + '</li>'; }).join('') + '</ol>'; };
+    var lst = function (rot, other, bd) { return '<ol class="cmprot">' + rot.map(function (a) { return '<li' + (other.indexOf(a) < 0 ? ' class="only"' : '') + '>' + icon(actIcon(a, bd), actLabel(a, bd), '', actionTip(a, bd)) + ' ' + esc(actLabel(a, bd)) + '</li>'; }).join('') + '</ol>'; };
     h += '<div class="wide"><h2>Priority (highlighted = only in that build)</h2><div class="cmp2"><div><b class="cmptag">A</b>' + lst(ra, rb, A.build) + '</div><div><b class="cmptag b">B</b>' + lst(rb, ra, B.build) + '</div></div></div>';
 
     // ---- DPS spread ----
@@ -2108,7 +2130,7 @@
     if (t.closest('#edTlFill')) {                  // start from what the priority does in fight #1
       var c = tlCfg(), nb = JSON.parse(JSON.stringify(ed.b)); delete nb.timeline;
       var r = WL.simulateOnce(nb, 'human', c, { log: true, seed: (c.fight.seed * 7919) >>> 0, duration: c.fight.duration });
-      ed.b.timeline = r.log.filter(function (ev) { return ev.type === 'cast' && WL.TIMELINE_SPELLS.indexOf(ev.spell) >= 0; })
+      ed.b.timeline = r.log.filter(function (ev) { return ev.type === 'cast' && ev.precast == null && WL.TIMELINE_SPELLS.indexOf(ev.spell) >= 0; })
         .map(function (ev) { return { t: Math.round(ev.t * 100) / 100, k: ev.spell }; });
       // re-flow: an instant proc cast (Shadow Trance bolt, Soul Fire under Decimation) is placed with its normal cast time
       var endT = 0; ed.b.timeline.forEach(function (e) { e.t = Math.max(e.t, Math.ceil(endT * 100 - 1e-9) / 100); endT = e.t + tlSpan(e.k); });

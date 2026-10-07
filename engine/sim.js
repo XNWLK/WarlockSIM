@@ -1174,7 +1174,25 @@ window.WL = window.WL || {};
     // ---------- main loop ----------
     // Pre-pull: Demonic Sacrifice is handled statically in computeStats (buff lasts 2 h).
     if (cfg.debuffs && cfg.debuffs.coeOther && cfg.debuffs.coeOther.on) S.buffs.coe = dur + 1;   // another Warlock keeps CoE up
-    scheduleDecide(0);
+    // Precast (round 127, user; A87): fight.precast = a spell with a cast bar that you start before the pull so that it
+    // completes exactly as the fight timer starts. It lands at 0 s (a projectile `travelMs` later) before anything else
+    // happens then, its mana is already spent, its cooldown starts at 0 s (cast complete, A80), and its cast time is not
+    // fight time: only what is left of its global cooldown (GCD − cast time, for casts shorter than the GCD) runs into the
+    // fight. Nothing else is used before the pull: racial cooldown, potion and Power Infusion follow "Pop cooldowns" from
+    // the first cast of the fight on, and Bane of Havoc is not up yet. A build that cannot precast the spell starts as usual.
+    var PRE = WL.precastOf(build, cfg, table);
+    if (PRE) {
+      var preCast = S.castTime(PRE), preCost = table[PRE].cost, preGcd = Math.max(0, S.gcd() - preCast);
+      S.mana -= preCost; if (preCost > 0) S.lastSpend = 0;                      // 5-second rule: spent when the cast completed
+      if (table[PRE].cd) S.cds[PRE] = table[PRE].cd;
+      if (SPELLS[PRE].shards) S.shards -= SPELLS[PRE].shards;
+      S.gcdReady = preGcd;
+      row(PRE).casts++; row(PRE).castTime += preGcd;
+      S.minManaCheck();
+      L('cast', PRE, { castTime: 0, gcd: +preGcd.toFixed(3), precast: +preCast.toFixed(3) });
+      H.push({ t: SPELLS[PRE].projectile ? TRAVEL : 0, o: -1, type: 'castEnd', key: PRE, eureka: 1, baseMult: 1, target: 0 });
+      decideToken++; H.push({ t: preGcd + LAT, o: 2, type: 'decide', token: decideToken });   // your next cast: after the GCD and your reaction time, as after every cast
+    } else scheduleDecide(0);
     if (HEAL) for (var ht = HEAL.every; ht < dur - EPS; ht += HEAL.every) H.push({ t: ht, o: 0, type: 'heal' });
     var SAC = cfg.demonicSacrifice;
     if (SAC && (build.sacrifice === 'voidwalker' || build.sacrifice === 'felhunter')) for (var st = SAC.every; st < dur - EPS; st += SAC.every) H.push({ t: st, o: 0, type: 'sacTick' });

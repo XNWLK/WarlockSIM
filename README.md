@@ -47,6 +47,7 @@ Click a build for:
 - **Multi-target:** 2–3 targets with Bane of Havoc copying damage to target 2, optional **multi-DoTting** of the extra
   targets, and **Hellfire / Rain of Fire** hitting every target.
 - **Movement** (only instants while moving), **latency** and projectile **travel time**.
+- **Precast**: pick a spell that finishes as the fight timer starts (Soul Fire, Shadow Bolt, Immolate, …).
 - Encounter presets: standard, short, long, movement, heavy movement, two / three targets, high latency.
 - Options: keep Curse of the Elements up, pets on or off, AQ20 book ranks (Shadow Bolt R10, Immolate R8, Corruption R7),
   Eureka! timing, pet scaling.
