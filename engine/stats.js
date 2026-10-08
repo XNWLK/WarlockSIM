@@ -11,13 +11,22 @@ WL.talentValue = function (build, key, field) {
 };
 
 // Buffs that are switched on (a buff with `requires` only counts when that buff is also on, e.g. Restorative Totems).
-// Buffs that share an `excl` cannot be up together (Windfury / Grace of Air / Tranquil Air Totem, one totem type): of
-// those that are on only the first listed counts. The page keeps them exclusive; this covers hand-made settings.
+// Buffs that cannot be up together carry the same `excl` tag — one tag or a list of tags; two buffs clash when they share
+// one. 'airTotem' (round 125): Windfury / Grace of Air / Tranquil Air Totem. 'meleeTotem' (round 131, user): Windfury /
+// Flametongue / Grace of Air Totem — Flametongue and Tranquil Air share no tag and can still be up together. Of clashing
+// buffs that are on only the first listed counts. The page keeps them exclusive; this covers hand-made settings.
+WL.buffExcl = function (b) { return b && b.excl ? [].concat(b.excl) : []; };
+WL.buffsClash = function (a, b) {
+  var x = WL.buffExcl(b);
+  return a !== b && WL.buffExcl(a).some(function (t) { return x.indexOf(t) >= 0; });
+};
 WL.activeBuffs = function (cfg) {
   var B = cfg.buffs || {}, seen = {};
   return Object.keys(B).filter(function (k) {
     var b = B[k]; if (!b.on || (b.requires && !(B[b.requires] || {}).on)) return false;
-    if (b.excl) { if (seen[b.excl]) return false; seen[b.excl] = 1; }
+    var x = WL.buffExcl(b);
+    if (x.some(function (t) { return seen[t]; })) return false;
+    x.forEach(function (t) { seen[t] = 1; });
     return true;
   }).map(function (k) { return B[k]; });
 };

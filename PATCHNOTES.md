@@ -3,6 +3,16 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v123
+- **Windfury Totem and Flametongue Totem no longer stack**, and neither stacks with Grace of Air Totem: only one of the
+  three can be on. Ticking one unticks the other two.
+- Tranquil Air Totem is as before: not together with Windfury or Grace of Air. It can still be on with Flametongue.
+- The **Max** buffs & consumables setup now takes Windfury Totem alone. For a Succubus it is worth as much as Flametongue
+  Totem or more, depending on the build.
+- A saved setup or settings code with more than one of these totems on loads with the first of them: Windfury, then
+  Flametongue, then Grace of Air.
+- Default results are unchanged (all three totems are off by default).
+
 ## v122
 - **Destro Incinerate Imp** casts Curse of the Elements earlier: right after Immolate instead of after Conflagrate. A boss
   resists part of your damage until the curse is on it, so fewer of your hits are affected. Worth about 0.2% for that build;

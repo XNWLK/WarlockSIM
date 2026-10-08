@@ -181,8 +181,8 @@
     if (t.id && t.id.indexOf('b_') === 0 && t.checked) {               // raid buffs of one group do not stack either (round 118)
       var bg = (cfg.buffs[t.id.slice(2)] || {}).group;
       if (bg) Object.keys(cfg.buffs).forEach(function (k) { if (cfg.buffs[k].group === bg && 'b_' + k !== t.id) $('b_' + k).checked = false; });
-      var bx = (cfg.buffs[t.id.slice(2)] || {}).excl;                // … nor do buffs that cannot be up together (Windfury / Grace of Air / Tranquil Air Totem)
-      if (bx) Object.keys(cfg.buffs).forEach(function (k) { if (cfg.buffs[k].excl === bx && 'b_' + k !== t.id) $('b_' + k).checked = false; });
+      var bt = cfg.buffs[t.id.slice(2)];                             // … nor do buffs that cannot be up together (Windfury / Flametongue / Grace of Air / Tranquil Air Totem)
+      if (bt) Object.keys(cfg.buffs).forEach(function (k) { if (WL.buffsClash(bt, cfg.buffs[k])) $('b_' + k).checked = false; });
     }
     if (t.id === 'cdSelT') cdSetSelTime(parseFloat(t.value));          // seconds box of the selected timeline block (round 92)
     readSettings();
@@ -250,6 +250,10 @@
     ['o_multiDot', 'fight', 'multiDot'], ['o_ltMove', 'fight', 'lifeTapWhileMoving'], ['o_bookRanks', 'options', 'bookRanks'], ['o_dotEnd', 'options', 'dotEndCheck'],
     ['o_eng', 'professions', 'engineering']];
   function initSettings() {
+    // Buffs that cannot be up together: a loaded code may have several of them on (a "Max" setup saved while Windfury and
+    // Flametongue Totem still stacked). Show what the sim counts — the first listed — not a tick that does nothing.
+    var actB = WL.activeBuffs(cfg);
+    Object.keys(cfg.buffs).forEach(function (k) { var b = cfg.buffs[k]; if (b.on && b.excl && actB.indexOf(b) < 0) b.on = false; });
     // Stats table: editable Sheet (gear) inputs + read-only Total, built once so typing keeps focus
     $('totalTable').innerHTML = '<thead><tr><th>Stat</th><th class="n">Sheet (gear)</th><th class="n">Total</th><th>Added on top of the sheet</th></tr></thead><tbody>' +
       TOTAL_ROWS.map(function (r) {
@@ -372,8 +376,13 @@
   }
   function applySidePreset(c, which) {
     if (which !== 'max') { SIDE_GROUPS.forEach(function (g) { Object.keys(c[g]).forEach(function (k) { c[g][k].on = !!WL.DEFAULT_CONFIG[g][k].on; }); }); return; }
-    var seenB = {}, seenX = {};                             // one buff per group and per totem type: the first listed (Windfury before Grace of Air)
-    Object.keys(c.buffs).forEach(function (k) { var b = c.buffs[k]; b.on = !(b.group && seenB[b.group]) && !(b.excl && seenX[b.excl]); if (b.on && b.group) seenB[b.group] = 1; if (b.on && b.excl) seenX[b.excl] = 1; });
+    var seenB = {}, seenX = {};                             // one buff per group, and of buffs that cannot be up together the first listed (Windfury before Flametongue and Grace of Air)
+    Object.keys(c.buffs).forEach(function (k) {
+      var b = c.buffs[k], x = WL.buffExcl(b);
+      b.on = !(b.group && seenB[b.group]) && !x.some(function (t) { return seenX[t]; });
+      if (b.on && b.group) seenB[b.group] = 1;
+      if (b.on) x.forEach(function (t) { seenX[t] = 1; });
+    });
     var seen = {};
     Object.keys(c.debuffs).forEach(function (k) { var d = c.debuffs[k]; d.on = !d.coe && !(d.group && seen[d.group]); if (d.on && d.group) seen[d.group] = 1; });
     Object.keys(c.consumables).forEach(function (k) { c.consumables[k].on = MAX_CONS.indexOf(k) >= 0; });

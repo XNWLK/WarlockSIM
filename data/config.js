@@ -105,14 +105,17 @@ WL.DEFAULT_CONFIG = {
     // Forever and do not stack (they did in Classic) — same `excl`: only the first listed one that is on counts, and the page
     // unticks the other. 20% / 246 attack power = Rank 3 in the archived Forever tooltip (Classic: 315). [A85]
     // Round 125 (user): Tranquil Air Totem is that totem type too — it stacks with neither Windfury nor Grace of Air.
-    windfuryTotem:    { on: false, id: 10614, name: 'Windfury Totem',                cls: 'Shaman',  desc: 'Pet melee: 20% chance per hit of 1 extra attack with 246 extra attack power (not with Grace of Air or Tranquil Air Totem)', windfury: { procPct: 20, ap: 246 }, excl: 'airTotem' },
-    // Round 128 (user): pets with a melee attack also benefit from Flametongue Totem, and it stacks with Windfury Totem. Rank 4
-    // (16387), Forever tooltip: "Each main hand hit causes (1363 / 77 − 1) to (1363 / 25) additional Fire damage, based on the
+    // Round 131 (user): Flametongue Totem and Windfury Totem no longer stack, and neither stacks with Grace of Air — a second
+    // tag, 'meleeTotem', on those three (`excl` is one tag or a list; buffs that share a tag cannot be up together, see
+    // WL.activeBuffs). Nothing was said about Flametongue and Tranquil Air Totem: they share no tag and still stack. [A89]
+    windfuryTotem:    { on: false, id: 10614, name: 'Windfury Totem',                cls: 'Shaman',  desc: 'Pet melee: 20% chance per hit of an extra attack with +246 attack power (not with Flametongue, Grace of Air or Tranquil Air)', windfury: { procPct: 20, ap: 246 }, excl: ['airTotem', 'meleeTotem'] },
+    // Round 128 (user): pets with a melee attack also benefit from Flametongue Totem (it stacked with Windfury Totem until
+    // round 131). Rank 4 (16387), Forever tooltip: "Each main hand hit causes (1363 / 77 − 1) to (1363 / 25) additional Fire damage, based on the
     // speed of the weapon" = 1363 × attack speed / 100 (77 and 25 are 100 / 1.3 s and 100 / 4.0 s): 27.3 for a 2.0 s swing.
-    // The triggered spell (16368 Flametongue Attack) has no spell power part. [A88] Both totem descriptions are kept short:
-    // with longer ones the Buffs tab scrolls again at window widths around 1100 px (measured in round 128).
-    flametongueTotem: { on: false, id: 16387, name: 'Flametongue Totem',             cls: 'Shaman',  desc: '+27 Fire damage per pet melee hit', flametongue: { per100: 1363 } },
-    graceOfAir:       { on: false, id: 25359, name: 'Grace of Air Totem',            cls: 'Shaman',  desc: '+89 Agility (melee crit for the Succubus; does not stack with Windfury Totem, Tranquil Air Totem or the Scroll of Agility)', agi: 89, group: 'agility', excl: 'airTotem' },
+    // The triggered spell (16368 Flametongue Attack) has no spell power part. [A88] The totem descriptions are kept short:
+    // with longer ones the Buffs tab scrolls again at window widths around 1100 px (measured in rounds 128 and 131).
+    flametongueTotem: { on: false, id: 16387, name: 'Flametongue Totem',             cls: 'Shaman',  desc: '+27 Fire damage per pet melee hit (not with Windfury or Grace of Air)', flametongue: { per100: 1363 }, excl: 'meleeTotem' },
+    graceOfAir:       { on: false, id: 25359, name: 'Grace of Air Totem',            cls: 'Shaman',  desc: '+89 Agility (melee crit for the Succubus; not with Windfury, Flametongue, Tranquil Air or the Scroll of Agility)', agi: 89, group: 'agility', excl: ['airTotem', 'meleeTotem'] },
     manaTide:         { on: false, id: 17359, name: 'Mana Tide Totem',               cls: 'Shaman',  desc: '290 mana every 3 s for 12 s, once, when you drop below 50% mana', tide: { amount: 290, every: 3, ticks: 4 } },
     innervate:        { on: false, id: 29166, name: 'Innervate',                     cls: 'Druid',   desc: '5× mana regen while casting for 20 s, once, when you drop below 50% mana', innervate: { mult: 5, duration: 20 } },
     moonkinAura:      { on: true, id: 24858, name: 'Moonkin Form aura',             cls: 'Druid',   desc: '+3% crit (party)', critPct: 3 },

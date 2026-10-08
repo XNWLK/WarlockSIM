@@ -1,6 +1,7 @@
 // Round 128 tests (user): Flametongue Totem as a raid buff. Pets with a melee attack get a Fire hit on every landed swing:
-// 1363 × attack speed / 100 (Rank 4) = 27.26 for a 2.0 s swing, no spell power part. It stacks with Windfury Totem, whose
-// extra attacks trigger it too. It is not an attack itself: no Demonic Brand charge, no Judgement of Wisdom.
+// 1363 × attack speed / 100 (Rank 4) = 27.26 for a 2.0 s swing, no spell power part. It is not an attack itself: no Demonic
+// Brand charge, no Judgement of Wisdom. Round 131 (user): it no longer stacks with Windfury Totem (tests/test-round131.js);
+// the part about Windfury's extra attacks below runs on a hand-made setup without the two totems' `excl` tags.
 (function () {
   function det(f) {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
@@ -13,6 +14,7 @@
   function sure(c) { c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = -100; }              // spells always hit, never crit
   function ftOn(c) { c.buffs.flametongueTotem.on = true; }
   function wfOn(c) { c.buffs.windfuryTotem.on = true; }
+  function free(c) { delete c.buffs.windfuryTotem.excl; delete c.buffs.flametongueTotem.excl; }   // as before round 131: the two can be up together
   function tb(pet, rot, talents) { return { key: 't128', short: 't', name: 't', notes: '', talents: talents || {}, pet: pet, sacrifice: null, oil: 'none', rotation: rot || ['shadowBolt'] }; }
   function sum(build, cfg, n, dur) {
     var a = { swings: 0, landed: 0, glances: 0, dmg: 0, wf: 0, wfLanded: 0, ft: 0, ftLanded: 0, ftMiss: 0, ftCrit: 0, ftDmg: 0, total: 0, brand: 0, threat: 0, petJow: 0 };
@@ -26,15 +28,15 @@
     return a;
   }
 
-  T.run('round 128: Flametongue Totem for pet melee; stacks with Windfury Totem', function () {
+  T.run('round 128: Flametongue Totem for pet melee', function () {
     T.group('the buff');
     var D = WL.DEFAULT_CONFIG.buffs.flametongueTotem;
     T.ok(!!D && D.on === false && D.id === 16387, 'Flametongue Totem is in the buff list, off by default (Rank 4, spell 16387)');
     T.eq(D.flametongue.per100, 1363, 'tooltip value 1363: 13.63 Fire damage per second of attack speed');
-    T.ok(!D.excl && !D.group, 'it shares no totem type or group with another buff (stacks with Windfury Totem)');
+    T.ok(!D.group, 'it is in no buff group');
     T.ok(/17 to 55 additional Fire damage/.test((WL.SPELL_TEXT || {})[16387] || '') && !/\*|\//.test(WL.SPELL_TEXT[16387]), 'its tooltip text is there, without the raw formula');
-    var both = WL.activeBuffs(det(function (c) { ftOn(c); wfOn(c); })).map(function (b) { return b.name; });
-    T.ok(both.indexOf('Flametongue Totem') >= 0 && both.indexOf('Windfury Totem') >= 0, 'Windfury Totem and Flametongue Totem can be on together');
+    var both = WL.activeBuffs(det(function (c) { ftOn(c); wfOn(c); free(c); })).map(function (b) { return b.name; });
+    T.ok(both.indexOf('Flametongue Totem') >= 0 && both.indexOf('Windfury Totem') >= 0, 'test setup without the totem types: Windfury Totem and Flametongue Totem are both up');
 
     T.group('one Fire hit per landed swing');
     var succ = tb('succubus'), off = sum(succ, det(), 40), on = sum(succ, det(ftOn), 40);
@@ -76,8 +78,8 @@
     var j0 = sum(succ, det(function (c) { c.debuffs.judgementOfWisdom.on = true; }), 20), j1 = sum(succ, det(function (c) { ftOn(c); c.debuffs.judgementOfWisdom.on = true; }), 20);
     T.ok(j0.petJow > 0 && j1.petJow === j0.petJow, 'the pet gains the same mana from Judgement of Wisdom with and without the totem (' + Math.round(j0.petJow) + ')', j1.petJow);
 
-    T.group('with Windfury Totem: the extra attacks trigger it too');
-    var w0 = sum(succ, det(wfOn), 40), w1 = sum(succ, det(function (c) { wfOn(c); ftOn(c); }), 40);
+    T.group('if both totems were up (hand-made setup): Windfury extra attacks trigger it too');
+    var w0 = sum(succ, det(wfOn), 40), w1 = sum(succ, det(function (c) { wfOn(c); ftOn(c); free(c); }), 40);
     T.ok(w1.wfLanded > 50, 'test setup: ' + w1.wfLanded + ' Windfury extra attacks land', w1.wfLanded);
     T.eq(w1.ft, w1.landed + w1.wfLanded, 'Flametongue hits = landed swings + landed Windfury extra attacks (' + w1.landed + ' + ' + w1.wfLanded + ')');
     T.eq(w1.wf + '/' + w1.wfLanded, w0.wf + '/' + w0.wfLanded, 'Windfury procs exactly as without Flametongue');

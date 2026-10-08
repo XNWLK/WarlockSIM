@@ -29,7 +29,7 @@
     T.ok(!!D && D.on === false && D.id === 10614, 'Windfury Totem is in the buff list, off by default (Rank 3, spell 10614)');
     T.eq(D.windfury.procPct + ' / ' + D.windfury.ap, '20 / 246', '20% chance, 246 extra attack power');
     T.ok(/20% chance/.test((WL.SPELL_TEXT || {})[10614] || '') && !/\*/.test(WL.SPELL_TEXT[10614]), 'its tooltip text is there, without the raw formula');
-    T.ok(D.excl === 'airTotem' && WL.DEFAULT_CONFIG.buffs.graceOfAir.excl === 'airTotem', 'Windfury and Grace of Air carry the same totem type');
+    T.ok(WL.buffsClash(D, WL.DEFAULT_CONFIG.buffs.graceOfAir), 'Windfury and Grace of Air cannot be up together (they share a totem type)');
 
     T.group('extra attacks: 20% of landed swings, on the attack table');
     var succ = tb('succubus'), off = sum(succ, det(), 60), on = sum(succ, det(wfOn), 60);

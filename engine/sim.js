@@ -926,12 +926,15 @@ window.WL = window.WL || {};
       }
       r.misses++; return false;
     }
-    // Flametongue Totem (round 128, user; A88): pets with a melee attack benefit, and it stacks with Windfury Totem. Every
-    // landed swing — glancing blows and Windfury's extra attacks too ("each main hand hit") — adds a Fire hit of
+    // Flametongue Totem (round 128, user; A88): pets with a melee attack benefit. Every landed swing — glancing blows too
+    // ("each main hand hit") — adds a Fire hit of
     // per100 × attack speed / 100 (Rank 4: 1363 → 27.3 for a 2.0 s swing). No spell power part (triggered spell 16368).
     // Treated as a spell of the pet, like Firebolt and Lash of Pain: it can miss (your hit chance) and crit (your crit,
     // ×1.5) and takes the pet's damage modifiers and Curse of the Elements. It is not an attack: no Demonic Brand charge,
     // no Judgement of Wisdom. Its own damage row ('pet:flametongue') and its own random stream, so nothing else moves.
+    // Round 131 (user): it no longer stacks with Windfury Totem — WL.activeBuffs lets only one of the two through, so FT
+    // and WF are never both set from the buff list. (A Windfury extra attack would still carry a Fire hit: it is a landed
+    // main hand hit like any other; only a hand-made setup without the `excl` tags gets there.)
     function flametongueHit() {
       var r = row('pet:flametongue');
       r.casts++;

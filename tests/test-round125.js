@@ -29,7 +29,7 @@
     T.near(agi(['graceOfAir']) - agi([]), 89, 1e-9, 'alone: +89 Agility');
 
     T.group('the three air totems share one slot');
-    T.ok(B.windfuryTotem.excl === 'airTotem' && B.graceOfAir.excl === 'airTotem' && B.tranquilAir.excl === 'airTotem', 'Windfury, Grace of Air and Tranquil Air carry the same totem type');
+    T.ok([B.windfuryTotem, B.graceOfAir, B.tranquilAir].every(function (x) { return WL.buffExcl(x).indexOf('airTotem') >= 0; }), 'Windfury, Grace of Air and Tranquil Air carry the same totem type');
     T.eq(names(['windfuryTotem', 'tranquilAir']), 'Windfury Totem', 'Windfury + Tranquil Air switched on: only Windfury counts');
     T.eq(names(['graceOfAir', 'tranquilAir']), 'Grace of Air Totem', 'Grace of Air + Tranquil Air: only Grace of Air counts');
     T.eq(names(['windfuryTotem', 'graceOfAir', 'tranquilAir']), 'Windfury Totem', 'all three: only Windfury counts');
