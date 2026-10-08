@@ -3,6 +3,11 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v122
+- **Destro Incinerate Imp** casts Curse of the Elements earlier: right after Immolate instead of after Conflagrate. A boss
+  resists part of your damage until the curse is on it, so fewer of your hits are affected. Worth about 0.2% for that build;
+  the other builds are unchanged.
+
 ## v121
 - Flametongue Totem has its icon.
 

@@ -94,7 +94,9 @@ WL.BUILDS = [
       baneOfHavoc: 1, fireAndBrimstone: 3, shadowAndFlame: 5, incinerate: 1,
     },
     pet: 'imp', sacrifice: null, oil: 'firestone',
-    rotation: ['deathCoilFinisher', 'bane', 'corruption', 'immolate', 'lifeTapPet', 'conflagrate', 'curseOfElements', 'shadowburn', 'lifeTapBelow', 'incinerate'],
+    // Round 130 (user): Curse of the Elements moved up from after Conflagrate to right after Immolate — with level resistance
+    // on (round 118) every hit before the curse can be partly resisted. +0.2% for every race (10,000 fights).
+    rotation: ['deathCoilFinisher', 'bane', 'corruption', 'immolate', 'curseOfElements', 'lifeTapPet', 'conflagrate', 'shadowburn', 'lifeTapBelow', 'incinerate'],
     params: { lifeTapBelow: { pct: 40, sec: 60 } },   // round 105 (user): Life Tap below 40% mana with more than 60 s left, +0.32% (10,000 fights)
   },
   // ---- Reference builds (round 65, user): classic layouts. Round 66: every build is shown by default (no cut-off), so they
