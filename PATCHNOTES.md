@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v126
+- Input / output: the **Make build code** button now sits right next to **Make settings code**; the list of builds to
+  pick from comes after the two buttons. Nothing else changed.
+
 ## v125
 - **Molten Skin** and **Soul Link** also reduce what the **Demonic Rune** and the **Goblin Sapper Charge** cost you in
   health, by the same amount as for Hellfire: 2% per Molten Skin point, 30% with Soul Link while a demon is out, 37%
