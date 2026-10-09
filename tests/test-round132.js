@@ -1,6 +1,7 @@
 // Round 132 tests (user): Molten Skin and Soul Link reduce the damage you take from your own Hellfire. Molten Skin: 2% per
 // point. Soul Link: 30% of the damage goes to your demon, only while a demon is out. The two multiply. Nothing else that
-// costs health changes (Life Tap, Demonic Rune, Goblin Sapper), and Hellfire's damage to the boss does not change.
+// costs health changed in that round, and Hellfire's damage to the boss does not change. Round 133 (user): the Demonic
+// Rune and the Goblin Sapper are reduced too (tests/test-round133.js); Life Tap is not.
 (function () {
   function det(mod) {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
@@ -66,7 +67,7 @@
     var tap = function (t) { var r = run(tb(t, t.soulLink ? 'imp' : null, null, ['shadowBolt']), det(), 120); return r.lifeTaps + ' taps / ' + r.health.tap; };
     T.eq(tap({ demonicSacrifice: 1, soulLink: 1, moltenSkin: 5 }).split(' / ')[1] / parseInt(tap({ demonicSacrifice: 1, soulLink: 1, moltenSkin: 5 }), 10), 430, 'Life Tap still costs 430 health with both talents (a cost, not damage)');
     var rune = function (t, pet) { return run(tb(t, pet, null, ['shadowBolt']), det(function (c) { c.consumables.demonicRune.on = true; }), 60).health.self; };
-    T.eq(rune({ demonicSacrifice: 1, soulLink: 1, moltenSkin: 5 }, 'imp'), rune({}, null), 'the Demonic Rune costs the same (' + rune({}, null) + ')');
+    T.eq(rune({}, null) + ' / ' + rune({}, 'imp'), '800 / 800', 'the Demonic Rune costs 800 without the talents (round 133: less with them)');
     T.eq(self(tb({ moltenSkin: 5 }, null, null, ['rainOfFire'])).r.health.self, 0, 'Rain of Fire does not hurt you, talents or not');
   });
 })();

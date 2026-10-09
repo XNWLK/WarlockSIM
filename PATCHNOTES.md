@@ -3,6 +3,13 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v125
+- **Molten Skin** and **Soul Link** also reduce what the **Demonic Rune** and the **Goblin Sapper Charge** cost you in
+  health, by the same amount as for Hellfire: 2% per Molten Skin point, 30% with Soul Link while a demon is out, 37%
+  with both. A rune then costs 504 health instead of 800, a Sapper 315 instead of 500 on average.
+- Life Tap is not reduced: it still costs 430 health.
+- No DPS number changes: with a Demonic Rune ticked, the three builds with Soul Link just lose less health.
+
 ## v124
 - **Molten Skin** and **Soul Link** now reduce the damage Hellfire does to you: Molten Skin by 2% per point, Soul Link by
   30% while a demon is out (not after Demonic Sacrifice). Together they multiply: 37% less with both.

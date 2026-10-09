@@ -227,8 +227,8 @@ window.WL = window.WL || {};
     // Round 132 (user): Molten Skin and Soul Link reduce the damage you take from your own Hellfire. Molten Skin: "Reduces
     // all damage taken by 2 / 4 / 6 / 8 / 10%". Soul Link: "30% of all damage taken by the caster is taken by your … Demon
     // instead" — only while a demon is out (stats.petActive: not after Demonic Sacrifice, and a pet swap changes it). The two
-    // multiply (my reading: one reduces the hit, the other passes a share of it on). The demon's share is not tracked: pets
-    // have no health here. Only Hellfire: the Demonic Rune and the Goblin Sapper cost what they did. [A90]
+    // multiply (user-confirmed). The demon's share is not tracked: pets have no health here.
+    // Round 133 (user): the Demonic Rune and the Goblin Sapper are reduced the same way; Life Tap is not (a cost). [A90]
     function selfTakenMult() { return (1 - tv('moltenSkin', 'dmgTakenPct') / 100) * (stats.petActive ? 1 - tv('soulLink', 'toPetPct') / 100 : 1); }
     function selfTick(key) { var s = SPELLS[key]; return s.selfDamage ? Math.round((s.tickBase + s.tickCoef * spNow(table[key])) * selfTakenMult()) : 0; }
     function healsDue(until) { return HEAL ? HEAL.amt * (Math.floor((until + EPS) / HEAL.every) - Math.floor((S.t + EPS) / HEAL.every)) : 0; }
@@ -352,7 +352,11 @@ window.WL = window.WL || {};
         var amt = c.manaRestore.amount || stats.maxMana * c.manaRestore.pct / 100, miss = stats.maxMana - S.mana;
         var slot = c.key, g = slotGate(slot);
         if (g === 0 || !S.ready('cd:' + c.cdGroup) || (g === 1 ? miss <= EPS : miss < amt)) return;
-        if (c.healthCost) { if (S.health <= c.healthCost) return; loseHealth(c.healthCost, 'self'); }   // Demonic Rune: 800 health (round 119)
+        if (c.healthCost) {                                                   // Demonic Rune: 800 health (round 119), less with Molten Skin / Soul Link (round 133)
+          var hc = Math.round(c.healthCost * selfTakenMult());
+          if (S.health <= hc) return;
+          loseHealth(hc, 'self');
+        }
         if (amt > miss) amt = miss;
         S.cds['cd:' + c.cdGroup] = S.t + c.cd; S.mana += amt;
         res.manaFromConsumables = (res.manaFromConsumables || 0) + amt;
@@ -368,7 +372,11 @@ window.WL = window.WL || {};
       for (var i = 0; i < explosives.length; i++) {
         var c = explosives[i], x = c.explosive, key = 'item:' + c.key, r = row(key), xslot = c.key;
         if (!S.ready('cd:' + x.cdGroup) || slotGate(xslot) === 0) continue;           // custom timeline: held for its placed time
-        if (x.selfMax) { if (S.health <= x.selfMax) continue; loseHealth((x.selfMin + x.selfMax) / 2, 'self'); }   // Sapper: its average damage to you (round 119)
+        if (x.selfMax) {                                                      // Sapper: its average damage to you (round 119), less with Molten Skin / Soul Link (round 133)
+          var sm = selfTakenMult();
+          if (S.health <= x.selfMax * sm) continue;                           // you must survive its biggest hit
+          loseHealth(Math.round((x.selfMin + x.selfMax) / 2 * sm), 'self');
+        }
         S.cds['cd:' + x.cdGroup] = S.t + x.cd; slotUsed(xslot);
         r.casts++; r.castTime += cb.minGcd;
         S.busyUntil = S.t; S.gcdReady = S.t + cb.minGcd;
