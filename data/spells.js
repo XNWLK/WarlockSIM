@@ -45,7 +45,7 @@ WL.SPELLS = {
   // (both); Malediction lists Hellfire but not Rain of Fire; Agonizing Flames lists Rain of Fire but not Hellfire.
   hellfire:     { id: 11684,   name: 'Hellfire',       school: 'fire',   tree: 'destruction', kind: 'channel', aoe: true, rank: 3,
                   tickBase: 206, tickCoef: 0.022, tickEvery: 1, duration: 15, cast: 0, cost: 1300, range: 0, radius: 10,
-                  effectSpell: 11682, noAgonizingFlames: true, selfDamage: true },   // selfDamage: every tick also hits you for its base damage (round 119)
+                  effectSpell: 11682, noAgonizingFlames: true, selfDamage: true },   // selfDamage: every tick also hits you for its base damage (round 119), reduced by Molten Skin and Soul Link (round 132)
   rainOfFire:   { id: 11678,   name: 'Rain of Fire',   school: 'fire',   tree: 'destruction', kind: 'channel', aoe: true, rank: 4,
                   tickBase: 220, tickCoef: 0.083, tickEvery: 2, duration: 8, cast: 0, cost: 1185, range: 30, radius: 8,
                   effectSpell: 1282385, noMalediction: true },

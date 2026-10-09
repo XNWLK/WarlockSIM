@@ -224,7 +224,13 @@ window.WL = window.WL || {};
     function gainHealth(amt, src) { var before = S.health; S.health = Math.min(stats.maxHealth, S.health + amt); res.health[src] += S.health - before; }
     function loseHealth(amt, src) { S.health -= amt; res.health[src] += amt; if (S.health < res.health.min) res.health.min = S.health; }
     function canTap() { return S.health > TAP_HP; }
-    function selfTick(key) { var s = SPELLS[key]; return s.selfDamage ? Math.round(s.tickBase + s.tickCoef * spNow(table[key])) : 0; }
+    // Round 132 (user): Molten Skin and Soul Link reduce the damage you take from your own Hellfire. Molten Skin: "Reduces
+    // all damage taken by 2 / 4 / 6 / 8 / 10%". Soul Link: "30% of all damage taken by the caster is taken by your … Demon
+    // instead" — only while a demon is out (stats.petActive: not after Demonic Sacrifice, and a pet swap changes it). The two
+    // multiply (my reading: one reduces the hit, the other passes a share of it on). The demon's share is not tracked: pets
+    // have no health here. Only Hellfire: the Demonic Rune and the Goblin Sapper cost what they did. [A90]
+    function selfTakenMult() { return (1 - tv('moltenSkin', 'dmgTakenPct') / 100) * (stats.petActive ? 1 - tv('soulLink', 'toPetPct') / 100 : 1); }
+    function selfTick(key) { var s = SPELLS[key]; return s.selfDamage ? Math.round((s.tickBase + s.tickCoef * spNow(table[key])) * selfTakenMult()) : 0; }
     function healsDue(until) { return HEAL ? HEAL.amt * (Math.floor((until + EPS) / HEAL.every) - Math.floor((S.t + EPS) / HEAL.every)) : 0; }
     function healthOk(k) { var s = SPELLS[k]; return !s || !s.selfDamage || S.health + healsDue(S.t + s.duration) > selfTick(k) * table[k].ticks; }
     // ---------- threat (round 119, user) [A84] ----------
@@ -613,7 +619,7 @@ window.WL = window.WL || {};
         deal(rk, amt, crit, true, ti);
         if (logOn) L('tick', rk, Object.assign({ dmg: Math.round(amt), crit: crit, n: i + 1, of: e.ticks }, vulnLog(amt)));
       }
-      if (s.selfDamage) loseHealth(selfTick(key), 'self');     // Hellfire: the tick's base damage to yourself, no talents, no crit (round 119)
+      if (s.selfDamage) loseHealth(selfTick(key), 'self');     // Hellfire: the tick's base damage to yourself, no damage talents, no crit (round 119); less with Molten Skin / Soul Link (round 132)
     }
 
     // Improved Shadow Bolt (A20): every Shadow Bolt crit applies the debuff. Rounds 54–122 rolled a second spell-hit check

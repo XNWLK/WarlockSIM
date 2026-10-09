@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v124
+- **Molten Skin** and **Soul Link** now reduce the damage Hellfire does to you: Molten Skin by 2% per point, Soul Link by
+  30% while a demon is out (not after Demonic Sacrifice). Together they multiply: 37% less with both.
+- With less damage to yourself, a build that uses Hellfire can keep channelling longer on the same healing.
+- No build on the sheet uses Hellfire, so the default results are unchanged.
+
 ## v123
 - **Windfury Totem and Flametongue Totem no longer stack**, and neither stacks with Grace of Air Totem: only one of the
   three can be on. Ticking one unticks the other two.
