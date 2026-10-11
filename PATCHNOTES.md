@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v129
+- The page header has a new link, **How it's calculated**, next to the GitHub link. It opens the rule book with every
+  formula and what each talent, spell, pet, racial, buff and consumable does in the sim.
+
 ## v128
 - The Succubus' melee range is now in the sim's data: 5 yards, the same as Lash of Pain. It is listed for reference
   (the sim never checks range), so no result changes.
