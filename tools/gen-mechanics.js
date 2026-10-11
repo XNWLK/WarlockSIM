@@ -228,7 +228,7 @@ B.pets = table(['Demon', 'Spell', 'Melee', 'Mana'], Object.keys(cfg.pets).map(k 
   const p = cfg.pets[k], s = p.spell, m = p.melee;
   return [p.name,
     s ? s.name + ': ' + s.base + ' + ' + s.coef + ' × demon SP, ' + cap(s.school) + ', ' + (s.cast ? s.cast + ' s cast' : 'instant') + (s.cd ? ', ' + s.cd + ' s cooldown' : '') + ', ' + s.cost + ' mana' : '—',
-    m ? m.baseDps + ' base DPS, one swing every ' + m.swing + ' s, own crit ' + m.critPct + '%' + (m.inheritMeleeCrit ? ' + your melee crit' : '') : '—',
+    m ? m.baseDps + ' base DPS, one swing every ' + m.swing + ' s, own crit ' + m.critPct + '%' + (m.inheritMeleeCrit ? ' + your melee crit' : '') + (m.range ? ', ' + m.range + ' yd range' : '') : '—',
     n(p.mana, 0) + ', +' + p.manaRegen + ' per second'];
 }));
 

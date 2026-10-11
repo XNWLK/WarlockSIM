@@ -220,7 +220,8 @@ WL.DEFAULT_CONFIG = {
       // Rounds 17–31: own 7.52% + your *melee* crit 4.5% = 12% total. (Round 16: 100 / 0.57 / 5%.) [A46]
       // Round 42: miss / dodge / glancing / crit come from combat.petMelee (was a flat 85.5% land, no glancing).
       melee: { baseDps: 73.5, swing: 2.0, apPerSp: 0.1667, apPerDps: 14,
-               critPct: 7.52, inheritMeleeCrit: true },   // round 75 (user): your MELEE crit (Agility), not your spell crit [A75]   // crit ×2; armor from boss armor − debuffs
+               critPct: 7.52, inheritMeleeCrit: true,     // round 75 (user): your MELEE crit (Agility), not your spell crit [A75]   // crit ×2; armor from boss armor − debuffs
+               range: 5 },                               // round 136 (user): her melee reaches 5 yards, the same as Lash of Pain. Data only: the fight engine never checks range [A78]
     },
     felhunter: { name: 'Felhunter', mana: 2000, manaRegen: 8, melee: { baseDps: 40, swing: 2.0, apPerSp: 0.1667, apPerDps: 14, critPct: 5 } },
     voidwalker:{ name: 'Voidwalker',mana: 2000, manaRegen: 8, melee: { baseDps: 30, swing: 2.0, apPerSp: 0.1667, apPerDps: 14, critPct: 5 } },

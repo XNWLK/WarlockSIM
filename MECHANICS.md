@@ -445,7 +445,7 @@ Demons are simulated as their own actors: they cast, swing, miss, crit and run o
 | Demon | Spell | Melee | Mana |
 |---|---|---|---|
 | Imp | Firebolt: 44 + 0.571 × demon SP, Fire, 2 s cast, 115 mana | — | 2,000, +8 per second |
-| Succubus | Lash of Pain: 50 + 0.429 × demon SP, Shadow, instant, 12 s cooldown, 160 mana | 73.5 base DPS, one swing every 2 s, own crit 7.52% + your melee crit | 2,000, +8 per second |
+| Succubus | Lash of Pain: 50 + 0.429 × demon SP, Shadow, instant, 12 s cooldown, 160 mana | 73.5 base DPS, one swing every 2 s, own crit 7.52% + your melee crit, 5 yd range | 2,000, +8 per second |
 | Felhunter | — | 40 base DPS, one swing every 2 s, own crit 5% | 2,000, +8 per second |
 | Voidwalker | — | 30 base DPS, one swing every 2 s, own crit 5% | 2,000, +8 per second |
 <!-- /gen:pets -->
