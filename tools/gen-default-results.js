@@ -74,4 +74,6 @@ function runJobs(jobs) {
   fs.writeFileSync(path.join(root, 'data/default-results.js'), js);
   console.log('data/default-results.js: ' + (js.length / 1024).toFixed(0) + ' KB, ' + results.length + ' results + ' + Object.keys(weights).length +
     ' stat weights in ' + ((Date.now() - t0) / 1000).toFixed(1) + ' s');
+  // The tables and worked examples of MECHANICS.md come from the same data and engine files: refresh them in the same step.
+  require('child_process').execFileSync(process.execPath, [path.join(__dirname, 'gen-mechanics.js')], { stdio: 'inherit' });
 })();

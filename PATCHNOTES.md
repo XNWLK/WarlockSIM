@@ -3,6 +3,13 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v127
+- New: **[How the sim calculates](MECHANICS.md)**, the full rule book. It has the exact formula behind every number, what
+  each talent, spell, pet, racial, raid buff, boss debuff, consumable and priority action does in the sim, worked
+  examples you can follow step by step, and a list of what is assumed or left out. It is linked from the README.
+- Its tables and worked examples are written from the sim's own data, so they always match the version they ship with.
+- Nothing in the sim itself changed: every result is the same.
+
 ## v126
 - Input / output: the **Make build code** button now sits right next to **Make settings code**; the list of builds to
   pick from comes after the two buttons. Nothing else changed.
