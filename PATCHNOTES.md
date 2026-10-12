@@ -3,6 +3,15 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v132
+- **Share link.** A button above the results copies one link that opens the sim with your settings loaded. "Share this
+  build" in a build's details makes a link that also opens that build: a build on the sheet opens its row, your own
+  build opens in the build editor with a quick sim (it is not added to the other person's sheet).
+- Links are short: they carry only what differs from the default settings.
+- **Copy results.** Copies the results table as text that reads well in a chat such as Discord — a title line with your
+  gear and fight, the builds in a fixed-width table, and a share link underneath.
+- If the page is not allowed to copy by itself, the text is shown selected so you can press Ctrl+C.
+
 ## v131
 - New card **Charts**, below Compare two builds, with two charts. Each point is a real simulation with your current
   settings, and the same fights are used at every point, so the lines are smooth.

@@ -80,6 +80,8 @@ Click a build for:
 - **Batch compare:** save several setups (e.g. pre-raid vs raid-buffed) and run them all, or add the current run to
   compare later runs against it.
 - Save settings as **presets**, or share them as a code.
+- **Share link:** one short link that opens the sim with your settings, and a build if you like, already loaded.
+- **Copy results** as a text table for a chat (Discord), with a share link underneath.
 
 ### Also
 - Hover tooltips with the in-game text for talents and spells.

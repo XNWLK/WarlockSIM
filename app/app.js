@@ -704,6 +704,7 @@
     function finished() {
       running = false; dirty = !sameSettings();                          // settings edited during the run → stale
       renderStatbar(); render(); showStale(); renderCompareOptions();
+      openShared();                                                      // a share link's build (round 140)
       var secs = ((performance.now() - t0) / 1000).toFixed(1), how = WL.SimPool.mode() === 'page' ? '' : ' on ' + WL.SimPool.mode();   // e.g. "on workers (7)"
       $('runMeta').textContent = !keep
         ? results.length + ' combos × ' + fmt(runCfg.fight.iterations) + ' fights + stat weights (' + fmt(runCfg.fight.weightIterations) +
@@ -1096,7 +1097,8 @@
     // edit a copy of this build / compare it with another one (round 44)
     h += '<div class="wide dactions">' +
       '<button type="button" data-editcopy="' + esc(b.key) + '">' + (b.custom ? 'Edit this build' : 'Edit a copy in the build editor') + '</button>' +
-      '<button type="button" data-cmp="' + esc(id(r)) + '">Compare with another build</button></div>';
+      '<button type="button" data-cmp="' + esc(id(r)) + '">Compare with another build</button>' +
+      '<button type="button" data-share="' + esc(id(r)) + '" title="Copies a link that opens the sim with the settings of this run and this build opened">Share this build</button></div>';
 
     // ---- row 1: summary · stat weights · races ----
     var exP = r.execPct != null ? r.execPct : 35, exGain = r.dpsPre ? (r.dpsExec / r.dpsPre - 1) * 100 : null;
@@ -2377,6 +2379,89 @@
       }).join('') + '</tbody>';
   }
 
+  // ---------- share link, copy results (round 140, user) ----------
+  // A share link opens the page with the settings loaded and, if it names one, a build opened: a sheet build's row, or
+  // your own build in the editor with a quick sim. Links always point at the public site (or at this page when it is the
+  // site or a local copy), never at an address that only works for you.
+  var SITE_URL = 'https://xnwlk.github.io/WarlockSIM/';
+  function shareBase() {
+    var h = location.hostname;
+    return /^https?:$/.test(location.protocol) && (h === 'xnwlk.github.io' || h === 'localhost' || h === '127.0.0.1') ? location.origin + location.pathname : SITE_URL;
+  }
+  function shareNote(s, bad, text) {            // the box above the table: a message, and the text that was made
+    $('shareOut').hidden = false; $('shareMsg').textContent = s; $('shareMsg').style.color = bad ? 'var(--bad)' : '';
+    var box = $('shareText'); box.hidden = text == null;
+    if (text != null) { box.value = text; box.rows = Math.max(2, Math.min(14, text.split('\n').length)); }
+  }
+  function copyText(text, okMsg) {
+    shareNote('Copying…', false, text);
+    var box = $('shareText'), fallback = function () { box.focus(); box.select(); shareNote('This page may not copy by itself here — the text is selected: press Ctrl+C.', false, text); box.select(); };
+    try { navigator.clipboard.writeText(text).then(function () { shareNote(okMsg, false, text); }, fallback); } catch (e) { fallback(); }
+  }
+  function buildRaw(b) { return JSON.parse(decodeURIComponent(escape(atob(WL.encodeBuild(b).slice(WL.BUILD_CODE_PREFIX.length))))); }   // a build code's content
+  function buildFromRaw(o) { return WL.decodeBuild(WL.BUILD_CODE_PREFIX + btoa(unescape(encodeURIComponent(JSON.stringify(o))))); }
+  function shareUrl(r, ofRun) {                 // r: a result row to open, or null; ofRun: the settings the table was made with
+    if (!r && !ofRun) readSettings();
+    var c = r || ofRun || !dirty ? (results.length ? runCfg : cfg) : cfg, p = { v: 1, d: WL.settingsDiff(WL.settingsSnapshot(c)), f: WL.defaultsMark() };
+    if (r) { p.r = r.race; p.b = r.build.custom ? buildRaw(r.build) : r.build.key; }
+    return WL.encodeShare(p).then(function (code) { return shareBase() + '#share=' + code; });
+  }
+  function shareLink(r) {
+    shareUrl(r).then(function (url) {
+      copyText(url, 'Link copied (' + fmt(url.length) + ' characters). It opens the sim with ' + (r ? 'the settings of this run and "' + r.build.short + '" opened.' : (dirty ? 'the settings as you have them now.' : 'these settings.')));
+    }, function (e) { shareNote('Could not make the link: ' + e.message, true); });
+  }
+  // The results table as text for a chat: a title line, a fixed-width table in a code block, and a share link.
+  function resultsText() {
+    var rows = rowsForView(), top = best(), c = runCfg;
+    var pad = function (s, n, left) { s = String(s); var sp = new Array(Math.max(0, n - s.length) + 1).join(' '); return left ? sp + s : s + sp; };
+    var names = rows.map(function (r) { return r.build.short + ' (' + split(r.build) + ')'; }), nw = Math.max.apply(null, names.map(function (x) { return x.length; }).concat([5]));
+    var rw = Math.max.apply(null, rows.map(function (r) { return WL.RACES[r.race].name.length; }).concat([4]));
+    var nb = WL.activeBuffs(c).length, nc = WL.activeConsumables(c).filter(function (x) { return x.group !== 'stone'; }).length;
+    var head = '**Xn\'s Forever Warlock Sim** · ' + gearText(c.gear) + ' · ' + c.fight.duration + ' s fight' + ((c.fight.targets || 1) > 1 ? ', ' + c.fight.targets + ' targets' : '') + ' · ' + fmt(c.fight.iterations) + ' fights · ' +
+      nb + ' raid buff' + (nb === 1 ? '' : 's') + ', ' + nc + ' consumable' + (nc === 1 ? '' : 's') + (myRace ? ' · ranked for ' + WL.RACES[myRace].name : '');
+    var lines = [pad('#', 2, true) + '  ' + pad('Build', nw) + '  ' + pad('Race', rw) + '  ' + pad('DPS', 7, true) + '  vs best'];
+    rows.forEach(function (r, i) {
+      var d = (r.dps / top - 1) * 100;
+      lines.push(pad(i + 1, 2, true) + '  ' + pad(names[i], nw) + '  ' + pad(WL.RACES[r.race].name, rw) + '  ' + pad(fmt(r.dps, 1), 7, true) + '  ' + (Math.abs(d) < 1e-9 ? 'best' : d.toFixed(2) + '%'));
+    });
+    return head + '\n```\n' + lines.join('\n') + '\n```';
+  }
+  function copyResults() {
+    if (!results.length || running) { shareNote('Wait for the run to finish.', true); return; }
+    var text = resultsText(), note = dirty ? ' These are the results of the last run, not of the settings you have changed since.' : '';
+    shareUrl(null, true).then(function (url) { copyText(text + '\n' + url, 'Results copied as text for a chat, with a link that opens these settings.' + note); },
+      function () { copyText(text, 'Results copied as text for a chat.' + note); });
+  }
+  var shared = null;                             // what a share link asked to open, until the results are there
+  function openShared() {
+    var sh = shared; if (!sh) return; shared = null;
+    if (sh.custom) { $('editor').open = true; quickSim(); return; }
+    var main = mainRow(sh.key); if (!main) return;
+    var race = sh.race && sh.race !== main.race && results.some(function (x) { return x.build.key === sh.key && x.race === sh.race && !isBase(x); }) ? sh.race : main.race;
+    if (race !== main.race) raceOpen[sh.key] = true;
+    open[sh.key + '|' + race] = true; render();
+    var rows = document.querySelectorAll('#results tr.row');
+    for (var i = 0; i < rows.length; i++) if (rows[i].getAttribute('data-id') === sh.key + '|' + race) { rows[i].scrollIntoView({ block: 'start' }); break; }
+  }
+  function applyShare(p) {                       // a decoded share link: settings first, then what to open
+    var snap = p.s || WL.settingsMerge(p.d), unknown = WL.applySettings(cfg, snap);
+    initSettings();
+    var what = '', older = p.d && p.f !== WL.defaultsMark();           // made with other default settings than this page has
+    p.s = snap;
+    if (typeof p.b === 'string' && WL.BUILDS.some(function (b) { return b.key === p.b; })) { shared = { key: p.b, race: p.r }; what = ' The build it names opens below.'; }
+    else if (p.b && typeof p.b === 'object') {
+      try {
+        var d = edLoadBuild(buildFromRaw(p.b));
+        $('edCode').value = WL.encodeBuild(d); shared = { custom: true };
+        edMsg('This build came with a shared link. It is not on your sheet: press "Add to the sheet" to keep it.');
+        what = ' Its build "' + d.short + '" is open in the build editor, with a quick sim.';
+      } catch (e) { what = ' Its build could not be read.'; }
+    } else if (p.b) what = ' The build it names is not on this page\'s sheet.';
+    shareNote('Opened from a shared link: ' + WL.describeSettings(p.s) + '.' + what + (unknown.length ? ' Ignored (not in this version): ' + unknown.join(', ') + '.' : '') +
+      (older ? ' The link was made with another version of the sim: settings that were at their default then are at the current defaults.' : ''));
+  }
+
   // ---------- charts (round 139, user): DPS by a stat, DPS by fight length ----------
   // Every point is a real simulation of the build with one value changed — a stat on the gear sheet or the fight length —
   // and everything else as it is set now. The same fights (seeds) are used at every point, so a line is smooth and the
@@ -2519,6 +2604,11 @@
   document.addEventListener('click', function (e) {
     var t = e.target;
     if (t.closest('#chRun')) { runChart(); return; }
+    if (t.closest('#shareBtn')) { shareLink(null); return; }
+    if (t.closest('#copyResBtn')) { copyResults(); return; }
+    if (t.closest('#shareClose')) { $('shareOut').hidden = true; return; }
+    var shb = t.closest('button[data-share]');
+    if (shb) { var shr = results.filter(function (x) { return id(x) === shb.getAttribute('data-share'); })[0]; if (shr) shareLink(shr); return; }
     if (t.closest('#runBtn')) { if (batchRunning) return; stepsDone(); run(); return; }
     if (t.closest('#resetSide')) { resetSide(); return; }
     if (t.closest('#resetStats')) { resetStats(); return; }
@@ -2612,5 +2702,15 @@
   render();
   // Open in a working state: the shipped default results when they match (round 76), else a live run. Your own builds
   // (loaded above) have no shipped results — the run then simulates only those.
-  if (!useShipped() || pendingBuilds().length) run();
+  // Round 140: a share link ("#share=…") is read first — its settings are loaded, then the page starts as usual and opens
+  // the build the link names. The link is taken out of the address afterwards, so a reload keeps what you change.
+  function startUp() { if (!useShipped() || pendingBuilds().length) run(); else openShared(); }
+  var shareCode = WL.shareFromHash(location.hash);
+  if (shareCode) {
+    WL.decodeShare(shareCode).then(applyShare).catch(function (e) { shareNote(e.message + ' The page opened with its usual settings.', true); }).then(function () {
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* the address stays as it is */ }
+      startUp();
+    });
+  } else startUp();
+  window.addEventListener('hashchange', function () { if (WL.shareFromHash(location.hash)) location.reload(); });   // a share link pasted into this tab
 })();

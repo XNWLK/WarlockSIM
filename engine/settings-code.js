@@ -67,3 +67,85 @@ WL.describeSettings = function (o) {
     (o.buffs || []).length + ' buffs · ' + (o.cons || []).length + ' consumables' + ((o.prof || {}).engineering ? ' · Engineering' : '') +
     ' · ' + (o.fight || {}).duration + ' s · ' + (o.fight || {}).iterations + ' fights';
 };
+
+// ---------- share link (round 140, user) ----------
+// One link that opens the page with settings loaded, and optionally a build: <page>#share=<code>.
+//   payload = { v: 1, d: what differs from the default settings (WL.settingsDiff), f: WL.defaultsMark() of the page that
+//               made it, b: a built-in build's key or a build code's content (your own build), r: race } — b and r are
+//               optional. Only the differences are carried so that a link stays short enough for a chat message; a link
+//               made with other defaults than the page has now is recognised by its mark (a full snapshot under `s` is
+//               read too).
+//   code    = "1." + base64url(deflated JSON)   where the browser can compress (every current one), else
+//             "0." + base64url(JSON). Both kinds are read everywhere a compressed one can be opened.
+// Compression is asynchronous in browsers, so both functions return a Promise.
+(function () {
+  function b64u(bytes) {
+    var s = ''; for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+    return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function unb64u(str) {
+    var s = atob(str.replace(/-/g, '+').replace(/_/g, '/')), a = new Uint8Array(s.length);
+    for (var i = 0; i < s.length; i++) a[i] = s.charCodeAt(i);
+    return a;
+  }
+  function pipe(bytes, stream) {
+    var w = stream.writable.getWriter(); w.write(bytes); w.close();
+    return new Response(stream.readable).arrayBuffer().then(function (b) { return new Uint8Array(b); });
+  }
+  WL.canZipShare = function () { return typeof CompressionStream !== 'undefined' && typeof DecompressionStream !== 'undefined' && typeof Response !== 'undefined'; };
+  WL.encodeShare = function (payload, noZip) {
+    var bytes = new TextEncoder().encode(JSON.stringify(payload)), plain = function () { return '0.' + b64u(bytes); };
+    if (noZip || !WL.canZipShare()) return Promise.resolve(plain());
+    try { return pipe(bytes, new CompressionStream('deflate-raw')).then(function (z) { return '1.' + b64u(z); }, plain); }
+    catch (e) { return Promise.resolve(plain()); }
+  };
+  WL.decodeShare = function (code) {
+    var m = /^([01])\.([A-Za-z0-9_-]+)$/.exec(String(code || '').trim()), bytes;
+    if (!m) return Promise.reject(new Error('That is not a share link of the sim.'));
+    try { bytes = unb64u(m[2]); } catch (e) { return Promise.reject(new Error('The share link is damaged.')); }
+    function parse(b) {
+      var o;
+      try { o = JSON.parse(new TextDecoder().decode(b)); } catch (e) { throw new Error('The share link is damaged.'); }
+        if (!o || o.v !== 1 || !((o.s && o.s.v === 1) || (o.d && typeof o.d === 'object'))) throw new Error('This share link was made by a version of the sim that this page does not know.');
+      return o;
+    }
+    if (m[1] === '0') return Promise.resolve(bytes).then(parse);
+    if (!WL.canZipShare()) return Promise.reject(new Error('This browser cannot open this share link.'));
+    try { return pipe(bytes, new DecompressionStream('deflate-raw')).then(parse, function () { throw new Error('The share link is damaged.'); }); }
+    catch (e) { return Promise.reject(new Error('The share link is damaged.')); }
+  };
+  // What a snapshot has that differs from `base` (default: the default settings): changed keys of fight / gear / options,
+  // and each of the other parts as a whole if it differs. WL.settingsMerge puts it back onto a base.
+  var SECTIONS = ['fight', 'gear', 'options'], WHOLE = ['buffs', 'debuffs', 'cons', 'prof', 'petSpPct', 'succ', 'bossArmor', 'resist', 'levelResist'];
+  var same = function (a, b) { return JSON.stringify(a) === JSON.stringify(b); };
+  WL.defaultSnapshot = function () { return JSON.parse(JSON.stringify(WL.settingsSnapshot(WL.DEFAULT_CONFIG))); };
+  WL.settingsDiff = function (snap, base) {
+    base = base || WL.defaultSnapshot();
+    var d = {};
+    SECTIONS.forEach(function (sec) {
+      var o = {}, a = snap[sec] || {}, b = base[sec] || {};
+      Object.keys(a).forEach(function (k) { if (!same(a[k], b[k])) o[k] = a[k]; });
+      if (Object.keys(o).length) d[sec] = o;
+    });
+    WHOLE.forEach(function (k) { if (!same(snap[k], base[k])) d[k] = snap[k]; });
+    return d;
+  };
+  WL.settingsMerge = function (d, base) {
+    var s = JSON.parse(JSON.stringify(base || WL.defaultSnapshot()));
+    SECTIONS.forEach(function (sec) { Object.keys((d || {})[sec] || {}).forEach(function (k) { s[sec][k] = d[sec][k]; }); });
+    WHOLE.forEach(function (k) { if (d && k in d) s[k] = d[k]; });
+    return s;
+  };
+  // A short mark of the default settings (FNV-1a of their snapshot): a link made with other defaults has another mark.
+  WL.defaultsMark = function () {
+    var str = JSON.stringify(WL.defaultSnapshot()), h = 0x811c9dc5;
+    for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+    return h.toString(36);
+  };
+  // The code in a page address ("…#share=<code>"), or null.
+  WL.shareFromHash = function (hash) {
+    var m = /[#&]share=([^&]+)/.exec(String(hash || ''));
+    if (!m) return null;
+    try { return decodeURIComponent(m[1]); } catch (e) { return m[1]; }
+  };
+})();

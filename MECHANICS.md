@@ -8,7 +8,8 @@ formula behind every number, and what each talent, spell, pet, racial, buff and 
 - The tables and the worked examples are written by a script from the sim's own data (`node tools/gen-mechanics.js`), so
   they always match the version of the sim they ship with.
 - On the page you can check any of this yourself: click a build, and its details show the stats with where each number
-  comes from, every spell's hits, crits and misses, and the complete log of one sample fight.
+  comes from, every spell's hits, crits and misses, and the complete log of one sample fight. Click a spell in that list
+  and the page shows its calculation step by step with your own stats and settings.
 
 **Contents:** 1 [The fight](#1-the-fight) · 2 [Your stats](#2-your-stats) · 3 [How a spell's damage is calculated](#3-how-a-spells-damage-is-calculated) ·
 4 [Worked examples](#4-worked-examples) · 5 [Spells](#5-spells) · 6 [Talents](#6-talents) · 7 [Pets](#7-pets) ·

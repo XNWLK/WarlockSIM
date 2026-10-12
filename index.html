@@ -599,6 +599,12 @@
   .cmpup .ulabel .ico { width: 16px; height: 16px; }
   .cmpfold > summary { cursor: pointer; color: var(--accent); font-size: 12px; }
   .cmpfold .cmp2 { margin-top: 8px; }
+  /* share link, copy results */
+  .sharebtns { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+  .shareout { display: grid; gap: 4px; margin-bottom: 8px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--sunk); }
+  .shareout[hidden] { display: none; }
+  .shareout textarea { white-space: pre; overflow-x: auto; word-break: normal; background: var(--surface); }
+  .shareout textarea[hidden] { display: none; }
   /* charts: DPS by a stat, DPS by fight length */
   .chartbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
   .chartbar label.c { min-width: 0; }
@@ -975,7 +981,11 @@
       <span id="staleMsg"><b>Settings changed since this run.</b> The results below are from the previous settings.</span>
       <button type="button" id="staleRun" class="primary">Sim!</button>
     </div>
-    <div class="tabletools"><label class="c" for="myRace" title="Rank the builds for the race you play. Each build's best race: every build is listed with whichever race does the most damage with it.">Rank for <select id="myRace"></select></label><span class="meta" id="moveNote" hidden><span class="mv up">▲</span> <span class="mv down">▼</span> places gained / lost since the previous run (hover for the DPS change)</span><label class="switch" for="allRaces" title="Open every build's other races and its no-race baseline under its row. The pill next to each race still opens or closes one build."><input id="allRaces" type="checkbox"> Show all races</label></div>
+    <div class="tabletools"><label class="c" for="myRace" title="Rank the builds for the race you play. Each build's best race: every build is listed with whichever race does the most damage with it.">Rank for <select id="myRace"></select></label><span class="meta" id="moveNote" hidden><span class="mv up">▲</span> <span class="mv down">▼</span> places gained / lost since the previous run (hover for the DPS change)</span><span class="sharebtns"><button type="button" id="shareBtn" class="resetbtn" title="Copies a link that opens the sim with these settings loaded">Share link</button><button type="button" id="copyResBtn" class="resetbtn" title="Copies the results table as text that reads well in a chat (Discord), with a link that opens these settings">Copy results</button></span><label class="switch" for="allRaces" title="Open every build's other races and its no-race baseline under its row. The pill next to each race still opens or closes one build."><input id="allRaces" type="checkbox"> Show all races</label></div>
+    <div class="shareout" id="shareOut" hidden>
+      <div class="cardhead"><span class="meta" id="shareMsg" role="status"></span><button type="button" id="shareClose" class="resetbtn">Close</button></div>
+      <textarea id="shareText" rows="2" readonly spellcheck="false" aria-label="Text to share" hidden></textarea>
+    </div>
     <div class="scroll"><table id="results"><thead><tr>
       <th>#</th><th>Build</th><th title="The race the build is listed with: its best race, or your race if you picked one in Rank for (above the table). The +4 races pill shows the other races and the no-race baseline; Show all races opens them for every build.">Race</th><th>Pets</th>
       <th title="Your damaging spells in priority order (left = checked first) with their share of the total damage (bar length relative to the build's biggest source); Bane of Doom and Bane of Agony share one split icon (one Bane per target). Pet, Demonic Brand, Touch of the Grave and explosives after the divider. Curses, Life Tap and racial cooldowns are in the details' full priority list.">Spells &amp; damage</th>
