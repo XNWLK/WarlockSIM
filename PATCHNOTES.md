@@ -3,6 +3,14 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v130
+- **Show the maths.** In a build's details, click any row of the Spells table to see how that damage is calculated,
+  step by step, with your own stats and settings: spell power, base value, the talents that add up, the auras that
+  multiply, what the boss's debuffs add, the crit, and the cast time, mana and miss chance.
+- It works for every source: your spells and DoTs, the Imp's Firebolt, the Succubus' Lash of Pain and her melee swing
+  with its full attack table, Demonic Brand, the totem hits, Touch of the Grave, explosives and Life Tap.
+- No result changes: it only shows the numbers the sim already uses.
+
 ## v129
 - The page header has a new link, **How it's calculated**, next to the GitHub link. It opens the rule book with every
   formula and what each talent, spell, pet, racial, buff and consumable does in the sim.

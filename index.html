@@ -596,6 +596,25 @@
   .cmpup .ulabel .ico { width: 16px; height: 16px; }
   .cmpfold > summary { cursor: pointer; color: var(--accent); font-size: 12px; }
   .cmpfold .cmp2 { margin-top: 8px; }
+  /* show the maths: a spell row of the details opens its calculation */
+  tr.mrow { cursor: pointer; }
+  tr.mrow:hover > td { background: var(--sunk); }
+  tr.mrow.open > td { background: var(--accent-soft); }
+  .mchev { display: inline-block; width: 6px; height: 6px; margin-left: 7px; border: solid var(--muted); border-width: 0 1.5px 1.5px 0; transform: translateY(-2px) rotate(45deg); }
+  tr.mrow.open .mchev { transform: translateY(1px) rotate(-135deg); border-color: var(--accent); }
+  tr.mathrow > td { background: var(--ground); padding: 8px 10px 12px; }
+  .mathbox { max-width: 1000px; display: grid; gap: 6px; }
+  .mathbox h3 { margin: 0; font-size: 12.5px; }
+  .mathbox h3 .meta { font-weight: 400; }
+  .mathbox p { margin: 0; max-width: 115ch; }
+  .mathbox a { color: var(--accent); font-weight: 600; }
+  ol.math { margin: 0; padding: 0; list-style: none; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+  ol.math li { display: grid; grid-template-columns: minmax(150px, 240px) minmax(0, 1fr) auto; gap: 2px 12px; padding: 4px 8px; align-items: baseline; font-size: 12px; }
+  ol.math li + li { border-top: 1px solid var(--line); }
+  ol.math .ml { color: var(--muted); }
+  ol.math .mc { font: 11.5px var(--mono); overflow-wrap: anywhere; }
+  ol.math .mr { font: 600 12px var(--mono); text-align: right; white-space: nowrap; }
+  @media (max-width: 700px) { ol.math li { grid-template-columns: minmax(0, 1fr) auto; } ol.math .ml { grid-column: 1 / -1; } }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 <script>
@@ -971,6 +990,7 @@
 <script src="engine/rotation.js"></script>
 <script src="engine/sim.js"></script>
 <script src="engine/settings-code.js"></script>
+<script src="engine/explain.js"></script>
 <script src="engine/custom-builds.js"></script>
 <script src="app/sim-pool.js"></script>
 <script src="data/default-results.js"></script>

@@ -32,6 +32,7 @@ Click a build for:
 - **DoT chart** of a sample fight: uptime, gaps, refreshes and crits of every DoT.
 - Timeline, stats used in the fight (with where each number comes from), per-spell numbers (casts, hits, crits, misses,
   damage), talents, the full priority list, mana, DPS distribution, buff and debuff uptimes.
+- **Show the maths:** click a spell in the details to see its damage calculated step by step with your own stats.
 - The complete rotation log of a sample fight.
 
 ### Your setup

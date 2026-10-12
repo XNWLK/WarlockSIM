@@ -1146,20 +1146,23 @@
 
     // ---- spells ----
     var keys = Object.keys(r.bySpell).sort(function (a, c) { return r.bySpell[c].dmg - r.bySpell[a].dmg; });
-    h += '<div class="wide"><h2>Spells (average per fight)</h2><div class="scroll"><table><thead><tr>' +
+    h += '<div class="wide"><h2>Spells (average per fight) <span class="meta" style="text-transform:none;letter-spacing:0;font-weight:400">— click a spell to see how its damage is calculated</span></h2><div class="scroll"><table><thead><tr>' +
       '<th>Spell</th><th class="n">% dmg</th><th class="n">DPS</th><th class="n" title="Threat per second from this source. Pet damage is the pet\'s threat, not yours.">Threat/s</th>' +
       '<th class="n" title="Damage per execute time: damage ÷ seconds spent casting it (cast time, channel time, or the GCD for instants). DoTs count all their ticks.">DPET</th>' +
       '<th class="n">Casts</th><th class="n">Hits</th><th class="n">Ticks</th>' +
       '<th class="n">Crit %</th><th class="n">Miss %</th><th class="n">Dmg / cast</th><th class="n">Busy s</th></tr></thead><tbody>' +
       keys.map(function (k) {
         var x = r.bySpell[k], att = x.landed + x.misses, crits = x.crits + x.tickCrits, ev = x.hits + x.ticks;
-        return '<tr><td><span class="sw" style="background:' + colorOf(k) + '"></span>' + icon(iconKeyOf(k), spellName(k), '', spellTipByKey(k)) + ' ' + esc(spellName(k)) + '</td>' +
+        var mk = id(r) + '|' + k, mx = WL.explainSpell(r.build, r.race, runCfg, k, r.stats, r.table), mOpen = mx && !!mathOpen[mk];   // show the maths (round 138)
+        return '<tr' + (mx ? ' class="mrow' + (mOpen ? ' open' : '') + '" data-math="' + esc(mk) + '" tabindex="0" aria-expanded="' + mOpen + '" title="' + (mOpen ? 'Hide' : 'Show') + ' how this is calculated"' : '') +
+          '><td><span class="sw" style="background:' + colorOf(k) + '"></span>' + icon(iconKeyOf(k), spellName(k), '', spellTipByKey(k)) + ' ' + esc(spellName(k)) + (mx ? '<span class="mchev" aria-hidden="true"></span>' : '') + '</td>' +
           '<td class="n">' + (total ? fmt(100 * x.dmg / total, 1) : '–') + '</td><td class="n">' + fmt(x.dmg / dur, 1) + '</td><td class="n">' + (x.threat ? fmt(x.threat / dur, 1) : '–') + '</td>' +
           '<td class="n">' + (x.castTime > 1e-9 && x.dmg ? fmt(x.dmg / x.castTime, 0) : '–') + '</td>' +
           '<td class="n">' + (x.casts ? fmt(x.casts, 1) : '–') + '</td><td class="n">' + (x.hits ? fmt(x.hits, 1) : '–') + '</td>' +
           '<td class="n">' + (x.ticks ? fmt(x.ticks, 1) : '–') + '</td><td class="n">' + (ev ? fmt(100 * crits / ev, 1) : '–') + '</td>' +
           '<td class="n">' + (att ? fmt(100 * x.misses / att, 1) : '–') + '</td><td class="n">' + (x.casts && x.dmg ? fmt(x.dmg / x.casts, 0) : '–') + '</td>' +
-          '<td class="n">' + (x.castTime ? fmt(x.castTime, 1) : '–') + '</td></tr>';
+          '<td class="n">' + (x.castTime ? fmt(x.castTime, 1) : '–') + '</td></tr>' +
+          (mOpen ? '<tr class="mathrow"><td colspan="12">' + mathHtml(r, mx) + '</td></tr>' : '');
       }).join('') + '</tbody></table></div></div>';
 
     // ---- talents ----
@@ -1221,6 +1224,17 @@
           '<td class="n">' + fmt(e.mana) + '</td><td class="meta">' + esc(note.join(' · ')) + '</td></tr>';
       }).join('') + '</tbody></table></div></div>';
     return h + '</div>';
+  }
+  // Show the maths (round 138, user): one damage source of a build, step by step with its own stats and the run's settings
+  // (engine/explain.js). Opened by clicking its row in the details' spell table; which ones are open is kept per row.
+  var mathOpen = {};
+  function mathHtml(r, x) {
+    return '<div class="mathbox"><h3>How ' + esc(x.title) + ' is calculated <span class="meta">— ' + esc(r.build.short) + ', ' + esc(WL.RACES[r.race].name) + ', with the settings of this run</span></h3>' +
+      (x.steps.length ? '<ol class="math">' + x.steps.map(function (s) {
+        return '<li><span class="ml">' + esc(s.label) + '</span><span class="mc">' + esc(s.calc) + '</span><b class="mr">' + esc(s.result) + '</b></li>';
+      }).join('') + '</ol>' : '') +
+      x.notes.map(function (t) { return '<p class="meta">' + esc(t) + '</p>'; }).join('') +
+      '<p class="meta">All the rules: <a href="https://github.com/XNWLK/WarlockSIM/blob/main/MECHANICS.md" target="_blank" rel="noopener">How it\'s calculated</a>.</p></div>';
   }
   // A build's three talent trees, read-only (details and compare; the editor draws its own clickable ones).
   function treesHtml(b) {
@@ -2401,11 +2415,15 @@
     if (rt) { var rk = rt.getAttribute('data-races'); raceOpen[rk] = !racesShown(rk); render(); return; }
     var lb = t.closest('button[data-log]');
     if (lb) { logMode[lb.getAttribute('data-id')] = lb.getAttribute('data-log'); render(); return; }
+    if (t.closest('.mathbox a')) return;                                // the link inside a calculation
+    var mr = t.closest('tr[data-math]');                                // show / hide a spell's calculation (round 138)
+    if (mr) { var mk = mr.getAttribute('data-math'); mathOpen[mk] = !mathOpen[mk]; render(); return; }
+    if (t.closest('tr.mathrow')) return;
     var tr = t.closest('tr.row');
     if (tr) { var k = tr.getAttribute('data-id'); open[k] = !open[k]; render(); }
   });
   document.addEventListener('keydown', function (e) {
-    var tr = e.target.closest && e.target.closest('tr.row');
+    var tr = e.target.closest && e.target.closest('tr.row, tr[data-math]');
     if (tr && e.target.tagName !== 'BUTTON' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); tr.click(); }
   });
 
