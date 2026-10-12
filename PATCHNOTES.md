@@ -3,6 +3,16 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v131
+- New card **Charts**, below Compare two builds, with two charts. Each point is a real simulation with your current
+  settings, and the same fights are used at every point, so the lines are smooth.
+- **DPS by a stat:** how a build's damage grows as one stat on your gear goes up — spell power, hit, crit, haste,
+  Intellect, Spirit or Spell Pierce. You can see where a stat stops helping (hit at each build's cap) and read the DPS
+  per point at your own value.
+- **DPS by fight length:** every build from 30 seconds to 5 minutes, showing which one is ahead in short and in long
+  fights.
+- Draw every build on the sheet or just one. Hover the chart for the exact values; a table of all values is below it.
+
 ## v130
 - **Show the maths.** In a build's details, click any row of the Spells table to see how that damage is calculated,
   step by step, with your own stats and settings: spell power, base value, the talents that add up, the auras that

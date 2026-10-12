@@ -12,6 +12,7 @@
     --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
     --mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
     --display: 'Spectral', Georgia, 'Times New Roman', serif;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;   /* chart series */
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -19,6 +20,7 @@
       --ground: #15121D; --surface: #1D1928; --sunk: #242033; --line: #312B40;
       --ink: #ECE8F5; --muted: #A39CB8; --accent: #B393F0; --accent-soft: #2B2340; --good: #6CC592; --bad: #EE7B7B;
       --c-sp: #B393F0; --c-hit: #4CC7C9; --c-crit: #F29360; --c-haste: #6FA8F0; --c-int: #EA7DBB; --c-pierce: #8CCB64; --c-fight: #A39CB8;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
     }
   }
   :root[data-theme="dark"] {
@@ -26,6 +28,7 @@
     --ground: #15121D; --surface: #1D1928; --sunk: #242033; --line: #312B40;
     --ink: #ECE8F5; --muted: #A39CB8; --accent: #B393F0; --accent-soft: #2B2340; --good: #6CC592; --bad: #EE7B7B;
     --c-sp: #B393F0; --c-hit: #4CC7C9; --c-crit: #F29360; --c-haste: #6FA8F0; --c-int: #EA7DBB; --c-pierce: #8CCB64; --c-fight: #A39CB8;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }   /* no mobile font boosting next to wide tables */
@@ -596,6 +599,37 @@
   .cmpup .ulabel .ico { width: 16px; height: 16px; }
   .cmpfold > summary { cursor: pointer; color: var(--accent); font-size: 12px; }
   .cmpfold .cmp2 { margin-top: 8px; }
+  /* charts: DPS by a stat, DPS by fight length */
+  .chartbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+  .chartbar label.c { min-width: 0; }
+  .chartbar select { max-width: min(320px, 100%); }
+  #chOut { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; }
+  #chOut > * { min-width: 0; }
+  #chOut h2 { margin: 0; }
+  #chOut .chcap { margin: 0; max-width: 110ch; }
+  .chwrap { position: relative; min-width: 0; max-width: 1100px; }
+  svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+  .chart .grid { stroke: var(--line); stroke-width: 1; }
+  .chart .axis { stroke: var(--muted); stroke-width: 1; }
+  .chart text { fill: var(--muted); font: 11px var(--mono); }
+  .chart text.axl { font: 11.5px var(--sans); }
+  .chart text.dl { fill: var(--ink); font: 600 11.5px var(--sans); }
+  .chart .ln { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .chart .pt { stroke: var(--surface); stroke-width: 2; }
+  .chart .cur { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 4 3; opacity: .6; }
+  .chart .xh { stroke: var(--ink); stroke-width: 1; opacity: .35; }
+  .chtip { position: absolute; z-index: 5; pointer-events: none; min-width: 190px; max-width: 320px; background: var(--surface); color: var(--ink); border: 1px solid var(--line);
+           border-radius: 6px; padding: 7px 9px; font-size: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.28); }
+  .chtip b.h { display: block; margin-bottom: 4px; }
+  .chtip div { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 6px; align-items: center; }
+  .chtip i, .chlegend i { display: block; width: 10px; height: 10px; border-radius: 2px; }
+  .chtip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chtip em { font: 600 12px var(--mono); font-style: normal; }
+  .chlegend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; }
+  .chlegend span.it { display: inline-flex; align-items: center; gap: 6px; }
+  .chtable > summary { cursor: pointer; color: var(--accent); font-size: 12px; }
+  .chtable td, .chtable th { font-size: 11.5px; }
+  .chtable td.curcol, .chtable th.curcol { background: var(--accent-soft); }
   /* show the maths: a spell row of the details opens its calculation */
   tr.mrow { cursor: pointer; }
   tr.mrow:hover > td { background: var(--sunk); }
@@ -967,6 +1001,21 @@
         <select id="cmpBR" class="cmprace" aria-label="Race of build B"></select></div>
     </div>
     <div id="cmpOut"></div>
+  </details>
+
+  <details class="card toolcard" id="charts">
+    <summary>Charts — DPS by a stat · DPS by fight length</summary>
+    <div class="chartbar">
+      <label class="c" for="chKind">Chart <select id="chKind">
+        <option value="stat">DPS by a stat</option>
+        <option value="len">DPS by fight length</option>
+      </select></label>
+      <label class="c" for="chStat" id="chStatLbl">Stat <select id="chStat"></select></label>
+      <label class="c" for="chBuild">Builds <select id="chBuild"></select></label>
+      <button type="button" id="chRun" class="primary" title="Simulates the chosen builds again at every point of the chart, with your current settings">Draw chart</button>
+      <span class="meta" id="chMsg" role="status"></span>
+    </div>
+    <div id="chOut"><p class="meta chcap">Pick a chart and press Draw chart. <b>DPS by a stat</b> shows how a build's damage grows as one stat on your gear goes up, with everything else as you have set it — for example where more hit stops helping. <b>DPS by fight length</b> shows which build is ahead in short and in long fights.</p></div>
   </details>
 
   <p class="foot">Click a row for talents, stats, the DoT chart, per-spell numbers, race comparison and the full rotation log; the "+4 races" pill next to the race

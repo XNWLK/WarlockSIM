@@ -665,6 +665,7 @@
   function run() {
     readSettings();
     if (running) return;
+    if (chartRunning) { $('runMeta').textContent = 'A chart is being drawn — press Sim! again when it is done.'; return; }   // one job list at a time on the worker pool
     // Snapshot of the build list: builds added/removed in the editor during a run only count from the next run.
     var builds = WL.BUILDS.slice(), keep = sameSettings(), todo = keep ? pendingBuilds() : builds;
     if (keep) {                                                          // drop rows / weights of removed builds
@@ -1999,7 +2000,7 @@
       ref: top && top.build.key !== src.key ? { b: top.build, race: top.race, dps: top.dps } : null };
   }
   function quickSim() {
-    if (quickRunning || running || batchRunning) { edMsg('Wait for the current run to finish.', true); return; }
+    if (quickRunning || running || batchRunning || chartRunning) { edMsg('Wait for the current run to finish.', true); return; }
     var errs = WL.validateBuild(ed.b).concat(timelineErrors().map(function (x) { return 'Timeline: ' + x.msg; }));
     if (errs.length) { edMsg('Fix the checks first: ' + errs[0], true); return; }
     readSettings();
@@ -2333,7 +2334,7 @@
     $('runMeta').textContent = 'Run saved to Batch compare as "' + name + '".';
   }
   function runBatch() {
-    if (batchRunning || running) { $('batchStatus').textContent = 'Wait for the current run to finish.'; return; }
+    if (batchRunning || running || chartRunning) { $('batchStatus').textContent = 'Wait for the current run to finish.'; return; }
     if (!setups.length) { $('batchStatus').textContent = 'Add at least one setup first.'; return; }
     var bSetups = setups.slice(), builds = WL.BUILDS.slice();   // snapshots: edits during the batch count from the next one
     var cfgs = bSetups.map(function (s) { var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)); WL.applySettings(c, WL.decodeSettings(s.code)); return c; });
@@ -2376,9 +2377,148 @@
       }).join('') + '</tbody>';
   }
 
+  // ---------- charts (round 139, user): DPS by a stat, DPS by fight length ----------
+  // Every point is a real simulation of the build with one value changed — a stat on the gear sheet or the fight length —
+  // and everything else as it is set now. The same fights (seeds) are used at every point, so a line is smooth and the
+  // steps between points are real. At most eight builds: one fixed colour slot per build (never reused for another).
+  function chRange(a, z, step) { var o = []; for (var v = a; v <= z + 1e-9; v += step) o.push(+v.toFixed(4)); return o; }
+  var CH_STATS = [
+    { k: 'sp', name: 'spell power', axis: 'Spell power on your gear', pts: chRange(0, 1500, 150), unit: '' },
+    { k: 'hitPct', name: 'hit', axis: 'Hit % on your gear', pts: chRange(0, 17, 1), unit: '%' },
+    { k: 'critPct', name: 'crit', axis: 'Crit % on your sheet', pts: chRange(0, 40, 4), unit: '%' },
+    { k: 'hastePct', name: 'haste', axis: 'Haste % on your gear', pts: chRange(0, 30, 3), unit: '%' },
+    { k: 'int', name: 'Intellect', axis: 'Intellect on your gear', pts: chRange(0, 500, 50), unit: '' },
+    { k: 'spi', name: 'Spirit', axis: 'Spirit on your gear', pts: chRange(0, 400, 40), unit: '' },
+    { k: 'pierce', name: 'Spell Pierce', axis: 'Spell Pierce on your gear', pts: chRange(0, 100, 10), unit: '' },
+  ];
+  var CH_LEN = [30, 45, 60, 90, 120, 150, 180, 240, 300], CH_MAX = 8, CH_FIGHTS = 400;
+  var chart = null, chartRunning = false;
+  function chMsg(s, bad) { $('chMsg').textContent = s; $('chMsg').style.color = bad ? 'var(--bad)' : ''; }
+  function chOptions() {
+    var st = $('chStat'), bl = $('chBuild'), sv = st.value, bv = bl.value;
+    st.innerHTML = CH_STATS.map(function (s) { return '<option value="' + s.k + '">' + esc(s.axis) + '</option>'; }).join('');
+    if (sv) st.value = sv; else st.value = 'hitPct';
+    bl.innerHTML = '<option value="">every build on the sheet' + (WL.BUILDS.length > CH_MAX ? ' (the best ' + CH_MAX + ')' : '') + '</option>' +
+      WL.BUILDS.map(function (b) { return '<option value="' + esc(b.key) + '">' + esc(b.short) + '</option>'; }).join('');
+    if (bv && WL.BUILDS.some(function (b) { return b.key === bv; })) bl.value = bv;
+    $('chStatLbl').hidden = $('chKind').value !== 'stat';
+  }
+  function chSlot(b) { var i = WL.BUILDS.indexOf(b); return (i >= 0 ? i : 0) % CH_MAX + 1; }
+  function runChart() {
+    if (chartRunning || running || batchRunning || quickRunning) { chMsg('Wait for the current run to finish.', true); return; }
+    readSettings();
+    var kind = $('chKind').value, st = CH_STATS.filter(function (s) { return s.k === $('chStat').value; })[0] || CH_STATS[1];
+    var cur = kind === 'len' ? cfg.fight.duration : (cfg.gear[st.k] || 0);
+    var xs = (kind === 'len' ? CH_LEN : st.pts).slice();
+    if (xs.indexOf(cur) < 0) xs.push(cur);
+    xs.sort(function (a, z) { return a - z; });
+    var pick = $('chBuild').value, by = runByRace(), order = WL.BUILDS.slice().sort(function (a, z) { return (listedDps(by[z.key] || {}) || 0) - (listedDps(by[a.key] || {}) || 0); });
+    var builds = pick ? WL.BUILDS.filter(function (b) { return b.key === pick; }) : order.slice(0, CH_MAX);
+    if (!builds.length) { chMsg('No build to draw.', true); return; }
+    var used = {}, series = builds.map(function (b) {
+      var mr = mainRow(b.key), slot = chSlot(b);
+      while (used[slot]) slot = slot % CH_MAX + 1;                       // more than eight builds on the sheet: the next free slot
+      used[slot] = 1;
+      return { b: b, race: mr ? mr.race : (myRace || 'human'), slot: slot, y: [] };
+    });
+    var n = Math.min(cfg.fight.iterations, CH_FIGHTS), jobs = [], done = 0, t0 = performance.now();
+    xs.forEach(function (x, xi) {
+      var c = JSON.parse(JSON.stringify(cfg));
+      if (kind === 'len') c.fight.duration = x; else c.gear[st.k] = x;
+      series.forEach(function (s, si) { jobs.push({ kind: 'weight', build: s.b, race: s.race, cfg: c, n: n, stat: null, si: si, xi: xi }); });
+    });
+    chartRunning = true; $('chRun').disabled = true; chMsg('Simulating 0 / ' + jobs.length + ' points…');
+    WL.SimPool.run(jobs, function (j, res) {
+      series[j.si].y[j.xi] = res.dps; chMsg('Simulating ' + (++done) + ' / ' + jobs.length + ' points…');
+    }, function () {
+      chartRunning = false; $('chRun').disabled = false;
+      chart = { kind: kind, st: st, xs: xs, cur: cur, series: series, n: n, dur: cfg.fight.duration, gear: gearText(cfg.gear) };
+      chMsg(jobs.length + ' points × ' + fmt(n) + ' fights in ' + ((performance.now() - t0) / 1000).toFixed(1) + ' s.');
+      renderChart();
+    });
+  }
+  function chNice(span, target) {             // a round step for about `target` grid lines
+    var raw = span / target, mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10)), f = raw / mag;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * mag;
+  }
+  function renderChart() {
+    var C = chart; if (!C) return;
+    // drawn at the width it has on the page (340 … 1100 px), so the text keeps its size on a phone; redrawn when the window changes
+    var cw = $('chOut').clientWidth || 960, W = Math.max(340, Math.min(1100, cw)), H = W < 620 ? 300 : 400;
+    C.w = cw;
+    var len = C.kind === 'len', unit = len ? ' s' : C.st.unit, S = C.series, direct = S.length <= 4 && W >= 620;
+    var L = 56, R = direct ? 190 : 18, T = 22, B = 44, pw = W - L - R, ph = H - T - B;
+    var all = []; S.forEach(function (s) { s.y.forEach(function (v) { all.push(v); }); });
+    var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+    if (lo < 0.4 * hi) lo = 0;
+    var step = chNice((hi - lo) || 1, 5); lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step; if (hi === lo) hi = lo + step;
+    var x0 = C.xs[0], x1 = C.xs[C.xs.length - 1];
+    var X = function (v) { return L + (x1 === x0 ? 0.5 : (v - x0) / (x1 - x0)) * pw; }, Y = function (v) { return T + (1 - (v - lo) / (hi - lo)) * ph; };
+    var g = '';
+    for (var v = lo; v <= hi + 1e-9; v += step) g += '<line class="grid" x1="' + L + '" x2="' + (L + pw) + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '"/><text x="' + (L - 8) + '" y="' + (Y(v) + 4).toFixed(1) + '" text-anchor="end">' + fmt(v) + '</text>';
+    var every = Math.ceil(C.xs.length / (W < 620 ? 6 : 12)), lastTick = -1e9;
+    C.xs.forEach(function (x, i) {
+      if (i % every && x !== C.cur) return;
+      if (x !== C.cur && (X(x) - lastTick < 30 || Math.abs(X(x) - X(C.cur)) < 30)) return;   // your value always gets its label; neighbours make room
+      lastTick = X(x);
+      g += '<line class="axis" x1="' + X(x).toFixed(1) + '" x2="' + X(x).toFixed(1) + '" y1="' + (T + ph) + '" y2="' + (T + ph + 4) + '"/><text x="' + X(x).toFixed(1) + '" y="' + (T + ph + 17) + '" text-anchor="middle">' + fmt(x, x % 1 ? 1 : 0) + '</text>';
+    });
+    g += '<line class="axis" x1="' + L + '" x2="' + (L + pw) + '" y1="' + (T + ph) + '" y2="' + (T + ph) + '"/>' +
+      '<text class="axl" x="' + (L + pw / 2) + '" y="' + (H - 6) + '" text-anchor="middle">' + esc(len ? 'Fight length (s)' : C.st.axis) + '</text>' +
+      '<text class="axl" x="' + L + '" y="12" text-anchor="start">DPS</text>' +
+      '<line class="cur" x1="' + X(C.cur).toFixed(1) + '" x2="' + X(C.cur).toFixed(1) + '" y1="' + T + '" y2="' + (T + ph) + '"/>' +
+      '<text class="axl" x="' + X(C.cur).toFixed(1) + '" y="12" text-anchor="' + (X(C.cur) > L + pw - 60 ? 'end' : X(C.cur) < L + 60 ? 'start' : 'middle') + '">' + (len ? 'your setting' : 'your gear') + ': ' + fmt(C.cur, C.cur % 1 ? 1 : 0) + unit + '</text>';
+    S.forEach(function (s) {
+      var col = 'var(--s' + s.slot + ')';
+      g += '<polyline class="ln" style="stroke:' + col + '" points="' + C.xs.map(function (x, i) { return X(x).toFixed(1) + ',' + Y(s.y[i]).toFixed(1); }).join(' ') + '"/>' +
+        C.xs.map(function (x, i) { return '<circle class="pt" style="fill:' + col + '" cx="' + X(x).toFixed(1) + '" cy="' + Y(s.y[i]).toFixed(1) + '" r="4"/>'; }).join('');
+    });
+    if (direct) {                               // up to four lines: their names at the right end, kept apart
+      var ends = S.map(function (s) { return { s: s, y: Y(s.y[s.y.length - 1]) }; }).sort(function (a, z) { return a.y - z.y; });
+      ends.forEach(function (e, i) { if (i && e.y - ends[i - 1].y < 14) e.y = ends[i - 1].y + 14; });
+      ends.forEach(function (e) { var nm = e.s.b.short.length > 26 ? e.s.b.short.slice(0, 25) + '…' : e.s.b.short; g += '<text class="dl" x="' + (L + pw + 10) + '" y="' + (e.y + 4).toFixed(1) + '">' + esc(nm) + '</text>'; });
+    }
+    g += '<line class="xh" id="chXh" y1="' + T + '" y2="' + (T + ph) + '" x1="0" x2="0" visibility="hidden"/><rect id="chHit" x="' + L + '" y="' + T + '" width="' + pw + '" height="' + ph + '" fill="transparent"/>';
+    var ci = C.xs.indexOf(C.cur), near = ci < C.xs.length - 1 ? ci : ci - 1;       // slope at your value: the step after it (the last point: the step before)
+    var title = len ? 'DPS by fight length' : 'DPS by ' + C.st.name;
+    var cap = 'Each point is ' + fmt(C.n) + ' simulated fights with ' + (len ? 'that fight length (± your length variation)' : 'that much ' + C.st.name + ' on your gear') + ' and everything else as you have set it; the same fights are used at every point. ' +
+      'Every build is drawn with the race it is listed with. The dashed line is your current ' + (len ? 'fight length' : 'value') + '. The DPS axis ' + (lo > 0 ? 'does not start at 0.' : 'starts at 0.') +
+      (!$('chBuild').value && WL.BUILDS.length > CH_MAX ? ' Only the best ' + CH_MAX + ' builds are drawn.' : '');
+    var legend = S.length > 1 ? '<div class="chlegend">' + S.slice().sort(function (a, z) { return z.y[ci] - a.y[ci]; }).map(function (s) {
+      return '<span class="it"><i style="background:var(--s' + s.slot + ')"></i>' + esc(s.b.short) + ' <span class="meta">' + esc(WL.RACES[s.race].name) + '</span></span>'; }).join('') + '</div>' : '';
+    var table = '<details class="chtable"' + (S.length <= 2 ? ' open' : '') + '><summary>Table of values</summary><div class="scroll"><table><thead><tr><th>Build</th>' +
+      C.xs.map(function (x) { return '<th class="n' + (x === C.cur ? ' curcol' : '') + '">' + fmt(x, x % 1 ? 1 : 0) + unit + '</th>'; }).join('') +
+      (len ? '' : '<th class="n" title="The DPS gained per point between your value and the next point of the chart">DPS per 1' + (unit || '') + ' at your value</th>') + '</tr></thead><tbody>' +
+      S.slice().sort(function (a, z) { return z.y[ci] - a.y[ci]; }).map(function (s) {
+        var slope = near >= 0 && C.xs.length > 1 ? (s.y[near + 1] - s.y[near]) / (C.xs[near + 1] - C.xs[near]) : null;
+        return '<tr><td class="bname"><span class="sw" style="background:var(--s' + s.slot + ')"></span>' + esc(s.b.short) + ' <span class="meta">' + esc(WL.RACES[s.race].name) + '</span></td>' +
+          C.xs.map(function (x, i) { return '<td class="n' + (x === C.cur ? ' curcol' : '') + '">' + fmt(s.y[i], 1) + '</td>'; }).join('') +
+          (len ? '' : '<td class="n">' + (slope == null ? '–' : fmt(slope, slope < 1 ? 3 : 2)) + '</td>') + '</tr>';
+      }).join('') + '</tbody></table></div></details>';
+    $('chOut').innerHTML = '<h2>' + esc(title) + (S.length === 1 ? ' · ' + esc(S[0].b.short) + ' (' + esc(WL.RACES[S[0].race].name) + ')' : '') + '</h2>' + legend +
+      '<div class="chwrap"><svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(title) + ': line chart, values in the table below">' + g + '</svg><div class="chtip" id="chTip" hidden></div></div>' +
+      '<p class="meta chcap">' + esc(cap) + '</p>' + table;
+    var svg = $('chOut').querySelector('svg'), hit = $('chHit'), xh = $('chXh'), tip = $('chTip'), wrap = $('chOut').querySelector('.chwrap');
+    function move(ev) {
+      var r = svg.getBoundingClientRect(), mx = (ev.clientX - r.left) / r.width * W, bi = 0, bd = 1e9;
+      C.xs.forEach(function (x, i) { var d = Math.abs(X(x) - mx); if (d < bd) { bd = d; bi = i; } });
+      var px = X(C.xs[bi]); xh.setAttribute('x1', px); xh.setAttribute('x2', px); xh.setAttribute('visibility', 'visible');
+      tip.innerHTML = '<b class="h">' + esc((len ? 'Fight length ' : cap1(C.st.name) + ' ') + fmt(C.xs[bi], C.xs[bi] % 1 ? 1 : 0) + unit) + (C.xs[bi] === C.cur ? ' <span class="meta">(yours)</span>' : '') + '</b>' +
+        S.slice().sort(function (a, z) { return z.y[bi] - a.y[bi]; }).map(function (s) { return '<div><i style="background:var(--s' + s.slot + ')"></i><span>' + esc(s.b.short) + '</span><em>' + fmt(s.y[bi], 1) + '</em></div>'; }).join('');
+      tip.hidden = false;
+      var wr = wrap.getBoundingClientRect(), tx = px / W * r.width + 14, tw = tip.offsetWidth;
+      if (tx + tw > wr.width) tx = px / W * r.width - tw - 14;
+      tip.style.left = Math.max(0, tx) + 'px'; tip.style.top = Math.max(0, Math.min(ev.clientY - wr.top - 20, wr.height - tip.offsetHeight)) + 'px';
+    }
+    hit.addEventListener('pointermove', move); hit.addEventListener('pointerdown', move);          // a tap on a touch screen shows the point too
+    hit.addEventListener('pointerleave', function () { tip.hidden = true; xh.setAttribute('visibility', 'hidden'); });
+  }
+  function cap1(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
   // ---------- events ----------
   document.addEventListener('click', function (e) {
     var t = e.target;
+    if (t.closest('#chRun')) { runChart(); return; }
     if (t.closest('#runBtn')) { if (batchRunning) return; stepsDone(); run(); return; }
     if (t.closest('#resetSide')) { resetSide(); return; }
     if (t.closest('#resetStats')) { resetStats(); return; }
@@ -2459,6 +2599,15 @@
     render();
   });
   $('compare').addEventListener('toggle', function () { if ($('compare').open) renderCompare(); });
+  $('charts').addEventListener('toggle', function () { if ($('charts').open) chOptions(); });   // the build list follows the sheet
+  $('chKind').addEventListener('change', chOptions);
+  var chResize = null, chRedraw = function () {                         // the chart is drawn at the page's width: redraw it when that changes
+    clearTimeout(chResize);
+    chResize = setTimeout(function () { var w = $('chOut').clientWidth; if (chart && w && Math.abs(w - chart.w) > 4) renderChart(); }, 150);
+  };
+  if (window.ResizeObserver) new ResizeObserver(chRedraw).observe($('chOut'));
+  window.addEventListener('resize', chRedraw);
+  chOptions();
   edOptions(); edStart(WL.BUILDS[0]);
   render();
   // Open in a working state: the shipped default results when they match (round 76), else a live run. Your own builds
