@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v133
+- Fixed: a damaged or cut-off share link showed its message on the page but also left an error in the browser's
+  console. The message stays; the console stays clean.
+
 ## v132
 - **Share link.** A button above the results copies one link that opens the sim with your settings loaded. "Share this
   build" in a build's details makes a link that also opens that build: a build on the sheet opens its row, your own

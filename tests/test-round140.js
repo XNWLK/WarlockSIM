@@ -49,6 +49,18 @@
         T.eq(msgs.filter(function (m) { return m === 'ACCEPTED'; }).length, 0, 'ten wrong or damaged codes: every one is refused');
         T.ok(msgs.every(function (m) { return typeof m === 'string' && m.length > 10 && !/undefined|TypeError|JSON/.test(m); }), 'each with a plain message (' + msgs[1] + ' / ' + msgs[5] + ' / ' + msgs[6] + ')');
       });
+    }).then(function () {
+      T.group('share link: a damaged one leaves no uncaught error');
+      var seen = [], on = function (e) { seen.push(String(e.reason && e.reason.message || e.reason)); if (e.preventDefault) e.preventDefault(); };
+      window.addEventListener('unhandledrejection', on);
+      var cut = ['1.abc', '1.AAAA', '1.AAAAAAAA'];
+      return Promise.all(cut.map(function (x) { return WL.decodeShare(x).then(function () { return 'ACCEPTED'; }, function (e) { return e.message; }); })).then(function (msgs) {
+        return new Promise(function (r) { setTimeout(r, 300); }).then(function () {
+          window.removeEventListener('unhandledrejection', on);
+          T.ok(msgs.every(function (m) { return m === 'The share link is damaged.'; }), 'three compressed links with cut or broken data: each refused as damaged');
+          T.eq(seen.length, 0, 'and nothing is left uncaught for the browser console' + (seen.length ? ' (' + seen.join(' / ') + ')' : ''));
+        });
+      });
     }).then(done, fail);
   });
 })();

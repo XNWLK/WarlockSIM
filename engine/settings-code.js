@@ -89,7 +89,10 @@ WL.describeSettings = function (o) {
     return a;
   }
   function pipe(bytes, stream) {
-    var w = stream.writable.getWriter(); w.write(bytes); w.close();
+    // If the data is damaged, the write side fails together with the read side. The read side below reports it;
+    // the write side is silenced here, or the browser logs an uncaught error on top of the page's own message.
+    var w = stream.writable.getWriter(), quiet = function () {};
+    w.write(bytes).catch(quiet); w.close().catch(quiet);
     return new Response(stream.readable).arrayBuffer().then(function (b) { return new Uint8Array(b); });
   }
   WL.canZipShare = function () { return typeof CompressionStream !== 'undefined' && typeof DecompressionStream !== 'undefined' && typeof Response !== 'undefined'; };
