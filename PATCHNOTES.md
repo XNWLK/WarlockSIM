@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v134
+- The links at the top of the page now include the in-game addon, Xn's Warlock Sim: the sim inside the game, with your
+  own character.
+
 ## v133
 - Fixed: a damaged or cut-off share link showed its message on the page but also left an error in the browser's
   console. The message stays; the console stays clean.
