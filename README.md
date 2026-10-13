@@ -9,6 +9,10 @@ Live version: **[xnwlk.github.io/WarlockSIM](https://xnwlk.github.io/WarlockSIM/
 Want to press the buttons yourself? **[Forever Warlocking](https://xnwlk.github.io/ForeverWarlocking/)** is the 3D practice sim built on
 the same data and mechanics ([its repository](https://github.com/XNWLK/ForeverWarlocking)).
 
+Want it in the game? **[Xn's Warlock Sim](https://github.com/XNWLK/WarlockSIMAddon)** is the addon: it reads your own
+character (talents, race, demon and stats) and sims it right there, with the same data and rules. Settings codes and
+build codes work both ways, so you can take your character from the game to this page and back.
+
 **How is it calculated?** [MECHANICS.md](MECHANICS.md) is the full rule book: every formula, and what each talent, spell,
 pet, racial, raid buff and consumable does in the sim, with worked examples.
 
