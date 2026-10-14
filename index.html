@@ -118,6 +118,66 @@
   .batchlist { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 12px; }
   .batchlist li span.meta { display: block; font-size: 11px; }
   .batchlist button { padding: 1px 7px; font-size: 11px; margin-left: 6px; }
+
+  /* gear builder (round 147): a character window. Under construction: at the bottom with the tape; its final place is
+     the empty anchor #gearTop above the Stats panel. */
+  .gearanchor:empty { display: none; }
+  .gearcard { position: relative; overflow: hidden; grid-template-columns: minmax(0, 1fr); }   /* the tape's long line must not widen it */
+  .gearcard .tape { display: none; }
+  .gearcard.building .tape { display: block; margin: 6px -30px; transform: rotate(-1.3deg); padding: 5px 0;
+    background: repeating-linear-gradient(-45deg, #17140F 0 11px, #F2C200 11px 22px); box-shadow: 0 2px 5px rgba(0, 0, 0, .25); }
+  .tape > div { background: #F2C200; color: #17140F; font: 700 13px/1 var(--mono); letter-spacing: .2em; white-space: nowrap;
+    overflow: hidden; padding: 6px 0; text-align: center; }
+  .tape > div span { margin: 0 14px; }
+  .gbhead { justify-content: flex-start; gap: 8px 16px; }
+  .gbhead .gbclear { margin-left: auto; }
+  .gearcard > .meta { margin: 0; max-width: 100ch; }
+  #gbMsg { color: var(--accent); }
+  #gbMsg:empty { display: none; }
+  .gbdoll { display: grid; grid-template-columns: minmax(0, 230px) minmax(0, 1fr) minmax(0, 230px); grid-template-areas: "l m r" "w w w"; gap: 10px 16px; }
+  #gbLeft { grid-area: l; } #gbMid { grid-area: m; min-width: 0; justify-self: center; width: 100%; max-width: 520px; } #gbRight { grid-area: r; }
+  #gbWeap { grid-area: w; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+  .gbcol { display: grid; gap: 4px; align-content: start; }
+  .gbslot { display: flex; align-items: center; gap: 8px; width: 100%; padding: 3px 6px; text-align: left; font-weight: 500; background: var(--sunk); min-width: 0; }
+  .gbslot:hover { border-color: var(--accent); }
+  #gbRight .gbslot { flex-direction: row-reverse; text-align: right; }
+  #gbWeap .gbslot { width: 230px; }
+  .gbico { width: 34px; height: 34px; flex: none; border-radius: 4px; border: 1px dashed var(--line); background: var(--surface); display: grid; place-items: center;
+    font: 600 16px var(--display); color: var(--accent); }
+  .gbslot.full .gbico { border: 1px solid var(--accent); background: var(--accent-soft); }
+  .gbslot.sel { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .gbslot.blocked { opacity: .55; }
+  .gbtxt { display: grid; min-width: 0; }
+  .gbsn { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .gbin { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gbslot:not(.full) .gbin { color: var(--muted); font-style: italic; font-weight: 400; }
+  .gbtab td { font-size: 12px; padding: 2px 5px; }
+  .gbtab td.n { font-family: var(--mono); }
+  .gbtab td.gbsum { font-weight: 600; }
+  #gbMid .meta { margin: 6px 0 0; font-size: 11px; }
+  .gbedit { border-top: 1px solid var(--line); padding-top: 8px; display: grid; gap: 8px; }
+  .gbedit[hidden] { display: none; }
+  .gbedit h3 { margin: 0; font-size: 13px; }
+  .gbedit h4 { margin: 0 0 4px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; }
+  .gbedit .meta { margin: 6px 0; }
+  .gbedcols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 16px; }
+  .gbown .btnrow input[type=text] { flex: 2 1 200px; }
+  .gbfields { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); gap: 4px 16px; margin-top: 6px; }
+  label.f.gbf { grid-template-columns: minmax(0, 1fr) 80px; }
+  .gblist { list-style: none; margin: 6px 0 0; padding: 0; max-height: 240px; overflow: auto; display: grid; gap: 1px; }
+  .gblist button { width: 100%; text-align: left; background: none; border: 0; padding: 3px 4px; }
+  .gblist button:hover { background: var(--sunk); }
+  .gbnote { margin: 0; color: var(--accent); }
+  .gbnote[hidden] { display: none; }
+  @media (max-width: 760px) {
+    .gbdoll { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "l r" "w w" "m m"; }
+    .gbedcols { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 520px) {
+    .gbdoll { grid-template-columns: minmax(0, 1fr); grid-template-areas: "l" "r" "w" "m"; }
+    #gbRight .gbslot { flex-direction: row; text-align: left; }
+    #gbWeap .gbslot { width: 100%; }
+  }
   .batchout td { font-size: 11.5px; }
   /* W7 build editor */
   details#editor > summary { cursor: pointer; font-weight: 600; font-size: 12.5px; }
@@ -760,6 +820,10 @@
     <span class="meta" id="quickMsg" role="status"></span>
   </div>
 
+  <!-- The gear builder's final place (round 147, user: "in the final version the gear builder will be at the top"). Empty
+       while it is under construction: app/app.js moves the #gear card in here when GEAR_PLACE is 'top'. -->
+  <div class="gearanchor" id="gearTop"></div>
+
   <section class="setup" id="settings" aria-label="Stats and fight settings">
     <div class="card statcard">
       <div class="cardhead">
@@ -772,6 +836,7 @@
         <label class="c" for="o_critAll"><input id="o_critAll" type="checkbox"> Sheet crit % already includes talents, racials &amp; oil</label>
         <label class="c" for="o_eng" title="Engineering unlocks the explosives in the Consumables tab. No other profession has a DPS effect for a Warlock in Forever."><input id="o_eng" type="checkbox"> Engineering (explosives)</label>
       </div>
+      <p class="meta gbnote" id="gbNote" hidden>Gear builder on: each Sheet (gear) value = a naked character + your items (<a href="#gear">Gear builder</a>, bottom of the page). What you type here is added on top.</p>
       <div class="scroll"><table class="tot" id="totalTable"></table></div>
       <p class="meta"><b>Sheet (gear)</b> = your character sheet with gear only (editable). <b>Total</b> = race base + gear + raid buffs +
         consumables + weapon oil + passive racials (read-only; the per-build Spellstone / Firestone is not included). Talents differ per build and are shown in each build's details.
@@ -1038,6 +1103,24 @@
     (or Show all races above the table) shows the build's other races. Stat weights: DPS per 1 spell power; hit / crit / haste / Int shown as the spell power they are worth,
     computed on each build's best race with common random numbers (hit/haste carry some noise). Spell Pierce weight: in the details.
     Data: Wowhead Forever (beta 1.60.1).</p>
+
+  <section class="card gearcard building" id="gear" aria-labelledby="gearTitle">
+    <div class="cardhead gbhead">
+      <h2 id="gearTitle">Gear builder <span class="ctag">under construction</span></h2>
+      <label class="switch" for="gbOn" title="On: your stats in the Stats panel are a naked character plus the items here, and what you type there is added on top. Off: the Stats panel keeps its numbers and works as before."><input id="gbOn" type="checkbox"> Use this gear for my stats</label>
+      <button type="button" id="gbClear" class="resetbtn gbclear" data-label="Take everything off" data-armed="Click again to empty every slot">Take everything off</button>
+    </div>
+    <div class="tape" aria-hidden="true"><div><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span></div></div>
+    <p class="meta">Click a slot to put an item in. The list of items will come from the Wowhead Forever database once it has enough of them; until then you type each item's stats in yourself. Your items are kept in this browser.</p>
+    <p class="meta" id="gbMsg" role="status"></p>
+    <div class="gbdoll">
+      <div class="gbcol" id="gbLeft"></div>
+      <div id="gbMid"></div>
+      <div class="gbcol" id="gbRight"></div>
+      <div id="gbWeap"></div>
+    </div>
+    <div class="gbedit" id="gbEdit" hidden></div>
+  </section>
 </div>
 
 <script src="data/consumables.js"></script>
@@ -1059,4 +1142,6 @@
 <script src="engine/custom-builds.js"></script>
 <script src="app/sim-pool.js"></script>
 <script src="data/default-results.js"></script>
+<script src="data/items.js"></script>
+<script src="app/gear-builder.js"></script>
 <script src="app/app.js"></script>

@@ -3,6 +3,16 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v136
+- **Gear builder (under construction).** At the very bottom of the page there is now a character window with every
+  gear slot. Click a slot to put an item in. Switch on "Use this gear for my stats" and the Stats panel starts from a
+  naked character and adds up your items; whatever you type in the Stats panel is added on top. Switched off, the Stats
+  panel keeps its numbers and works as before.
+- The item list is still empty: it will be filled from the Wowhead Forever database once there is enough data there.
+  Until then you type in each item's stats yourself. Only the stats count for now; "Use:" and "Chance on hit:" effects
+  are not simulated yet. Your items are kept in your browser, and settings codes and share links carry them while the
+  builder is switched on.
+
 ## v135
 - The sim has a logo: the results table, with a Shadow Bolt as the number-one row. It is next to the title at the top of
   the page and the icon in the browser tab.
