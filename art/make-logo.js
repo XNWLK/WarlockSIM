@@ -3,6 +3,7 @@
 // Same family as the in-game addon's logo: 400x400, #15121D filling the square, the page's purples.
 // Seeded, so the same picture every run.  node art/make-logo.js [seed] [out.svg]
 // PNG: render the SVG at 400x400 in a headless browser (Edge: --headless=new --window-size=400,400 --screenshot=...).
+// logo-64.png (page header, browser tab) and logo-180.png (phone home screen) are that PNG scaled down (bicubic).
 const fs = require('fs'), path = require('path');
 let seed = Number(process.argv[2] || 11) >>> 0;
 const rnd = () => { seed = (seed + 0x6D2B79F5) >>> 0; let t = seed; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };

@@ -1,5 +1,7 @@
 <title>Xn's Forever Warlock Sim</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/png" sizes="64x64" href="art/logo-64.png">
+<link rel="apple-touch-icon" href="art/logo-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Spectral:wght@600&display=swap">
 <style>
@@ -37,6 +39,7 @@
   .wrap > * { min-width: 0; }   /* let wide tables scroll inside their panel instead of widening the page */
   header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
   h1 { font: 600 21px/1.15 var(--display); margin: 0; }
+  .sitelogo { width: 32px; height: 32px; border-radius: 7px; flex: none; display: block; }
   .titles { min-width: 0; flex: 1 1 480px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
   /* light / dark switch (round 85): Auto = the old behaviour (system / viewer theme) */
   .themebtn { display: inline-flex; align-items: center; gap: 5px; padding: 2px 10px 2px 8px; font: 600 11.5px var(--sans);
@@ -709,6 +712,7 @@
 <div class="wrap">
   <header>
     <div class="titles">
+      <img class="sitelogo" src="art/logo-64.png" width="32" height="32" alt="">
       <h1>Xn's Forever Warlock Sim</h1>
       <button type="button" id="themeBtn" class="themebtn">Auto</button>
       <nav class="toplinks" aria-label="Project links">
