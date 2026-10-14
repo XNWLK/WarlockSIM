@@ -1,5 +1,3 @@
-<p align="center"><img src="art/logo-400.png" width="160" height="160" alt="Logo: three bars of a ranking, with a Shadow Bolt as the top row"></p>
-
 # Xn's Forever Warlock Sim.
 
 A DPS simulator for the Warlock in WoW Forever at level 60 against a level-63 raid boss. It simulates every build
