@@ -119,12 +119,40 @@
     return 'First allowed ' + activesWhen() + ', then whenever it is ready. A +10% damage aura on your direct hits and channel ticks (not on DoT ticks) until 3 spells have been cast. ' +
       'Popped right before a long cast (Shadow Bolt, Searing Pain, Incinerate, Soul Fire, a channel), so no charge goes to a DoT';
   }
+  // Round 148 (user): talents the sim does not simulate, or only in part, or only with a setting — a mark on the talent in
+  // every tree (build editor, details, compare) and a line in its tooltip. The full notes are in MECHANICS.md.
+  var TALENT_SIM = {
+    soulHarvesting: ['none', 'Not simulated: it needs an enemy dying under your Drain Soul.'],
+    curseOfExhaustion: ['none', 'Not simulated: a movement slow.'],
+    improvedHealthFunnel: ['none', 'Not simulated: Health Funnel is never cast.'],
+    demonicAegis: ['none', 'Not simulated: armor spells.'],
+    improvedVoidwalker: ['none', 'Not simulated.'],
+    improvedFelhunter: ['none', 'Not simulated.'],
+    pyroclasm: ['none', 'Not simulated: stuns.'],
+    destructiveReach: ['none', 'No effect: the boss is always in range.'],
+    improvedImp: ['part', 'Partly simulated: the Firebolt bonus counts, Fire Shield does not.'],
+    felVitality: ['part', 'Partly simulated: the mana for you and your demon counts, demon health does not.'],
+    demonicEnergies: ['part', 'Partly simulated: the mana for your demon when you Life Tap counts, the healing does not.'],
+    improvedSayaad: ['part', 'Partly simulated: the Lash of Pain bonus counts, the other Succubus spells are not cast.'],
+    aftermath: ['part', 'Partly simulated: the Immolate bonus counts, the daze does not.'],
+    felConcentration: ['cond', 'Only matters when "Take a hit every (s)" is set (Fight & pets).'],
+    intensity: ['cond', 'Only matters when "Take a hit every (s)" is set (Fight & pets).'],
+    masterSummoner: ['cond', 'Only used by a mid-fight pet swap in the priority.'],
+    felDomination: ['cond', 'Only used by a mid-fight pet swap in the priority.'],
+    baneOfHavoc: ['cond', 'Only with 2 or 3 targets (Fight & pets).'],
+  };
+  var SIM_MARK = { none: ['✕', 'Not simulated'], part: ['½', 'Partly simulated'], cond: ['if', 'Only with a setting'] };
+  function simMark(t) {
+    var m = TALENT_SIM[t.key]; if (!m) return '';
+    return '<span class="sim ' + m[0] + '" title="' + esc(m[1]) + '" aria-label="' + esc(SIM_MARK[m[0]][1]) + '">' + SIM_MARK[m[0]][0] + '</span>';
+  }
   function talentTip(t, n) {
     var txt = (WL.TALENT_TEXT || {})[t.key] || [];
     var h = '<div class="tt-name">' + esc(t.name) + '</div><div class="tt-meta">Rank ' + n + '/' + t.ranks + ' · ' + WL.TREES[t.tree].name + '</div>';
     h += n ? '<div class="tt-body">' + para(txt[n - 1] || '') + '</div>' : '<div class="tt-body tt-dim">' + para(txt[0] || '') + '</div>';
     if (n && n < t.ranks) h += '<div class="tt-next">Next rank:</div><div class="tt-body tt-dim">' + para(txt[n] || '') + '</div>';
     if (!n) h += '<div class="tt-next">Not taken in this build</div>';
+    if (TALENT_SIM[t.key]) h += '<div class="tt-rule">In the sim: ' + esc(TALENT_SIM[t.key][1]) + '</div>';
     return h;
   }
   function spellTipByKey(k) {
@@ -707,7 +735,7 @@
     }
     function finished() {
       running = false; dirty = !sameSettings();                          // settings edited during the run → stale
-      renderStatbar(); render(); showStale(); renderCompareOptions();
+      renderStatbar(); render(); showStale(); renderCompareOptions(); renderGear();   // renderGear: item values use the new stat weights (round 148)
       openShared();                                                      // a share link's build (round 140)
       var secs = ((performance.now() - t0) / 1000).toFixed(1), how = WL.SimPool.mode() === 'page' ? '' : ' on ' + WL.SimPool.mode();   // e.g. "on workers (7)"
       $('runMeta').textContent = !keep
@@ -748,7 +776,7 @@
     if (!D.probe || list.some(function (r, i) { return r.firstFight.dps !== D.probe[i]; })) return false;
     runCfg = rc; results = list;
     weights = JSON.parse(JSON.stringify(D.weights));
-    dirty = false; renderStatbar(); render(); showStale(); renderCompareOptions();
+    dirty = false; renderStatbar(); render(); showStale(); renderCompareOptions(); renderGear();
     $('runMeta').textContent = 'Default results: ' + results.length + ' combos × ' + fmt(runCfg.fight.iterations) + ' fights + stat weights, shipped with the page ' +
       '(identical to a live run with these settings) · seed ' + runCfg.fight.seed + '. Change a setting and press Sim! to rerun.';
     return true;
@@ -1249,7 +1277,7 @@
       var pts = 0, cells = '';
       WL.TALENTS.filter(function (t) { return t.tree === tr; }).forEach(function (t) {
         var n = b.talents[t.key] || 0; pts += n;
-        cells += '<div class="tcell' + (n ? (n === t.ranks ? ' max' : ' part') : ' off') + '" style="grid-row:' + (t.row + 1) + ';grid-column:' + (t.col + 1) + '">' + icon('talent_' + t.key, t.name + ' ' + n + '/' + t.ranks, '', talentTip(t, n)) + '<span class="rk">' + n + '/' + t.ranks + '</span></div>';
+        cells += '<div class="tcell' + (n ? (n === t.ranks ? ' max' : ' part') : ' off') + '" style="grid-row:' + (t.row + 1) + ';grid-column:' + (t.col + 1) + '">' + icon('talent_' + t.key, t.name + ' ' + n + '/' + t.ranks, '', talentTip(t, n)) + '<span class="rk">' + n + '/' + t.ranks + '</span>' + simMark(t) + '</div>';
       });
       return '<div class="tree"><div class="thead">' + icon('tree_' + tr, WL.TREES[tr].name) + ' <b>' + WL.TREES[tr].name + '</b> <span class="meta">' + pts + '</span></div>' +
         '<div class="tgrid">' + cells + '</div></div>';
@@ -1778,9 +1806,9 @@
   // into the other box is loaded where it belongs instead of being refused (round 102, user).
   function codeKind(v) {
     v = String(v || '').trim();
-    return v.indexOf(WL.BUILD_CODE_PREFIX) === 0 ? 'build' : v.indexOf(WL.SETTINGS_CODE_PREFIX) === 0 ? 'settings' : null;
+    return v.indexOf(WL.BUILD_CODE_PREFIX) === 0 ? 'build' : v.indexOf(WL.SETTINGS_CODE_PREFIX) === 0 ? 'settings' : v.indexOf(WL.GEAR_CODE_PREFIX) === 0 ? 'gear' : null;
   }
-  var NOT_A_CODE = 'That is not a code: settings codes start with WFS1:, build codes with WFB1:.';
+  var NOT_A_CODE = 'That is not a code: settings codes start with WFS1:, build codes with WFB1:, gear codes with WFG1:.';
   function applySettingsCode(code) {                     // returns the text that says what was loaded
     var o = WL.decodeSettings(code), unknown = WL.applySettings(cfg, o);
     initSettings(); markDirty();
@@ -1797,6 +1825,9 @@
         codeMsg('Build code loaded: "' + d.short + '" is now open in the build editor below.');
         $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
         return;
+      }
+      if (codeKind(v) === 'gear') {                                    // a gear code (round 148): into the gear builder
+        codeMsg(gbLoadCode(v) + ' See the gear builder at the bottom of the page.'); return;
       }
       codeMsg('Loaded: ' + applySettingsCode(v));
     } catch (e) { codeMsg(e.message, true); }
@@ -1891,7 +1922,7 @@
       WL.TALENTS.filter(function (x) { return x.tree === tr; }).forEach(function (x) {
         var n = t[x.key] || 0; pts += n;
         cells += '<div class="tcell' + (n ? (n === x.ranks ? ' max' : ' part') : ' off') + '" data-ed="' + x.key + '" style="grid-row:' + (x.row + 1) + ';grid-column:' + (x.col + 1) + '">' +
-          icon('talent_' + x.key, x.name + ' ' + n + '/' + x.ranks, '', talentTip(x, n)) + '<span class="rk">' + n + '/' + x.ranks + '</span></div>';
+          icon('talent_' + x.key, x.name + ' ' + n + '/' + x.ranks, '', talentTip(x, n)) + '<span class="rk">' + n + '/' + x.ranks + '</span>' + simMark(x) + '</div>';
       });
       total += pts;
       return '<div class="tree"><div class="thead">' + icon('tree_' + tr, WL.TREES[tr].name) + ' <b>' + WL.TREES[tr].name + '</b> <span class="meta">' + pts + '</span>' +
@@ -1900,6 +1931,7 @@
     }).join('');
     $('edPts').textContent = split(b) + ' · ' + total + ' / 51 points';
     $('edResetAll').disabled = !total;
+    renderPts();                                          // round 148: the point values say when the build has changed
     // Round 44: drag an entry by its row (⠿ grip) to reorder; the ↑ ↓ buttons stay for keyboard / touch.
     $('edRot').innerHTML = b.rotation.map(function (a, i) {
       var A = WL.ACTIONS[a], lbl = esc(A ? A.label : a);
@@ -2027,6 +2059,61 @@
         ref: ref ? { b: ref.job.build, race: ref.job.race, dps: ref.r.dps } : null };
       quickSel = null; renderQuickOut();
     });
+  }
+  // Round 148 (user, idea 7): what each talent point of the editor's build is worth. The build is simulated as it is and
+  // once per talent with one point fewer there (WL.buildWithoutPoint: a talent that is gone takes its priority actions,
+  // timeline spells and sacrifice with it), all on the same fights, with one race: the best race of its quick sim or its
+  // sheet row, else the race you rank for, else Undead.
+  var ptVals = null;
+  function ptRace() {
+    var q = quick && quick.sig === buildSig(ed.b) ? quick : quickFromSheet();
+    return q && q.rows.length ? q.rows[0].race : (myRace || 'undead');
+  }
+  function talentPoints() {
+    if (quickRunning || running || batchRunning || chartRunning) { edMsg('Wait for the current run to finish.', true); return; }
+    var errs = WL.validateBuild(ed.b).concat(timelineErrors().map(function (x) { return 'Timeline: ' + x.msg; }));
+    if (errs.length) { edMsg('Fix the checks first: ' + errs[0], true); return; }
+    readSettings();
+    var c = JSON.parse(JSON.stringify(cfg)), n = c.fight.weightIterations, race = ptRace(), sig = buildSig(ed.b), changed = dirty;
+    var order = WL.TALENTS.map(function (t) { return t.key; });
+    var rows = Object.keys(ed.b.talents).filter(function (k) { return ed.b.talents[k] > 0; })
+      .sort(function (a, z) { return order.indexOf(a) - order.indexOf(z); }).map(function (k) {
+        var w = WL.buildWithoutPoint(ed.b, k);
+        return { key: k, pts: ed.b.talents[k], notes: w.notes, b: makeCustom(w.build, 'pt_' + k), dps: null };
+      });
+    var base = { dps: null }, jobs = [{ kind: 'weight', build: makeCustom(ed.b, 'pt_base'), race: race, cfg: c, n: n, stat: null, base: true }], done = 0, t0 = performance.now();
+    rows.forEach(function (r, i) { jobs.push({ kind: 'weight', build: r.b, race: race, cfg: c, n: n, stat: null, i: i }); });
+    quickRunning = true; $('edQuick').disabled = $('edPoints').disabled = true;
+    renderPts('Simulating 0 / ' + jobs.length + '…');
+    WL.SimPool.run(jobs, function (j, res) {
+      if (j.base) base.dps = res.dps; else rows[j.i].dps = res.dps;
+      renderPts('Simulating ' + (++done) + ' / ' + jobs.length + '…');
+    }, function () {
+      quickRunning = false; $('edQuick').disabled = $('edPoints').disabled = false;
+      ptVals = { sig: sig, race: race, n: n, base: base.dps, rows: rows, name: ed.b.short, changed: changed, secs: ((performance.now() - t0) / 1000).toFixed(1) };
+      renderPts();
+    });
+  }
+  function renderPts(msg) {
+    var box = $('edPtsOut'); if (!box) return;
+    if (msg) { box.innerHTML = '<p class="meta">' + esc(msg) + '</p>'; return; }
+    var P = ptVals;
+    if (!P) { box.innerHTML = ''; return; }
+    var old = P.sig !== buildSig(ed.b);
+    var rows = P.rows.slice().sort(function (a, z) { return (P.base - z.dps) - (P.base - a.dps); }), max = Math.max.apply(null, rows.map(function (r) { return Math.abs(P.base - r.dps); }).concat([1e-9]));
+    box.innerHTML = '<div class="ptbox' + (old ? ' old' : '') + '">' + (old ? '<p class="qold">The build changed since this was measured — measure again.</p>' : '') +
+      '<h3>What each talent point is worth <span class="meta">— ' + esc(P.name) + ', ' + esc(WL.RACES[P.race].name) + ', ' + fmt(P.base, 1) + ' DPS</span></h3>' +
+      '<div class="scroll"><table class="pttab"><thead><tr><th>Talent</th><th class="n">Points</th><th>The last point</th><th class="n">DPS</th><th class="n">%</th></tr></thead><tbody>' +
+      rows.map(function (r) {
+        var t = WL.TALENT_BY_KEY[r.key], v = P.base - r.dps, pct = P.base ? 100 * v / P.base : 0;
+        var note = r.notes.length ? 'Without it: ' + r.notes.join('; ') + '.' : '';
+        return '<tr' + (note ? ' title="' + esc(note) + '"' : '') + '><td class="ptname">' + icon('talent_' + t.key, t.name, '', talentTip(t, r.pts)) + ' ' + esc(t.name) + simMark(t) + (note ? ' <span class="meta">*</span>' : '') + '</td>' +
+          '<td class="n">' + r.pts + '/' + t.ranks + '</td><td><span class="ptbar"><i class="' + (v < 0 ? 'neg' : '') + '" style="width:' + (100 * Math.abs(v) / max).toFixed(1) + '%"></i></span></td>' +
+          '<td class="n" style="color:var(' + (v >= 0 ? '--good' : '--bad') + ')">' + (v >= 0 ? '+' : '') + fmt(v, 1) + '</td><td class="n">' + (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%</td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      '<p class="meta">What the build loses with one point fewer in that talent (the last point it has there), ' + fmt(P.n) + ' fights each, the same fights for all' +
+      (P.changed ? ', with settings changed since the last Sim!' : '') + ' (' + P.secs + ' s). Rows and the 51 points are not checked for this — it only measures the point. ' +
+      'A talent marked * also takes out what only it allows (hover for what). Differences of a few tenths of a percent can be noise. A minus means the build does better without that point.</p></div>';
   }
   function renderQuickOut(msg) {
     var box = $('edQuickOut');
@@ -2222,6 +2309,7 @@
     if (t.closest('#edLoadFrom')) { var src = WL.BUILDS.filter(function (y) { return y.key === $('edFrom').value; })[0]; edStart(src || null); edMsg(src ? 'Loaded "' + src.short + '".' : 'Empty build.'); return true; }
     if (t.closest('#edNew')) { edStart(null); edMsg('Empty build.'); return true; }
     if (t.closest('#edSave')) { edSave(); return true; }
+    if (t.closest('#edPoints')) { talentPoints(); return true; }
     if (t.closest('#edQuick')) { quickSim(); return true; }
     if ((x = t.closest('[data-edit]'))) { edStart(WL.BUILDS.filter(function (y) { return y.key === x.getAttribute('data-edit'); })[0]); edMsg('Editing — press "Update on the sheet" when done.'); return true; }
     if ((x = t.closest('[data-edremove]'))) { edRemove(x.getAttribute('data-edremove')); return true; }
@@ -2234,7 +2322,8 @@
     if (t.closest('#edLoadCode')) {
       if (!codeKind($('edCode').value)) { edMsg($('edCode').value.trim() ? NOT_A_CODE : 'Paste a code first.', true); return true; }
       try {
-        if (codeKind($('edCode').value) === 'settings') {             // a settings code in the build box (round 102)
+        if (codeKind($('edCode').value) === 'gear') edMsg('That is a gear code (WFG1), not a build code — ' + gbLoadCode($('edCode').value));
+        else if (codeKind($('edCode').value) === 'settings') {        // a settings code in the build box (round 102)
           edMsg('That is a settings code (WFS1), not a build code — settings loaded: ' + applySettingsCode($('edCode').value));
         } else { var d = edLoadBuild(WL.decodeBuild($('edCode').value)); edMsg('Build code loaded' + (WL.validateBuild(d).length ? ' — see the checks.' : '.')); }
       } catch (e3) { edMsg(e3.message, true); }
@@ -2492,10 +2581,74 @@
     if (bv && WL.BUILDS.some(function (b) { return b.key === bv; })) bl.value = bv;
     $('chStatLbl').hidden = $('chKind').value !== 'stat';
   }
+  // Round 148 (user, idea 9): what each raid buff and boss debuff is worth to one build. One run with the settings as they
+  // are, then one per buff / debuff with it switched: one that is on is switched off (what you would lose), one that is
+  // off is switched on (what you would gain) — together with what it needs (Restorative Totems: Mana Spring Totem), and
+  // instead of what cannot be up with it (Windfury / Grace of Air, Sunder / Expose Armor, …). Same fights everywhere.
+  function buffVariants() {
+    var out = [];
+    ['buffs', 'debuffs'].forEach(function (grp) {
+      Object.keys(cfg[grp]).forEach(function (k) {
+        var o = cfg[grp][k], c = JSON.parse(JSON.stringify(cfg)), x = c[grp][k], notes = [];
+        if (o.on) {
+          x.on = false;
+          Object.keys(c[grp]).forEach(function (k2) { var y = c[grp][k2]; if (y.on && y.requires === k) notes.push('and ' + y.name + ' with it'); });
+        } else {
+          x.on = true;
+          Object.keys(c[grp]).forEach(function (k2) {
+            var y = c[grp][k2]; if (k2 === k || !y.on) return;
+            if ((x.group && y.group === x.group) || (grp === 'buffs' && WL.buffsClash(x, y))) { y.on = false; notes.push('instead of ' + y.name); }
+          });
+          if (x.requires && !c[grp][x.requires].on) { c[grp][x.requires].on = true; notes.push('with ' + c[grp][x.requires].name); }
+        }
+        out.push({ grp: grp, key: k, name: o.name, cls: o.cls || '', on: !!o.on, c: c, notes: notes, dps: null });
+      });
+    });
+    return out;
+  }
+  function runBuffChart() {
+    var by = runByRace(), order = WL.BUILDS.slice().sort(function (a, z) { return (listedDps(by[z.key] || {}) || 0) - (listedDps(by[a.key] || {}) || 0); });
+    var pick = $('chBuild').value, b = pick ? WL.BUILDS.filter(function (x) { return x.key === pick; })[0] : order[0];
+    if (!b) { chMsg('No build to measure.', true); return; }
+    var mr = mainRow(b.key), race = mr ? mr.race : (myRace || 'undead'), n = cfg.fight.weightIterations, rows = buffVariants(), base = { dps: null };
+    var jobs = [{ kind: 'weight', build: b, race: race, cfg: JSON.parse(JSON.stringify(cfg)), n: n, stat: null, base: true }], done = 0, t0 = performance.now();
+    rows.forEach(function (r, i) { jobs.push({ kind: 'weight', build: b, race: race, cfg: r.c, n: n, stat: null, i: i }); });
+    chartRunning = true; $('chRun').disabled = true; chMsg('Simulating 0 / ' + jobs.length + ' runs…');
+    WL.SimPool.run(jobs, function (j, res) {
+      if (j.base) base.dps = res.dps; else rows[j.i].dps = res.dps;
+      chMsg('Simulating ' + (++done) + ' / ' + jobs.length + ' runs…');
+    }, function () {
+      chartRunning = false; $('chRun').disabled = false;
+      rows.forEach(function (r) { r.val = r.on ? base.dps - r.dps : r.dps - base.dps; delete r.c; });
+      chart = { kind: 'buffs', b: b, race: race, n: n, base: base.dps, rows: rows, picked: !!pick };
+      chMsg(jobs.length + ' runs × ' + fmt(n) + ' fights in ' + ((performance.now() - t0) / 1000).toFixed(1) + ' s.');
+      renderChart();
+    });
+  }
+  function renderBuffChart(C) {
+    C.w = $('chOut').clientWidth || 960;
+    var max = Math.max.apply(null, C.rows.map(function (r) { return Math.abs(r.val); }).concat([1e-9]));
+    var part = function (on) {
+      var rows = C.rows.filter(function (r) { return r.on === on; }).sort(function (a, z) { return z.val - a.val; });
+      if (!rows.length) return '';
+      return '<h3>' + (on ? 'On now — what you would lose without it' : 'Off now — what you would gain with it') + '</h3><div class="bvlist">' + rows.map(function (r) {
+        var pct = C.base ? 100 * r.val / C.base : 0, ik = (r.grp === 'buffs' ? 'buff_' : 'debuff_') + r.key, tiny = Math.abs(pct) < 0.05;
+        return (icon(ik, r.name) || '<span></span>') + '<span class="bvname">' + esc(r.name) + ' <span class="meta">' + esc(r.cls) + (r.notes.length ? ' · ' + esc(r.notes.join(', ')) : '') + '</span></span>' +
+          '<span class="bvbar"><i class="' + (r.val < 0 ? 'neg' : '') + '" style="width:' + (100 * Math.abs(r.val) / max).toFixed(1) + '%"></i></span>' +
+          '<span class="n bvv" style="color:var(' + (tiny ? '--muted' : r.val >= 0 ? '--good' : '--bad') + ')">' + (r.val >= 0 ? '+' : '') + fmt(r.val, 1) + ' DPS</span>' +
+          '<span class="n meta">' + (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%</span>';
+      }).join('') + '</div>';
+    };
+    $('chOut').innerHTML = '<h2>What each raid buff and debuff is worth · ' + esc(C.b.short) + ' (' + esc(WL.RACES[C.race].name) + ')</h2>' +
+      '<p class="meta chcap">' + fmt(C.base, 1) + ' DPS with your settings as they are. Each line: the same ' + fmt(C.n) + ' fights with only that buff or debuff switched' +
+      (C.picked ? '' : '; the build is the best one on the sheet (pick another under Builds)') + '. About 0: no effect with these settings (for example Concentration Aura without "Take a hit every"). ' +
+      'Small values (under about 0.2%) can be noise.</p>' + part(true) + part(false);
+  }
   function chSlot(b) { var i = WL.BUILDS.indexOf(b); return (i >= 0 ? i : 0) % CH_MAX + 1; }
   function runChart() {
     if (chartRunning || running || batchRunning || quickRunning) { chMsg('Wait for the current run to finish.', true); return; }
     readSettings();
+    if ($('chKind').value === 'buffs') { runBuffChart(); return; }
     var kind = $('chKind').value, st = CH_STATS.filter(function (s) { return s.k === $('chStat').value; })[0] || CH_STATS[1];
     var cur = kind === 'len' ? cfg.fight.duration : (cfg.gear[st.k] || 0);
     var xs = (kind === 'len' ? CH_LEN : st.pts).slice();
@@ -2532,6 +2685,7 @@
   }
   function renderChart() {
     var C = chart; if (!C) return;
+    if (C.kind === 'buffs') { renderBuffChart(C); return; }
     // drawn at the width it has on the page (340 … 1100 px), so the text keeps its size on a phone; redrawn when the window changes
     var cw = $('chOut').clientWidth || 960, W = Math.max(340, Math.min(1100, cw)), H = W < 620 ? 300 : 400;
     C.w = cw;
@@ -2607,33 +2761,44 @@
   // ---------- gear builder (round 147, user): a character window — click a slot, put an item in ----------
   // Under construction: the item list (data/items.js) is empty until the Wowhead Forever database has enough items, so
   // every slot takes an item you type in. Switched on, it sets the Stats panel's Sheet (gear) values to a naked character
-  // (all 0 except the sheet's crit, see app/gear-builder.js) + your items; what you then type in the Stats panel is kept as
-  // your own addition on top. Switched off, the numbers stay as they are and are ordinary sheet values again.
+  // (all 0 except the sheet's crit, see app/gear-builder.js) + your items and enchants; what you then type in the Stats
+  // panel is kept as your own addition on top. Switched off, the numbers stay as they are and are ordinary sheet values.
   // Its place: at the very bottom for now, with the construction tape. The final place is the anchor #gearTop above the
   // Stats panel — set GEAR_PLACE to 'top' (and drop the tape: GEAR_BUILDING = false) when it is finished.
+  // Round 148 (user): each item's worth in spell power for a build (from its stat weights), "compare with what I wear"
+  // (real fights for the best builds), an enchant per enchantable slot, and gear codes (WFG1:) from the in-game addon.
   var GEAR_PLACE = 'bottom', GEAR_BUILDING = true;
-  var gbSel = null, gbFind = '', gbMsgText = '';
-  var GB_STORE = 'wfs.gearBuilder';                       // your items, kept in this browser (not on / off: the builder starts off)
+  var gbSel = null, gbFind = '', gbEnFind = '', gbMsgText = '', gbValKey = '', gbCmp = null, gbCmpRunning = false;
+  var GB_STORE = 'wfs.gearBuilder';                       // your items and enchants, kept in this browser (not on / off: the builder starts off)
   var GB_WEAPONS = [['dagger', 'Dagger (one hand)', 'oneHand'], ['sword', 'Sword (one hand)', 'oneHand'], ['staff', 'Staff (two hands)', 'twoHand'],
     ['mace', 'Mace (one hand)', 'oneHand'], ['other1', 'Other one-hand weapon', 'oneHand'], ['other2', 'Other two-hand weapon', 'twoHand']];
   var GB_QUALITY = { poor: '#9d9d9d', common: 'var(--ink)', uncommon: '#1eff00', rare: '#0070dd', epic: '#a335ee', legendary: '#ff8000' };
-  function gb() { return cfg.gearBuilder || (cfg.gearBuilder = { on: false, slots: {}, manual: {} }); }
+  function gb() {
+    var g = cfg.gearBuilder || (cfg.gearBuilder = { on: false, slots: {}, manual: {} });
+    if (!g.enchants) g.enchants = {};
+    return g;
+  }
   try {
     var gb0 = JSON.parse(localStorage.getItem(GB_STORE) || 'null');
-    if (gb0 && typeof gb0 === 'object') cfg.gearBuilder = { on: false, slots: gb0.slots || {}, manual: {} };
+    if (gb0 && typeof gb0 === 'object') cfg.gearBuilder = { on: false, slots: gb0.slots || {}, enchants: gb0.enchants || {}, manual: {} };
   } catch (e) { /* nothing kept */ }
   function gbSave() {
     var g = gb();
     try {
-      if (Object.keys(g.slots).length) localStorage.setItem(GB_STORE, JSON.stringify({ slots: g.slots }));
+      if (Object.keys(g.slots).length || Object.keys(g.enchants).length) localStorage.setItem(GB_STORE, JSON.stringify({ slots: g.slots, enchants: g.enchants }));
       else localStorage.removeItem(GB_STORE);
     } catch (e) { /* page only */ }
   }
   function statLabel(k) { return (TOTAL_ROWS.filter(function (r) { return r.k === k; })[0] || { label: k }).label; }
   function isPctStat(k) { return /Pct$/.test(k); }
   function gbNum(x, k) { return isPctStat(k) ? fmt(x, 2) : fmt(x, Math.abs(x % 1) > 1e-9 ? 1 : 0); }
+  function gbStatText(stats) {                            // "+20 Spell power, +1% Hit"
+    return WL.GEAR_STAT_KEYS.filter(function (k) { return +(stats || {})[k]; }).map(function (k) {
+      var v = +stats[k]; return (v > 0 ? '+' : '') + gbNum(v, k) + (isPctStat(k) ? '% ' : ' ') + statLabel(k).replace(/ %$/, '');
+    }).join(', ');
+  }
   // Read what you typed in the Stats panel (call before its fields are read into cfg.gear): a sheet value you changed
-  // becomes your own addition on top of naked + items.
+  // becomes your own addition on top of naked + items + enchants.
   function gbTakeTyped() {
     var g = gb(); if (!g.on) return;
     WL.GEAR_STAT_KEYS.forEach(function (k) {
@@ -2641,9 +2806,9 @@
       if (isFinite(v) && Math.abs(v - (cfg.gear[k] || 0)) > 1e-9) g.manual[k] = WL.gearManualFor(g, cfg, k, v);
     });
   }
-  // Builder on: the sheet values = naked + items + yours, written into cfg.gear and the Stats panel (not into the field
-  // you are typing in). The crit option is off (the sum is the sheet before talents); a main hand that says sword or not
-  // sets the Sword box.
+  // Builder on: the sheet values = naked + items + enchants + yours, written into cfg.gear and the Stats panel (not into
+  // the field you are typing in). The crit option is off (the sum is the sheet before talents); a main hand that says
+  // sword or not sets the Sword box.
   function gbSync() {
     var g = gb(); $('o_critAll').disabled = !!g.on; $('o_sword').disabled = false;
     $('gbNote').hidden = !g.on;
@@ -2656,8 +2821,8 @@
     cfg.gear.critIncludesAll = false; $('o_critAll').checked = false;
     if (r.sword !== null) { cfg.gear.weaponIsSword = r.sword; $('o_sword').checked = r.sword; $('o_sword').disabled = true; }
   }
-  function gbChanged(msg) {                                // items changed
-    gbSave(); gbMsgText = msg || '';
+  function gbChanged(msg) {                                // items / enchants changed
+    gbSave(); gbMsgText = msg || ''; gbCmp = null;
     if (gb().on) { gbSync(); renderTotals(); markDirty(); }
     renderGear(); renderGearEdit();
   }
@@ -2665,118 +2830,279 @@
     var g = gb();
     readSettings();
     g.on = on;
-    if (on) { g.manual = {}; gbMsgText = 'Your stats now come from this gear: a naked character plus your items. What you type in the Stats panel is added on top. Press Sim! to simulate.'; }
+    if (on) { g.manual = {}; gbMsgText = 'Your stats now come from this gear: a naked character plus your items and enchants. What you type in the Stats panel is added on top. Press Sim! to simulate.'; }
     else gbMsgText = 'The gear builder is off. Your stats keep these numbers; you can change them in the Stats panel as before.';
     gbSync(); gbSave(); renderTotals(); markDirty(); renderGear();
   }
-  function gbSlotHtml(s) {
-    var g = gb(), e = g.slots[s.key], it = WL.gearItem(e), off = s.key === 'offHand' && WL.gearOffHandBlocked(g);
-    var sel = gbSel === s.key, shown = it && !off;
-    var name = off ? 'Blocked by a two-handed weapon' : it ? esc(it.name) : e ? 'Unknown item ' + esc(e.id) : 'Empty';
-    var stats = shown ? WL.GEAR_STAT_KEYS.filter(function (k) { return +(it.stats || {})[k]; }).map(function (k) {
-      var v = +it.stats[k]; return (v > 0 ? '+' : '') + gbNum(v, k) + (isPctStat(k) ? '% ' : ' ') + statLabel(k).replace(/ %$/, '');
-    }).join(', ') : '';
-    return '<button type="button" class="gbslot' + (shown ? ' full' : '') + (off ? ' blocked' : '') + (sel ? ' sel' : '') + '" data-gslot="' + s.key + '" aria-expanded="' + sel + '" aria-controls="gbEdit"' +
-      (stats ? ' title="' + esc(it.name + ': ' + stats) + '"' : '') + '>' +
-      '<span class="gbico" aria-hidden="true">' + (shown ? esc(it.name.charAt(0).toUpperCase()) : '') + '</span>' +
-      '<span class="gbtxt"><span class="gbsn">' + esc(s.name) + '</span><span class="gbin"' + (shown ? ' style="color:' + (GB_QUALITY[it.quality] || 'var(--ink)') + '"' : '') + '>' + name + '</span></span></button>';
+
+  // ----- item value (round 148, idea 1): stat weights of a build on the sheet → DPS and spell power -----
+  // The builds with stat weights (the shown ones, after a run), best first. The share of a build's damage done by your own
+  // Shadow / Fire spells values Shadow / Fire spell power (an estimate: school spell power only raises those spells).
+  function gbValBuilds() {
+    var by = runByRace();
+    return WL.BUILDS.filter(function (b) { return weights[b.key] && mainRow(b.key); })
+      .sort(function (a, z) { return (listedDps(by[z.key] || {}) || 0) - (listedDps(by[a.key] || {}) || 0); });
   }
-  function gbSummaryHtml() {
+  function gbShareOf(key) {                               // share of the build's damage done by your own Shadow / Fire spells
+    var r = mainRow(key), by = { shadow: 0, fire: 0 }, total = 0;
+    if (r) Object.keys(r.bySpell).forEach(function (k) {
+      var dm = r.bySpell[k].dmg; if (!(dm > 0)) return; total += dm;
+      var s = WL.SPELLS[baseKey(k)]; if (s && by[s.school] != null) by[s.school] += dm;
+    });
+    return { shadow: total ? by.shadow / total : 0, fire: total ? by.fire / total : 0 };
+  }
+  function gbValCtx() {
+    var list = gbValBuilds(); if (!list.length) return null;
+    var b = list.filter(function (x) { return x.key === gbValKey; })[0] || list[0];
+    return { b: b, w: weights[b.key].w, race: weights[b.key].race, share: gbShareOf(b.key) };
+  }
+  function gbValText(stats, ctx, long) {
+    if (!ctx) return '';
+    var v = WL.gearValue(stats, ctx.w, ctx.share); if (v.sp == null) return '';
+    var t = '≈ ' + fmt(v.sp, Math.abs(v.sp) < 10 ? 1 : 0) + ' spell power';
+    if (long) t += ' (' + (v.dps >= 0 ? '+' : '') + fmt(v.dps, 1) + ' DPS) for ' + ctx.b.short +
+      (v.unvalued.length ? '; not counted: ' + v.unvalued.map(statLabel).join(', ') + ' (no stat weight)' : '');
+    return t;
+  }
+
+  function gbSlotHtml(s, ctx) {
+    var g = gb(), e = g.slots[s.key], it = WL.gearItem(e), off = s.key === 'offHand' && WL.gearOffHandBlocked(g);
+    var sel = gbSel === s.key, shown = it && !off, en = shown && s.enchant ? WL.gearEnchant(g.enchants[s.key]) : null;
+    var name = off ? 'Blocked by a two-handed weapon' : it ? esc(it.name) : e ? 'Unknown item ' + esc(e.id) : 'Empty';
+    var stats = shown ? gbStatText(it.stats) : '', val = shown ? gbValText(it.stats, ctx) : '';
+    return '<button type="button" class="gbslot' + (shown ? ' full' : '') + (off ? ' blocked' : '') + (sel ? ' sel' : '') + '" data-gslot="' + s.key + '" aria-expanded="' + sel + '" aria-controls="gbEdit"' +
+      (shown ? ' title="' + esc(it.name + (stats ? ': ' + stats : '') + (en ? '\nEnchant: ' + en.name + (gbStatText(en.stats) ? ' (' + gbStatText(en.stats) + ')' : '') : '') + (val ? '\n' + gbValText(it.stats, ctx, true) : '')) + '"' : '') + '>' +
+      '<span class="gbico" aria-hidden="true">' + (shown ? esc(it.name.charAt(0).toUpperCase()) : '') + '</span>' +
+      '<span class="gbtxt"><span class="gbsn">' + esc(s.name) + (val ? ' <span class="gbval">' + esc(val.replace(' spell power', ' SP')) + '</span>' : '') + '</span>' +
+      '<span class="gbin"' + (shown ? ' style="color:' + (GB_QUALITY[it.quality] || 'var(--ink)') + '"' : '') + '>' + name + '</span>' +
+      (en ? '<span class="gben">' + esc(en.name) + '</span>' : '') + '</span></button>';
+  }
+  function gbSummaryHtml(ctx) {
     var g = gb(), r = WL.gearSheet(g, cfg), c = cfg.combat.critPerInt;
     var rows = WL.GEAR_STAT_KEYS.map(function (k) {
-      var items = r.items[k] + (k === 'critPct' ? r.items.int * c : 0), mine = r.manual[k] + (k === 'critPct' ? r.manual.int * c : 0);
+      var items = r.items[k] + (k === 'critPct' ? r.items.int * c : 0), ench = r.enchants[k] + (k === 'critPct' ? r.enchants.int * c : 0),
+          mine = r.manual[k] + (k === 'critPct' ? r.manual.int * c : 0);
       return '<tr><td>' + esc(statLabel(k)) + '</td><td class="n">' + gbNum(r.naked[k], k) + '</td><td class="n">' + gbNum(items, k) + '</td>' +
-        '<td class="n">' + gbNum(mine, k) + '</td><td class="n gbsum">' + gbNum(r.sheet[k], k) + '</td></tr>';
+        '<td class="n">' + gbNum(ench, k) + '</td><td class="n">' + gbNum(mine, k) + '</td><td class="n gbsum">' + gbNum(r.sheet[k], k) + '</td></tr>';
     }).join('');
-    return '<table class="gbtab"><thead><tr><th>Stat</th><th class="n">Naked</th><th class="n">Items</th><th class="n" title="What you typed in the Stats panel on top of your items">Yours</th>' +
+    var all = {}; WL.GEAR_STAT_KEYS.forEach(function (k) { all[k] = r.items[k] + r.enchants[k]; });
+    var tot = r.used.length && ctx ? gbValText(all, ctx, true) : '';
+    return '<table class="gbtab"><thead><tr><th>Stat</th><th class="n">Naked</th><th class="n">Items</th><th class="n">Enchants</th><th class="n" title="What you typed in the Stats panel on top of your items">Yours</th>' +
       '<th class="n">' + (g.on ? 'Sheet' : 'Would be') + '</th></tr></thead><tbody>' + rows + '</tbody></table>' +
-      '<p class="meta">' + r.used.length + ' of ' + WL.GEAR_SLOTS.length + ' slots filled. Crit includes Intellect / 60, as on the character sheet. ' +
+      (tot ? '<p class="meta gbtot">Your items and enchants together: <b>' + esc(tot) + '</b>.</p>' : '') +
+      '<p class="meta">' + r.used.length + ' of ' + WL.GEAR_SLOTS.length + ' slots filled, ' + r.enchUsed.length + ' enchanted. Crit includes Intellect / 60, as on the character sheet. ' +
       'Your base Intellect, Spirit, Stamina and Agility (class and race) are not in these numbers: the sim adds them, see Total in the Stats panel.</p>';
   }
-  function gbList() {                                     // the items of WL.ITEMS that fit the open slot
-    return Object.keys(WL.ITEMS).map(function (id) { return { id: id, it: WL.ITEMS[id] }; }).filter(function (x) { return WL.gearFits(gbSel, x.it); });
+  function gbList(src, fits) {                            // entries of WL.ITEMS / WL.ENCHANTS for the open slot
+    return Object.keys(src).map(function (id) { return { id: id, it: src[id] }; }).filter(function (x) { return fits(x.it); });
   }
-  function gbHitsHtml() {
-    var list = gbList(), q = gbFind.trim().toLowerCase();
-    if (!list.length) return '<p class="meta">The item list is still empty. Items will come from the Wowhead Forever database once it has enough of them. Until then, type the item in on the right.</p>';
+  function gbHitsHtml(list, q, what, attr) {
+    q = q.trim().toLowerCase();
+    if (!list.length) return '<p class="meta">The ' + what + ' list is still empty. It will come from the Wowhead Forever database once there is enough data there. Until then, type it in on the right.</p>';
     var hits = list.filter(function (x) { return !q || x.it.name.toLowerCase().indexOf(q) >= 0; })
       .sort(function (a, b) { return a.it.name < b.it.name ? -1 : a.it.name > b.it.name ? 1 : 0; }).slice(0, 40);
     return '<ul class="gblist">' + (hits.length ? hits.map(function (x) {
-      return '<li><button type="button" data-gpick="' + esc(x.id) + '" style="color:' + (GB_QUALITY[x.it.quality] || 'var(--ink)') + '">' + esc(x.it.name) + '</button></li>';
-    }).join('') : '<li class="meta">No item for this slot has that name.</li>') + '</ul>';
+      return '<li><button type="button" ' + attr + '="' + esc(x.id) + '" style="color:' + (GB_QUALITY[x.it.quality] || 'var(--ink)') + '">' + esc(x.it.name) + '</button></li>';
+    }).join('') : '<li class="meta">Nothing for this slot has that name.</li>') + '</ul>';
+  }
+  function gbItemList() { return gbList(WL.ITEMS, function (it) { return WL.gearFits(gbSel, it); }); }
+  function gbEnchList() { return gbList(WL.ENCHANTS, function (en) { return (en.slots || []).indexOf(gbSel) >= 0; }); }
+  function gbFields(prefix, stats) {
+    return WL.GEAR_STAT_KEYS.map(function (k) {
+      var v = stats && stats[k] ? stats[k] : '';
+      return '<label class="f gbf" for="' + prefix + k + '">' + esc(statLabel(k)) + '<input id="' + prefix + k + '" type="number" step="' + (isPctStat(k) ? '0.1' : '1') + '" value="' + v + '" placeholder="0"></label>';
+    }).join('');
+  }
+  function gbReadFields(prefix) {
+    var stats = {};
+    WL.GEAR_STAT_KEYS.forEach(function (k) { var v = parseFloat($(prefix + k).value); if (isFinite(v) && v) stats[k] = v; });
+    return stats;
+  }
+  function gbFormItem() {                                 // the item typed into the open slot's form
+    var s = WL.gearSlot(gbSel); if (!s || !$('gbName')) return null;
+    var item = { name: $('gbName').value.trim() || 'My ' + s.name.toLowerCase(), slot: s.fits[0], stats: gbReadFields('gbs_') };
+    if (s.key === 'mainHand') {
+      var w = GB_WEAPONS.filter(function (x) { return x[0] === $('gbWeapon').value; })[0] || GB_WEAPONS[0];
+      item.slot = w[2]; item.weapon = /^other/.test(w[0]) ? 'other' : w[0];
+    }
+    return item;
+  }
+  function gbFormEnchant() {
+    var s = WL.gearSlot(gbSel); if (!s || !$('gbEName')) return null;
+    return { name: $('gbEName').value.trim() || s.name + ' enchant', stats: gbReadFields('gbe_') };
+  }
+  function gbFormValues() {                               // live worth of what is typed in the form
+    var ctx = gbValCtx(), it = gbFormItem(), en = gbFormEnchant();
+    if ($('gbItemVal')) $('gbItemVal').textContent = !ctx ? 'Its worth in spell power shows after a Sim! with stat weights.' : it && gbStatText(it.stats) ? 'This item: ' + gbValText(it.stats, ctx, true) + '.' : '';
+    if ($('gbEnchVal')) $('gbEnchVal').textContent = ctx && en && gbStatText(en.stats) ? 'This enchant: ' + gbValText(en.stats, ctx, true) + '.' : '';
   }
   function renderGearEdit() {
     var s = WL.gearSlot(gbSel);
     $('gbEdit').hidden = !s;
     if (!s) { $('gbEdit').innerHTML = ''; return; }
     var g = gb(), e = g.slots[s.key], it = WL.gearItem(e), own = e && e.custom ? e.custom : null;
+    var ee = g.enchants[s.key], en = WL.gearEnchant(ee), ownE = ee && ee.custom ? ee.custom : null;
     var kind = own && own.weapon ? GB_WEAPONS.filter(function (w) { return own.weapon === 'other' ? /^other/.test(w[0]) && w[2] === own.slot : w[0] === own.weapon; })[0] : null;
     var weap = s.key === 'mainHand' ? '<label class="c" for="gbWeapon">Weapon <select id="gbWeapon">' + GB_WEAPONS.map(function (w) {
       return '<option value="' + w[0] + '"' + (kind && kind[0] === w[0] ? ' selected' : '') + '>' + w[1] + '</option>'; }).join('') + '</select></label>' : '';
-    var fields = WL.GEAR_STAT_KEYS.map(function (k) {
-      var v = own && own.stats && own.stats[k] ? own.stats[k] : '';
-      return '<label class="f gbf" for="gbs_' + k + '">' + esc(statLabel(k)) + '<input id="gbs_' + k + '" type="number" step="' + (isPctStat(k) ? '0.1' : '1') + '" value="' + v + '" placeholder="0"></label>';
-    }).join('');
+    var ench = !s.enchant ? '<p class="meta">This slot takes no enchant.</p>'
+      : '<details class="gbench"' + (ee ? ' open' : '') + '><summary>Enchant' + (en ? ': ' + esc(en.name) : '') + '</summary>' +
+        '<div class="gbedcols"><div class="gbfind"><h4>Find an enchant</h4>' +
+        '<input id="gbEnFind" type="text" placeholder="Enchant name" aria-label="Find an enchant by name" value="' + esc(gbEnFind) + '"' + (gbEnchList().length ? '' : ' disabled') + '>' +
+        '<div id="gbEnHits">' + gbHitsHtml(gbEnchList(), gbEnFind, 'enchant', 'data-gepick') + '</div></div>' +
+        '<div class="gbown"><h4>' + (ownE ? 'Your enchant' : 'Type in the enchant') + '</h4>' +
+        '<div class="btnrow"><input id="gbEName" type="text" maxlength="60" placeholder="Enchant name" aria-label="Enchant name" value="' + esc(ownE ? ownE.name : '') + '"></div>' +
+        '<div class="gbfields">' + gbFields('gbe_', ownE && ownE.stats) + '</div>' +
+        '<p class="meta" id="gbEnchVal"></p>' +
+        '<div class="btnrow"><button type="button" class="primary" data-gact="enchant">' + (ownE ? 'Save the enchant' : 'Put the enchant on') + '</button>' +
+        (ee ? '<button type="button" data-gact="unenchant">Remove the enchant</button>' : '') + '</div>' +
+        (it ? '' : '<p class="meta">An enchant only counts while an item is in this slot.</p>') + '</div></div></details>';
     $('gbEdit').innerHTML = '<div class="cardhead"><h3>' + esc(s.name) + (it ? ': ' + esc(it.name) : '') + '</h3>' +
       '<button type="button" class="resetbtn" data-gact="close">Close</button></div>' +
       (s.key === 'offHand' && WL.gearOffHandBlocked(g) ? '<p class="meta">A two-handed weapon is in your main hand, so this slot does not count.</p>' : '') +
       '<div class="gbedcols"><div class="gbfind"><h4>Find an item</h4>' +
-      '<input id="gbFind" type="text" placeholder="Item name" aria-label="Find an item by name" value="' + esc(gbFind) + '"' + (gbList().length ? '' : ' disabled') + '>' +
-      '<div id="gbHits">' + gbHitsHtml() + '</div></div>' +
+      '<input id="gbFind" type="text" placeholder="Item name" aria-label="Find an item by name" value="' + esc(gbFind) + '"' + (gbItemList().length ? '' : ' disabled') + '>' +
+      '<div id="gbHits">' + gbHitsHtml(gbItemList(), gbFind, 'item', 'data-gpick') + '</div></div>' +
       '<div class="gbown"><h4>' + (own ? 'Your item' : 'Type in your own item') + '</h4>' +
       '<div class="btnrow"><input id="gbName" type="text" maxlength="60" placeholder="Item name" aria-label="Item name" value="' + esc(own ? own.name : '') + '">' + weap + '</div>' +
-      '<div class="gbfields">' + fields + '</div>' +
+      '<div class="gbfields">' + gbFields('gbs_', own && own.stats) + '</div>' +
       '<p class="meta">Hit, crit and haste in %, as the item\'s tooltip shows them. Only the stats count: "Use:" and "Chance on hit:" effects (trinkets, some weapons) are not simulated yet.</p>' +
+      '<p class="meta gbvalline" id="gbItemVal"></p>' +
       '<div class="btnrow"><button type="button" class="primary" data-gact="equip">' + (own ? 'Save' : 'Put it on') + '</button>' +
-      (e ? '<button type="button" data-gact="off">Take it off</button>' : '') + '</div></div></div>';
+      (e ? '<button type="button" data-gact="off">Take it off</button>' : '') +
+      '<button type="button" data-gact="compare" title="Simulates the best builds on the sheet with what you wear in this slot now and with the item typed here instead, on the same fights">Compare with what I wear</button></div>' +
+      '<div id="gbCmp"></div></div></div>' + ench;
+    gbFormValues(); renderGbCmp();
   }
   function renderGear() {                                 // the slots and the sums (not the open slot's form: what you type there stays)
-    var g = gb(), col = function (c) { return WL.GEAR_SLOTS.filter(function (s) { return s.col === c; }).map(gbSlotHtml).join(''); };
+    var g = gb(), ctx = gbValCtx(), col = function (c) { return WL.GEAR_SLOTS.filter(function (s) { return s.col === c; }).map(function (s) { return gbSlotHtml(s, ctx); }).join(''); };
     $('gear').classList.toggle('building', GEAR_BUILDING);
     $('gbOn').checked = !!g.on;
     $('gbLeft').innerHTML = col('left'); $('gbRight').innerHTML = col('right'); $('gbWeap').innerHTML = col('weapons');
-    $('gbMid').innerHTML = gbSummaryHtml();
+    $('gbMid').innerHTML = gbSummaryHtml(ctx);
     $('gbMsg').textContent = gbMsgText;
-    $('gbClear').disabled = !Object.keys(g.slots).length;
+    $('gbClear').disabled = !Object.keys(g.slots).length && !Object.keys(g.enchants).length;
+    var list = gbValBuilds(), vs = $('gbValFor');
+    vs.innerHTML = list.length ? list.map(function (b) { return '<option value="' + esc(b.key) + '">' + esc(b.short) + '</option>'; }).join('') : '<option value="">— after Sim! —</option>';
+    vs.disabled = !list.length; if (ctx) vs.value = ctx.b.key;
+    if (gbSel) gbFormValues();
   }
   function gbEquip() {
-    var s = WL.gearSlot(gbSel); if (!s) return;
-    var stats = {};
-    WL.GEAR_STAT_KEYS.forEach(function (k) { var v = parseFloat($('gbs_' + k).value); if (isFinite(v) && v) stats[k] = v; });
-    var item = { name: $('gbName').value.trim() || 'My ' + s.name.toLowerCase(), slot: s.fits[0], stats: stats };
-    if (s.key === 'mainHand') {
-      var w = GB_WEAPONS.filter(function (x) { return x[0] === $('gbWeapon').value; })[0] || GB_WEAPONS[0];
-      item.slot = w[2]; item.weapon = /^other/.test(w[0]) ? 'other' : w[0];
-    }
+    var s = WL.gearSlot(gbSel), item = gbFormItem(); if (!s || !item) return;
     gb().slots[s.key] = { custom: item };
     gbChanged(item.name + ' is in the ' + s.name + ' slot.');
   }
+  function gbEnchant() {
+    var s = WL.gearSlot(gbSel), en = gbFormEnchant(); if (!s || !en) return;
+    gb().enchants[s.key] = { custom: en };
+    gbChanged(en.name + ' is on the ' + s.name + ' slot.');
+  }
+
+  // ----- compare with what I wear (round 148, idea 2): real fights, the best builds on the sheet -----
+  // Two runs per build on the same fights: the settings as they are now, and with the Sheet (gear) values changed by
+  // what swapping the typed item into the slot changes (WL.gearSwapDelta: the slot's enchant stays, a two-hander empties
+  // the off hand). Works with the builder off too: the change is added to the Stats panel's numbers.
+  function gbCompare() {
+    if (gbCmpRunning || running || batchRunning || chartRunning || quickRunning) { gbMsgText = 'Wait for the current run to finish.'; renderGear(); return; }
+    var s = WL.gearSlot(gbSel), item = gbFormItem(); if (!s || !item) return;
+    readSettings();
+    var g = gb(), sw = WL.gearSwapDelta(g, s.key, { custom: item }, cfg), d = sw.delta;
+    if (!WL.GEAR_STAT_KEYS.some(function (k) { return d[k]; }) && (sw.sword === null || sw.sword === cfg.gear.weaponIsSword)) { gbCmp = { slot: s.key, same: true, item: item.name }; renderGbCmp(); return; }
+    var by = runByRace(), order = WL.BUILDS.slice().sort(function (a, z) { return (listedDps(by[z.key] || {}) || 0) - (listedDps(by[a.key] || {}) || 0); }).slice(0, CH_MAX);
+    var c0 = JSON.parse(JSON.stringify(cfg)), c1 = JSON.parse(JSON.stringify(cfg)), n = cfg.fight.weightIterations;
+    WL.GEAR_STAT_KEYS.forEach(function (k) { c1.gear[k] = WL.gearRound((c1.gear[k] || 0) + d[k]); });
+    if (sw.sword !== null) c1.gear.weaponIsSword = sw.sword;
+    var rows = order.map(function (b) { var mr = mainRow(b.key); return { b: b, race: mr ? mr.race : (myRace || 'undead'), now: null, with: null }; });
+    var jobs = [], done = 0, t0 = performance.now();
+    rows.forEach(function (r, i) { jobs.push({ kind: 'weight', build: r.b, race: r.race, cfg: c0, n: n, stat: null, i: i, side: 'now' }); jobs.push({ kind: 'weight', build: r.b, race: r.race, cfg: c1, n: n, stat: null, i: i, side: 'with' }); });
+    var cur = WL.gearItem(g.slots[s.key]);
+    gbCmp = { slot: s.key, item: item.name, cur: cur ? cur.name : null, delta: d, rows: rows, n: n, busy: 'Simulating 0 / ' + jobs.length + '…', sword: sw.sword };
+    gbCmpRunning = chartRunning = true; renderGbCmp();
+    WL.SimPool.run(jobs, function (j, res) { rows[j.i][j.side] = res.dps; gbCmp.busy = 'Simulating ' + (++done) + ' / ' + jobs.length + '…'; renderGbCmp(); },
+      function () { gbCmpRunning = chartRunning = false; gbCmp.busy = null; gbCmp.secs = ((performance.now() - t0) / 1000).toFixed(1); renderGbCmp(); });
+  }
+  function renderGbCmp() {
+    var box = $('gbCmp'); if (!box) return;
+    var C = gbCmp; if (!C || C.slot !== gbSel) { box.innerHTML = ''; return; }
+    if (C.same) { box.innerHTML = '<p class="meta">' + esc(C.item) + ' changes none of your stats here: nothing to compare.</p>'; return; }
+    var dtext = WL.GEAR_STAT_KEYS.filter(function (k) { return C.delta[k]; }).map(function (k) { return (C.delta[k] > 0 ? '+' : '') + gbNum(C.delta[k], k) + (isPctStat(k) ? '% ' : ' ') + statLabel(k).replace(/ %$/, ''); }).join(', ');
+    var h = '<h4>' + esc(C.item) + ' instead of ' + (C.cur ? esc(C.cur) : 'nothing') + '</h4><p class="meta">Your sheet changes by: ' + esc(dtext || 'nothing') +
+      (C.sword !== null && C.sword !== undefined ? (C.sword ? '; a sword in the main hand' : '; no sword in the main hand') : '') + '.</p>';
+    if (C.busy) { box.innerHTML = h + '<p class="meta">' + esc(C.busy) + '</p>'; return; }
+    var rows = C.rows.slice().sort(function (a, z) { return (z.with - z.now) - (a.with - a.now); });
+    h += '<div class="scroll"><table class="gbcmpt"><thead><tr><th>Build</th><th>Race</th><th class="n">Now</th><th class="n">With it</th><th class="n">Change</th>' +
+      '<th class="n" title="What the stat weights of the last run predict for this change (no new fights)">Weights say</th></tr></thead><tbody>' + rows.map(function (r) {
+        var ch = r.with - r.now, pct = r.now ? 100 * ch / r.now : 0, w = weights[r.b.key];
+        var est = w ? WL.gearValue(C.delta, w.w, gbShareOf(r.b.key)).dps : null;
+        return '<tr><td>' + esc(r.b.short) + '</td><td>' + esc(WL.RACES[r.race].name) + '</td><td class="n">' + fmt(r.now, 1) + '</td><td class="n">' + fmt(r.with, 1) + '</td>' +
+          '<td class="n" style="color:var(' + (ch >= 0 ? '--good' : '--bad') + ')">' + (ch >= 0 ? '+' : '') + fmt(ch, 1) + ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%)</td>' +
+          '<td class="n meta">' + (est == null ? '–' : (est >= 0 ? '+' : '') + fmt(est, 1)) + '</td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      '<p class="meta">' + fmt(C.n) + ' fights per build and side, the same fights on both sides, with your current settings (' + C.secs + ' s). Each build with the race it is listed with. ' +
+      'The weights column is a quick estimate from the last run\'s stat weights; Spirit, Stamina, Agility and MP5 are not in it.</p>';
+    box.innerHTML = h;
+  }
+
+  // ----- gear code (round 148, idea 4): WFG1:… from the in-game addon, or made here -----
+  function gbLoadCode(v) {                                 // returns the message
+    var o = WL.decodeGear(v), g = gb();
+    readSettings();
+    g.slots = o.slots; g.enchants = o.enchants; g.manual = {}; g.on = true; gbSel = null; gbCmp = null;
+    gbSave(); gbSync(); renderTotals(); markDirty(); renderGear(); renderGearEdit();
+    var ni = Object.keys(o.slots).length, ne = Object.keys(o.enchants).length;
+    return 'Gear code loaded: ' + ni + ' item' + (ni === 1 ? '' : 's') + ' and ' + ne + ' enchant' + (ne === 1 ? '' : 's') + '. The gear builder is on: your stats now come from this gear. Press Sim! to simulate.' +
+      (o.ignored.length ? ' Not used: ' + o.ignored.join(', ') + '.' : '');
+  }
+
   $('gear').addEventListener('click', function (e) {
     var t = e.target, g = gb();
     var sb = t.closest('[data-gslot]');
     if (sb) {
-      var k = sb.getAttribute('data-gslot'); gbSel = gbSel === k ? null : k; gbFind = ''; gbMsgText = '';
+      var k = sb.getAttribute('data-gslot'); gbSel = gbSel === k ? null : k; gbFind = ''; gbEnFind = ''; gbMsgText = '';
       renderGear(); renderGearEdit();
       if (gbSel) { var f = $('gbName'); if (f) f.focus({ preventScroll: true }); $('gbEdit').scrollIntoView({ block: 'nearest' }); }
       return;
     }
     var pk = t.closest('[data-gpick]');
     if (pk && gbSel) { var id = pk.getAttribute('data-gpick'); g.slots[gbSel] = { id: +id }; gbChanged(WL.ITEMS[id].name + ' is in the ' + WL.gearSlot(gbSel).name + ' slot.'); return; }
+    var ep = t.closest('[data-gepick]');
+    if (ep && gbSel) { var eid = ep.getAttribute('data-gepick'); g.enchants[gbSel] = { id: +eid }; gbChanged(WL.ENCHANTS[eid].name + ' is on the ' + WL.gearSlot(gbSel).name + ' slot.'); return; }
+    if (t.closest('#gbCodeLoad')) {
+      try { gbMsgText = gbLoadCode($('gbCode').value); } catch (x) { gbMsgText = $('gbCode').value.trim() ? x.message : 'Paste a gear code first.'; }
+      renderGear(); return;
+    }
+    if (t.closest('#gbCodeMake')) {
+      $('gbCode').value = WL.encodeGear(g);
+      gbMsgText = 'Gear code of what you wear here (' + $('gbCode').value.length + ' characters).';
+      try { navigator.clipboard.writeText($('gbCode').value).then(function () { gbMsgText += ' Copied.'; renderGear(); }, function () { $('gbCode').select(); }); } catch (x2) { $('gbCode').select(); }
+      renderGear(); return;
+    }
     var act = t.closest('[data-gact]');
     if (!act) return;
     var a = act.getAttribute('data-gact');
     if (a === 'close') { var was = gbSel; gbSel = null; renderGear(); renderGearEdit(); var sl = document.querySelector('[data-gslot="' + was + '"]'); if (sl) sl.focus(); }
     else if (a === 'equip') gbEquip();
+    else if (a === 'enchant') gbEnchant();
+    else if (a === 'compare') gbCompare();
     else if (a === 'off') { var nm = WL.gearSlot(gbSel).name; delete g.slots[gbSel]; gbChanged('The ' + nm + ' slot is empty.'); }
+    else if (a === 'unenchant') { var nm2 = WL.gearSlot(gbSel).name; delete g.enchants[gbSel]; gbChanged('The ' + nm2 + ' slot has no enchant.'); }
   });
-  $('gear').addEventListener('input', function (e) { if (e.target.id === 'gbFind') { gbFind = e.target.value; $('gbHits').innerHTML = gbHitsHtml(); } });
-  $('gear').addEventListener('keydown', function (e) {    // Enter in the form puts the item on
-    if (e.key === 'Enter' && e.target.closest('.gbown') && e.target.tagName === 'INPUT') { e.preventDefault(); gbEquip(); }
+  $('gear').addEventListener('input', function (e) {
+    var id = e.target.id;
+    if (id === 'gbFind') { gbFind = e.target.value; $('gbHits').innerHTML = gbHitsHtml(gbItemList(), gbFind, 'item', 'data-gpick'); }
+    else if (id === 'gbEnFind') { gbEnFind = e.target.value; $('gbEnHits').innerHTML = gbHitsHtml(gbEnchList(), gbEnFind, 'enchant', 'data-gepick'); }
+    else if (e.target.closest('.gbown')) gbFormValues();
+  });
+  $('gear').addEventListener('change', function (e) { if (e.target.id === 'gbValFor') { gbValKey = e.target.value; renderGear(); } });
+  $('gear').addEventListener('keydown', function (e) {    // Enter in a form puts the item / the enchant on
+    if (e.key !== 'Enter' || e.target.tagName !== 'INPUT' || !e.target.closest('.gbown')) return;
+    e.preventDefault();
+    if (e.target.closest('.gbench')) gbEnchant(); else gbEquip();
   });
   $('gbOn').addEventListener('change', function () { gbSwitch(this.checked); });
   $('gbClear').addEventListener('click', function () {
     if (!armed('gbClear')) return;
-    gb().slots = {}; gbSel = null; gbChanged('Every slot is empty.');
+    var g = gb(); g.slots = {}; g.enchants = {}; gbSel = null; gbChanged('Every slot is empty.');
   });
   if (GEAR_PLACE === 'top') $('gearTop').appendChild($('gear'));
 

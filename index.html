@@ -168,6 +168,48 @@
   .gblist button { width: 100%; text-align: left; background: none; border: 0; padding: 3px 4px; }
   .gblist button:hover { background: var(--sunk); }
   .gbnote { margin: 0; color: var(--accent); }
+  /* round 148: item value, enchants, compare, gear code */
+  .gbhead label.c select { max-width: 220px; }
+  .gbval { text-transform: none; letter-spacing: 0; color: var(--accent); font-weight: 600; margin-left: 4px; }
+  .gben { font-size: 10.5px; color: var(--good); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #gbMid .gbtot { color: var(--ink); font-size: 12px; }
+  .gbcode input[type=text] { flex: 3 1 260px; }
+  .gbench { border-top: 1px dashed var(--line); padding-top: 6px; }
+  .gbench > summary { cursor: pointer; font-weight: 600; font-size: 12px; color: var(--accent); }
+  .gbench[open] > summary { margin-bottom: 6px; }
+  .gbvalline { color: var(--accent); }
+  .gbvalline:empty, #gbEnchVal:empty { display: none; }
+  #gbCmp:empty { display: none; }
+  #gbCmp { margin-top: 8px; border-top: 1px solid var(--line); padding-top: 6px; }
+  .gbcmpt td { font-size: 12px; }
+  /* round 148: talents that are not (fully) simulated */
+  .tcell .sim { position: absolute; left: -6px; top: -5px; min-width: 13px; height: 13px; padding: 0 2px; border-radius: 7px; font: 700 9px/11px var(--mono);
+    text-align: center; background: var(--surface); color: var(--muted); border: 1px solid var(--line); cursor: help; }
+  .tcell .sim.none { color: var(--bad); border-color: var(--bad); }
+  .tcell .sim.part { color: var(--c-crit); border-color: var(--c-crit); }
+  .tcell .sim.cond { color: var(--c-hit); border-color: var(--c-hit); }
+  .simkey .sim { position: static; display: inline-block; margin: 0 3px 0 8px; }
+  .pttab .sim, .simkey .sim { min-width: 13px; height: 13px; padding: 0 2px; border-radius: 7px; font: 700 9px/11px var(--mono); text-align: center; background: var(--surface); border: 1px solid var(--line); margin-left: 6px; display: inline-block; }
+  .pttab .sim.none, .simkey .sim.none { color: var(--bad); border-color: var(--bad); }
+  .pttab .sim.part, .simkey .sim.part { color: var(--c-crit); border-color: var(--c-crit); }
+  .pttab .sim.cond, .simkey .sim.cond { color: var(--c-hit); border-color: var(--c-hit); }
+  /* round 148: talent point values, buff values */
+  .ptbox { display: grid; gap: 6px; }
+  .ptbox.old > :not(.qold) { opacity: .45; }
+  .ptbox h3, #chOut h3 { margin: 4px 0 2px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; }
+  .ptbox h3 .meta { text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 11px; }
+  .ptbox .meta { margin: 0; }
+  .pttab td { font-size: 12px; padding: 2px 5px; }
+  .pttab td.ptname { white-space: nowrap; }
+  .pttab .ico { width: 16px; height: 16px; }
+  .ptbar, .bvbar { display: block; height: 8px; min-width: 60px; border-radius: 4px; background: var(--sunk); overflow: hidden; }
+  .ptbar i, .bvbar i { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
+  .ptbar i.neg, .bvbar i.neg { background: var(--bad); }
+  .bvlist { display: grid; grid-template-columns: 20px minmax(0, 340px) minmax(60px, 1fr) 90px 62px; gap: 3px 10px; align-items: center; font-size: 12px; max-width: 1000px; }
+  .bvlist .ico { width: 18px; height: 18px; }
+  .bvname { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bvv { font-weight: 600; }
+  @media (max-width: 600px) { .bvlist { grid-template-columns: 20px minmax(0, 1fr) auto; } .bvlist .bvbar, .bvlist .bvv + .meta { display: none; } .bvname { white-space: normal; } }
   .gbnote[hidden] { display: none; }
   @media (max-width: 760px) {
     .gbdoll { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "l r" "w w" "m m"; }
@@ -957,7 +999,7 @@
         <h2>Input / output: settings and builds</h2>
         <p class="meta">A code is a line of text you can keep or send to someone. A <b>settings code</b> (starts with WFS1:) holds your stats, fight,
           buffs, debuffs, consumables, professions and pet settings. A <b>build code</b> (WFB1:) holds one build: talents, pet, weapon stone and
-          priority. Make a code here, or paste one and press Load — settings are applied, a build opens in the build editor.</p>
+          priority. Make a code here, or paste one and press Load — settings are applied, a build opens in the build editor. A <b>gear code</b> (WFG1:) from the in-game addon goes into the gear builder.</p>
         <textarea id="codeBox" rows="3" spellcheck="false" aria-label="Settings or build code" placeholder="WFS1:… or WFB1:…"></textarea>
         <div class="btnrow">
           <button type="button" id="codeMake">Make settings code</button>
@@ -998,7 +1040,8 @@
       <span class="meta" id="edPts"></span>
       <button type="button" id="edResetAll" class="resetbtn" title="Remove every talent point in all three trees (pet, weapon and priority stay)">Reset all talents</button>
     </div>
-    <p class="meta">Click a talent to add a point; Shift+click or right-click removes one. Hover for the tooltip.</p>
+    <p class="meta simkey">Click a talent to add a point; Shift+click or right-click removes one. Hover for the tooltip.
+      Marks:<span class="sim none">✕</span>not simulated<span class="sim part">½</span>partly simulated<span class="sim cond">if</span>only with a setting or action</p>
     <div class="edmain">
       <div class="edleft">
         <div id="edTrees" class="trees"></div>
@@ -1018,8 +1061,10 @@
         <div class="cardhead">
           <h2>Quick sim</h2>
           <button type="button" id="edQuick" class="primary" title="Simulate only this build: 300 fights per race with the current settings, next to the sheet's best build on the same fights">Quick sim this build</button>
+          <button type="button" id="edPoints" title="Simulates this build once more for every talent it has points in, with one point fewer there, on the same fights: what the last point of each talent is worth">Value of each point</button>
         </div>
         <div id="edQuickOut" role="status"></div>
+        <div id="edPtsOut" role="status"></div>
       </div>
     </div>
     <label class="c tlon" for="edTlOn" title="Script the fight yourself: drag spells onto a timeline at the exact moment you want them cast. The priority above still runs: it fills every gap, recasts what misses and takes over when the timeline ends."><input id="edTlOn" type="checkbox"> Super advanced: fight timeline</label>
@@ -1085,18 +1130,19 @@
   </details>
 
   <details class="card toolcard" id="charts">
-    <summary>Charts — DPS by a stat · DPS by fight length</summary>
+    <summary>Charts — DPS by a stat · DPS by fight length · what each buff is worth</summary>
     <div class="chartbar">
       <label class="c" for="chKind">Chart <select id="chKind">
         <option value="stat">DPS by a stat</option>
         <option value="len">DPS by fight length</option>
+        <option value="buffs">What each raid buff and debuff is worth</option>
       </select></label>
       <label class="c" for="chStat" id="chStatLbl">Stat <select id="chStat"></select></label>
       <label class="c" for="chBuild">Builds <select id="chBuild"></select></label>
       <button type="button" id="chRun" class="primary" title="Simulates the chosen builds again at every point of the chart, with your current settings">Draw chart</button>
       <span class="meta" id="chMsg" role="status"></span>
     </div>
-    <div id="chOut"><p class="meta chcap">Pick a chart and press Draw chart. <b>DPS by a stat</b> shows how a build's damage grows as one stat on your gear goes up, with everything else as you have set it — for example where more hit stops helping. <b>DPS by fight length</b> shows which build is ahead in short and in long fights.</p></div>
+    <div id="chOut"><p class="meta chcap">Pick a chart and press Draw chart. <b>DPS by a stat</b> shows how a build's damage grows as one stat on your gear goes up, with everything else as you have set it — for example where more hit stops helping. <b>DPS by fight length</b> shows which build is ahead in short and in long fights. <b>What each raid buff and debuff is worth</b> measures, for one build, what you lose without each one you have on and what you would gain with each one you have off.</p></div>
   </details>
 
   <p class="foot">Click a row for talents, stats, the DoT chart, per-spell numbers, race comparison and the full rotation log; the "+4 races" pill next to the race
@@ -1107,11 +1153,17 @@
   <section class="card gearcard building" id="gear" aria-labelledby="gearTitle">
     <div class="cardhead gbhead">
       <h2 id="gearTitle">Gear builder <span class="ctag">under construction</span></h2>
-      <label class="switch" for="gbOn" title="On: your stats in the Stats panel are a naked character plus the items here, and what you type there is added on top. Off: the Stats panel keeps its numbers and works as before."><input id="gbOn" type="checkbox"> Use this gear for my stats</label>
+      <label class="switch" for="gbOn" title="On: your stats in the Stats panel are a naked character plus the items and enchants here, and what you type there is added on top. Off: the Stats panel keeps its numbers and works as before."><input id="gbOn" type="checkbox"> Use this gear for my stats</label>
+      <label class="c" for="gbValFor" title="Each item's worth in spell power is worked out from this build's stat weights (the SP / Hit / Crit / Haste / Int columns of the results). Builds get stat weights with a Sim!">Value for <select id="gbValFor"></select></label>
       <button type="button" id="gbClear" class="resetbtn gbclear" data-label="Take everything off" data-armed="Click again to empty every slot">Take everything off</button>
     </div>
     <div class="tape" aria-hidden="true"><div><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span></div></div>
-    <p class="meta">Click a slot to put an item in. The list of items will come from the Wowhead Forever database once it has enough of them; until then you type each item's stats in yourself. Your items are kept in this browser.</p>
+    <p class="meta">Click a slot to put an item and its enchant in. The lists of items and enchants will come from the Wowhead Forever database once it has enough of them; until then you type the stats in yourself, or load a gear code made by the in-game addon. Your items are kept in this browser.</p>
+    <div class="btnrow gbcode">
+      <input id="gbCode" type="text" spellcheck="false" placeholder="WFG1:… gear code from the in-game addon" aria-label="Gear code">
+      <button type="button" id="gbCodeLoad" class="primary" title="Puts the items and enchants of a gear code into every slot (replacing what is there) and switches the gear builder on">Load gear code</button>
+      <button type="button" id="gbCodeMake" title="A gear code of what you wear here, copied to the clipboard">Make gear code</button>
+    </div>
     <p class="meta" id="gbMsg" role="status"></p>
     <div class="gbdoll">
       <div class="gbcol" id="gbLeft"></div>

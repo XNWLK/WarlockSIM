@@ -163,3 +163,39 @@ WL.decodeBuild = function (code) {
 WL.editorActions = function () {
   return Object.keys(WL.ACTIONS).filter(function (k) { return k !== 'soulFireShards'; });
 };
+
+// ---------- talent point value (round 148, user): the build with one point fewer in one talent ----------
+// Priority actions that need a talent (or several) to do anything — the same rules as WL.validateBuild's checks.
+WL.ACTION_TALENTS = {
+  conflagrate: ['conflagrate'], conflagrateExpire: ['conflagrate'], shadowburn: ['shadowburn'], incinerate: ['incinerate'],
+  wrack: ['wrack'], wrackDots: ['wrack'], siphonLife: ['siphonLife'], searingPainBrand: ['demonicBrand'],
+  searingPainDecimation: ['decimation'], lifeTapPet: ['demonicEnergies'], shadowBoltSpread: ['improvedShadowBolt'],
+  isbUpkeep: ['improvedShadowBolt'], shadowburnSnF: ['shadowAndFlame', 'shadowburn'], conflagrateSnF: ['shadowAndFlame', 'conflagrate'],
+  swapToImp: ['demonicSacrifice', 'demonicPact', 'felDomination'], swapToSuccubus: ['demonicSacrifice', 'demonicPact', 'felDomination'],
+};
+// A copy of build b with one point fewer in talent `key`. When the talent is gone completely, whatever only it allowed goes
+// too: its priority actions and timeline spells, the sacrifice (Demonic Sacrifice); a priority left without a filler gets
+// Shadow Bolt at the end. Row and 51-point rules are not rechecked — it measures what the point does, not a legal build.
+// Returns { build, notes: [what else had to change] }.
+WL.buildWithoutPoint = function (b, key) {
+  var t = JSON.parse(JSON.stringify(b.talents || {})), notes = [];
+  var c = { short: b.short, talents: t, pet: b.pet || null, sacrifice: b.sacrifice || null, oil: b.oil, rotation: (b.rotation || []).slice(),
+            timeline: b.timeline ? b.timeline.map(function (e) { return { t: e.t, k: e.k }; }) : undefined, params: b.params };
+  if (!t[key]) return { build: c, notes: notes };
+  if (--t[key] > 0) return { build: c, notes: notes };
+  delete t[key];
+  var gone = c.rotation.filter(function (a) { return (WL.ACTION_TALENTS[a] || []).some(function (x) { return !t[x]; }); });
+  if (gone.length) {
+    c.rotation = c.rotation.filter(function (a) { return gone.indexOf(a) < 0; });
+    notes.push('taken out of the priority: ' + gone.map(function (a) { return WL.ACTIONS[a] ? WL.ACTIONS[a].label.replace(/_/g, '…') : a; }).join(', '));
+  }
+  if (c.timeline) {
+    var before = c.timeline.length;
+    c.timeline = c.timeline.filter(function (e) { var s = WL.SPELLS[e.k]; return !(s && s.talent && !t[s.talent]); });
+    if (c.timeline.length < before) notes.push((before - c.timeline.length) + ' timeline entr' + (before - c.timeline.length === 1 ? 'y' : 'ies') + ' removed');
+  }
+  if (key === 'demonicSacrifice' && c.sacrifice) { c.sacrifice = null; notes.push('no demon sacrificed'); }
+  if (!c.rotation.some(function (a) { return WL.ACTIONS[a] && WL.ACTIONS[a].filler; })) { c.rotation.push('shadowBolt'); notes.push('Shadow Bolt added as the filler'); }
+  c.params = WL.cleanParams(b.params, c.rotation);
+  return { build: c, notes: notes };
+};

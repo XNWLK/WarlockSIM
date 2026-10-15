@@ -3,6 +3,23 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v137
+- **Gear builder: an item's worth.** Every item and enchant shows what it is worth in spell power for a build you pick
+  ("Value for"), worked out from that build's stat weights. So does the item you are typing in, while you type.
+- **Gear builder: compare with what I wear.** Type an item into a slot and press the button: the best builds on the sheet
+  are simulated with what you wear now and with the new item, on the same fights, and you see the DPS change for each.
+- **Gear builder: enchants.** Head, shoulder, back, chest, wrist, hands, legs, feet and main hand take an enchant. It counts
+  while the slot holds an item.
+- **Gear codes.** A gear code (it starts with WFG1:) holds everything you wear. The in-game addon can make one from your
+  character; paste it into the gear builder (or the Input / output box) and every slot is filled. "Make gear code" makes
+  one of what you have in the builder.
+- **Talent marks.** In every talent tree, a small mark shows talents that are not simulated (✕), only partly (½), or only
+  with a setting (if). Hover for why.
+- **What each talent point is worth.** "Value of each point" in the build editor simulates the build once more for every
+  talent, with one point fewer there, and lists what each last point adds.
+- **What each raid buff is worth.** A new chart in the Charts card: for one build, what you lose without each raid buff
+  and boss debuff you have on, and what you would gain with each one you have off.
+
 ## v136
 - **Gear builder (under construction).** At the very bottom of the page there is now a character window with every
   gear slot. Click a slot to put an item in. Switch on "Use this gear for my stats" and the Stats panel starts from a
