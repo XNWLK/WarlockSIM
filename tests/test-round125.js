@@ -1,4 +1,4 @@
-// Round 125 tests (user): Grace of Air Totem gives 89 Agility; threat reductions multiply with Suppression. (Rounds
+// Round 125 tests (user): Grace of Air Totem gave 89 Agility (gone in round 152); threat reductions multiply with Suppression. (Rounds
 // 125–148 also: Tranquil Air / Windfury / Grace of Air one totem type, Tranquil Air and Salvation not stacking — the two
 // totems were removed in round 149.)
 (function () {
@@ -18,17 +18,8 @@
     var mine = 0; Object.keys(r.bySpell).forEach(function (k) { if (k.indexOf('pet:') !== 0) mine += r.bySpell[k].dmg; });
     return r.threat / mine;
   }
-  function names(on) { return WL.activeBuffs(det(on)).map(function (x) { return x.name; }).join(' + '); }
-  function agi(on) { return WL.computeStats(b, 'human', det(on)).agi; }
 
-  T.run('round 125: Grace of Air 89; Salvation with Suppression', function () {
-    var B = WL.DEFAULT_CONFIG.buffs;
-    T.group('Grace of Air Totem');
-    T.eq(B.graceOfAir.agi, 89, '89 Agility');
-    T.ok(/by 89\./.test((WL.SPELL_TEXT || {})[B.graceOfAir.id] || ''), 'the same number as its tooltip text');
-    T.near(agi(['graceOfAir']) - agi([]), 89, 1e-9, 'alone: +89 Agility');
-    T.eq(names(['graceOfAir', 'blessingOfSalvation']), 'Grace of Air Totem + Salvation', 'Grace of Air and Salvation are both up');
-
+  T.run('round 125: Salvation with Suppression', function () {
     T.group('Salvation');
     T.near(ratio(run([])), 1, 1e-9, 'no buffs: 1 threat per damage');
     T.near(ratio(run(['blessingOfSalvation'])), 0.70, 1e-9, 'Salvation: −30%');

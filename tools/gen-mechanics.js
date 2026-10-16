@@ -209,16 +209,16 @@ B.races = (function () {
   const b = WL.WARLOCK_BASE_60, sign = x => (x > 0 ? '+' : x < 0 ? '−' : '') + Math.abs(x);
   const rows = WL.RACE_KEYS.map(k => {
     const r = WL.RACES[k], o = r.offset;
-    return [r.name, sign(o.int), sign(o.spi), sign(o.sta), sign(o.agi), r.racials.map(x => x.name).join(', ')];
+    return [r.name, sign(o.int), sign(o.spi), sign(o.sta), r.racials.map(x => x.name).join(', ')];
   });
-  return 'Level-60 Warlock before the race: Intellect ' + b.int + ', Spirit ' + b.spi + ', Stamina ' + b.sta + ', Agility ' + b.agi + ', base mana ' + n(b.mana, 0) + ', base health ' + n(b.health, 0) + '.\n\n' +
-    table(['Race', 'Intellect', 'Spirit', 'Stamina', 'Agility', 'Racials in the sim'], rows);
+  return 'Level-60 Warlock before the race: Intellect ' + b.int + ', Spirit ' + b.spi + ', Stamina ' + b.sta + ', base mana ' + n(b.mana, 0) + ', base health ' + n(b.health, 0) + '.\n\n' +
+    table(['Race', 'Intellect', 'Spirit', 'Stamina', 'Racials in the sim'], rows);
 })();
 
 B.gear = (function () {
   const g = cfg.gear, f = cfg.fight;
   return '- **Gear (character sheet, before talents, racials and weapon stone):** ' + g.sp + ' spell power, ' + g.hitPct + '% hit, ' + g.critPct + '% crit, ' + g.hastePct + '% haste, Intellect ' + g.int +
-    ', Spirit ' + g.spi + ', Stamina ' + g.sta + ', Agility ' + g.agi + ', MP5 ' + g.mp5 + ', Spell Pierce ' + g.pierce + '.\n' +
+    ', Spirit ' + g.spi + ', Stamina ' + g.sta + ', MP5 ' + g.mp5 + ', Spell Pierce ' + g.pierce + '.\n' +
     '- **Fight:** ' + f.duration + ' s ± ' + f.durationVarPct + '%, ' + n(f.iterations, 0) + ' fights per build and race, ' + f.targets + ' target, execute phase below ' + f.executePct +
     '% boss health, healing on you ' + n(f.healAmount, 0) + ' every ' + f.healEvery + ' s.\n' +
     '- **Hit-capped preset:** 1,000 spell power, 17% hit, 20% crit, Intellect 250, Spirit 100, Stamina 300.';
@@ -228,7 +228,7 @@ B.pets = table(['Demon', 'Spell', 'Melee', 'Mana'], Object.keys(cfg.pets).map(k 
   const p = cfg.pets[k], s = p.spell, m = p.melee;
   return [p.name,
     s ? s.name + ': ' + s.base + ' + ' + s.coef + ' × demon SP, ' + cap(s.school) + ', ' + (s.cast ? s.cast + ' s cast' : 'instant') + (s.cd ? ', ' + s.cd + ' s cooldown' : '') + ', ' + s.cost + ' mana' : '—',
-    m ? m.baseDps + ' base DPS, one swing every ' + m.swing + ' s, own crit ' + m.critPct + '%' + (m.inheritMeleeCrit ? ' + your melee crit' : '') + (m.range ? ', ' + m.range + ' yd range' : '') : '—',
+    m ? m.baseDps + ' base DPS, one swing every ' + m.swing + ' s, crit = your spell crit' + (m.range ? ', ' + m.range + ' yd range' : '') : '—',
     n(p.mana, 0) + ', +' + p.manaRegen + ' per second'];
 }));
 
@@ -291,7 +291,6 @@ B.examples = (function () {
   P('- Intellect: ' + statLine('int', st.int));
   P('- Spirit: ' + statLine('spi', st.spi));
   P('- Stamina: ' + statLine('sta', st.sta));
-  P('- Agility: ' + statLine('agi', st.agi));
   const manaFlat = WL.WARLOCK_BASE_60.mana + 20 + cb.manaPerInt * (st.int - 20), manaPct = tv(build, 'felVitality', 'manaPct');
   near(manaFlat * (1 + manaPct / 100), st.maxMana, 'mana');
   P('- Maximum mana: (' + n(WL.WARLOCK_BASE_60.mana, 0) + ' + 20 + ' + cb.manaPerInt + ' × (' + n(st.int) + ' − 20)) × ' + (1 + manaPct / 100).toFixed(2) + ' Fel Vitality = **' + n(st.maxMana) + '**');
@@ -305,8 +304,6 @@ B.examples = (function () {
   const critE = bd('critPct');
   near(critE.reduce((a, e) => a + e.value, 0), st.critPct, 'crit');
   P('- Crit: ' + critE.map(e => n(e.value, 2) + ' ' + src(e).replace(/^Character sheet \(base \+ Int \+ gear\)$/, 'sheet').replace(/^Extra Int (.*) \/ 60$/, 'from $1 Intellect above the sheet ÷ 60')).join(' + ') + ' = **' + n(st.critPct, 2) + '%**');
-  const mcE = bd('meleeCritPct');
-  P('- Melee crit (only the Succubus uses it): ' + mcE.map(e => n(e.value, 2) + ' ' + src(e).replace(/^Agility (.*) \/ (\d+)$/, 'from $1 Agility ÷ $2')).join(' + ') + ' = **' + n(st.meleeCritPct, 2) + '%**');
   P('- Haste: **' + n(st.hastePct) + '%** (' + st.oilName + ').');
   P('');
 
@@ -355,14 +352,14 @@ B.examples = (function () {
   const pc = cfg.pets.succubus, m = pc.melee, pm = cb.petMelee, lash = pc.spell;
   const up = 1 + tv(build, 'unholyPower', 'petDmgPct') / 100, md = 1 + tv(build, 'masterDemonologist', 'schoolPct') / 100, all = st.mult.all;
   const hitBonus = Math.max(0, st.hitPct - cb.baseHitPct - pm.hitSuppressionPct), miss = Math.max(0, pm.missPct - hitBonus);
-  const critCh = Math.max(0, m.critPct + st.meleeCritPct - pm.critSuppressionPct), plain = 100 - miss - pm.dodgePct - pm.glancePct - critCh;
+  const critCh = Math.max(0, st.critPct - pm.critSuppressionPct), plain = 100 - miss - pm.dodgePct - pm.glancePct - critCh;
   const ap = m.apPerSp * st.sp, dps = m.baseDps + ap / m.apPerDps, armor = WL.bossArmor(cfg), red = WL.armorReduction(cfg), swing = dps * m.swing * (1 - red) * up * all;
   const petSp = st.sp * cfg.petSpPct / 100 + st.dkSp, lashBase = lash.base * (1 + tv(build, 'improvedSayaad', 'lashPct') / 100);
   const petShadow = up * all * md * coe, lashHit = (lashBase + lash.coef * petSp) * petShadow;
   const db = cfg.demonicBrand, brandBase = (db.baseMin + db.baseMax) / 2, brand = (brandBase + db.shadowSpCoef * (st.sp + st.schoolSp.shadow)) * petShadow;
   P('#### 6. The Succubus');
   P('- Attack table of one swing: miss ' + pm.missPct + '% − (' + n(st.hitPct) + ' − ' + cb.baseHitPct + ' − ' + pm.hitSuppressionPct + ')% = **' + n(miss) + '%**, dodge **' + pm.dodgePct + '%**, glancing blow **' + pm.glancePct + '%** (at ' + pm.glanceDmgPct + '% damage), crit ' +
-    m.critPct + ' + ' + n(st.meleeCritPct, 2) + ' − ' + pm.critSuppressionPct + ' = **' + n(critCh, 2) + '%** (× 2), normal hit the remaining **' + n(plain, 2) + '%**.');
+    'your spell crit ' + n(st.critPct, 2) + ' − ' + pm.critSuppressionPct + ' = **' + n(critCh, 2) + '%** (× 2), normal hit the remaining **' + n(plain, 2) + '%**.');
   P('- Attack power from you: ' + n(st.sp) + ' spell power ÷ 6 = ' + n(ap) + '. Damage per second: ' + m.baseDps + ' + ' + n(ap) + ' ÷ ' + m.apPerDps + ' = ' + n(dps, 2) + '.');
   P('- Boss armor: ' + n(cb.bossArmor, 0) + ' − armor debuffs = ' + n(armor, 0) + ' → ' + n(armor, 0) + ' ÷ (' + n(armor, 0) + ' + 5,500) = ' + n(red * 100, 2) + '% less physical damage.');
   P('- One normal swing: ' + n(dps, 2) + ' × ' + m.swing + ' s × (1 − ' + n(red, 4) + ') × ' + up.toFixed(2) + ' Unholy Power × ' + all.toFixed(2) + ' Soul Link = **' + n(swing) + '**. Master Demonologist and Curse of the Elements do not apply to melee.');

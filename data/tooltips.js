@@ -97,7 +97,6 @@ WL.SPELL_TEXT = {
   25290: "Places a Blessing on the friendly target, restoring 40 mana every 5 seconds for 1 hour.  Players may only have one Blessing on them per Paladin at any one time.",
   10497: "Summons a Mana Spring Totem with 5 health at the feet of the caster for 5 min that restores 10 mana every 2 seconds to group members within 30 yards.",
   16187: "Increases the effect of your Mana Spring Totem by 5% and increases the effect of your Healing Stream Totem by 5%.",
-  25359: "Summons a Grace of Air Totem with 5 health at the feet of the caster.  The totem increases the agility of party members within 30 yards by 89.  Lasts 5 min.",
   17359: "Summons a Mana Tide Totem with 5 health at the feet of the caster for 12 sec that restores 290 mana every 3 seconds to group members within 30 yards.",
   29166: "Increases the target\u0027s Mana regeneration by 400% and allows 100% of the target\u0027s Mana regeneration to continue while casting.  Lasts 20 sec.",
   24858: "Shapeshift into Moonkin Form, increasing Omen of Clarity\u0027s chance to trigger by 100%, Armor contribution from items by 360%, and all party or raid members within 45 yards have their spell Critical Strike chance increased by 3%.  Also protects the caster from Polymorph effects and prevents the use of healing spells.\n\nThe act of shapeshifting frees the caster of Polymorph and Movement Impairing effects.",

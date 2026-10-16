@@ -9,7 +9,8 @@ WL.SETTINGS_CODE_PREFIX = 'WFS1:';
 WL.RETIRED_SETTINGS = ['options.eurekaPolicy',    // round 88: Eureka! follows the cooldown setting
   'fight.startingShards',                         // round 118: soul shards are unlimited
   'gear.weaponIsSword',                           // round 149 (patch 2026-10-16): Ruthless needs no sword
-  'buffs.windfuryTotem', 'buffs.flametongueTotem', 'buffs.tranquilAir'];   // round 149: removed (they no longer help your demon)
+  'buffs.windfuryTotem', 'buffs.flametongueTotem', 'buffs.tranquilAir',     // round 149: removed (they no longer help your demon)
+  'gear.agi', 'buffs.graceOfAir', 'buffs.scrollOfAgility'];                 // round 152: Agility does nothing (demons crit with your spell crit)
 
 WL.settingsSnapshot = function (c) {
   var on = function (o) { return Object.keys(o || {}).filter(function (k) { return o[k].on; }); };

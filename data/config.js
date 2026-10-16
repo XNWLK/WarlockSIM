@@ -29,9 +29,6 @@ WL.DEFAULT_CONFIG = {
     maxHitPct: 100,         // round 48 (user): Forever removed the permanent 1% miss → 17% usable hit, 100% reachable (was 99 / 16%, Classic & SoD) [A01]
     baseCritPct: 1.7,       // [A03]
     critPerInt: 1 / 60,     // 60 Int = 1% crit (user-confirmed) [A03]
-    // Your MELEE crit (round 75, user: it comes from Agility; the Succubus' melee inherits it, Lash of Pain your spell crit):
-    // Classic L60 Warlock: 2.0% base + 1% per 20 Agility (round 17 values, A75). Gear crit % is spell crit only.
-    meleeCritBasePct: 2.0, agiPerMeleeCrit: 20,
     ratingPerHitPct: 10,    // [A02]
     ratingPerCritPct: 14,   // [A04]
     ratingPerHastePct: 10,  // [A05]
@@ -58,8 +55,8 @@ WL.DEFAULT_CONFIG = {
     // inherits your hit and crit) [A46]. Classic values for weapon skill 300 vs defense 315: one roll in the order
     // miss → dodge → glancing → crit → hit. Miss 8% minus your hit above the base (gear, Suppression, buffs), of which the
     // first 1% does not count (hit suppression vs +3); dodge 6.5%; glancing 40% of swings at 65% damage (never crit);
-    // crit = the pet's own + your MELEE crit (round 75; your spell crit in rounds 32–74) − 4.8% (3% skill gap + 1.8% vs
-    // a +3 boss). No parry / block from behind.
+    // crit = your spell crit (round 152, user: nothing of the pet's own; rounds 75–151 own + your melee crit, rounds 32–74
+    // own + your spell crit) − 4.8% (3% skill gap + 1.8% vs a +3 boss). No parry / block from behind.
     petMelee: { missPct: 8, dodgePct: 6.5, hitSuppressionPct: 1, glancePct: 40, glanceDmgPct: 65, critSuppressionPct: 4.8 },
   },
   // Gear (user, 2026-09-23; round 13: SP 500). Percentages are character-sheet values BEFORE talents, racials and weapon oil. [A35][A42]
@@ -74,7 +71,6 @@ WL.DEFAULT_CONFIG = {
     pierce: 0,              // Spell Pierce (new stat) [A44]
     // Round 37 (user): Int 148 / Spirit 54 (was 48 / 4 = Classic pre-raid BiS item sums, round 13).
     // Round 39 (user): Stamina 160 (was 92), MP5 0 (was 4).
-    agi: 0,                 // Agility from gear (round 75): only feeds your melee crit, which the Succubus' melee inherits [A75]
     int: 148, spi: 54, sta: 160, mp5: 0,  // gear only (race base is added by the engine); Int drives mana, Spirit drives Life Tap [A58]
   },
   // Added on top of gear by the stat-weight runs (normally all 0).
@@ -87,7 +83,7 @@ WL.DEFAULT_CONFIG = {
   // Stormstrike, another Warlock's Improved Shadow Bolt (tooltips say "damage YOU deal" / "from YOUR attacks"). [A53]
   buffs: {
     arcaneIntellect:  { on: true, id: 10157, name: 'Arcane Intellect / Brilliance', cls: 'Mage',    desc: '+31 Intellect', int: 31 },
-    markOfTheWild:    { on: true, id: 9885, name: 'Mark / Gift of the Wild',       cls: 'Druid',   desc: '+16 all attributes', int: 16, spi: 16, sta: 16, agi: 16 },
+    markOfTheWild:    { on: true, id: 9885, name: 'Mark / Gift of the Wild',       cls: 'Druid',   desc: '+16 all attributes', int: 16, spi: 16, sta: 16 },
     fortitude:        { on: true, id: 10938, name: 'Power Word: Fortitude',         cls: 'Priest',  desc: '+70 Stamina (Touch of the Grave)', sta: 70 },
     divineSpirit:     { on: true, id: 27841, name: 'Divine Spirit / Prayer of Spirit', cls: 'Priest', desc: '+40 Spirit (Life Tap)', spi: 40 },
     blessingOfKings:  { on: true, id: 20217, name: 'Blessing of Kings',             cls: 'Paladin', desc: '+10% total stats', statPct: 10 },
@@ -97,17 +93,13 @@ WL.DEFAULT_CONFIG = {
     blessingOfWisdom: { on: true, id: 25290, name: 'Blessing of Wisdom',            cls: 'Paladin', desc: '40 mana every 5 s', mp5: 40 },
     manaSpring:       { on: false, id: 10497, name: 'Mana Spring Totem',             cls: 'Shaman',  desc: '10 mana every 2 s (25 MP5)', mp5: 25 },
     restorativeTotems:{ on: false, id: 16187, name: 'Restorative Totems (on Mana Spring)', cls: 'Shaman', desc: 'Mana Spring +25%', mp5: 6.25, requires: 'manaSpring' },
-    // Round 75 (user): Agility for your melee crit (the Succubus' melee inherits it). [A75] Round 125 (user): Grace of Air Totem
-    // gives 89 Agility — the archived Forever tooltip of Rank 3 (25359); it was 77, the Classic value. The scroll: Classic value.
-    // Round 118 (user): Grace of Air and the Scroll of Agility do not stack — same `group`, only the bigger one counts.
     // Patch 2026-10-16 (user): Windfury Totem and Flametongue Totem only affect players now, so they no longer help your demon
-    // — both removed (rounds 124–148 they did). Tranquil Air Totem removed too (every Paladin has Salvation now). Grace of Air
-    // no longer clashes with any other buff here. [A93]
-    graceOfAir:       { on: false, id: 25359, name: 'Grace of Air Totem',            cls: 'Shaman',  desc: '+89 Agility (melee crit for the Succubus; does not stack with the Scroll of Agility)', agi: 89, group: 'agility' },
+    // — both removed (rounds 124–148 they did). Tranquil Air Totem removed too (every Paladin has Salvation now). [A93]
+    // Round 152 (user): demons crit with your spell crit only, so Agility does nothing — Grace of Air Totem and Scroll of
+    // Agility IV removed (rounds 75–151 they raised the melee crit the Succubus inherited). [A95]
     manaTide:         { on: false, id: 17359, name: 'Mana Tide Totem',               cls: 'Shaman',  desc: '290 mana every 3 s for 12 s, once, when you drop below 50% mana', tide: { amount: 290, every: 3, ticks: 4 } },
     innervate:        { on: false, id: 29166, name: 'Innervate',                     cls: 'Druid',   desc: '5× mana regen while casting for 20 s, once, when you drop below 50% mana', innervate: { mult: 5, duration: 20 } },
     moonkinAura:      { on: true, id: 24858, name: 'Moonkin Form aura',             cls: 'Druid',   desc: '+3% spell crit (raid)', critPct: 3 },
-    scrollOfAgility:  { on: true, id: 12174, name: 'Scroll of Agility IV',                  cls: 'Scroll',  desc: '+17 Agility (melee crit for the Succubus; does not stack with Grace of Air)', agi: 17, group: 'agility' },
     // Threat reduction (round 119, user). Classic value — the tooltip is not in the archived Forever data [A84]. Patch
     // 2026-10-16: Blessing of Salvation is now "Salvation", which no longer takes up a blessing (same key, old codes still load).
     blessingOfSalvation: { on: false, id: 1038, name: 'Salvation',                   cls: 'Paladin', desc: '−30% threat', threatPct: 30 },
@@ -202,15 +194,15 @@ WL.DEFAULT_CONFIG = {
       // [A46] Base: Season of Discovery values (L60 Succubus base stats, identical in Classic and Season of Discovery):
       // weapon 95–131 per 2.0 s = 56.5 DPS + own AP (Str 129 × 2 − 20 = 238) / 14 = 17.0 → 73.5 DPS.
       // Pet AP from you: round 31 = 1/6 of your spell power (user, measured in Forever: "6 SP = 1 pet AP"; rounds 17–30:
-      // 56.5%, Season of Discovery). Melee crit = her own 3.27% + 85 Agi × 0.05 = 7.52% (SoD base stats) + **your melee crit** (round 75, user:
-      // 2.0% + Agility / 20; rounds 32–74 used your spell crit, rounds 17–31 a fixed 4.5% melee crit).
-      // Rounds 17–31: own 7.52% + your *melee* crit 4.5% = 12% total. (Round 16: 100 / 0.57 / 5%.) [A46]
+      // 56.5%, Season of Discovery). Melee crit (round 152, user): ONLY your spell crit, as for her spells [A95]. Before:
+      // rounds 75–151 her own 7.52% (SoD base 3.27% + 85 Agi × 0.05) + your melee crit (2% + Agility / 20); rounds 32–74
+      // own 7.52% + your spell crit; rounds 17–31 own 7.52% + a fixed 4.5%. (Round 16: 100 / 0.57 / 5%.) [A46]
       // Round 42: miss / dodge / glancing / crit come from combat.petMelee (was a flat 85.5% land, no glancing).
       melee: { baseDps: 73.5, swing: 2.0, apPerSp: 0.1667, apPerDps: 14,
-               critPct: 7.52, inheritMeleeCrit: true,     // round 75 (user): your MELEE crit (Agility), not your spell crit [A75]   // crit ×2; armor from boss armor − debuffs
+               inheritSpellCrit: true,                   // round 152 (user): crit = your spell crit, nothing of her own [A95]   // crit ×2; armor from boss armor − debuffs
                range: 5 },                               // round 136 (user): her melee reaches 5 yards, the same as Lash of Pain. Data only: the fight engine never checks range [A78]
     },
-    felhunter: { name: 'Felhunter', mana: 2000, manaRegen: 8, melee: { baseDps: 40, swing: 2.0, apPerSp: 0.1667, apPerDps: 14, critPct: 5 } },
-    voidwalker:{ name: 'Voidwalker',mana: 2000, manaRegen: 8, melee: { baseDps: 30, swing: 2.0, apPerSp: 0.1667, apPerDps: 14, critPct: 5 } },
+    felhunter: { name: 'Felhunter', mana: 2000, manaRegen: 8, melee: { baseDps: 40, swing: 2.0, apPerSp: 0.1667, apPerDps: 14, inheritSpellCrit: true } },   // round 152: your spell crit [A95]
+    voidwalker:{ name: 'Voidwalker',mana: 2000, manaRegen: 8, melee: { baseDps: 30, swing: 2.0, apPerSp: 0.1667, apPerDps: 14, inheritSpellCrit: true } },
   },
 };

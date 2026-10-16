@@ -1,5 +1,5 @@
-// Round 118 tests (user, to-do review): Wrack's +10% also on Siphon Life and Bane of Doom; Grace of Air Totem and the
-// Scroll of Agility do not stack; level resistance is on and Curse of the Elements removes it; soul shards never run out.
+// Round 118 tests (user, to-do review): Wrack's +10% also on Siphon Life and Bane of Doom; (Grace of Air Totem and the
+// Scroll of Agility did not stack — both gone in round 152); level resistance is on and Curse of the Elements removes it; soul shards never run out.
 (function () {
   function det(mod) {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
@@ -14,7 +14,7 @@
   }
   function tb(rot, talents) { return { key: 't118', short: 't', name: 't', notes: '', talents: talents || {}, pet: null, sacrifice: null, oil: 'none', rotation: rot }; }
 
-  T.run('round 118: Wrack on Doom / Siphon Life, agility buffs, level resistance, soul shards', function () {
+  T.run('round 118: Wrack on Doom / Siphon Life, level resistance, soul shards', function () {
     T.group('Wrack: +10% on Bane of Doom while it channels');
     var doom = function (rot) {
       var r = WL.simulateOnce(tb(rot, { wrack: 1 }), 'human', det(), { seed: 3, duration: 70, log: true });
@@ -23,18 +23,6 @@
     var dW = doom(['bane', 'wrack']), dS = doom(['bane', 'shadowBolt']);
     T.ok(dW && dS && Math.abs(dW.t - dS.t) < 1e-6, 'Bane of Doom explodes at ' + (dW ? dW.t.toFixed(1) : '?') + ' s in both fights');
     T.ok(Math.abs(dW.dmg - 1.10 * dS.dmg) <= 1, 'with Wrack channelling it deals × 1.10: ' + dW.dmg + ' vs ' + dS.dmg + ' with a Shadow Bolt filler');
-
-    T.group('Grace of Air Totem + Scroll of Agility do not stack');
-    var b0 = { talents: {}, pet: null, sacrifice: null, oil: 'none', rotation: [] };
-    var agi = function (on) { return WL.computeStats(b0, 'human', det(function (c) { on.forEach(function (k) { c.buffs[k].on = true; }); })).agi; };
-    var base = agi([]);
-    T.eq(WL.DEFAULT_CONFIG.buffs.graceOfAir.group, WL.DEFAULT_CONFIG.buffs.scrollOfAgility.group, 'both carry the same group');
-    T.near(agi(['scrollOfAgility']) - base, 17, 1e-9, 'scroll alone: +17 Agility');
-    T.near(agi(['graceOfAir']) - base, 89, 1e-9, 'totem alone: +89 (round 125: was 77)');
-    T.near(agi(['graceOfAir', 'scrollOfAgility']) - base, 89, 1e-9, 'both: +89, not +106');
-    T.near(agi(['graceOfAir', 'scrollOfAgility', 'markOfTheWild']) - base, 89 + 16, 1e-9, 'Mark of the Wild (no group) still adds: +105');
-    var both = WL.computeStats(b0, 'human', det(function (c) { c.buffs.graceOfAir.on = c.buffs.scrollOfAgility.on = true; }));
-    T.eq(both.breakdown.filter(function (x) { return x.stat === 'agi' && /Grace|Scroll/.test(x.source); }).map(function (x) { return x.source; }).join(','), 'Grace of Air Totem', 'the stat breakdown lists only the totem');
 
     T.group('level resistance: on, and Curse of the Elements removes it');
     var D = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));

@@ -6,7 +6,7 @@ window.WL = window.WL || {};
 
 // The stats an item can carry: the same values as the Sheet (gear) column of the Stats panel (cfg.gear), in its units —
 // spell power in points, hit / crit / haste in %, the rest in points. Order = the order the page lists them in.
-WL.GEAR_STAT_KEYS = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'int', 'spi', 'sta', 'agi', 'mp5'];
+WL.GEAR_STAT_KEYS = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'int', 'spi', 'sta', 'mp5'];   // round 152: no Agility (it does nothing) [A95]
 
 // The character window's slots: a column on the left, one on the right and the weapons under them, top to bottom as in
 // the game. `fits` = the item slot types that can go in (a Warlock wears no shield and cannot hold a weapon in the off hand).

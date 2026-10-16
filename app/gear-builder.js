@@ -8,7 +8,7 @@
 //   manual        = what you added by hand in the Stats panel on top of naked + items + enchants (0 when switched on)
 // Sheet (gear) value of a stat = naked + items + enchants + manual, in the units of cfg.gear:
 //   - naked: 0 for everything except spell crit. The sheet's crit is the character-sheet total (base 1.7% + Intellect / 60
-//     + gear), so a naked Warlock already has 1.7% + 110 / 60 = 3.53%. Base Intellect, Spirit, Stamina and Agility (class
+//     + gear), so a naked Warlock already has 1.7% + 110 / 60 = 3.53%. Base Intellect, Spirit and Stamina (class
 //     + race) are not in the sheet column: the sim adds them on top, as it always has (Total column).
 //   - Intellect from items, enchants and what you add by hand raises the sheet's crit by Int / 60, as on the character sheet.
 //   - An enchant only counts while its slot holds an item that counts.
@@ -93,7 +93,7 @@ WL.gearSwapDelta = function (gb, slotKey, entry, cfg) {
 // Round 148: an item's (or enchant's) worth for a build from its stat weights (DPS per 1 of each stat, as in the results
 // table), in DPS and in spell power. Intellect's weight already holds the crit it gives, so the item's own stats are used.
 // Shadow / Fire spell power count as spell power times the share of the build's damage done by your own spells of that
-// school (`share` = { shadow, fire }, 0–1). Spirit, Stamina, Agility and MP5 have no weight: listed in `unvalued`.
+// school (`share` = { shadow, fire }, 0–1). Spirit, Stamina and MP5 have no weight: listed in `unvalued`.
 WL.gearValue = function (stats, w, share) {
   stats = stats || {}; share = share || {};
   var per = { sp: w.sp, hitPct: w.hitPct, critPct: w.critPct, hastePct: w.hastePct, int: w.int, pierce: w.pierce,

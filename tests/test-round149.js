@@ -41,12 +41,10 @@
     T.ok(/range of your Destruction spells by 20%/.test(WL.TALENT_TEXT.destructiveReach[1]), 'Destructive Reach tooltip: Destruction spells', WL.TALENT_TEXT.destructiveReach[1]);
     T.ok(/by 10%\./.test(WL.TALENT_TEXT.shadowMastery[4]), 'Shadow Mastery tooltip says 10% at 5/5', WL.TALENT_TEXT.shadowMastery[4]);
 
-    T.group('Ruthless (Human) +2% and Savage (Orc) +1% crit: spells and your melee crit');
+    T.group('Ruthless (Human) +2% and Savage (Orc) +1% spell crit (your demon crits with it too, round 152)');
     var b = tb(['shadowBolt']), cs = function (r, cc) { return WL.computeStats(b, r, cc || c); };
-    var sH = cs('human'), sO = cs('orc'), sN = cs('none'), sT = cs('troll'), cb = c.combat;
+    var sH = cs('human'), sO = cs('orc'), sN = cs('none'), sT = cs('troll');
     T.ok(near(sH.critPct - sN.critPct, 2) && near(sO.critPct - sN.critPct, 1) && near(sT.critPct - sN.critPct, 0), 'spell crit vs no race: Human +' + (sH.critPct - sN.critPct) + ', Orc +' + (sO.critPct - sN.critPct) + ', Troll +' + (sT.critPct - sN.critPct));
-    T.ok(near(sH.meleeCritPct, cb.meleeCritBasePct + sH.agi / cb.agiPerMeleeCrit + 2), 'Human melee crit (the Succubus inherits it) = 2% + Agility ÷ 20 + 2% Ruthless = ' + sH.meleeCritPct.toFixed(2));
-    T.ok(near(sO.meleeCritPct, cb.meleeCritBasePct + sO.agi / cb.agiPerMeleeCrit + 1), 'Orc melee crit = 2% + Agility ÷ 20 + 1% Savage = ' + sO.meleeCritPct.toFixed(2));
     var cA = det(function (x) { x.gear.critIncludesAll = true; });
     T.ok(near(cs('human', cA).critPct, cs('none', cA).critPct), '"Sheet crit % already includes … racials": Ruthless is not added again');
     T.ok(!('weaponIsSword' in WL.DEFAULT_CONFIG.gear), 'the Sword setting is gone');
@@ -105,11 +103,11 @@
     T.ok(!WL.DEFAULT_CONFIG.buffs.blessingOfSalvation.group, '… and nothing to not stack with');
     T.ok(/spell crit \(raid\)/.test(WL.DEFAULT_CONFIG.buffs.moonkinAura.desc), 'Moonkin aura: spell crit, raid-wide', WL.DEFAULT_CONFIG.buffs.moonkinAura.desc);
     var c2 = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)), snap = JSON.parse(JSON.stringify(WL.settingsSnapshot(c2)));
-    snap.buffs = snap.buffs.concat(['windfuryTotem', 'flametongueTotem', 'tranquilAir', 'graceOfAir']); snap.gear.weaponIsSword = true;
+    snap.buffs = snap.buffs.concat(['windfuryTotem', 'flametongueTotem', 'tranquilAir']); snap.gear.weaponIsSword = true;
     var unk = WL.applySettings(c2, snap);
     T.eq(unk.join(','), '', 'an old settings code with those totems and the Sword box loads without "unknown" names');
-    T.ok(c2.buffs.graceOfAir.on && !('weaponIsSword' in c2.gear), '… its Grace of Air is on, no Sword setting comes back');
-    var cW = det(function (x) { x.options.includePetDamage = true; x.buffs.graceOfAir.on = true; });
+    T.ok(!('weaponIsSword' in c2.gear), '… no Sword setting comes back');
+    var cW = det(function (x) { x.options.includePetDamage = true; });
     var rW = WL.simulateOnce(demo, 'human', cW, { seed: 1, duration: 60, log: true });
     T.ok(!rW.log.some(function (e) { return /windfury|flametongue/.test(e.spell || ''); }), 'the Succubus swings without any totem extras');
 

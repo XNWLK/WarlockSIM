@@ -3,6 +3,19 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v141
+- **Demons crit with your spell crit.** Every demon attack, the Succubus' melee too, now crits with your spell crit (minus
+  the usual 4.8% for melee against a level-63 boss). Her own 7.52% melee crit is gone. So Agility does nothing any more:
+  **Grace of Air Totem and Scroll of Agility IV are gone** from the raid buffs, and so are the Agility box on the gear sheet
+  and the Agility and melee crit lines in the stats. Ruthless and Savage raise your demon's crit through your spell crit.
+  Succubus builds gain a little (Destruction – Incinerate, Succubus +0.25%, 655.4; the others below 0.05%); Imp builds do
+  not change. Old settings codes and saved gear sets with Agility still load (the Agility is ignored).
+- **Demonic Brand 2/3 or 3/3?** Checked for every build with 3/3 (default settings with every race, hit-capped gear, 60 s and
+  300 s fights): 2/3 is never better. The freed point has to stay in the lower rows of Demonology (the tree's point
+  rules), and nothing there adds damage. The third point is worth 1.4 to 1.7% for Demonology – Pact, Succubus, Shadow Bolt,
+  1.8 to 2.0% for Affliction/Demonology – Pact, Succubus, Shadow Bolt, and at most 0.1% for the Fire Imp build (nothing
+  with hit-capped gear). All builds keep 3/3.
+
 ## v140
 - The in-game addon link at the top of the page now goes to its download page; its GitHub page is linked next to it.
 

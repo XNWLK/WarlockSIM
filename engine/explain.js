@@ -69,7 +69,7 @@ window.WL = window.WL || {};
       if (pk === 'melee' && pc.melee) {
         var m = pc.melee, tbm = cb.petMelee;
         var hitBonus = Math.max(0, stats.hitPct - cb.baseHitPct - tbm.hitSuppressionPct), miss = Math.max(0, tbm.missPct - hitBonus);
-        var critCh = Math.max(0, m.critPct + (m.inheritMeleeCrit ? stats.meleeCritPct : 0) - tbm.critSuppressionPct);
+        var critCh = Math.max(0, (m.critPct || 0) + (m.inheritSpellCrit ? stats.critPct : 0) - tbm.critSuppressionPct);
         var ap = m.apPerSp * stats.sp, dps = m.baseDps + ap / m.apPerDps, armor = WL.bossArmor(cfg), red = WL.armorReduction(cfg);
         step('Attack power from you', f(stats.sp) + ' spell power ÷ 6', f(ap));
         step('Damage per second', m.baseDps + ' base + ' + f(ap) + ' ÷ ' + m.apPerDps, f(dps, 2));
@@ -80,9 +80,9 @@ window.WL = window.WL || {};
         step('Miss', tbm.missPct + '% − (your hit ' + f(stats.hitPct) + '% − ' + cb.baseHitPct + '% − ' + tbm.hitSuppressionPct + '%)', f(miss) + '%');
         step('Dodge', '', tbm.dodgePct + '%');
         step('Glancing blow', 'deals ' + tbm.glanceDmgPct + '% damage, cannot crit', tbm.glancePct + '% → ' + f(sw * tbm.glanceDmgPct / 100));
-        step('Crit', m.critPct + '% own' + (m.inheritMeleeCrit ? ' + ' + f(stats.meleeCritPct, 2) + '% your melee crit' : '') + ' − ' + tbm.critSuppressionPct + '%; deals × 2', f(critCh, 2) + '% → ' + f(sw * 2));
+        step('Crit', (m.critPct ? m.critPct + '% own + ' : '') + (m.inheritSpellCrit ? 'your spell crit ' + f(stats.critPct, 2) + '%' : '') + ' − ' + tbm.critSuppressionPct + '%; deals × 2', f(critCh, 2) + '% → ' + f(sw * 2));
         step('Normal hit', 'the rest', f(Math.max(0, 100 - miss - tbm.dodgePct - tbm.glancePct - critCh), 2) + '% → ' + f(sw));
-        notes.push('Master Demonologist and Curse of the Elements do not apply to melee. Your melee crit is 2% + Agility ÷ 20 (+ 2% Ruthless for a Human, + 1% Savage for an Orc); crit on gear is spell crit and does not count.');
+        notes.push('Master Demonologist and Curse of the Elements do not apply to melee. Her crit is your spell crit (the same as for her spells, without spell-specific talents such as Malevolence), less 4.8% against a level-63 boss.');
         return { title: pc.name + ' melee', steps: steps, notes: notes, values: values };
       }
       if (pk === 'brand') {

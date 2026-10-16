@@ -250,7 +250,7 @@
     ['executePct', 'fight', 'executePct'], ['seed', 'fight', 'seed'],
     ['g_sp', 'gear', 'sp'], ['g_hitPct', 'gear', 'hitPct'], ['g_critPct', 'gear', 'critPct'], ['g_hastePct', 'gear', 'hastePct'],
     ['g_pierce', 'gear', 'pierce'], ['g_int', 'gear', 'int'], ['g_spi', 'gear', 'spi'], ['g_mp5', 'gear', 'mp5'],
-    ['g_sta', 'gear', 'sta'], ['g_agi', 'gear', 'agi'], ['g_shadowSp', 'gear', 'shadowSp'], ['g_fireSp', 'gear', 'fireSp'],
+    ['g_sta', 'gear', 'sta'], ['g_shadowSp', 'gear', 'shadowSp'], ['g_fireSp', 'gear', 'fireSp'],
     ['showPct', 'options', 'showWithinPct'],
     ['latencyMs', 'fight', 'latencyMs'], ['travelMs', 'fight', 'travelMs'], ['moveEvery', 'fight', 'moveEvery'], ['moveDuration', 'fight', 'moveDuration'], ['hitEvery', 'fight', 'hitEvery'], ['targets', 'fight', 'targets'],
     ['healAmount', 'fight', 'healAmount'], ['healEvery', 'fight', 'healEvery'],   // round 119: healing you receive
@@ -355,9 +355,7 @@
     { k: 'int', label: 'Intellect', c: '--c-int', gear: function (g) { return g.int; }, tot: function (s) { return s.int; } },
     { k: 'spi', label: 'Spirit', gear: function (g) { return g.spi; }, tot: function (s) { return s.spi; } },
     { k: 'sta', label: 'Stamina', gear: function (g) { return g.sta; }, tot: function (s) { return s.sta; } },
-    // Round 75 (user): Agility → your melee crit, which the Succubus' melee inherits (Lash of Pain uses your spell crit).
-    { k: 'agi', label: 'Agility', gear: function (g) { return g.agi || 0; }, tot: function (s) { return s.agi; } },
-    { k: 'meleeCritPct', label: 'Melee crit % (Succubus melee)', c: '--c-crit', d: 2, gear: null, tot: function (s) { return s.meleeCritPct; } },
+    // Agility and melee crit rows: rounds 75–151; gone in round 152 (demons crit with your spell crit, Agility does nothing).
     { k: 'maxMana', label: 'Maximum mana', gear: null, tot: function (s) { return s.maxMana; } },
     { k: 'maxHealth', label: 'Maximum health', gear: null, tot: function (s) { return s.maxHealth; } },   // round 119: it pays for Life Tap
     { k: 'mp5', label: 'MP5', gear: function (g) { return g.mp5; }, tot: function (s) { return s.mp5; } },
@@ -390,8 +388,8 @@
   // settings match it exactly. The preset list sits in the same bar (round 115): whole setups, built-in and your own.
   // Hit-capped (numbers from the user, round 111): 1000 SP and 17% hit — the full cap without any talent, so builds with
   // Suppression points have that much hit to spare; crit, Intellect, Spirit and Stamina as chosen in round 110.
-  var GEAR_KEYS = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'agi', 'int', 'spi', 'sta', 'mp5'];
-  var HITCAP_GEAR = { sp: 1000, shadowSp: 0, fireSp: 0, hitPct: 17, critPct: 20, hastePct: 0, pierce: 0, agi: 0, int: 250, spi: 100, sta: 300, mp5: 0 };
+  var GEAR_KEYS = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'int', 'spi', 'sta', 'mp5'];
+  var HITCAP_GEAR = { sp: 1000, shadowSp: 0, fireSp: 0, hitPct: 17, critPct: 20, hastePct: 0, pierce: 0, int: 250, spi: 100, sta: 300, mp5: 0 };
   // Max: every raid buff, every boss debuff that stacks (no second Warlock's Curse of the Elements — that changes your
   // rotation), and the best consumable of every group. Potion: always Major Spellblasting (user, round 111; round 110 had
   // Major Mana Potion, which shares its cooldown — 04_EXPLORATION §44). No Engineering explosives: that is a profession, switched on in the Stats panel.
@@ -1163,7 +1161,6 @@
     var statRows = [['Intellect', st.int, 'int', 1], ['Spirit', st.spi, 'spi', 1], ['Maximum mana', st.maxMana, 'maxMana', 0], ['Stamina', st.sta, 'sta', 1], ['Maximum health', st.maxHealth, 'maxHealth', 0],
       ['Spell power', st.sp, 'sp', 0], ['+ Shadow spell power', st.schoolSp.shadow, 'shadowSp', 0], ['+ Fire spell power', st.schoolSp.fire, 'fireSp', 0],
       ['Hit chance %', st.hitPct, 'hitPct', 1], ['Crit % (before talents)', st.critPct, 'critPct', 2], ['Haste %', st.hastePct, 'hastePct', 1],
-      ['Agility', st.agi, 'agi', 1], ['Melee crit % (Succubus melee inherits it)', st.meleeCritPct, 'meleeCritPct', 2],
       ['Spell Pierce', st.pierce, 'pierce', 0],
       ['Shadow damage (auras)', pctOf(st.mult.shadow), 'shadowDmgPct', 1, true], ['Fire damage (auras)', pctOf(st.mult.fire), 'fireDmgPct', 1, true], ['All damage (auras)', pctOf(st.mult.all), 'allDmgPct', 1, true]];
     h += '<div class="wide"><h2>Stats used in the fight</h2><div class="scroll"><table class="stattab"><thead><tr><th>Stat</th><th class="n">Value</th><th>Where it comes from</th></tr></thead><tbody>' +
@@ -1634,7 +1631,7 @@
     var st = [['Intellect', sA.int, sB.int, 0], ['Spirit', sA.spi, sB.spi, 0], ['Stamina', sA.sta, sB.sta, 0], ['Maximum mana', sA.maxMana, sB.maxMana, 0],
       ['Spell power', sA.sp, sB.sp, 0], ['+ Shadow spell power', sA.schoolSp.shadow, sB.schoolSp.shadow, 0, 1], ['+ Fire spell power', sA.schoolSp.fire, sB.schoolSp.fire, 0, 1],
       ['Hit chance %', sA.hitPct, sB.hitPct, 1], ['Crit % (before talents)', sA.critPct, sB.critPct, 2], ['Haste %', sA.hastePct, sB.hastePct, 1, 1],
-      ['Melee crit % (Succubus melee)', sA.meleeCritPct, sB.meleeCritPct, 2], ['Spell Pierce', sA.pierce, sB.pierce, 0, 1],
+      ['Spell Pierce', sA.pierce, sB.pierce, 0, 1],
       ['Shadow damage % (auras)', pctOf(sA.mult.shadow), pctOf(sB.mult.shadow), 1, 1], ['Fire damage % (auras)', pctOf(sA.mult.fire), pctOf(sB.mult.fire), 1, 1],
       ['All damage % (auras)', pctOf(sA.mult.all), pctOf(sB.mult.all), 1, 1]];
     h += '<div><h2>Stats used in the fight</h2><div class="scroll"><table class="cmpt"><thead><tr><th></th>' + th + '<th class="n">B − A</th></tr></thead><tbody>' +
@@ -2382,8 +2379,7 @@
     try {
       if (p.gear) {                                        // an old gear set: sheet values only
         readSettings();
-        if (p.gear.agi == null) cfg.gear.agi = 0;          // saved before Agility existed
-        Object.keys(p.gear).forEach(function (k) { cfg.gear[k] = p.gear[k]; });
+        Object.keys(p.gear).forEach(function (k) { if (k in cfg.gear) cfg.gear[k] = p.gear[k]; });   // round 152: an old set's Agility is ignored
         initSettings(); $('t_race').value = race; renderTotals(); markDirty();
         presetMsg('Loaded the gear of "' + p.name + '" (' + gearText(cfg.gear) + '); buffs, consumables and fight settings are unchanged. Press Sim!');
         return;
@@ -2909,7 +2905,7 @@
       '<th class="n">' + (g.on ? 'Sheet' : 'Would be') + '</th></tr></thead><tbody>' + rows + '</tbody></table>' +
       (tot ? '<p class="meta gbtot">Your items and enchants together: <b>' + esc(tot) + '</b>.</p>' : '') +
       '<p class="meta">' + r.used.length + ' of ' + WL.GEAR_SLOTS.length + ' slots filled, ' + r.enchUsed.length + ' enchanted. Crit includes Intellect / 60, as on the character sheet. ' +
-      'Your base Intellect, Spirit, Stamina and Agility (class and race) are not in these numbers: the sim adds them, see Total in the Stats panel.</p>';
+      'Your base Intellect, Spirit and Stamina (class and race) are not in these numbers: the sim adds them, see Total in the Stats panel.</p>';
   }
   function gbList(src, fits) {                            // entries of WL.ITEMS / WL.ENCHANTS for the open slot
     return Object.keys(src).map(function (id) { return { id: id, it: src[id] }; }).filter(function (x) { return fits(x.it); });
@@ -3055,7 +3051,7 @@
           '<td class="n meta">' + (est == null ? '–' : (est >= 0 ? '+' : '') + fmt(est, 1)) + '</td></tr>';
       }).join('') + '</tbody></table></div>' +
       '<p class="meta">' + fmt(C.n) + ' fights per build and side, the same fights on both sides, with your current settings (' + C.secs + ' s). Each build with the race it is listed with. ' +
-      'The weights column is a quick estimate from the last run\'s stat weights; Spirit, Stamina, Agility and MP5 are not in it.</p>';
+      'The weights column is a quick estimate from the last run\'s stat weights; Spirit, Stamina and MP5 are not in it.</p>';
     box.innerHTML = h;
   }
 

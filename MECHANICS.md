@@ -29,7 +29,7 @@ the fights.
 **Default settings**
 
 <!-- gen:gear -->
-- **Gear (character sheet, before talents, racials and weapon stone):** 500 spell power, 5% hit, 10% crit, 0% haste, Intellect 148, Spirit 54, Stamina 160, Agility 0, MP5 0, Spell Pierce 0.
+- **Gear (character sheet, before talents, racials and weapon stone):** 500 spell power, 5% hit, 10% crit, 0% haste, Intellect 148, Spirit 54, Stamina 160, MP5 0, Spell Pierce 0.
 - **Fight:** 120 s ± 10%, 1,000 fights per build and race, 1 target, execute phase below 35% boss health, healing on you 1,000 every 10 s.
 - **Hit-capped preset:** 1,000 spell power, 17% hit, 20% crit, Intellect 250, Spirit 100, Stamina 300.
 <!-- /gen:gear -->
@@ -92,26 +92,25 @@ The numbers you type on the page are your **character sheet with gear only**. Th
 consumables, the weapon stone and each build's talents.
 
 <!-- gen:races -->
-Level-60 Warlock before the race: Intellect 110, Spirit 115, Stamina 65, Agility 50, base mana 1,373, base health 1,414.
+Level-60 Warlock before the race: Intellect 110, Spirit 115, Stamina 65, base mana 1,373, base health 1,414.
 
-| Race | Intellect | Spirit | Stamina | Agility | Racials in the sim |
-|---|---|---|---|---|---|
-| Human | 0 | 0 | 0 | 0 | The Human Spirit, Ruthless |
-| Gnome | +3 | 0 | −1 | +3 | Expansive Mind, Eureka! |
-| Orc | −3 | +3 | +2 | −3 | Savage, Blood Fury |
-| Undead | −2 | +5 | +1 | −2 | Touch of the Grave |
-| Troll | −4 | +1 | +1 | +2 | Berserking |
+| Race | Intellect | Spirit | Stamina | Racials in the sim |
+|---|---|---|---|---|
+| Human | 0 | 0 | 0 | The Human Spirit, Ruthless |
+| Gnome | +3 | 0 | −1 | Expansive Mind, Eureka! |
+| Orc | −3 | +3 | +2 | Savage, Blood Fury |
+| Undead | −2 | +5 | +1 | Touch of the Grave |
+| Troll | −4 | +1 | +1 | Berserking |
 <!-- /gen:races -->
 
-**Intellect, Spirit, Stamina, Agility**
+**Intellect, Spirit, Stamina**
 
 ```
 stat = (base + race + gear + raid buffs + consumables) × percentage bonuses
 ```
 
-- Percentage bonuses multiply with each other: Blessing of Kings +10% on all four; The Human Spirit +5% Spirit; Demonic
+- Percentage bonuses multiply with each other: Blessing of Kings +10% on all three; The Human Spirit +5% Spirit; Demonic
   Embrace +3 to 15% Stamina.
-- Buffs of the same kind do not stack; only the biggest counts: Grace of Air Totem and the Scroll of Agility.
 
 **Mana and health**
 
@@ -156,8 +155,7 @@ crit chance = sheet crit
 - Option "Sheet crit % already includes talents, racials & oil": then Malevolence, the Firestone or oil crit, Ruthless and
   Savage are not added again. Raid buffs, consumables and the two spell-specific talents still are.
 
-**Your melee crit** = 2% + Agility ÷ 20, + 2% Ruthless (Human) or 1% Savage (Orc). Only the Succubus uses it (section 7). Crit on gear is
-spell crit only and does not count here.
+**Agility** does nothing: your demon crits with your spell crit (section 7), so the sim has no Agility.
 
 **Haste** = gear + consumables + Spellstone 2%. Berserking is applied on top during the fight (section 1).
 
@@ -229,13 +227,11 @@ The examples use the build **Demo Pact Shadow Bolt Succubus** as an Undead with 
 - Intellect: (110 base − 2 Undead + 148 gear + 31 Arcane Intellect / Brilliance + 16 Mark / Gift of the Wild) × 1.10 Blessing of Kings = **333.3**
 - Spirit: (115 base + 5 Undead + 54 gear + 16 Mark / Gift of the Wild + 40 Divine Spirit / Prayer of Spirit) × 1.10 Blessing of Kings = **253**
 - Stamina: (65 base + 1 Undead + 160 gear + 16 Mark / Gift of the Wild + 70 Power Word: Fortitude) × 1.10 Blessing of Kings = **343.2**
-- Agility: (50 base − 2 Undead + 16 Mark / Gift of the Wild + 17 Scroll of Agility IV) × 1.10 Blessing of Kings = **89.1**
 - Maximum mana: (1,373 + 20 + 15 × (333.3 − 20)) × 1.15 Fel Vitality = **7,006.4**
 - Maximum health: 1,414 + 20 + 10 × (343.2 − 20) = **4,666**
 - Spell power: 500 gear + 60 Demonic Knowledge = **560**; Shadow spells: + 21 Major Spellstone = **581**
 - Hit: 83 base against a level-63 boss + 1 Suppression + 5 gear = **89%**
 - Crit: 10 sheet + 1.29 from 77.3 Intellect above the sheet ÷ 60 + 3 Moonkin Form aura = **14.29%**
-- Melee crit (only the Succubus uses it): 2 base + 4.46 from 89.1 Agility ÷ 20 = **6.46%**
 - Haste: **2%** (Major Spellstone).
 
 #### 2. Shadow Bolt
@@ -261,7 +257,7 @@ The examples use the build **Demo Pact Shadow Bolt Succubus** as an Undead with 
 4,666 health × 5% = **233.3**. Nothing multiplies it: no aura, no curse, no Improved Shadow Bolt, no Power Infusion. No spell power, no crit, no resist roll. 30% chance per landed damaging cast, then nothing for 25 s.
 
 #### 6. The Succubus
-- Attack table of one swing: miss 8% − (89 − 83 − 1)% = **3%**, dodge **6.5%**, glancing blow **40%** (at 65% damage), crit 7.52 + 6.46 − 4.8 = **9.18%** (× 2), normal hit the remaining **41.33%**.
+- Attack table of one swing: miss 8% − (89 − 83 − 1)% = **3%**, dodge **6.5%**, glancing blow **40%** (at 65% damage), crit your spell crit 14.29 − 4.8 = **9.49%** (× 2), normal hit the remaining **41.01%**.
 - Attack power from you: 560 spell power ÷ 6 = 93.4. Damage per second: 73.5 + 93.4 ÷ 14 = 80.17.
 - Boss armor: 3,731 − armor debuffs = 976 → 976 ÷ (976 + 5,500) = 15.07% less physical damage.
 - One normal swing: 80.17 × 2 s × (1 − 0.1507) × 1.10 Unholy Power × 1.03 Soul Link = **154.3**. Master Demonologist and Curse of the Elements do not apply to melee.
@@ -446,9 +442,9 @@ Demons are simulated as their own actors: they cast, swing, miss, crit and run o
 | Demon | Spell | Melee | Mana |
 |---|---|---|---|
 | Imp | Firebolt: 44 + 0.571 × demon SP, Fire, 2 s cast, 115 mana | — | 2,000, +8 per second |
-| Succubus | Lash of Pain: 50 + 0.429 × demon SP, Shadow, instant, 12 s cooldown, 160 mana | 73.5 base DPS, one swing every 2 s, own crit 7.52% + your melee crit, 5 yd range | 2,000, +8 per second |
-| Felhunter | — | 40 base DPS, one swing every 2 s, own crit 5% | 2,000, +8 per second |
-| Voidwalker | — | 30 base DPS, one swing every 2 s, own crit 5% | 2,000, +8 per second |
+| Succubus | Lash of Pain: 50 + 0.429 × demon SP, Shadow, instant, 12 s cooldown, 160 mana | 73.5 base DPS, one swing every 2 s, crit = your spell crit, 5 yd range | 2,000, +8 per second |
+| Felhunter | — | 40 base DPS, one swing every 2 s, crit = your spell crit | 2,000, +8 per second |
+| Voidwalker | — | 30 base DPS, one swing every 2 s, crit = your spell crit | 2,000, +8 per second |
 <!-- /gen:pets -->
 
 **What a demon gets from you** (measured in Forever)
@@ -457,8 +453,8 @@ Demons are simulated as their own actors: they cast, swing, miss, crit and run o
 - Attack power: your spell power ÷ 6. 14 attack power = 1 damage per second.
 - Both follow your spell power as it is at that moment, including the Spellblasting potion and Blood Fury. Shadow-only or
   Fire-only spell power does not count for these.
-- Spell hit = your hit chance. Spell crit = your crit chance (without spell-specific talents such as Malevolence);
-  a demon's spell crit deals × 1.5.
+- Spell hit = your hit chance. Crit, for spells and melee alike = your spell crit chance (without spell-specific talents
+  such as Malevolence); a demon has no crit of its own. A demon's spell crit deals × 1.5.
 
 **Damage multipliers of a demon:** Unholy Power × Soul Link × Master Demonologist (only the school it names: the
 Succubus' Shadow, the Imp's Fire) × Curse of the Elements (spells only, not melee). Demons get nothing from Improved
@@ -489,10 +485,10 @@ Each swing is one roll on this table, in this order:
 | Miss | 8% − (your hit chance − 83% − 1%), not below 0. The first 1% of hit above the base does not count. |
 | Dodge | 6.5% |
 | Glancing blow | 40%, deals 65% damage, cannot crit |
-| Crit | her own 7.52% + your **melee** crit − 4.8%; deals × 2 |
+| Crit | your **spell** crit − 4.8%; deals × 2 |
 | Normal hit | the rest |
 
-*Her base damage of 73.5 per second and her own 7.52% crit are Season of Discovery values (assumed).* The table is the
+*Her base damage of 73.5 per second is a Season of Discovery value (assumed).* The table is the
 Classic one for a level-63 boss attacked from behind.
 
 **Boss armor** only matters for demon melee:
@@ -504,7 +500,7 @@ physical damage reduction = armor ÷ (armor + 5,500)
 
 Sunder and Expose do not stack with each other, nor do Faerie Fire and Curse of Recklessness.
 
-**Felhunter and Voidwalker** only swing (their abilities are not simulated); they get no part of your melee crit.
+**Felhunter and Voidwalker** only swing (their abilities are not simulated); they crit with your spell crit, like the Succubus.
 *Their melee values are assumed.*
 
 **Demonic Brand** (talent). A landed Searing Pain brands the boss for 10 s with 2 / 4 / 6 charges. Every landed attack of
@@ -517,7 +513,7 @@ Demonic Brand hit = (66.5 + 0.078 × your Shadow spell power) × demon multiplie
 It is Fire for the Imp and Shadow for the Succubus, so Master Demonologist counts for both. It cannot miss or crit.
 
 **Shaman totems.** Windfury Totem and Flametongue Totem only affect players, so they do nothing for your demon. Grace of
-Air Totem still raises your Agility and with it the melee crit the Succubus inherits.
+Air Totem is gone as well: Agility does nothing, because demons crit with your spell crit.
 
 **Judgement of Wisdom** on the boss gives the demon 59 mana on 50% of its landed swings and spells.
 
@@ -540,10 +536,10 @@ racials, so you can read off what each race adds.
 | Racial | In the sim |
 |---|---|
 | The Human Spirit (Human) | Spirit × 1.05. |
-| Ruthless (Human) | +2% spell crit and +2% melee crit. |
+| Ruthless (Human) | +2% spell crit (your demon crits with it too). |
 | Expansive Mind (Gnome) | Maximum mana +5% (adds with Fel Vitality). |
 | Eureka! (Gnome) | 2 min cooldown, 8 s. Every damaging spell that finishes while it is up costs 10% less mana and deals +10%, added to its talent group (section 3): a spell with a cast time when the cast is complete, an instant when it is cast. A cast that is still going when the 8 s end gets nothing. A channel costs 10% less when it starts inside the 8 s, and each of its ticks that comes while Eureka! is up gets +10%. DoT ticks get nothing. The sim starts Eureka! right before a direct spell or channel of at least 1.4 s. |
-| Savage (Orc) | +1% spell crit and +1% melee crit. |
+| Savage (Orc) | +1% spell crit (your demon crits with it too). |
 | Blood Fury (Orc) | 3 min cooldown, 15 s: your spell power × 1.10. That also raises what your demon gets from you, and a Bane of Doom that explodes while it is up. |
 | Berserking (Troll) | 3 min cooldown, 10 s: 10% haste. Shortens casts and the global cooldown. |
 | Touch of the Grave (Undead) | Each landed cast of a damaging spell (a direct spell, a DoT when it is applied, a channel when it starts - never a tick, a curse or Life Tap) has a 30% chance to deal 5% of your maximum health as Shadow damage and heal you for the same amount. After it happens it cannot happen again for 25 s. |
@@ -672,11 +668,9 @@ threat = damage × (1 − Suppression 4% per point) × (1 − Salvation 30%) × 
 | Blessing of Wisdom | Paladin | on | 40 mana every 5 s |
 | Mana Spring Totem | Shaman | off | 10 mana every 2 s (25 MP5) |
 | Restorative Totems (on Mana Spring) | Shaman | off | Mana Spring +25% |
-| Grace of Air Totem | Shaman | off | +89 Agility (melee crit for the Succubus; does not stack with the Scroll of Agility) |
 | Mana Tide Totem | Shaman | off | 290 mana every 3 s for 12 s, once, when you drop below 50% mana |
 | Innervate | Druid | off | 5× mana regen while casting for 20 s, once, when you drop below 50% mana |
 | Moonkin Form aura | Druid | on | +3% spell crit (raid) |
-| Scroll of Agility IV | Scroll | on | +17 Agility (melee crit for the Succubus; does not stack with Grace of Air) |
 | Salvation | Paladin | off | −30% threat |
 | Power Infusion | Priest | off | +20% spell damage for 15 s (3 min cooldown); cast on you when you pop your cooldowns |
 <!-- /gen:buffs -->
@@ -870,7 +864,7 @@ Eureka!), the Major Spellblasting Potion and Power Infusion. After the first use
 **Assumed, not verified in Forever yet**
 
 - The demons' mana pool (2,000) and regeneration (8 per second).
-- The Succubus' base melee damage (73.5 per second) and her own crit (7.52%); the Felhunter's and Voidwalker's melee.
+- The Succubus' base melee damage (73.5 per second); the Felhunter's and Voidwalker's melee.
 - How much damage Spell Pierce adds below 0 resistance.
 - Which consumables exclude each other.
 - Values taken from Classic because Forever's are not known: base stats of a level-60 Warlock, boss armor (3,731),
