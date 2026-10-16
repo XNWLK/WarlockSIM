@@ -18,13 +18,18 @@ What each version added or changed, newest first. Version = the version of the
   - **Windfury Totem and Flametongue Totem** only work for players now, so they no longer help your demon: both are gone
     from the raid buffs, and so is **Tranquil Air Totem** (every Paladin has Salvation now). **Blessing of Salvation** is now
     **Salvation**. Moonkin Form's aura is spell crit only, raid-wide (no change for a Warlock).
-- **Builds that had Malediction points** (searched point by point, where each gains the most):
-  - Affliction/Demonology – Pact, Succubus, Shadow Bolt: +1 Improved Corruption.
+- **Builds that had Malediction points** (searched point by point, where each gains the most; then every build was
+  searched again under the new rules):
+  - Affliction/Demonology – Pact, Succubus, Shadow Bolt: the Affliction side shrinks to Suppression, Improved Corruption and
+    Improved Life Tap; the points go to Improved Shadow Bolt 5/5 and Ruin (now 8/31/12).
   - Destruction – Incinerate, Succubus: +1 Amplify Curse, +4 Unholy Power (now 14/4/33).
   - SM Ruin (classic): +2 Improved Corruption, +1 Amplify Curse, +2 Improved Bane of Agony.
-  - Wrack Succubus: +2 Improved Life Tap, +3 Ruin (now 37/0/14).
-- **What it does to the numbers.** The order of the builds is the same. SM Ruin gains 2.8% and Wrack Succubus 4.7% (mostly
-  from Shadow Mastery); the others move by less than 1%. Orc rows gain from Savage; Undead rows lose a little.
+  - Wrack Succubus: +2 Improved Life Tap, Amplify Curse, Ruin 5/5 and Agonizing Flames 3/3 (which also raises its Shadow
+    Bolts) instead of Improved Drains (now 33/0/18).
+- **What it does to the numbers.** The order of the builds is the same. SM Ruin gains 2.8% and Wrack Succubus 8.5% (Shadow
+  Mastery and the new talents); Aff Pact Shadow Bolt is level with before; the others move by less than 1%. Orc rows gain from Savage; Undead rows lose a little.
+- **Racial cooldowns:** measured again for Eureka!, Blood Fury and Berserking at every moment of the fight. Using them
+  when the first Bane of Doom explodes (the default) is still as good as any other time, so nothing changed there.
 - **Your old builds still load.** A build code or saved build with Malediction points moves them to Grim Reach as far as
   they fit (it has 2 ranks). A saved build that then needs points spent, or breaks a row rule, is kept in the build
   editor's list as "needs fixing": open it there, spend the points and save it. Old settings codes with the removed totems

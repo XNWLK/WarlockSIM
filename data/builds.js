@@ -45,12 +45,12 @@ WL.BUILDS = [
   {
     key: 'aff_pact_succ_sb', short: 'Aff Pact Shadow Bolt Succubus',
     name: 'Affliction/Demonology – Pact, Succubus out, Shadow Bolt',
-    notes: '13/31/7. The same Succubus Pact tree with an Affliction side instead of deep Destruction: Suppression 5/5, Improved Corruption, Improved Life Tap and Pandemic. Imp sacrificed (+15% Shadow), Succubus out, Shadow Bolt filler, Searing Pain to keep Demonic Brand up.',
+    notes: '8/31/12. The same Succubus Pact tree with a small Affliction side: Suppression 5/5, Improved Corruption and Improved Life Tap, then Bane, Improved Shadow Bolt and Ruin. Imp sacrificed (+15% Shadow), Succubus out, Shadow Bolt filler, Searing Pain to keep Demonic Brand up.',
     talents: {
-      suppression: 5, improvedCorruption: 3, improvedLifeTap: 2, pandemic: 3,   // round 149 (user; patch 2026-10-16: Malediction gone): −1 Malediction +1 Improved Corruption
+      suppression: 5, improvedCorruption: 1, improvedLifeTap: 2,   // round 149 (user; patch 2026-10-16: Malediction gone): −1 Malediction +1 Improved Corruption; then (user: "adopt both", search +0.90%): −3 Pandemic +3 Improved Shadow Bolt, −2 Improved Corruption +2 Ruin
       unholyPower: 5, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, improvedSayaad: 3, masterSummoner: 2,
       decimation: 2, demonicBrand: 3, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
-      improvedShadowBolt: 2, bane: 5,
+      improvedShadowBolt: 5, bane: 5, ruin: 2,
     },
     pet: 'succubus', sacrifice: 'imp', oil: 'spellstone',
     rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'searingPainBrand', 'corruption', 'immolate', 'lifeTapBelow', 'shadowBolt'],
@@ -117,11 +117,11 @@ WL.BUILDS = [
   {
     key: 'wrack_succubus', short: 'Wrack Succubus',
     name: 'Wrack Succubus – Affliction (Wrack) / Destruction (Improved Shadow Bolt), Succubus out',
-    notes: '37/0/14. Deep Affliction with Wrack as the filler: while it channels, Corruption and Bane of Agony deal 10% more. Suppression, Improved Corruption, Improved Life Tap, Pandemic, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon, Improved Bane of Agony and Improved Drains, with Ruin on the Destruction side; a Shadow Bolt keeps Improved Shadow Bolt up whenever it is about to run out. Succubus out, Bane of Agony only (never Bane of Doom).',
+    notes: '33/0/18. Deep Affliction with Wrack as the filler: while it channels, Corruption and Bane of Agony deal 10% more. Suppression, Improved Corruption, Improved Life Tap, Pandemic, Amplify Curse, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon and Improved Bane of Agony, with Bane, Improved Shadow Bolt, Ruin and Agonizing Flames on the Destruction side; a Shadow Bolt keeps Improved Shadow Bolt up whenever it is about to run out. Succubus out, Bane of Agony only (never Bane of Doom).',
     talents: {
-      suppression: 5, improvedCorruption: 5, improvedLifeTap: 2, pandemic: 3, malevolence: 5, siphonLife: 1, nightfall: 2,
-      shadowMastery: 5, soulSiphon: 3, wrack: 1, improvedBaneOfAgony: 2, improvedDrains: 3,
-      improvedShadowBolt: 5, bane: 5, ruin: 4,   // round 149 (user; patch 2026-10-16: Malediction gone): −5 Malediction +2 Improved Life Tap +3 Ruin
+      suppression: 5, improvedCorruption: 3, improvedLifeTap: 2, pandemic: 3, amplifyCurse: 1, malevolence: 5, siphonLife: 1, nightfall: 2,
+      shadowMastery: 5, soulSiphon: 3, wrack: 1, improvedBaneOfAgony: 2,
+      improvedShadowBolt: 5, bane: 5, ruin: 5, agonizingFlames: 3,   // round 149 follow-up (user: "adopt both", search +3.54%): −2 Improved Corruption +1 Amplify Curse +1 Ruin, −3 Improved Drains +3 Agonizing Flames.   // round 149 (user; patch 2026-10-16: Malediction gone): −5 Malediction +2 Improved Life Tap +3 Ruin
     },
     pet: 'succubus', sacrifice: null, oil: 'spellstone',
     rotation: ['deathCoilFinisher', 'baneOfAgony', 'corruption', 'siphonLife', 'curseOfElements', 'immolate', 'isbUpkeep', 'shadowTrance', 'lifeTapBelow', 'wrack'],   // round 82/83: + ISB upkeep
