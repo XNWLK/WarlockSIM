@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v140
+- The in-game addon link at the top of the page now goes to its download page; its GitHub page is linked next to it.
+
 ## v139
 - **Range talents.** Destructive Reach now lengthens only your Destruction spells, Grim Reach only your Affliction spells
   (the Forever patch of 16 October), so no spell gets both. Range changes no damage here: the boss is always in range.
