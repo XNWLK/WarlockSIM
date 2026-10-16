@@ -371,7 +371,7 @@ Every talent of the three trees. "Talent group" and "aura" are explained in sect
 | Improved Life Tap | 2 | Life Tap mana +10 / 20% | Life Tap gives (430 + Spirit) × 1.10 / 1.20 mana. Its health cost stays 430. |
 | Suppression | 5 | hit +1 / 2 / 3 / 4 / 5%; threat −4 / 8 / 12 / 16 / 20% | Adds to your hit chance. Your pet's spells use your hit chance too, and its melee misses less (see Pets). Also lowers all the threat you cause. |
 | Improved Corruption | 5 | Corruption cast −0.4 / 0.8 / 1.2 / 1.6 / 2 s; Corruption damage +2 / 4 / 6 / 8 / 10% | Shortens Corruption's 2 s cast (instant at 5 points) and adds to Corruption's periodic talent group. |
-| Grim Reach | 2 | range +10 / 20% | No effect on damage: the boss is always in range. The longer range is only listed. |
+| Grim Reach | 2 | range +10 / 20% | No effect on damage: the boss is always in range. The longer range (Affliction spells) is only listed. |
 | Soul Harvesting | 2 | — | Not simulated: it needs an enemy dying under your Drain Soul. |
 | Improved Drains | 3 | drain damage +7 / 13 / 20% | Adds to the periodic talent group of Drain Life, Drain Soul and Wrack. |
 | Improved Bane of Agony | 2 | Bane of Agony damage +5 / 10% | Adds to Bane of Agony's periodic talent group. |
@@ -418,7 +418,7 @@ Every talent of the three trees. "Talent group" and "aura" are explained in sect
 <!-- gen:talents-destruction -->
 | Talent | Points | Value per point | What it does in the sim |
 |---|---|---|---|
-| Destructive Reach | 2 | range +10 / 20% | No effect on damage: the boss is always in range. The longer range is only listed. |
+| Destructive Reach | 2 | range +10 / 20% | No effect on damage: the boss is always in range. The longer range (Destruction spells) is only listed. |
 | Improved Shadow Bolt | 5 | Shadow damage taken +4 / 8 / 12 / 16 / 20% | Every Shadow Bolt crit puts the debuff on that target for 12 s: your Shadow damage on it is this much higher - hits and ticks. No charges; a new crit restarts the 12 s. Another Warlock's debuff does not count for you, and demons do not benefit. |
 | Bane | 5 | cast −0.1 / 0.2 / 0.3 / 0.4 / 0.5 s; Soul Fire cast −0.4 / 0.8 / 1.2 / 1.6 / 2 s | Shorter cast of Shadow Bolt, Immolate and Incinerate (first values) and of Soul Fire (second values), before haste. |
 | Molten Skin | 5 | damage to yourself −2 / 4 / 6 / 8 / 10% | Lowers the damage you do to yourself (Hellfire, Demonic Rune, Goblin Sapper). Multiplies with Soul Link. Life Tap is not reduced. |

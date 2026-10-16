@@ -31,6 +31,14 @@
     var bG = tb(['shadowBolt'], { grimReach: 2 }), tG = WL.buildSpellTable(bG, WL.computeStats(bG, 'gnome', c), c);
     T.ok(['shadowBolt', 'corruption', 'immolate', 'hellfire', 'drainLife'].every(function (k) { return !tG[k].op0 && !tG[k].op22; }), 'Grim Reach 2/2: no damage change');
     T.ok(WL.TALENT_TEXT.grimReach && /range of your Affliction spells by 20%/.test(WL.TALENT_TEXT.grimReach[1]), 'Grim Reach tooltip', String(WL.TALENT_TEXT.grimReach));
+    // Round 150 (user): Grim Reach lengthens Affliction spells, Destructive Reach Destruction spells (patch 2026-10-16) — never both.
+    var rng = function (t) { var bb = tb(['shadowBolt'], t); return WL.buildSpellTable(bb, WL.computeStats(bb, 'gnome', c), c); };
+    var r0 = rng({}), rG2 = rng({ grimReach: 2 }), rB = rng({ grimReach: 2, destructiveReach: 2 });
+    T.ok(r0.corruption.range === 30 && rG2.corruption.range === 36 && rG2.shadowBolt.range === r0.shadowBolt.range, 'Grim Reach 2/2: Corruption 30 → 36 yd, Shadow Bolt (Destruction) unchanged (' + rG2.shadowBolt.range + ' yd)');
+    T.ok(rB.corruption.range === 36 && rB.shadowBolt.range === +(r0.shadowBolt.range * 1.2).toFixed(2), 'with Destructive Reach 2/2 too: Corruption stays 36 yd (Affliction), Shadow Bolt × 1.20 = ' + rB.shadowBolt.range + ' yd (Destruction)');
+    var rD = rng({ destructiveReach: 2 });
+    T.ok(rD.corruption.range === 30 && rD.shadowBolt.range === 36, 'Destructive Reach 2/2 alone: Destruction spells only (Corruption 30 yd, Shadow Bolt 36 yd)');
+    T.ok(/range of your Destruction spells by 20%/.test(WL.TALENT_TEXT.destructiveReach[1]), 'Destructive Reach tooltip: Destruction spells', WL.TALENT_TEXT.destructiveReach[1]);
     T.ok(/by 10%\./.test(WL.TALENT_TEXT.shadowMastery[4]), 'Shadow Mastery tooltip says 10% at 5/5', WL.TALENT_TEXT.shadowMastery[4]);
 
     T.group('Ruthless (Human) +2% and Savage (Orc) +1% crit: spells and your melee crit');

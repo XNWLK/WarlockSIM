@@ -33,6 +33,7 @@ $out = New-Object System.Text.StringBuilder
 $talOverride = @{
   'shadowMastery' = @(2, 4, 6, 8, 10 | ForEach-Object { "Increases the damage dealt or life drained by your Shadow spells by $_%." })
   'grimReach' = @(10, 20 | ForEach-Object { "Increases the range of your Affliction spells by $_%." })
+  'destructiveReach' = @(10, 20 | ForEach-Object { "Increases the range of your Destruction spells by $_%." })   # was 'your damaging spells'
 }
 $n = 0
 foreach ($tree in '301', '302', '303') {

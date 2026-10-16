@@ -43,7 +43,7 @@
     T.ok(near(ta.hellfire.periodicMult, 1) && near(ta.rainOfFire.periodicMult, 1.10), 'Agonizing Flames 3/3: Rain of Fire +10%, Hellfire nothing');
     T.ok(near(ta.immolate.periodicMult, 1.10), 'the other spells keep the talent (Immolate burn +10%)');
     var td = table({ destructiveReach: 2 });
-    T.eq([td.rainOfFire.range, td.hellfire.range, td.rainOfFire.radius, td.hellfire.radius].join('/'), '36/0/8/10', 'Destructive Reach 2/2: Rain of Fire 36 yd; the radii stay 8 / 10 yd');
+    T.eq([td.rainOfFire.range, td.hellfire.range, td.rainOfFire.radius, td.hellfire.radius].join('/'), '36/0/8/10', 'Destructive Reach 2/2: Rain of Fire 36 yd; the radii stay 8 / 10 yd');   // still true after round 150: both are Destruction spells
     T.ok(near(table({ shadowMastery: 5 }).hellfire.periodicMult, 1), 'Shadow talents do nothing for them');
 
     T.group('ticks, one target');

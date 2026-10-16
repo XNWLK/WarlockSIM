@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v139
+- **Range talents.** Destructive Reach now lengthens only your Destruction spells, Grim Reach only your Affliction spells
+  (the Forever patch of 16 October), so no spell gets both. Range changes no damage here: the boss is always in range.
+
 ## v138
 - **Forever patch of 16 October.** The sim follows the new game patch:
   - **Shadow Mastery** now gives 2 / 4 / 6 / 8 / 10% Shadow damage (was 1 to 5%).

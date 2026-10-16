@@ -30,8 +30,8 @@
     T.eq(Object.keys(t0).length, keys.length, 'spell table with every spell talented (' + Object.keys(t0).length + ' spells)');
     T.ok(Object.keys(t0).every(function (k) { return t0[k].range === WL.SPELLS[k].range; }), 'without the talent: the table range = the spell range');
     T.eq([t1.shadowBolt.range, t2.shadowBolt.range].join('/'), '33/36', 'Shadow Bolt 33 / 36 yd at 1 / 2 points');
-    T.eq([t1.drainLife.range, t2.drainLife.range].join('/'), '22/24', 'Drain Life 22 / 24 yd');
-    T.eq([t2.corruption.range, t2.curseOfElements.range, t2.baneOfDoom.range, t2.wrack.range].join('/'), '36/36/36/36', 'also Affliction spells and the curse (its list of affected spells)');
+    T.eq([t1.drainLife.range, t2.drainLife.range].join('/'), '20/20', 'Drain Life stays 20 yd: an Affliction spell (round 150, patch 2026-10-16: Destructive Reach is Destruction spells only; rounds 99–149: 22 / 24)');
+    T.eq([t2.corruption.range, t2.curseOfElements.range, t2.baneOfDoom.range, t2.wrack.range].join('/'), '30/30/30/30', 'not the Affliction spells and the curse any more (round 150, user; until then its old list of affected spells: 36)');
     T.eq(t2.lifeTap.range, 0, 'Life Tap stays a self cast');
 
     T.group('no effect on the fight');

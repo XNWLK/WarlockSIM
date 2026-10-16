@@ -22,9 +22,12 @@ WL.buildSpellTable = function (build, stats, cfg) {
     e.cd = s.cd || 0;
     if (key === 'soulFire' && tv('decimation')) e.cd = s.cd * (1 - tv('decimation', 'sfCdRedPct') / 100);
 
-    // Range in yards (0 = self). Destructive Reach: +10 / 20% on every Warlock spell that has a range. The fight
-    // engine does not use it (the boss is always in range); it is data for tools built on the table. [A78]
-    e.range = s.range ? +(s.range * (1 + tv('destructiveReach', 'rangePct') / 100)).toFixed(2) : 0;
+    // Range in yards (0 = self). Patch 2026-10-16 (user, round 150): Destructive Reach +10 / 20% on Destruction spells only
+    // (rounds 3–149: every spell with a range), Grim Reach +10 / 20% on Affliction spells; no spell gets both (Corruption with
+    // both talents at 2/2: 36 yd). The fight engine does not use it (the boss is always in range); it is data for tools built
+    // on the table. [A78][A94]
+    var reach = s.tree === 'destruction' ? tv('destructiveReach', 'rangePct') : s.tree === 'affliction' ? tv('grimReach', 'rangePct') : 0;
+    e.range = s.range ? +(s.range * (1 + reach / 100)).toFixed(2) : 0;
     if (s.radius) e.radius = s.radius;                       // area spells; Destructive Reach's radius part does not list them [A79]
 
     // Mana cost. Cataclysm: Destruction spells. [talent text]
