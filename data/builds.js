@@ -45,9 +45,9 @@ WL.BUILDS = [
   {
     key: 'aff_pact_succ_sb', short: 'Aff Pact Shadow Bolt Succubus',
     name: 'Affliction/Demonology – Pact, Succubus out, Shadow Bolt',
-    notes: '13/31/7. The same Succubus Pact tree with an Affliction side instead of deep Destruction: Suppression 5/5, Improved Corruption, Improved Life Tap, Malediction and Pandemic. Imp sacrificed (+15% Shadow), Succubus out, Shadow Bolt filler, Searing Pain to keep Demonic Brand up.',
+    notes: '13/31/7. The same Succubus Pact tree with an Affliction side instead of deep Destruction: Suppression 5/5, Improved Corruption, Improved Life Tap and Pandemic. Imp sacrificed (+15% Shadow), Succubus out, Shadow Bolt filler, Searing Pain to keep Demonic Brand up.',
     talents: {
-      suppression: 5, improvedCorruption: 2, improvedLifeTap: 2, malediction: 1, pandemic: 3,   // round 61: -2 Malediction +2 Improved Shadow Bolt
+      suppression: 5, improvedCorruption: 3, improvedLifeTap: 2, pandemic: 3,   // round 149 (user; patch 2026-10-16: Malediction gone): −1 Malediction +1 Improved Corruption
       unholyPower: 5, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, improvedSayaad: 3, masterSummoner: 2,
       decimation: 2, demonicBrand: 3, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
       improvedShadowBolt: 2, bane: 5,
@@ -73,9 +73,9 @@ WL.BUILDS = [
   {
     key: 'destro_incin_succ', short: 'Destro Incinerate Succubus',
     name: 'Destruction – Incinerate, Succubus out',
-    notes: '18/0/33. Incinerate with Shadow and Flame, Conflagrate and Shadowburn; the Affliction points go to Suppression, Improved Corruption, Malediction, Pandemic and Improved Life Tap. No Demonology points: the Succubus fights on her own (melee and Lash of Pain). With a second target, Bane of Havoc copies part of your damage to it.',
+    notes: '14/4/33. Incinerate with Shadow and Flame, Conflagrate and Shadowburn; the Affliction points go to Suppression, Improved Corruption, Pandemic, Improved Life Tap and Amplify Curse. Four points in Unholy Power make the Succubus hit harder; she fights on her own (melee and Lash of Pain). With a second target, Bane of Havoc copies part of your damage to it.',
     talents: {
-      suppression: 5, improvedCorruption: 3, malediction: 5, pandemic: 3, improvedLifeTap: 2,   // round 30: -2 Improved Corruption +2 Pandemic (+0.55% Human)
+      suppression: 5, improvedCorruption: 3, pandemic: 3, improvedLifeTap: 2, amplifyCurse: 1, unholyPower: 4,   // round 149 (user; patch 2026-10-16: Malediction gone): −5 Malediction +1 Amplify Curse +4 Unholy Power
       bane: 5, cataclysm: 3, aftermath: 5, ruin: 5, shadowburn: 1, agonizingFlames: 3, conflagrate: 1,
       baneOfHavoc: 1, fireAndBrimstone: 3, shadowAndFlame: 5, incinerate: 1,
     },
@@ -104,10 +104,10 @@ WL.BUILDS = [
   {
     key: 'sm_ruin_classic', short: 'SM Ruin (classic)',
     name: 'SM Ruin (classic) – Affliction / Destruction, Succubus out, Shadow Bolt',
-    notes: '30/0/21. The classic Shadow Mastery / Ruin layout: Suppression, Improved Corruption, Improved Life Tap, Malediction, Pandemic, Malevolence, Nightfall, Siphon Life and Shadow Mastery with Bane, Improved Shadow Bolt, Cataclysm, Ruin and Agonizing Flames. No Demonology, so nothing is sacrificed: the Succubus is out. Shadow Bolt filler, instant Shadow Bolts on Shadow Trance.',
+    notes: '30/0/21. The classic Shadow Mastery / Ruin layout: Suppression, Improved Corruption, Improved Life Tap, Pandemic, Amplify Curse, Improved Bane of Agony, Malevolence, Nightfall, Siphon Life and Shadow Mastery with Bane, Improved Shadow Bolt, Cataclysm, Ruin and Agonizing Flames. No Demonology, so nothing is sacrificed: the Succubus is out. Shadow Bolt filler, instant Shadow Bolts on Shadow Trance.',
     talents: {
-      suppression: 5, improvedCorruption: 2, improvedLifeTap: 2, malediction: 5, pandemic: 3, malevolence: 5, nightfall: 2,
-      siphonLife: 1, shadowMastery: 5,
+      suppression: 5, improvedCorruption: 4, improvedLifeTap: 2, pandemic: 3, amplifyCurse: 1, improvedBaneOfAgony: 2, malevolence: 5, nightfall: 2,
+      siphonLife: 1, shadowMastery: 5,   // round 149 (user; patch 2026-10-16: Malediction gone): −5 Malediction +2 Improved Corruption +1 Amplify Curse +2 Improved Bane of Agony
       bane: 5, improvedShadowBolt: 5, cataclysm: 3, ruin: 5, agonizingFlames: 3,   // round 82/83: −3 Improved Corruption +3 Cataclysm
     },
     pet: 'succubus', sacrifice: null, oil: 'spellstone',
@@ -117,11 +117,11 @@ WL.BUILDS = [
   {
     key: 'wrack_succubus', short: 'Wrack Succubus',
     name: 'Wrack Succubus – Affliction (Wrack) / Destruction (Improved Shadow Bolt), Succubus out',
-    notes: '40/0/11. Deep Affliction with Wrack as the filler: while it channels, Corruption and Bane of Agony deal 10% more. Suppression, Improved Corruption, Malediction, Pandemic, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon, Improved Bane of Agony and Improved Drains; a Shadow Bolt keeps Improved Shadow Bolt up whenever it is about to run out. Succubus out, Bane of Agony only (never Bane of Doom).',
+    notes: '37/0/14. Deep Affliction with Wrack as the filler: while it channels, Corruption and Bane of Agony deal 10% more. Suppression, Improved Corruption, Improved Life Tap, Pandemic, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon, Improved Bane of Agony and Improved Drains, with Ruin on the Destruction side; a Shadow Bolt keeps Improved Shadow Bolt up whenever it is about to run out. Succubus out, Bane of Agony only (never Bane of Doom).',
     talents: {
-      suppression: 5, improvedCorruption: 5, malediction: 5, pandemic: 3, malevolence: 5, siphonLife: 1, nightfall: 2,
+      suppression: 5, improvedCorruption: 5, improvedLifeTap: 2, pandemic: 3, malevolence: 5, siphonLife: 1, nightfall: 2,
       shadowMastery: 5, soulSiphon: 3, wrack: 1, improvedBaneOfAgony: 2, improvedDrains: 3,
-      improvedShadowBolt: 5, bane: 5, ruin: 1,
+      improvedShadowBolt: 5, bane: 5, ruin: 4,   // round 149 (user; patch 2026-10-16: Malediction gone): −5 Malediction +2 Improved Life Tap +3 Ruin
     },
     pet: 'succubus', sacrifice: null, oil: 'spellstone',
     rotation: ['deathCoilFinisher', 'baneOfAgony', 'corruption', 'siphonLife', 'curseOfElements', 'immolate', 'isbUpkeep', 'shadowTrance', 'lifeTapBelow', 'wrack'],   // round 82/83: + ISB upkeep

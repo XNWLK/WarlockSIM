@@ -3,6 +3,33 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v138
+- **Forever patch of 16 October.** The sim follows the new game patch:
+  - **Shadow Mastery** now gives 2 / 4 / 6 / 8 / 10% Shadow damage (was 1 to 5%).
+  - **Malediction is gone.** Grim Reach takes its place in the tree; it only adds range, so it changes no damage.
+  - **Human: Ruthless**, +2% crit with any weapon (was Sword Specialization, only with a sword). The "Sword equipped" box
+    is gone. **Orc: Savage**, +1% crit. Both also raise the melee crit your Succubus gets from you.
+    **Blood Fury** has a 3 minute cooldown (was 2).
+  - **Gnome: Eureka!** is now an 8 second buff: every damaging spell that finishes while it is up deals 10% more and costs
+    10% less. A cast still going when the 8 seconds end gets nothing; a drain's ticks count only while it lasts. DoTs get
+    nothing, as before.
+  - **Undead: Touch of the Grave** has a 30% chance (was 10%), then 25 seconds before it can happen again. Nothing raises
+    its damage any more: no curse, no Improved Shadow Bolt, no aura, no Power Infusion.
+  - **Windfury Totem and Flametongue Totem** only work for players now, so they no longer help your demon: both are gone
+    from the raid buffs, and so is **Tranquil Air Totem** (every Paladin has Salvation now). **Blessing of Salvation** is now
+    **Salvation**. Moonkin Form's aura is spell crit only, raid-wide (no change for a Warlock).
+- **Builds that had Malediction points** (searched point by point, where each gains the most):
+  - Affliction/Demonology – Pact, Succubus, Shadow Bolt: +1 Improved Corruption.
+  - Destruction – Incinerate, Succubus: +1 Amplify Curse, +4 Unholy Power (now 14/4/33).
+  - SM Ruin (classic): +2 Improved Corruption, +1 Amplify Curse, +2 Improved Bane of Agony.
+  - Wrack Succubus: +2 Improved Life Tap, +3 Ruin (now 37/0/14).
+- **What it does to the numbers.** The order of the builds is the same. SM Ruin gains 2.8% and Wrack Succubus 4.7% (mostly
+  from Shadow Mastery); the others move by less than 1%. Orc rows gain from Savage; Undead rows lose a little.
+- **Your old builds still load.** A build code or saved build with Malediction points moves them to Grim Reach as far as
+  they fit (it has 2 ranks). A saved build that then needs points spent, or breaks a row rule, is kept in the build
+  editor's list as "needs fixing": open it there, spend the points and save it. Old settings codes with the removed totems
+  or the old Sword box load as before.
+
 ## v137
 - **Gear builder: an item's worth.** Every item and enchant shows what it is worth in spell power for a build you pick
   ("Value for"), worked out from that build's stat weights. So does the item you are typing in, while you type.

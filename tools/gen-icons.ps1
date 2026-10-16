@@ -31,6 +31,9 @@ foreach ($k in $fixed.Keys) { if (-not $map.Contains($k)) { $map[$k] = $fixed[$k
 foreach ($m in [regex]::Matches([IO.File]::ReadAllText("$root\data\talents.js"), "key: '(\w+)',\s*tree: '\w+', wid: (\d+)")) {
   $ic = TalentIcon $m.Groups[2].Value; if ($ic) { $map['talent_' + $m.Groups[1].Value] = $ic }
 }
+# Patch 2026-10-16: Grim Reach took Malediction's place (data/talents.js keeps Malediction's wid); its icon from the live
+# Wowhead Forever spell 18218.
+$map['talent_grimReach'] = 'spell_shadow_callofbone'
 # 4. Buffs and debuffs (config ids); Restorative Totems is a talent (spell 16187 is not in the raw spell data)
 $cfg = [IO.File]::ReadAllText("$root\data\config.js")
 $section = ''
@@ -43,7 +46,6 @@ foreach ($line in $cfg -split "`n") {
     if (-not $ic -and $Matches[1] -eq 'concentrationAura') { $ic = 'spell_holy_mindsooth' }
     if (-not $ic -and $Matches[1] -eq 'graceOfAir') { $ic = 'spell_nature_invisibilitytotem' }
     if (-not $ic -and $Matches[1] -eq 'scrollOfAgility') { $ic = 'inv_scroll_02' }
-    if (-not $ic -and $Matches[1] -eq 'tranquilAir') { $ic = 'spell_nature_brilliance' }   # Tranquil Air Totem: not in the raw data (round 119)
     if ($ic) { $map["$($section)_$($Matches[1])"] = $ic }
   }
 }

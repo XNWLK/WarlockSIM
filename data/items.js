@@ -38,8 +38,8 @@ WL.GEAR_SLOTS = [
 // The item list, keyed by the game's item id (the in-game addon recognises what you wear by that id). Format:
 //   12345: { name: 'Item name', slot: 'head', quality: 'epic', stats: { sp: 20, int: 15, critPct: 1 }, weapon: 'sword' }
 // slot = one of the `fits` types above · quality = poor / common / uncommon / rare / epic / legendary (colour only) ·
-// stats = WL.GEAR_STAT_KEYS, missing = 0 · weapon (weapons only) = 'sword', 'dagger', 'staff', 'mace' … — a sword in the
-// main hand ticks Sword Specialization for Humans. "Use:" and "Chance on hit:" effects are not simulated yet.
+// stats = WL.GEAR_STAT_KEYS, missing = 0 · weapon (weapons only) = 'sword', 'dagger', 'staff', 'mace' … — kept for the
+// record (until round 149 a sword in the main hand ticked Sword Specialization for Humans). "Use:" and "Chance on hit:" effects are not simulated yet.
 WL.ITEMS = {};
 
 // Enchants (round 148), keyed by the game's enchant id. Format:

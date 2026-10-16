@@ -3,7 +3,7 @@
 (function () {
   function det(n, f) {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
-    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.combat.baseCritPct = 0; c.gear.weaponIsSword = false;
+    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.combat.baseCritPct = 0; c.gear.critPct -= 2;
     c.gear.pierce = 0; c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.combat.levelResist.on = false; c.options.includePetDamage = false;
     c.options.activesPolicy = 'pull'; c.fight.targets = n || 1;
     Object.keys(c.buffs).forEach(function (k) { c.buffs[k].on = false; });
@@ -37,11 +37,11 @@
     T.ok(near(tc.hellfire.cost, 1170) && near(tc.rainOfFire.cost, 1066.5), 'Cataclysm 3/3: 1170 and 1066.5 mana');
     var tr = table({ ruin: 5 });
     T.eq([t0.hellfire.critMult, tr.hellfire.critMult, tr.rainOfFire.critMult].join('/'), '1.5/2/2', 'Ruin 5/5: crits ×2 (×1.5 without)');
-    var tm = table({ malediction: 5 });
-    T.ok(near(tm.hellfire.periodicMult, 1.05) && near(tm.rainOfFire.periodicMult, 1), 'Malediction 5/5: Hellfire +5%, Rain of Fire nothing');
+    var tm = table({ grimReach: 2 });   // Malediction's place since the patch of 2026-10-16 (it gave Hellfire +5%, Rain of Fire nothing)
+    T.ok(near(tm.hellfire.periodicMult, 1) && near(tm.rainOfFire.periodicMult, 1) && near(tm.corruption.periodicMult, 1), 'Grim Reach 2/2: no damage change');
     var ta = table({ agonizingFlames: 3 });
     T.ok(near(ta.hellfire.periodicMult, 1) && near(ta.rainOfFire.periodicMult, 1.10), 'Agonizing Flames 3/3: Rain of Fire +10%, Hellfire nothing');
-    T.ok(near(ta.immolate.periodicMult, 1.10) && near(tm.corruption.periodicMult, 1.05), 'the other spells keep both talents (Immolate burn +10%, Corruption +5%)');
+    T.ok(near(ta.immolate.periodicMult, 1.10), 'the other spells keep the talent (Immolate burn +10%)');
     var td = table({ destructiveReach: 2 });
     T.eq([td.rainOfFire.range, td.hellfire.range, td.rainOfFire.radius, td.hellfire.radius].join('/'), '36/0/8/10', 'Destructive Reach 2/2: Rain of Fire 36 yd; the radii stay 8 / 10 yd');
     T.ok(near(table({ shadowMastery: 5 }).hellfire.periodicMult, 1), 'Shadow talents do nothing for them');

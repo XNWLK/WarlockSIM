@@ -16,7 +16,7 @@
     T.near(s.sp, 700, 1e-9, 'SP = 700 (no pet → no Demonic Knowledge)');
     T.near(s.schoolSp.shadow, 21, 1e-9, 'Shadow SP = 21 (Spellstone)');
     T.near(s.hitPct, 93, 1e-9, 'Hit = 83 + Suppression 5 + gear 5');
-    T.near(s.critPct, 22, 1e-9, 'Crit = sheet 20 + Sword Specialization 2 (Malevolence added per spell)');
+    T.near(s.critPct, 22, 1e-9, 'Crit = sheet 20 + Ruthless 2 (Malevolence added per spell)');
     T.near(s.hastePct, 2, 1e-9, 'Haste = 2 (Spellstone)');
     T.near(s.pierce, 0, 1e-9, 'Spell Pierce 0');
     // Round 43: stats.mult holds only auras; Shadow Mastery is a spell modifier that adds up in the spell table (A68).
@@ -30,7 +30,7 @@
     T.near(s.int, 313, 1e-9, 'Int = 110 + 3 + 200');
     T.near(s.maxMana, 5788 * 1.20, 1e-6, 'Mana = (1373 + 20 + 15×293) × (1 + 0.15 + 0.05)');
     T.near(s.sp, 760, 1e-9, 'SP = 700 + 60 (Demonic Knowledge 3/3, pet out)');
-    T.near(s.critPct, 20, 1e-9, 'Crit = sheet 20 (no sword spec, no oil crit)');
+    T.near(s.critPct, 20, 1e-9, 'Crit = sheet 20 (Gnome: no crit racial, no oil crit)');
     T.near(s.hitPct, 88, 1e-9, 'Hit = 83 + 0 + 5');
     T.near(s.mult.shadow, 1.15 * 1.10, 1e-12, 'Shadow mult = DS Imp (kept by Pact) × Master Demonologist Succubus');
     T.near(s.mult.all, 1.03, 1e-12, 'All mult = Soul Link 3%');
@@ -39,7 +39,7 @@
   T.run('stats orc destro', function () {
     T.group('stats: Orc / destro_incin_ds');
     var s = WL.computeStats(B.destro_incin_ds, 'orc', cfg);
-    T.near(s.critPct, 22, 1e-9, 'Crit = sheet 20 + Firestone 2');
+    T.near(s.critPct, 23, 1e-9, 'Crit = sheet 20 + Firestone 2 + Savage 1');
     T.near(s.schoolSp.fire, 21, 1e-9, 'Fire SP = 21 (Firestone)');
     T.near(s.hastePct, 0, 1e-9, 'Haste = 0');
     T.near(s.mult.fire, 1.15, 1e-12, 'Fire mult = DS Succubus 15%');
@@ -51,14 +51,13 @@
     var s = WL.computeStats(B.aff_wrack_ds, 'troll', c2);
     T.near(s.hitPct, 100, 1e-9, 'Hit capped at 100% (round 48: Forever has no permanent 1% miss)');
     T.near(s.hitPctUncapped, 108, 1e-9, 'Uncapped hit reported (83+5+20)');
-    var c3 = JSON.parse(JSON.stringify(cfg)); c3.gear.weaponIsSword = false;
-    T.near(WL.computeStats(B.aff_wrack_ds, 'human', c3).critPct, 20, 1e-9, 'Human without sword: 20%');
+    T.near(WL.computeStats(B.aff_wrack_ds, 'human', cfg).critPct - WL.computeStats(B.aff_wrack_ds, 'none', cfg).critPct, 2, 1e-9, 'Human: Ruthless +2% with any weapon (round 149)');
     var c4 = JSON.parse(JSON.stringify(cfg)); c4.buffs.arcaneIntellect.on = true;
     var s4 = WL.computeStats(B.aff_wrack_ds, 'human', c4);
     T.near(s4.int, 341, 1e-9, 'Arcane Intellect +31 Int');
     T.near(s4.critPct, 22 + 31 / 60, 1e-9, 'extra Int adds crit on top of the sheet total (60 Int = 1%)');
     var c6 = JSON.parse(JSON.stringify(cfg)); c6.gear.critIncludesAll = true;
-    T.near(WL.computeStats(B.aff_wrack_ds, 'human', c6).critPct, 20, 1e-9, 'critIncludesAll on → 20 flat (Sword Spec not added)');
+    T.near(WL.computeStats(B.aff_wrack_ds, 'human', c6).critPct, 20, 1e-9, 'critIncludesAll on → 20 flat (Ruthless not added)');
     T.near(WL.computeStats(B.destro_incin_ds, 'orc', c6).critPct, 20, 1e-9, 'critIncludesAll on → 20 flat (Firestone not added)');
     T.near(WL.buildSpellTable(B.aff_wrack_ds, WL.computeStats(B.aff_wrack_ds, 'human', c6), c6).shadowBolt.critPct, 20, 1e-9, 'critIncludesAll on → Malevolence not added');
     var c5 = JSON.parse(JSON.stringify(cfg)); c5.extra = { sp: 50, hitPct: 1, critPct: 1, hastePct: 1, int: 60 };

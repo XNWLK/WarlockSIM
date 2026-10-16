@@ -3,6 +3,8 @@
 // `wid` = Wowhead talent id; row/col/ranks/req must match the raw file (checked by tests/test-data.js).
 // `v` = numeric effect values per rank (index 0 = rank 1) copied from the per-rank tooltip text;
 //       tests verify every number appears in that rank's description.
+// `patch` = changed by a Forever patch after the archive was taken (the date of the patch notes): the archive no longer
+//       matches, so tests/test-data.js checks only the place in the tree for these. [A93]
 window.WL = window.WL || {};
 
 WL.TREES = {
@@ -16,7 +18,9 @@ WL.TALENTS = [
   { key: 'improvedLifeTap',     tree: 'affliction', wid: 105921, name: 'Improved Life Tap',     row: 0, col: 0, ranks: 2, v: { manaPct: [10, 20] } },
   { key: 'suppression',         tree: 'affliction', wid: 105925, name: 'Suppression',           row: 0, col: 1, ranks: 5, v: { hitPct: [1, 2, 3, 4, 5], threatPct: [4, 8, 12, 16, 20] } },
   { key: 'improvedCorruption',  tree: 'affliction', wid: 105924, name: 'Improved Corruption',   row: 0, col: 2, ranks: 5, v: { castRed: [0.4, 0.8, 1.2, 1.6, 2], dmgPct: [2, 4, 6, 8, 10] } },
-  { key: 'malediction',         tree: 'affliction', wid: 105923, name: 'Malediction',           row: 1, col: 0, ranks: 5, v: { periodicPct: [1, 2, 3, 4, 5] } },
+  // Patch 2026-10-16: Malediction (periodic damage +1–5%) was replaced by Grim Reach, range only. Same place in the tree;
+  // `wid` is Malediction's talent-calculator id (the slot); Grim Reach is spell 18218 on Wowhead Forever (icon from there). [A93]
+  { key: 'grimReach',           tree: 'affliction', wid: 105923, name: 'Grim Reach',            row: 1, col: 0, ranks: 2, v: { rangePct: [10, 20] }, patch: '2026-10-16' },   // range only, no damage effect
   { key: 'soulHarvesting',      tree: 'affliction', wid: 105922, name: 'Soul Harvesting',       row: 1, col: 1, ranks: 2, v: {} },
   { key: 'improvedDrains',      tree: 'affliction', wid: 105920, name: 'Improved Drains',       row: 1, col: 2, ranks: 3, v: { dmgPct: [7, 13, 20] } },
   { key: 'improvedBaneOfAgony', tree: 'affliction', wid: 105919, name: 'Improved Bane of Agony',row: 2, col: 0, ranks: 2, v: { dmgPct: [5, 10] } },
@@ -28,7 +32,7 @@ WL.TALENTS = [
   { key: 'curseOfExhaustion',   tree: 'affliction', wid: 105913, name: 'Curse of Exhaustion',   row: 3, col: 2, ranks: 1, req: 'amplifyCurse', reqQty: 1, v: {} },
   { key: 'siphonLife',          tree: 'affliction', wid: 105912, name: 'Siphon Life',           row: 4, col: 1, ranks: 1, v: {} },
   { key: 'soulSiphon',          tree: 'affliction', wid: 105911, name: 'Soul Siphon',           row: 4, col: 2, ranks: 3, v: { perEffectPct: [4, 8, 12], maxPct: [12, 24, 36] } },
-  { key: 'shadowMastery',       tree: 'affliction', wid: 105910, name: 'Shadow Mastery',        row: 5, col: 2, ranks: 5, v: { shadowPct: [1, 2, 3, 4, 5] } },
+  { key: 'shadowMastery',       tree: 'affliction', wid: 105910, name: 'Shadow Mastery',        row: 5, col: 2, ranks: 5, v: { shadowPct: [2, 4, 6, 8, 10] }, patch: '2026-10-16' },   // was 1–5% until the patch of 2026-10-16 [A93]
   { key: 'wrack',               tree: 'affliction', wid: 105909, name: 'Wrack',                 row: 6, col: 1, ranks: 1, req: 'siphonLife', reqQty: 1, v: {} },
 
   // ---------------- Demonology (Wowhead tree 303 "WarlockSummoning") ----------------

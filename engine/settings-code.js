@@ -7,7 +7,9 @@ window.WL = window.WL || {};
 WL.SETTINGS_CODE_PREFIX = 'WFS1:';
 // Settings that no longer exist: old codes may still carry them; they are dropped without a notice.
 WL.RETIRED_SETTINGS = ['options.eurekaPolicy',    // round 88: Eureka! follows the cooldown setting
-  'fight.startingShards'];                        // round 118: soul shards are unlimited
+  'fight.startingShards',                         // round 118: soul shards are unlimited
+  'gear.weaponIsSword',                           // round 149 (patch 2026-10-16): Ruthless needs no sword
+  'buffs.windfuryTotem', 'buffs.flametongueTotem', 'buffs.tranquilAir'];   // round 149: removed (they no longer help your demon)
 
 WL.settingsSnapshot = function (c) {
   var on = function (o) { return Object.keys(o || {}).filter(function (k) { return o[k].on; }); };
@@ -50,7 +52,7 @@ WL.applySettings = function (c, o) {
   [['buffs', 'buffs'], ['debuffs', 'debuffs'], ['cons', 'consumables']].forEach(function (p) {
     var list = o[p[0]] || [], tgt = c[p[1]] || {};
     Object.keys(tgt).forEach(function (k) { tgt[k].on = list.indexOf(k) >= 0; });
-    list.forEach(function (k) { if (!tgt[k]) unknown.push(p[0] + '.' + k); });
+    list.forEach(function (k) { if (!tgt[k] && WL.RETIRED_SETTINGS.indexOf(p[0] + '.' + k) < 0) unknown.push(p[0] + '.' + k); });
   });
   c.professions = c.professions || {};
   Object.keys(c.professions).forEach(function (k) { c.professions[k] = !!(o.prof || {})[k]; });

@@ -4,7 +4,7 @@
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     Object.keys(c.buffs).forEach(function (k) { c.buffs[k].on = false; });
     Object.keys(c.consumables).forEach(function (k) { c.consumables[k].on = false; });
-    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.critPct = 0; c.gear.hitPct = 0; c.gear.weaponIsSword = false;
+    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.critPct = 0; c.gear.hitPct = 0; c.gear.critPct -= 2;
     c.options.useCurseOfElements = false; c.combat.levelResist.on = false;
     return c;
   }

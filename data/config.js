@@ -69,14 +69,13 @@ WL.DEFAULT_CONFIG = {
     sp: 500, shadowSp: 0, fireSp: 0,
     hitPct: 5,              // from gear
     critPct: 10,            // spell crit on the character sheet (user round 6: 10% = realistic starter gear)
-    critIncludesAll: false, // user (round 4): critPct is the sheet BEFORE talents/racials/oil, so Malevolence, Sword Spec and Firestone are valued
+    critIncludesAll: false, // user (round 4): critPct is the sheet BEFORE talents/racials/oil, so Malevolence, Ruthless / Savage and Firestone are valued
     hastePct: 0,
     pierce: 0,              // Spell Pierce (new stat) [A44]
     // Round 37 (user): Int 148 / Spirit 54 (was 48 / 4 = Classic pre-raid BiS item sums, round 13).
     // Round 39 (user): Stamina 160 (was 92), MP5 0 (was 4).
     agi: 0,                 // Agility from gear (round 75): only feeds your melee crit, which the Succubus' melee inherits [A75]
     int: 148, spi: 54, sta: 160, mp5: 0,  // gear only (race base is added by the engine); Int drives mana, Spirit drives Life Tap [A58]
-    weaponIsSword: true,    // [A30] Human Sword Specialization
   },
   // Added on top of gear by the stat-weight runs (normally all 0).
   // Gear in Forever lists percentages (e.g. 1.2% hit), not ratings, so weights are measured per 1%.
@@ -101,29 +100,17 @@ WL.DEFAULT_CONFIG = {
     // Round 75 (user): Agility for your melee crit (the Succubus' melee inherits it). [A75] Round 125 (user): Grace of Air Totem
     // gives 89 Agility — the archived Forever tooltip of Rank 3 (25359); it was 77, the Classic value. The scroll: Classic value.
     // Round 118 (user): Grace of Air and the Scroll of Agility do not stack — same `group`, only the bigger one counts.
-    // Round 124 (user): Windfury Totem works for pets with a melee attack; it and Grace of Air are the same totem type in
-    // Forever and do not stack (they did in Classic) — same `excl`: only the first listed one that is on counts, and the page
-    // unticks the other. 20% / 246 attack power = Rank 3 in the archived Forever tooltip (Classic: 315). [A85]
-    // Round 125 (user): Tranquil Air Totem is that totem type too — it stacks with neither Windfury nor Grace of Air.
-    // Round 131 (user): Flametongue Totem and Windfury Totem no longer stack, and neither stacks with Grace of Air — a second
-    // tag, 'meleeTotem', on those three (`excl` is one tag or a list; buffs that share a tag cannot be up together, see
-    // WL.activeBuffs). Nothing was said about Flametongue and Tranquil Air Totem: they share no tag and still stack. [A89]
-    windfuryTotem:    { on: false, id: 10614, name: 'Windfury Totem',                cls: 'Shaman',  desc: 'Pet melee: 20% chance per hit of an extra attack with +246 attack power (not with Flametongue, Grace of Air or Tranquil Air)', windfury: { procPct: 20, ap: 246 }, excl: ['airTotem', 'meleeTotem'] },
-    // Round 128 (user): pets with a melee attack also benefit from Flametongue Totem (it stacked with Windfury Totem until
-    // round 131). Rank 4 (16387), Forever tooltip: "Each main hand hit causes (1363 / 77 − 1) to (1363 / 25) additional Fire damage, based on the
-    // speed of the weapon" = 1363 × attack speed / 100 (77 and 25 are 100 / 1.3 s and 100 / 4.0 s): 27.3 for a 2.0 s swing.
-    // The triggered spell (16368 Flametongue Attack) has no spell power part. [A88] The totem descriptions are kept short:
-    // with longer ones the Buffs tab scrolls again at window widths around 1100 px (measured in rounds 128 and 131).
-    flametongueTotem: { on: false, id: 16387, name: 'Flametongue Totem',             cls: 'Shaman',  desc: '+27 Fire damage per pet melee hit (not with Windfury or Grace of Air)', flametongue: { per100: 1363 }, excl: 'meleeTotem' },
-    graceOfAir:       { on: false, id: 25359, name: 'Grace of Air Totem',            cls: 'Shaman',  desc: '+89 Agility (melee crit for the Succubus; not with Windfury, Flametongue, Tranquil Air or the Scroll of Agility)', agi: 89, group: 'agility', excl: ['airTotem', 'meleeTotem'] },
+    // Patch 2026-10-16 (user): Windfury Totem and Flametongue Totem only affect players now, so they no longer help your demon
+    // — both removed (rounds 124–148 they did). Tranquil Air Totem removed too (every Paladin has Salvation now). Grace of Air
+    // no longer clashes with any other buff here. [A93]
+    graceOfAir:       { on: false, id: 25359, name: 'Grace of Air Totem',            cls: 'Shaman',  desc: '+89 Agility (melee crit for the Succubus; does not stack with the Scroll of Agility)', agi: 89, group: 'agility' },
     manaTide:         { on: false, id: 17359, name: 'Mana Tide Totem',               cls: 'Shaman',  desc: '290 mana every 3 s for 12 s, once, when you drop below 50% mana', tide: { amount: 290, every: 3, ticks: 4 } },
     innervate:        { on: false, id: 29166, name: 'Innervate',                     cls: 'Druid',   desc: '5× mana regen while casting for 20 s, once, when you drop below 50% mana', innervate: { mult: 5, duration: 20 } },
-    moonkinAura:      { on: true, id: 24858, name: 'Moonkin Form aura',             cls: 'Druid',   desc: '+3% crit (party)', critPct: 3 },
+    moonkinAura:      { on: true, id: 24858, name: 'Moonkin Form aura',             cls: 'Druid',   desc: '+3% spell crit (raid)', critPct: 3 },
     scrollOfAgility:  { on: true, id: 12174, name: 'Scroll of Agility IV',                  cls: 'Scroll',  desc: '+17 Agility (melee crit for the Succubus; does not stack with Grace of Air)', agi: 17, group: 'agility' },
-    // Threat reduction (round 119, user). Classic values — neither tooltip is in the archived Forever data [A84].
-    // Round 125 (user): the two do not stack — same `group`, only the bigger reduction counts.
-    blessingOfSalvation: { on: false, id: 1038, name: 'Blessing of Salvation',       cls: 'Paladin', desc: '−30% threat (does not stack with Tranquil Air Totem)', threatPct: 30, group: 'threat' },
-    tranquilAir:      { on: false, id: 25908, name: 'Tranquil Air Totem',            cls: 'Shaman',  desc: '−20% threat (does not stack with Blessing of Salvation, Windfury Totem or Grace of Air Totem)', threatPct: 20, group: 'threat', excl: 'airTotem' },
+    // Threat reduction (round 119, user). Classic value — the tooltip is not in the archived Forever data [A84]. Patch
+    // 2026-10-16: Blessing of Salvation is now "Salvation", which no longer takes up a blessing (same key, old codes still load).
+    blessingOfSalvation: { on: false, id: 1038, name: 'Salvation',                   cls: 'Paladin', desc: '−30% threat', threatPct: 30 },
     powerInfusion:    { on: false, id: 10060, name: 'Power Infusion',                cls: 'Priest',  desc: '+20% spell damage for 15 s (3 min cooldown); cast on you when you pop your cooldowns', spellDmgPct: 20, duration: 15, cd: 180 },
   },
   // Consumables (data/consumables.js, loaded before this file). Only the per-build weapon oil is on by default. [A57]

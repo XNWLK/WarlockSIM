@@ -3,7 +3,7 @@
 (function () {
   function det() {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
-    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.weaponIsSword = false;
+    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.critPct -= 2;
     c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.combat.levelResist.on = false; c.options.includePetDamage = false;
     Object.keys(c.buffs).forEach(function (k) { c.buffs[k].on = false; });
     Object.keys(c.debuffs).forEach(function (k) { c.debuffs[k].on = false; });
@@ -40,7 +40,7 @@
     T.eq(WL.SPELLS.wrack.debuffSpells.slice().sort().join(','), 'baneOfAgony,baneOfDoom,corruption,siphonLife', 'affected spells: Corruption, Bane of Agony, Siphon Life, Bane of Doom (round 118)');
 
     T.group('reference builds (user, round 65); shown by default (round 66)');
-    var want = { sm_ruin_classic: '30/0/21', wrack_succubus: '40/0/11' };   // DS Ruin (22/11/18) taken off the sheet in round 110   // SM Ruin 33/0/18 until round 83
+    var want = { sm_ruin_classic: '30/0/21', wrack_succubus: '37/0/14' };   // round 149: Malediction's points moved (patch 2026-10-16)   // DS Ruin (22/11/18) taken off the sheet in round 110   // SM Ruin 33/0/18 until round 83
     Object.keys(want).forEach(function (k) {
       var bb = WL.BUILDS.filter(function (x) { return x.key === k; })[0];
       T.ok(!!bb && !('pinned' in bb), k + ' is on the sheet (no built-in pin flag since round 66)');

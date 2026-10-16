@@ -66,25 +66,24 @@ window.WL = window.WL || {};
         notes.push('The demon\'s spell power follows yours as it is at that moment: a Spellblasting potion or Blood Fury raises it.');
         return { title: ps.name, steps: steps, notes: notes, values: values };
       }
-      if ((pk === 'melee' || pk === 'windfury') && pc.melee) {
-        var m = pc.melee, tbm = cb.petMelee, WF = activeBuff(cfg, 'windfury'), extraAp = pk === 'windfury' && WF ? WF.windfury.ap : 0;
+      if (pk === 'melee' && pc.melee) {
+        var m = pc.melee, tbm = cb.petMelee;
         var hitBonus = Math.max(0, stats.hitPct - cb.baseHitPct - tbm.hitSuppressionPct), miss = Math.max(0, tbm.missPct - hitBonus);
         var critCh = Math.max(0, m.critPct + (m.inheritMeleeCrit ? stats.meleeCritPct : 0) - tbm.critSuppressionPct);
-        var ap = m.apPerSp * stats.sp, dps = m.baseDps + (ap + extraAp) / m.apPerDps, armor = WL.bossArmor(cfg), red = WL.armorReduction(cfg);
-        step('Attack power from you', f(stats.sp) + ' spell power ÷ 6' + (extraAp ? ' + ' + extraAp + ' Windfury Totem' : ''), f(ap + extraAp));
-        step('Damage per second', m.baseDps + ' base + ' + f(ap + extraAp) + ' ÷ ' + m.apPerDps, f(dps, 2));
+        var ap = m.apPerSp * stats.sp, dps = m.baseDps + ap / m.apPerDps, armor = WL.bossArmor(cfg), red = WL.armorReduction(cfg);
+        step('Attack power from you', f(stats.sp) + ' spell power ÷ 6', f(ap));
+        step('Damage per second', m.baseDps + ' base + ' + f(ap) + ' ÷ ' + m.apPerDps, f(dps, 2));
         step('Boss armor', f(cb.bossArmor, 0) + ' − armor debuffs = ' + f(armor, 0) + '; ' + f(armor, 0) + ' ÷ (' + f(armor, 0) + ' + 5,500)', f(red * 100, 2) + '% less');
         var mp = petMultParts('physical', false), sw = dps * m.swing * (1 - red) * partsMult(mp);
-        step('One normal ' + (extraAp ? 'extra attack' : 'swing'), f(dps, 2) + ' × ' + m.swing + ' s × (1 − ' + f(red, 4) + ')' + (mp.length ? ' × ' + partsText(mp) : ''), f(sw));
+        step('One normal swing', f(dps, 2) + ' × ' + m.swing + ' s × (1 − ' + f(red, 4) + ')' + (mp.length ? ' × ' + partsText(mp) : ''), f(sw));
         values.swing = sw; values.miss = miss; values.crit = critCh;
         step('Miss', tbm.missPct + '% − (your hit ' + f(stats.hitPct) + '% − ' + cb.baseHitPct + '% − ' + tbm.hitSuppressionPct + '%)', f(miss) + '%');
         step('Dodge', '', tbm.dodgePct + '%');
         step('Glancing blow', 'deals ' + tbm.glanceDmgPct + '% damage, cannot crit', tbm.glancePct + '% → ' + f(sw * tbm.glanceDmgPct / 100));
         step('Crit', m.critPct + '% own' + (m.inheritMeleeCrit ? ' + ' + f(stats.meleeCritPct, 2) + '% your melee crit' : '') + ' − ' + tbm.critSuppressionPct + '%; deals × 2', f(critCh, 2) + '% → ' + f(sw * 2));
         step('Normal hit', 'the rest', f(Math.max(0, 100 - miss - tbm.dodgePct - tbm.glancePct - critCh), 2) + '% → ' + f(sw));
-        notes.push('Master Demonologist and Curse of the Elements do not apply to melee. Your melee crit is 2% + Agility ÷ 20 (+ 2% Sword Specialization); crit on gear is spell crit and does not count.');
-        if (extraAp) notes.push('Each landed swing has a ' + WF.windfury.procPct + '% chance of one extra attack. It rolls on the same table, spends a Demonic Brand charge and cannot trigger another one.');
-        return { title: extraAp ? 'Windfury Totem extra attack' : pc.name + ' melee', steps: steps, notes: notes, values: values };
+        notes.push('Master Demonologist and Curse of the Elements do not apply to melee. Your melee crit is 2% + Agility ÷ 20 (+ 2% Ruthless for a Human, + 1% Savage for an Orc); crit on gear is spell crit and does not count.');
+        return { title: pc.name + ' melee', steps: steps, notes: notes, values: values };
       }
       if (pk === 'brand') {
         var db = cfg.demonicBrand, bb = (db.baseMin + db.baseMax) / 2, ssp = stats.sp + (stats.schoolSp.shadow || 0), bsch = build.pet === 'imp' ? 'fire' : 'shadow';
@@ -96,34 +95,18 @@ window.WL = window.WL || {};
         notes.push('A landed Searing Pain brands the boss for ' + db.duration + ' s with ' + tv('demonicBrand', 'charges') + ' charges. Every landed attack of your demon spends one charge and adds this hit (' + (bsch === 'fire' ? 'Fire' : 'Shadow') + '). It cannot miss or crit.');
         return { title: 'Demonic Brand', steps: steps, notes: notes, values: values };
       }
-      if (pk === 'flametongue' && pc.melee) {
-        var FT = activeBuff(cfg, 'flametongue'); if (!FT) return null;
-        var fb = FT.flametongue.per100 * pc.melee.swing / 100, fp = petMultParts('fire', false), fv = fb * partsMult(fp);
-        step('Base', f(FT.flametongue.per100, 0) + ' × ' + pc.melee.swing + ' s swing ÷ 100', f(fb, 2));
-        if (fp.length) step('Demon\'s damage bonuses (each multiplies)', partsText(fp), f(fv));
-        values.hit = fv;
-        if (hasCoe) { step('With Curse of the Elements on the boss', f(fv) + ' ' + x2(coe), f(fv * coe)); values.onBoss = fv * coe; }
-        step('A crit', 'your spell crit, ' + f(stats.critPct, 2) + '%, deals × ' + cb.critMultiplier, f((values.onBoss || fv) * cb.critMultiplier));
-        notes.push('Added to every landed swing. It has no spell power part, misses with your miss chance (' + f(100 - stats.hitPct) + '%) and spends no Demonic Brand charge.');
-        return { title: 'Flametongue Totem', steps: steps, notes: notes, values: values };
-      }
       return null;
     }
 
     // ---------- racial, items, Havoc, Life Tap ----------
     if (bk === 'touchOfTheGrave') {
       var tog = race.racials.filter(function (r) { return r.effect === 'proc'; })[0]; if (!tog) return null;
-      var tb0 = stats.maxHealth * tog.maxHealthPct / 100, ta = auraOf('shadow'), tval = tb0 * auraMult(ta);
-      step('Base', tog.maxHealthPct + '% of your ' + f(stats.maxHealth, 0) + ' maximum health', f(tb0));
-      if (ta.length) step('Your Shadow auras (each multiplies)', auraText(ta), f(tval));
-      values.hit = tval;
-      var tl = [];
-      if (hasCoe) tl.push([coe, 'Curse of the Elements']);
-      if (tv('improvedShadowBolt')) tl.push([1 + tv('improvedShadowBolt', 'debuffPct') / 100, 'Improved Shadow Bolt']);
-      if (tl.length) { step('With these on the target', partsText(tl), f(tval * partsMult(tl))); values.onBoss = tval * partsMult(tl); }
-      notes.push(tog.chancePct + '% chance on every landed cast of a damaging spell (a direct spell, a DoT when it is applied, a channel when it starts; never a tick). It heals you for the same amount.');
-      notes.push('It scales with Stamina, not with spell power. Shadow Mastery and Malediction do not apply; it cannot crit and is never resisted.' +
-        (tv('shadowAndFlame') || PI ? ' Also multiplied while up: ' + [tv('shadowAndFlame') ? 'Shadow and Flame × ' + (1 + tv('shadowAndFlame', 'schoolPct') / 100).toFixed(2) : '', PI ? PI.name + ' × ' + (1 + PI.spellDmgPct / 100).toFixed(2) : ''].filter(Boolean).join(', ') + '.' : ''));
+      var tb0 = stats.maxHealth * tog.maxHealthPct / 100;
+      step('Damage', tog.maxHealthPct + '% of your ' + f(stats.maxHealth, 0) + ' maximum health', f(tb0));
+      values.hit = tb0;
+      notes.push(tog.chancePct + '% chance on every landed cast of a damaging spell (a direct spell, a DoT when it is applied, a channel when it starts; never a tick)' +
+        (tog.icd ? ', then nothing for ' + tog.icd + ' s' : '') + '. It heals you for the same amount.');
+      notes.push('It scales with Stamina, not with spell power. Nothing raises it: no talent, no aura, no debuff on the target, no Power Infusion. It cannot crit and is never resisted.');
       return { title: 'Touch of the Grave', steps: steps, notes: notes, values: values };
     }
     if (bk === 'baneOfHavoc') {
@@ -154,7 +137,7 @@ window.WL = window.WL || {};
     var s = SPELLS[bk], e = table[bk];
     if (!s || !e) return null;
     if (s.kind === 'utility') {
-      if (bk === 'curseOfElements') notes.push('No damage of its own. On the target for ' + f(s.duration / 60, 0) + ' minutes: it takes ' + s.dmgTakenPct + '% more damage from your spells, your demon\'s spells, explosives and Touch of the Grave, and its resistance drops by ' + cb.coeResistReduction + '. It has to hit (' + f(100 - stats.hitPct) + '% miss).');
+      if (bk === 'curseOfElements') notes.push('No damage of its own. On the target for ' + f(s.duration / 60, 0) + ' minutes: it takes ' + s.dmgTakenPct + '% more damage from your spells, your demon\'s spells and explosives, and its resistance drops by ' + cb.coeResistReduction + '. It has to hit (' + f(100 - stats.hitPct) + '% miss).');
       else return null;
       return { title: s.name, steps: steps, notes: notes, values: values };
     }
@@ -187,8 +170,8 @@ window.WL = window.WL || {};
       if (periodic && s.drain && tv('soulSiphon') && !extra) o.push('Soul Siphon × 1.' + ('0' + tv('soulSiphon', 'perEffectPct')).slice(-2) + ' for each of Corruption, Bane of Agony, Bane of Doom, Siphon Life and Curse of the Elements on the target, at most × ' + (1 + tv('soulSiphon', 'maxPct') / 100).toFixed(2));
       var dec = !periodic && (WL.isShadowBolt(bk) || bk === 'searingPain') ? tv('decimation', 'dmgPct') : 0;
       if (dec) o.push('below ' + cfg.fight.executePct + '% boss health Decimation adds ' + dec + '% to the talent group: × ' + f((grp + dec / 100) / grp, 4));
-      var eu = race.racials.filter(function (r) { return r.effect === 'cooldown' && r.charges; })[0];
-      if (eu && (!periodic || s.kind === 'channel')) o.push('Eureka! adds ' + eu.dmgPct + '% to the talent group while it is up: × ' + f((grp + eu.dmgPct / 100) / grp, 4));
+      var eu = race.racials.filter(function (r) { return r.effect === 'cooldown' && r.dmgPct; })[0];
+      if (eu && (!periodic || s.kind === 'channel')) o.push('Eureka! adds ' + eu.dmgPct + '% to the talent group ' + (periodic ? 'for every tick that comes while it is up' : 'when the cast finishes while it is up') + ': × ' + f((grp + eu.dmgPct / 100) / grp, 4));
       return o;
     }
     var critParts = [f(stats.critPct, 2) + '% from your stats'];
@@ -215,7 +198,7 @@ window.WL = window.WL || {};
     }
     if (s.tickBase != null) {                  // ticks: a DoT, a channel, Immolate's burn
       var tbase = s.tickBase + s.tickCoef * e.sp, what = s.kind === 'hybrid' ? 'burn tick' : 'tick', once = e.ticks === 1;
-      var g1 = group([['Shadow Mastery', sm], ['Agonizing Flames', agf], ['Malediction', s.noMalediction ? 0 : tv('malediction', 'periodicPct')],
+      var g1 = group([['Shadow Mastery', sm], ['Agonizing Flames', agf],
         ['Improved Corruption', bk === 'corruption' ? tv('improvedCorruption', 'dmgPct') : 0], ['Improved Bane of Agony', bk === 'baneOfAgony' ? tv('improvedBaneOfAgony', 'dmgPct') : 0],
         ['Improved Drains', s.drain ? tv('improvedDrains', 'dmgPct') : 0]], e.op22);
       step(once ? 'Base' : 'Base of one ' + what, s.tickBase + ' + ' + s.tickCoef + ' × ' + f(e.sp), f(tbase));

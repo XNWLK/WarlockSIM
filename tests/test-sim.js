@@ -3,7 +3,7 @@
   function baseCfg() {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     c.combat.baseHitPct = 100; c.combat.maxHitPct = 100;
-    c.gear.critPct = 0; c.gear.hitPct = 0; c.gear.weaponIsSword = false; c.gear.sp = 500;
+    c.gear.critPct = 0; c.gear.hitPct = 0; c.gear.critPct -= 2; c.gear.sp = 500;
     c.options.useCurseOfElements = false; c.combat.levelResist.on = false; c.options.includePetDamage = false;
     return c;
   }

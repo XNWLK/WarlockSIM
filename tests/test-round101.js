@@ -3,7 +3,7 @@
 (function () {
   function det() {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
-    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.weaponIsSword = false;
+    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.critPct -= 2;
     c.gear.pierce = 0; c.gear.hastePct = 0; c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.combat.levelResist.on = false; c.options.includePetDamage = false;
     c.options.activesPolicy = 'pull';
     Object.keys(c.buffs).forEach(function (k) { c.buffs[k].on = false; });

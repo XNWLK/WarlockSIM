@@ -4,7 +4,7 @@
 (function () {
   function det(pol, f) {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
-    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.weaponIsSword = false;
+    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.critPct -= 2;
     c.gear.pierce = 0; c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.combat.levelResist.on = false; c.options.includePetDamage = false;
     c.options.activesPolicy = pol; c.consumables.majorSpellblasting.on = true; c.buffs.powerInfusion.on = true;
     if (f) f(c);
@@ -57,7 +57,7 @@
     var l = WL.simulateOnce(tb(DOOM), 'orc', det('doom'), { seed: 1, duration: 300, log: true });
     var rac = l.log.filter(function (e) { return e.type === 'racial'; }).map(function (e) { return e.t; });
     var pot = l.log.filter(function (e) { return e.type === 'consumable'; }).map(function (e) { return e.t; });
-    T.ok(rac.length === 2 && rac[1] - rac[0] >= 120 - 1e-6 && rac[1] - rac[0] < 124, 'Blood Fury again 2 min after the first use (' + rac.join(', ') + ')');
+    T.ok(rac.length === 2 && rac[1] - rac[0] >= 180 - 1e-6 && rac[1] - rac[0] < 184, 'Blood Fury again 3 min after the first use (' + rac.join(', ') + '; 2 min until the patch of 2026-10-16)');
     T.ok(pot.length === 2 && pot[1] - pot[0] >= 120 - 1e-6 && pot[1] - pot[0] < 124, 'potion again 2 min after the first use (' + pot.join(', ') + ')');
     T.near(l.uptime.powerInfusion, 30, 1e-6, 'Power Infusion at ~60 s and again 3 min later (2 × 15 s)');
 

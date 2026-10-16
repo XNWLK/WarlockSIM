@@ -8,7 +8,7 @@
   }
   function det(c) {
     c.combat.baseHitPct = 100; c.combat.maxHitPct = 100;
-    c.gear.critPct = 0; c.gear.hitPct = 0; c.gear.weaponIsSword = false; c.options.useCurseOfElements = true;
+    c.gear.critPct = 0; c.gear.hitPct = 0; c.gear.critPct -= 2; c.options.useCurseOfElements = true;
     return c;
   }
   function tb(rot, talents) { return { key: 't', name: 't', talents: talents || {}, pet: null, sacrifice: null, oil: 'none', rotation: rot }; }
@@ -32,12 +32,10 @@
     applies.forEach(function (t, i) { var end = Math.min(t + D, i + 1 < applies.length ? applies[i + 1] : Infinity, 120); expect += end - t; });
     T.near(r.uptime['dot:corruption'], expect, 1e-6, 'Corruption uptime = applications × duration, cut at refresh/fight end (' + expect.toFixed(2) + ' s)');
 
-    T.group('Eureka! charges and Power Infusion');
+    T.group('Eureka! and Power Infusion');
     var g = WL.simulateOnce(tb(['shadowBolt']), 'gnome', det(base()), { seed: 3, duration: 60, log: true });
-    var casts = g.log.filter(function (e) { return e.type === 'cast' && e.spell === 'shadowBolt'; });
-    // 3 charges, spent when casts #1, #2 and #3 start. Round 38: Eureka! is a live aura that lasts until the 3rd
-    // empowered cast has been cast, i.e. lands (was: until it starts) → pop … casts[2].t + its cast time.
-    T.near(g.uptime.eureka, casts[2].t + casts[2].castTime - casts[0].t, 1e-3, 'Eureka! active from the pop until the 3rd empowered cast lands (' + g.uptime.eureka.toFixed(2) + ' s)');
+    // Round 149 (patch 2026-10-16): an 8 s buff (rounds 38–148: until the 3rd empowered cast had landed).
+    T.near(g.uptime.eureka, 8, 1e-3, 'Eureka! is up for 8 s (' + g.uptime.eureka.toFixed(2) + ' s)');
     var cp = det(base()); cp.buffs.powerInfusion.on = true;
     var p = WL.simulateOnce(tb(['shadowBolt']), 'human', cp, { seed: 3, duration: 200, log: true });
     T.near(p.uptime.powerInfusion, 15 + 15, 1e-9, 'Power Infusion 15 s at 0 s and at 180 s in a 200 s fight');

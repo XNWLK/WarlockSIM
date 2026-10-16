@@ -1,10 +1,11 @@
 // Round 108 tests (user): Touch of the Grave (Undead) = 5% of your maximum health as Shadow damage. It scales with
-// Stamina and with every Shadow damage % (Improved Shadow Bolt, Curse of the Elements, your Shadow auras, …), never
-// with spell power, and it does not crit.
+// Stamina, never with spell power, and it does not crit. Round 149 (patch 2026-10-16): 30% chance with a 25 s cooldown, and
+// it no longer scales with any Shadow damage % (rounds 108–148: Improved Shadow Bolt, Curse of the Elements, your Shadow
+// auras, Power Infusion, … multiplied it).
 (function () {
   function det(f) {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
-    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.combat.baseCritPct = 0; c.gear.weaponIsSword = false;
+    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.combat.baseCritPct = 0; c.gear.critPct -= 2;
     c.gear.pierce = 0; c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.combat.levelResist.on = false; c.options.includePetDamage = false;
     c.options.activesPolicy = 'pull';
     Object.keys(c.buffs).forEach(function (k) { c.buffs[k].on = false; });
@@ -18,10 +19,10 @@
   function tog(r) { return r.log.filter(function (e) { return e.spell === 'touchOfTheGrave'; }); }
   function hp(b, c) { return WL.computeStats(b, 'undead', c).maxHealth; }
 
-  T.run('round 108: Touch of the Grave scales with Stamina and Shadow damage %', function () {
-    var rc = WL.RACES.undead.racials.filter(function (r) { return r.effect === 'proc'; })[0], keep = rc.chancePct;
-    T.eq([rc.name, keep, rc.maxHealthPct].join('/'), 'Touch of the Grave/10/5', 'Touch of the Grave: 10% chance, 5% of maximum health');
-    rc.chancePct = 100;                                  // every landed cast procs, so each hit can be checked (restored below)
+  T.run('round 108: Touch of the Grave scales with Stamina, nothing else', function () {
+    var rc = WL.RACES.undead.racials.filter(function (r) { return r.effect === 'proc'; })[0], keep = rc.chancePct, keepCd = rc.icd;
+    T.eq([rc.name, keep, rc.icd, rc.maxHealthPct].join('/'), 'Touch of the Grave/30/25/5', 'Touch of the Grave: 30% chance, 25 s cooldown, 5% of maximum health');
+    rc.chancePct = 100; rc.icd = 0;                      // every landed cast procs, so each hit can be checked (restored below)
     try {
       T.group('base, Stamina, spell power, crit');
       var c0 = det(), b0 = tb(['searingPain']), h0 = hp(b0, c0), base = Math.round(h0 * 0.05);
@@ -34,29 +35,25 @@
       var cC = det(function (c) { c.gear.critPct = 100; });
       T.ok(tog(run(b0, cC)).every(function (e) { return e.dmg === base && !e.crit; }), '100% crit: it does not crit');
 
-      T.group('Shadow damage %');
+      T.group('no Shadow damage % any more (patch 2026-10-16)');
       var cE = det(function (c) { c.options.useCurseOfElements = true; }), tE = tog(run(tb(['curseOfElements', 'searingPain']), cE));
-      T.ok(tE.length >= 10 && tE.every(function (e) { return e.dmg === Math.round(h0 * 0.05 * 1.10); }), 'Curse of the Elements on the boss: ×1.10 = ' + Math.round(h0 * 0.05 * 1.10));
-      var bI = tb(['shadowBolt'], { improvedShadowBolt: 5 }), rI = run(bI, cC, 60), tI = tog(rI);
+      T.ok(tE.length >= 10 && tE.every(function (e) { return e.dmg === base; }), 'Curse of the Elements on the boss: unchanged (' + base + ')');
+      var bI = tb(['shadowBolt'], { improvedShadowBolt: 5 }), rI = run(bI, cC, 60), tI = tog(rI), hI = Math.round(hp(bI, cC) * 0.05);
       var isbAt = rI.log.filter(function (e) { return e.type === 'debuff' && e.spell === 'isb'; })[0];
       var after = tI.filter(function (e) { return isbAt && e.t > isbAt.t + 1e-6 && e.t < isbAt.t + 11; });
-      T.ok(isbAt && after.length >= 2 && after.every(function (e) { return e.dmg === Math.round(hp(bI, cC) * 0.05 * 1.20); }), 'Improved Shadow Bolt 5/5 on the boss: ×1.20 = ' + Math.round(hp(bI, cC) * 0.05 * 1.20) + ' (' + after.length + ' procs checked)');
+      T.ok(isbAt && after.length >= 2 && after.every(function (e) { return e.dmg === hI; }), 'Improved Shadow Bolt 5/5 on the boss: unchanged (' + after.length + ' procs checked)');
       var bD = tb(['searingPain'], { demonicSacrifice: 1 }, { sacrifice: 'imp' }), tD = tog(run(bD, c0));
-      T.ok(WL.computeStats(bD, 'undead', c0).mult.shadow === 1.15 && tD.every(function (e) { return e.dmg === Math.round(hp(bD, c0) * 0.05 * 1.15); }), 'Demonic Sacrifice (Imp, +15% Shadow): ×1.15 = ' + Math.round(hp(bD, c0) * 0.05 * 1.15));
-      var bF = tb(['searingPain'], { demonicSacrifice: 1 }, { sacrifice: 'succubus' });
-      T.ok(WL.computeStats(bF, 'undead', c0).mult.fire === 1.15 && tog(run(bF, c0)).every(function (e) { return e.dmg === Math.round(hp(bF, c0) * 0.05); }), 'Demonic Sacrifice (Succubus, +15% Fire): nothing — it is Shadow damage');
-      var bM = tb(['searingPain'], { shadowMastery: 5, malediction: 5 });
-      T.ok(tog(run(bM, c0)).every(function (e) { return e.dmg === Math.round(hp(bM, c0) * 0.05); }), 'Shadow Mastery / Malediction (modifiers of your own spells): nothing');
+      T.ok(WL.computeStats(bD, 'undead', c0).mult.shadow === 1.15 && tD.every(function (e) { return e.dmg === Math.round(hp(bD, c0) * 0.05); }), 'Demonic Sacrifice (Imp, +15% Shadow): unchanged');
+      var bM = tb(['searingPain'], { shadowMastery: 5 });
+      T.ok(tog(run(bM, c0)).every(function (e) { return e.dmg === Math.round(hp(bM, c0) * 0.05); }), 'Shadow Mastery: unchanged');
       var cPI = det(function (c) { c.buffs.powerInfusion.on = true; }), tP = tog(run(b0, cPI));
-      T.ok(tP.some(function (e) { return e.t < 14 && e.dmg === Math.round(h0 * 0.05 * 1.20); }) && tP.some(function (e) { return e.t > 16 && e.dmg === base; }), 'Power Infusion (+20% damage for 15 s): ×1.20 while it is up, ' + base + ' after');
+      T.ok(tP.some(function (e) { return e.t < 14; }) && tP.every(function (e) { return e.dmg === base; }), 'Power Infusion: unchanged, also while it is up');
 
-      T.group('extra targets use their own debuffs');
-      // another Warlock keeps Curse of the Elements on the boss only; your DoTs also go on target 2, which has no curse
+      T.group('extra targets: the same value everywhere');
       var cX = det(function (c) { c.debuffs.coeOther.on = true; c.fight.targets = 2; c.fight.multiDot = true; });
       var rX = run(tb(['corruption', 'searingPain']), cX, 60), tx = tog(rX);
-      var vals = {}; tx.forEach(function (e) { vals[e.dmg] = 1; });
-      T.eq(Object.keys(vals).sort().join(','), [base, Math.round(h0 * 0.05 * 1.10)].join(','), 'two targets: ' + Math.round(h0 * 0.05 * 1.10) + ' on the boss (cursed), ' + base + ' on target 2 (not cursed)');
-    } finally { rc.chancePct = keep; }
-    T.eq(rc.chancePct, 10, 'proc chance restored');
+      T.ok(tx.length > 5 && tx.every(function (e) { return e.dmg === base; }), 'two targets, the boss cursed: ' + base + ' on both');
+    } finally { rc.chancePct = keep; rc.icd = keepCd; }
+    T.eq([rc.chancePct, rc.icd].join('/'), '30/25', 'proc chance and cooldown restored');
   });
 })();

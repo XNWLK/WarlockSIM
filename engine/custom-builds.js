@@ -146,6 +146,23 @@ WL.migrateRotation = function (rot) {
   return out;
 };
 
+// Talents a Forever patch removed (round 149): old build codes and saved builds still load. Malediction (patch of
+// 2026-10-16) became Grim Reach in the same place of the tree (2 ranks, range only): its points move there as far as they
+// fit, the rest are left unspent. → { talents, notes: [what was moved] }.
+WL.RETIRED_TALENTS = { malediction: { name: 'Malediction', to: 'grimReach' } };
+WL.migrateTalents = function (t) {
+  var out = {}, notes = [];
+  Object.keys(t || {}).forEach(function (k) { if (!WL.RETIRED_TALENTS[k] && +t[k]) out[k] = +t[k]; });
+  Object.keys(t || {}).forEach(function (k) {
+    var r = WL.RETIRED_TALENTS[k], n = +t[k] || 0; if (!r || !n) return;
+    var to = WL.TALENT_BY_KEY[r.to], m = Math.min(n, to.ranks - (out[r.to] || 0));
+    if (m > 0) out[r.to] = (out[r.to] || 0) + m;
+    notes.push(r.name + ' no longer exists: ' + (m > 0 ? m + ' of its ' + n + ' point' + (n > 1 ? 's' : '') + ' moved to ' + to.name : 'its ' + n + ' point' + (n > 1 ? 's are' : ' is') + ' unspent') +
+      (m > 0 && n > m ? ', ' + (n - m) + ' unspent' : ''));
+  });
+  return { talents: out, notes: notes };
+};
+
 WL.decodeBuild = function (code) {
   var s = String(code || '').replace(/\s+/g, '');
   if (s.indexOf(WL.BUILD_CODE_PREFIX) !== 0) throw new Error('Not a build code (it must start with ' + WL.BUILD_CODE_PREFIX + ')');
@@ -153,10 +170,13 @@ WL.decodeBuild = function (code) {
   try { o = JSON.parse(decodeURIComponent(escape(atob(s.slice(WL.BUILD_CODE_PREFIX.length))))); }
   catch (e) { throw new Error('The build code is damaged (could not be decoded)'); }
   if (!o || o.v !== 1 || typeof o.talents !== 'object') throw new Error('Unknown build-code version');
-  return { short: String(o.short || 'Custom build').slice(0, 40), talents: o.talents, pet: o.pet || null, sacrifice: o.sacrifice || null,
+  var mt = WL.migrateTalents(o.talents);
+  var b = { short: String(o.short || 'Custom build').slice(0, 40), talents: mt.talents, pet: o.pet || null, sacrifice: o.sacrifice || null,
            oil: o.oil || 'none', rotation: Array.isArray(o.rotation) ? WL.migrateRotation(o.rotation) : [],
            params: WL.cleanParams(o.p),
            timeline: Array.isArray(o.tl) ? o.tl.map(function (x) { return { t: +x[0], k: String(x[1]) }; }).filter(function (e) { return e.k !== 'shadowBoltR2'; }) : undefined };
+  if (mt.notes.length) b.migrated = mt.notes;                       // round 149: what a patch changed in this build
+  return b;
 };
 
 // Actions a user may put in a priority list (excludes test-only actions).

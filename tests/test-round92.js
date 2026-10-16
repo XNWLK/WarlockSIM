@@ -5,7 +5,7 @@
 (function () {
   function det(tl, f) {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
-    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.weaponIsSword = false;
+    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.critPct -= 2;
     c.gear.pierce = 0; c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.combat.levelResist.on = false; c.options.includePetDamage = false;
     c.options.activesPolicy = 'custom'; c.options.activesTimeline = tl;
     c.buffs.powerInfusion.on = true; c.consumables.majorSpellblasting.on = true;
@@ -34,12 +34,12 @@
     T.ok(near(pi[0], 10, 3.1) && near(pi[1], 200, 3.1) && pi.length === 2, 'Power Infusion placed at 10 and 200 s → ' + pi.join(', ') + ' s (held in between although ready at ' + (pi[0] + 180).toFixed(1) + ' s)');
 
     T.group('after its last placed use a cooldown is automatic again');
-    T.ok(rac.length === 3 && rac[1] - rac[0] >= 120 - 1e-6 && rac[1] - rac[0] < 124, 'Blood Fury again as soon as it is ready (' + rac.join(', ') + ' s)');
+    T.ok(rac.length === 2 && rac[1] - rac[0] >= 180 - 1e-6 && rac[1] - rac[0] < 184, 'Blood Fury again as soon as it is ready, 3 min later (' + rac.join(', ') + ' s)');
     T.ok(pot.length === 2 && pot[1] - pot[0] >= 120 - 1e-6 && pot[1] - pot[0] < 124, 'potion again as soon as it is ready (' + pot.join(', ') + ' s)');
 
     T.group('a use placed inside the cooldown waits for it');
     var b = WL.simulateOnce(tb(DOOM), 'orc', det({ racial: [30, 60] }), { seed: 1, duration: 300, log: true }), br = times(b, 'racial');
-    T.ok(near(br[0], 30, 3.1) && br[1] - br[0] >= 120 - 1e-6 && br[1] - br[0] < 124, 'second Blood Fury placed at 60 s fires when ready (' + br.join(', ') + ' s)');
+    T.ok(near(br[0], 30, 3.1) && br[1] - br[0] >= 180 - 1e-6 && br[1] - br[0] < 184, 'second Blood Fury placed at 60 s fires when ready (' + br.join(', ') + ' s)');
 
     T.group('cooldowns without a placed use: as usual');
     var u = WL.simulateOnce(tb(DOOM), 'orc', det({ racial: [30] }), { seed: 1, duration: 300, log: true });

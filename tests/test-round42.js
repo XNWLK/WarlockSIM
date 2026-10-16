@@ -1,9 +1,9 @@
 // Round 42 tests: trainer ranks by default + AQ20 book ranks option, damage = Wowhead Effect Value − 1 (SPELLVALUES.md),
-// pet melee attack table (glancing blows, crit suppression, inherits your hit), Eureka! 15 s cap, Soul Link on Demonic Brand.
+// pet melee attack table (glancing blows, crit suppression, inherits your hit), Eureka! 15 s cap (8 s since round 149), Soul Link on Demonic Brand.
 (function () {
   function det(f) {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
-    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.weaponIsSword = false;
+    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.critPct -= 2;
     c.gear.pierce = 0; c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.combat.levelResist.on = false;
     if (f) f(c);
     return c;
@@ -71,17 +71,16 @@
     var one = WL.simulateOnce(succ, 'human', c0, { seed: 4, duration: 120 }).bySpell['pet:melee'];
     T.ok(one.glances > 0 && one.glances <= one.landed - one.crits, 'glancing blows are never crits (' + one.glances + ' glances, ' + one.crits + ' crits, ' + one.landed + ' landed)');
 
-    T.group('Eureka! lasts at most 15 s (spell data, round 42)');
+    T.group('Eureka! lasts 8 s (patch 2026-10-16; 15 s cap in rounds 42–148); drain ticks after it lose the bonus');
     var gn = det(function (c) { c.fight.latencyMs = 800; });
     var eg = WL.simulateOnce(tb(['drainLife']), 'gnome', gn, { duration: 60, log: true });
     var ivs = (eg.auras && eg.auras.eureka) || [];
     T.ok(ivs.length > 0, 'the aura was used (' + ivs.map(function (v) { return v[0].toFixed(1) + '–' + v[1].toFixed(1); }).join(', ') + ')');
-    T.ok(ivs.every(function (v) { return v[1] - v[0] <= 15 + 1e-6; }), 'no Eureka! aura lasts longer than 15 s');
-    T.ok(eg.log.some(function (e) { return e.type === 'expire' && e.spell === 'eureka'; }), '3 Drain Life channels + 0.8 s latency run past 15 s → the aura expires (log "expire")');
+    T.ok(ivs.every(function (v) { return Math.abs(v[1] - v[0] - 8) < 1e-6; }), 'every Eureka! aura lasts 8 s');
     var lateTicks = eg.log.filter(function (e) { return e.type === 'tick' && e.spell === 'drainLife' && e.t > ivs[0][1] + 1e-6 && e.t < ivs[0][0] + 20; });
     var early = eg.log.filter(function (e) { return e.type === 'tick' && e.spell === 'drainLife' && e.t < ivs[0][1] - 1e-6 && !e.crit; })[0];
     T.ok(lateTicks.length > 0 && lateTicks.filter(function (e) { return !e.crit; }).every(function (e) { return Math.abs(e.dmg * 1.10 - early.dmg) <= 1.5; }),
-      'Drain Life ticks after the 15 s mark lose the +10% (' + lateTicks.length + ' ticks)');
+      'Drain Life ticks after the 8 s lose the +10%, also in a channel that is still going (' + lateTicks.length + ' ticks)');
 
     T.group('Soul Link on Demonic Brand (round 42)');
     var brand = function (t) {

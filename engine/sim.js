@@ -68,8 +68,6 @@ window.WL = window.WL || {};
     var R = { hit: WL.makeRng(seed0 ^ 0x1B873593), crit: WL.makeRng(seed0 ^ 0x85EBCA6B), proc: WL.makeRng(seed0 ^ 0xC2B2AE35),
               vuln: WL.makeRng(seed0 ^ 0x27D4EB2F), pet: WL.makeRng(seed0 ^ 0x165667B1),
               jow: WL.makeRng(seed0 ^ 0x3C6EF372),                                                     // Judgement of Wisdom (own stream, round 38)
-              wf: WL.makeRng(seed0 ^ 0x9E3779B9),                                                      // Windfury Totem: proc + the extra attack (own stream, round 124)
-              ft: WL.makeRng(seed0 ^ 0x7F4A7C15),                                                      // Flametongue Totem: hit + crit of its Fire hit (own stream, round 128)
               push: WL.makeRng(seed0 ^ 0x61C88647) };                                                  // damage taken / pushback (own stream, round 78)
     var dur = opt.duration || cfg.fight.duration, cb = cfg.combat;                                    // per-fight length [A56]
     var race = WL.RACES[raceKey];
@@ -84,7 +82,7 @@ window.WL = window.WL || {};
       mana: stats.maxMana, health: stats.maxHealth, shards: Infinity,                // soul shards never run out (round 118, user; 30 per fight before) [A25]
       busyUntil: 0, gcdReady: 0, lastRegen: 0,
       lastSpend: -Infinity, spendAt: null, innervateUntil: 0,   // 5-second rule (round 114): last mana spent, cast in progress, Innervate window
-      cds: {}, dots: {}, buffs: {}, channel: null, eurekaCharges: 0, eurekaPending: 0,
+      cds: {}, dots: {}, buffs: {}, channel: null,
       targetHpPct: 100,
     };
     var inst = 0, decideToken = 0;
@@ -118,6 +116,8 @@ window.WL = window.WL || {};
     };
     S.gcd = function () { return Math.max(cb.minGcd, cb.gcd / S.hasteFactor()); };                    // [A08]
     function racialOf(effect) { return race.racials.filter(function (r) { return r.effect === effect; })[0] || null; }
+    var EUREKA = (function () { var c = racialOf('cooldown'); return c && c.dmgPct ? c : null; })();   // Gnome
+    var TOG = racialOf('proc');                                                                          // Undead
 
     // ---------- aura tracking: uptime seconds (W4) and exact intervals for the fight-#1 timeline (W5) ----------
     // State only changes at events, so between two events every buff/DoT is either on or off until its expiry.
@@ -133,7 +133,6 @@ window.WL = window.WL || {};
       for (var d in S.dots) { var x = S.dots[d]; if (x.expires > prev + EPS) auraAdd(DOTK[d] || (DOTK[d] = 'dot:' + d), prev, Math.min(t, x.expires)); }
       for (var tj in S.xdots) for (var d2 in S.xdots[tj]) { var y = S.xdots[tj][d2]; if (y.expires > prev + EPS) auraAdd('dot' + tj + ':' + d2, prev, Math.min(t, y.expires)); }
       for (var tk in S.xdeb) for (var nm in S.xdeb[tk]) { var ex = S.xdeb[tk][nm]; if (ex > prev + EPS) auraAdd('deb' + tk + ':' + nm, prev, Math.min(t, ex)); }
-      if (eurekaUp()) auraAdd('eureka', prev, t);
     }
 
     // Spirit regeneration per second outside the 5-second rule: (base + per Spirit × Spirit) per 2 s, accrued continuously
@@ -169,29 +168,26 @@ window.WL = window.WL || {};
     }
 
     // ---------- damage ----------
-    // Eureka! (Gnome) is a live aura (user, round 38): +10% to your direct hits and channel ticks — round 80 (user, Forever
-    // patch): "Eureka! no longer benefits periodic effects at all. Channeled spells do not count as periodics." → DoT ticks
-    // (Corruption, Banes, Siphon Life, Immolate's burn) get nothing; rounds 38–79 they got +10% too — from the pop until the
-    // 3rd empowered spell has been cast (landed; a channel: ended).
-    // Nothing is snapshotted. Its mana discount still applies to those 3 casts. [A31]
-    // Round 42: the buff lasts at most 15 s (spell 1259821 "Duration 15 seconds"): an 'eurekaEnd' event at pop + 15 s
-    // removes unused charges and the aura (casts still in flight then land without it).
-    function eurekaUp() { return S.eurekaCharges > 0 || S.eurekaPending > 0; }
-    function eurekaRelease() { if (S.eurekaPending > 0) S.eurekaPending--; }
-    // Eureka!'s +10% is a talent-style spell modifier (spell 1259821: "Modifies Damage/Healing Done" + "Modifies Periodic
-    // Damage/Healing Done"), so it ADDS to the spell's own modifier group (op0 for hits, op22 for ticks) instead of
-    // multiplying on top (round 43, A68): factor = (1 + group + 10%) / (1 + group).
+    // Eureka! (Gnome). Patch 2026-10-16: an 8 s buff with no charges (S.buffs.eureka = when it ends; rounds 38–148: 3
+    // charges within 15 s). +10% damage and −10% mana cost for every damaging spell that FINISHES while it is up (user): a
+    // cast-time spell when its cast completes (pushback can push it out), an instant when it is cast — a projectile then
+    // lands with the bonus even after the buff is gone. A channel: its cost when it starts inside the buff, each tick that
+    // comes while the buff is up (assumption). DoT ticks never (round 80: "Eureka! no longer benefits periodic effects").
+    // [A31][A93] Its +10% is a talent-style spell modifier (spell 1259821: "Modifies Damage/Healing Done" + "Modifies
+    // Periodic Damage/Healing Done"), so it ADDS to the spell's own modifier group (op0 for hits, op22 for ticks) instead
+    // of multiplying on top (round 43, A68): factor = (1 + group + 10%) / (1 + group).
+    function eurekaAt(key, t) { var k = SPELLS[key].kind; return !!EUREKA && k !== 'utility' && k !== 'dot' && S.buffs.eureka != null && S.buffs.eureka > t + EPS; }   // not curses, not DoTs ("non-periodic damaging abilities", live tooltip)
     function eurekaMult(key, periodic) {
-      var cd = racialOf('cooldown');
-      if (!(cd && cd.charges && eurekaUp())) return 1;
-      if (periodic && SPELLS[key].kind !== 'channel') return 1;                          // DoT ticks: no bonus (round 80) [A31]
       var e = table[key], g = e ? (periodic ? e.op22 : e.op0) || 0 : 0;
-      return (1 + g + cd.dmgPct / 100) / (1 + g);
+      return (1 + g + EUREKA.dmgPct / 100) / (1 + g);
     }
+    function eurekaTick(key, periodic) { return periodic && SPELLS[key].kind === 'channel' && eurekaAt(key, S.t) ? eurekaMult(key, true) : 1; }
+    // When a cast of `key` started now would finish: a channel counts from its start (its cost is paid then).
+    function finishesAt(key) { return S.t + (SPELLS[key].kind === 'channel' ? 0 : S.castTime(key)); }
     // Additive spell-modifier bonus applied live (Decimation, round 43): (1 + group + pct) / (1 + group).
     function addOp0(key, pct) { var g = (table[key] && table[key].op0) || 0; return (1 + g + pct / 100) / (1 + g); }
     function liveMult(key, periodic) {
-      var s = SPELLS[key], m = eurekaMult(key, periodic);
+      var s = SPELLS[key], m = eurekaTick(key, periodic);
       if (S.buff('coe')) m *= 1 + SPELLS.curseOfElements.dmgTakenPct / 100;                          // [A34]
       if (PI && S.buff('powerInfusion')) m *= 1 + PI.spellDmgPct / 100;                                    // Power Infusion
       if (s.school === 'shadow' && S.buff('isb')) m *= 1 + tv('improvedShadowBolt', 'debuffPct') / 100;  // [A20]
@@ -210,8 +206,6 @@ window.WL = window.WL || {};
     var armorRed = WL.armorReduction(cfg);
     var buffList = WL.activeBuffs(cfg);
     var PI = buffList.filter(function (b) { return b.spellDmgPct; })[0] || null;
-    var WF = (buffList.filter(function (b) { return b.windfury; })[0] || {}).windfury || null;       // Windfury Totem for pet melee (round 124)
-    var FT = (buffList.filter(function (b) { return b.flametongue; })[0] || {}).flametongue || null; // Flametongue Totem for pet melee (round 128)
     var manaBuffs = buffList.filter(function (b) { return b.tide || b.innervate; }).map(function (b) { return { b: b, used: false }; });
     // ---------- health (round 119, user) [A83] ----------
     // Your health starts full. It pays for Life Tap (430), Hellfire's ticks on yourself, the Demonic Rune (800) and the Goblin
@@ -235,9 +229,9 @@ window.WL = window.WL || {};
     function healthOk(k) { var s = SPELLS[k]; return !s || !s.selfDamage || S.health + healsDue(S.t + s.duration) > selfTick(k) * table[k].ticks; }
     // ---------- threat (round 119, user) [A84] ----------
     // 1 damage = 1 threat, Searing Pain twice that ("a high amount of threat"; less with Demonic Brand), all of it reduced by
-    // Suppression (4% per point) and by Blessing of Salvation / Tranquil Air Totem (they multiply). Your pet's damage is the
+    // Suppression (4% per point) and by Salvation (they multiply; Tranquil Air Totem until round 149). Your pet's damage is the
     // pet's threat, not yours. Not counted: threat from healing yourself, from mana gains and from applying curses.
-    // Threat buffs of one `group` do not stack (round 125, user: Blessing of Salvation / Tranquil Air Totem): the biggest counts.
+    // Threat buffs of one `group` do not stack (round 125, user: Blessing of Salvation / Tranquil Air Totem; none share one now).
     var THREAT_BUFFS = (function () {
       var m = 1, best = {};
       buffList.forEach(function (b) { if (!b.threatPct) return; if (b.group) best[b.group] = Math.max(best[b.group] || 0, b.threatPct); else m *= 1 - b.threatPct / 100; });
@@ -538,7 +532,7 @@ window.WL = window.WL || {};
     // Your own buffs apply there (Eureka!, Power Infusion, Shadow and Flame) plus that target's own Curse of the Elements
     // and Improved Shadow Bolt; the boss's debuffs and channel-based effects (Wrack, Soul Siphon) do not.
     function liveMultX(key, ti, periodic) {
-      var s = SPELLS[key], m = eurekaMult(key, periodic);
+      var s = SPELLS[key], m = eurekaTick(key, periodic);
       if (S.xDebLeft(ti, 'coe') > 0) m *= 1 + SPELLS.curseOfElements.dmgTakenPct / 100;
       if (s.school === 'shadow' && S.xDebLeft(ti, 'isb') > 0) m *= 1 + tv('improvedShadowBolt', 'debuffPct') / 100;
       if (PI && S.buff('powerInfusion')) m *= 1 + PI.spellDmgPct / 100;
@@ -553,7 +547,7 @@ window.WL = window.WL || {};
     }
     function periodicTickX(ti, key, snap, i) {
       var s = SPELLS[key], e = table[key], rk = xkey(ti, key);
-      var amt = (s.tickBase * (snap.baseMult || 1) + s.tickCoef * spNow(e)) * e.periodicMult * liveMultX(key, ti, true) * (snap.eureka || 1);
+      var amt = (s.tickBase * (snap.baseMult || 1) + s.tickCoef * spNow(e)) * e.periodicMult * liveMultX(key, ti, true);
       if (s.ramp) amt *= s.ramp[i];
       amt *= vulnMult(s.school, ti);
       var crit = R.crit() * 100 < e.critPct;
@@ -575,7 +569,7 @@ window.WL = window.WL || {};
         return true;
       }
       if (s.kind === 'hybrid' || s.kind === 'direct') {                   // Immolate's direct part / a direct spell
-        var amt = (s.base + s.coef * spNow(e)) * e.directMult * liveMultX(key, ti, false) * (eureka || 1);
+        var amt = (s.base + s.coef * spNow(e)) * e.directMult * liveMultX(key, ti, false) * (eureka ? eurekaMult(key, false) : 1);
         var execute = S.targetHpPct < cfg.fight.executePct;               // extra targets follow the boss's health line [A24]
         if ((isSB(key) || key === 'searingPain') && execute && tv('decimation')) {
           amt *= addOp0(key, tv('decimation', 'dmgPct')); S.buffs.decimation = S.t + 10;   // additive spell mod (round 43)
@@ -587,19 +581,19 @@ window.WL = window.WL || {};
         if (logOn) L('hit', rk, Object.assign({ dmg: Math.round(amt), crit: crit }, vulnLog(amt)));
         if (isSB(key) && crit && tv('improvedShadowBolt')) { S.xdeb[ti].isb = S.t + 12; L('debuff', xkey(ti, 'isb')); }
       }
-      if (s.kind !== 'direct') { applyDotX(ti, key, makeSnap(key, eureka, baseMult)); L('apply', rk); }
+      if (s.kind !== 'direct') { applyDotX(ti, key, makeSnap(baseMult)); L('apply', rk); }
       touchOfTheGrave(ti);                                                // any landed damaging cast, as on the boss [A29]
       return true;
     }
 
     // baseMult scales only the spell's base value, not its spell-power part (Amplify Curse, A52).
-    function makeSnap(key, eureka, baseMult) {
-      return { eureka: eureka, baseMult: baseMult || 1 };   // what belongs to this cast; spell power and crit are read live per tick (round 96) [A13]
+    function makeSnap(baseMult) {
+      return { baseMult: baseMult || 1 };   // what belongs to this cast; spell power and crit are read live per tick (round 96) [A13]
     }
 
     function periodicTick(key, snap, i, isChannel) {
       var s = SPELLS[key], e = table[key];
-      var amt = (s.tickBase * (snap.baseMult || 1) + s.tickCoef * spNow(e)) * e.periodicMult * liveMult(key, true) * (snap.eureka || 1);
+      var amt = (s.tickBase * (snap.baseMult || 1) + s.tickCoef * spNow(e)) * e.periodicMult * liveMult(key, true);
       if (s.ramp) amt *= s.ramp[i];                                                                     // [A15]
       amt *= vulnMult(s.school);
       var crit = R.crit() * 100 < e.critPct;                                                               // [A07]
@@ -643,10 +637,10 @@ window.WL = window.WL || {};
         jowProc(false);                                                                                   // [A64]
         return true;
       }
-      if (s.kind === 'dot') { applyDot(key, makeSnap(key, eureka, baseMult)); L('apply', key); touchOfTheGrave(); jowProc(false); return true; }
+      if (s.kind === 'dot') { applyDot(key, makeSnap(baseMult)); L('apply', key); touchOfTheGrave(); jowProc(false); return true; }
       // direct or hybrid
       var sp = spNow(e);
-      var amt = (s.base + s.coef * sp) * e.directMult * liveMult(key, false) * (eureka || 1);
+      var amt = (s.base + s.coef * sp) * e.directMult * liveMult(key, false) * (eureka ? eurekaMult(key, false) : 1);   // eureka: the cast finished inside Eureka!
       if (key === 'incinerate' && S.dotLeft('immolate') > 0) amt *= 1 + s.immolateBonusPct / 100;
       var execute = S.targetHpPct < cfg.fight.executePct;
       if ((isSB(key) || key === 'searingPain') && execute && tv('decimation')) {              // [A23]
@@ -670,7 +664,7 @@ window.WL = window.WL || {};
         S.buffs.snfFire = S.t + 20;
         if (R.proc() * 100 < tv('shadowAndFlame', 'procPct')) { S.shards++; L('refund', 'soulShard'); }
       }
-      if (s.kind === 'hybrid') applyDot(key, makeSnap(key, eureka, baseMult));
+      if (s.kind === 'hybrid') applyDot(key, makeSnap(baseMult));
       touchOfTheGrave();
       jowProc(false);                                                                                     // [A64]
       return true;
@@ -688,22 +682,15 @@ window.WL = window.WL || {};
     // Touch of the Grave (Undead) [A29]: rolls once per landed cast of a spell with a damage component — direct spells,
     // DoTs and channels on cast, never on periodic ticks, never on curses / Life Tap (beta build 2026-09-24, S12:
     // "Shadow Word: Pain activates it on cast, but not on periodic damage"). Before round 30: direct casts only.
-    // Damage (round 108, user): 5% of your maximum health — so it scales with Stamina — times every Shadow damage %:
-    // your Shadow auras (Demonic Sacrifice, Master Demonologist, Soul Link) and, on the target it hits, Improved Shadow
-    // Bolt and Curse of the Elements, plus Shadow and Flame and Power Infusion. No spell power, no talent spell
-    // modifiers (Shadow Mastery lists its own spells), no crit, no resist / Spell Pierce roll. `ti` > 1 = an extra target.
-    function togMult(ti) {
-      var x = ti > 1, m = (stats.mult.shadow || 1) * stats.mult.all;
-      if (x ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe')) m *= 1 + SPELLS.curseOfElements.dmgTakenPct / 100;
-      if (x ? S.xDebLeft(ti, 'isb') > 0 : S.buff('isb')) m *= 1 + tv('improvedShadowBolt', 'debuffPct') / 100;
-      if (PI && S.buff('powerInfusion')) m *= 1 + PI.spellDmgPct / 100;
-      if (S.buff('snfShadow')) m *= 1 + tv('shadowAndFlame', 'schoolPct') / 100;
-      return m;
-    }
+    // Damage: 5% of your maximum health — so it scales with Stamina. Patch 2026-10-16: nothing multiplies it any more (it
+    // "no longer scales with Shadow increases on the target or the caster"; Power Infusion neither, user) — rounds 108–148
+    // your Shadow auras, Improved Shadow Bolt, Curse of the Elements, Shadow and Flame and Power Infusion did. 30% chance
+    // (was 10%), then 25 s internal cooldown (no roll while it runs). No spell power, no crit, no resist / Spell Pierce
+    // roll. `ti` > 1 = an extra target. [A29][A93]
     function touchOfTheGrave(ti) {
-      var tog = racialOf('proc');
-      if (tog && R.proc() * 100 < tog.chancePct) {
-        var td = stats.maxHealth * tog.maxHealthPct / 100 * togMult(ti);
+      if (TOG && !(S.togReady > S.t + EPS) && R.proc() * 100 < TOG.chancePct) {
+        S.togReady = S.t + (TOG.icd || 0);
+        var td = stats.maxHealth * TOG.maxHealthPct / 100;
         deal('touchOfTheGrave', td, false, false, ti > 1 ? ti : undefined); row('touchOfTheGrave').casts++;
         L('hit', 'touchOfTheGrave', { dmg: Math.round(td) });
       }
@@ -712,14 +699,14 @@ window.WL = window.WL || {};
     // ---------- casting ----------
     function effectiveCost(key) {
       var c = table[key].cost;
-      if (S.eurekaCharges > 0 && SPELLS[key].kind !== 'utility') c *= 1 - racialOf('cooldown').costRedPct / 100; // [A31]
+      if (eurekaAt(key, finishesAt(key))) c *= 1 - EUREKA.costRedPct / 100;                // [A31][A93]
       return c;
     }
 
     // Cost if Eureka! were popped now (used to decide whether popping racials is worthwhile before this cast).
     function discountedCost(key) {
       var cd = racialOf('cooldown'), c = table[key].cost;
-      if (cd && cd.costRedPct && (S.eurekaCharges > 0 || S.ready('racial'))) c *= 1 - cd.costRedPct / 100;
+      if (cd && cd.costRedPct && (S.buff('eureka') || S.ready('racial'))) c *= 1 - cd.costRedPct / 100;
       return c;
     }
 
@@ -730,11 +717,7 @@ window.WL = window.WL || {};
       var paid = effectiveCost(key);
       S.mana -= paid;
       if (paid > 0) { if (castT > EPS && s.kind !== 'channel') S.spendAt = S.t + castT; else S.lastSpend = S.t; }   // 5-second rule (round 114)
-      // Eureka!: a damaging cast spends a charge; the aura stays up until this cast lands (channel: ends). The damage bonus
-      // is applied live (liveMult), so `eureka` passed on below is always 1 now (round 38; was a snapshot multiplier).
-      var eureka = 1;
-      var eurekaUsed = false;
-      if (S.eurekaCharges > 0 && s.kind !== 'utility') { S.eurekaCharges--; S.eurekaPending++; eurekaUsed = true; }
+      var eurekaCast = eurekaAt(key, finishesAt(key));                   // Eureka! counts this cast (its cost is already cut)
       // Amplify Curse: off the GCD, next Bane of Agony +50%; 3 min cooldown. [A52] Its aura is "Modifies Spell
       // Effectiveness" (spell 18288), which scales the base value only — the spell-power part is not amplified (user, round 25).
       var baseMult = 1;
@@ -750,20 +733,19 @@ window.WL = window.WL || {};
       row(rk).casts++;
       S.minManaCheck();
       L('cast', rk, { castTime: +castT.toFixed(3), gcd: +gcdT.toFixed(3), channel: s.kind === 'channel' ? s.duration : undefined,
-                       eureka: eurekaUsed || undefined, trance: instantTrance || undefined, timeline: fromTL || undefined });
+                       eureka: eurekaCast || undefined, trance: instantTrance || undefined, timeline: fromTL || undefined });
 
       S.cast = null;
       if (s.kind === 'channel') {
         var r = row(key);
         if (!s.aoe && R.hit() * 100 >= stats.hitPct) {                    // area channels always start; their ticks roll per target (round 100)
-          if (eurekaUsed) eurekaRelease();
           r.misses++; L('miss', key); if (fromTL) TL.turn = true; S.busyUntil = S.t; S.gcdReady = S.t + gcdT; scheduleDecide(S.gcdReady); return;
         }
         r.landed++;
         touchOfTheGrave();                                                // on cast, not on the channel's ticks [A29]
         jowProc(false);                                                   // [A64]
         var id = ++inst;
-        S.channel = { key: key, inst: id, snap: makeSnap(key, eureka), start: S.t, end: S.t + s.duration, eurekaHeld: eurekaUsed, tl: !!fromTL, idx: actIdx };   // timeline channels run to the end
+        S.channel = { key: key, inst: id, snap: makeSnap(), start: S.t, end: S.t + s.duration, tl: !!fromTL, idx: actIdx };   // timeline channels run to the end
         for (var i = 1; i <= e.ticks; i++) H.push({ t: S.t + i * s.tickEvery, o: 0, type: 'chanTick', key: key, inst: id, i: i - 1 });
         S.busyUntil = S.t + s.duration; S.gcdReady = S.t + gcdT;
         r.castTime += s.duration;
@@ -772,17 +754,16 @@ window.WL = window.WL || {};
         S.busyUntil = S.t + castT; S.gcdReady = S.t + gcdT;
         row(rk).castTime += castT;
         // projectiles land `TRAVEL` s after the cast ends (round 39; the caster is free at cast end)
-        var ce = { t: S.busyUntil + (s.projectile ? TRAVEL : 0), o: 1, type: 'castEnd', key: key, eureka: eureka, baseMult: baseMult, target: target, eurekaHeld: eurekaUsed, tl: fromTL };
+        var ce = { t: S.busyUntil + (s.projectile ? TRAVEL : 0), o: 1, type: 'castEnd', key: key, baseMult: baseMult, target: target, tl: fromTL };
         H.push(ce);
         S.cast = { key: key, rk: rk, full: castT, end: S.busyUntil, ev: ce, n: 0 };     // pushback (round 78)
         scheduleDecide(Math.max(S.busyUntil, S.gcdReady));
       } else {
         S.busyUntil = S.t; S.gcdReady = S.t + gcdT;
         row(rk).castTime += gcdT;
-        if (s.projectile && TRAVEL > EPS) H.push({ t: S.t + TRAVEL, o: 1, type: 'castEnd', key: key, eureka: eureka, baseMult: baseMult, target: target, eurekaHeld: eurekaUsed, tl: fromTL });
+        if (s.projectile && TRAVEL > EPS) H.push({ t: S.t + TRAVEL, o: 1, type: 'castEnd', key: key, baseMult: baseMult, target: target, tl: fromTL });
         else {
-          if (!land(key, eureka, baseMult, target) && fromTL) TL.turn = true;
-          if (eurekaUsed) eurekaRelease();                              // instant: the aura part of this cast ends now
+          if (!land(key, eurekaAt(key, S.t), baseMult, target) && fromTL) TL.turn = true;
         }
         scheduleDecide(S.gcdReady);
       }
@@ -807,7 +788,8 @@ window.WL = window.WL || {};
     }
 
     // Eureka! (Gnome): once the cooldown setting allows it (activesOk), it is popped right before a long cast — a direct
-    // spell or channel of ≥ 1.4 s — so none of its 3 charges goes to a DoT or an instant, which get nothing from it.
+    // spell or channel of ≥ 1.4 s — so its 8 s are not started on a DoT or an instant (rounds 42–148: none of its 3
+    // charges went to one).
     // Round 88 (user): its own pop-timing option (rounds 38–87: 'any' / 'long' / 'doom') is gone — Eureka! no longer
     // affects DoTs at all (round 80), so there is nothing left to time separately. [A31]
     function eurekaPopOk(key) {
@@ -817,14 +799,11 @@ window.WL = window.WL || {};
     function useRacials(key) {
       var cd = racialOf('cooldown');
       if (!cd || !S.ready('racial')) return false;
-      if (cd.charges && key && !eurekaPopOk(key)) return false;
+      if (cd === EUREKA && key && !eurekaPopOk(key)) return false;
       S.cds.racial = S.t + cd.cd;
       if (cd.spPct) S.buffs.bloodFury = S.t + cd.duration;
       if (cd.hastePct) S.buffs.berserking = S.t + cd.duration;
-      if (cd.charges) {
-        S.eurekaCharges = cd.charges; S.eurekaPending = 0;
-        if (cd.duration) H.push({ t: S.t + cd.duration, o: 0, type: 'eurekaEnd', pop: S.cds.racial });   // 15 s cap (round 42)
-      }
+      if (cd === EUREKA) S.buffs.eureka = S.t + cd.duration;                 // 8 s (patch 2026-10-16) [A93]
       L('racial', cd.name);
       return true;
     }
@@ -906,16 +885,14 @@ window.WL = window.WL || {};
       if (sp.cast) { H.push({ t: S.t + sp.cast + (sp.projectile ? TRAVEL : 0), o: 1, type: 'petLand', gen: P.gen }); H.push({ t: S.t + sp.cast, o: 2, type: 'petAct', gen: P.gen }); }
       else { petSpellHit(sp); H.push({ t: P.lashReady || S.t + 1.5, o: 2, type: 'petAct', gen: P.gen }); }
     }
-    // Windfury Totem (round 124, user; A85): pets with a melee attack benefit. Each landed swing has a chance of one extra
-    // attack with extra attack power, at once, on the same attack table. The extra attack is a full pet attack: if it
-    // lands it spends a Demonic Brand charge too (user) and can trigger Judgement of Wisdom; it cannot trigger another
-    // extra attack. Its own damage row ('pet:windfury') and its own random stream, so nothing else moves.
+    // Windfury Totem (extra attacks) and Flametongue Totem (a Fire hit per swing) were here in rounds 124–148; since the
+    // patch of 2026-10-16 they only affect players (user). [A93]
     function petSwing() {
       if (S.t >= dur - EPS) return;
-      if (petMeleeAttack('pet:melee', R.pet() * 100, 0) && WF && R.wf() * 100 < WF.procPct) petMeleeAttack('pet:windfury', R.wf() * 100, WF.ap);
+      petMeleeAttack('pet:melee', R.pet() * 100);
       H.push({ t: S.t + P.c.melee.swing, o: 0, type: 'petSwing', gen: P.gen });
     }
-    function petMeleeAttack(rk, roll, extraAp) {         // one swing; true if it landed
+    function petMeleeAttack(rk, roll) {                  // one swing; true if it landed
       var m = P.c.melee, r = row(rk), tb = cb.petMelee;
       r.casts++;
       // One-roll attack table (round 42) [A46]: miss (8% − your hit above base, first 1% ignored) → dodge 6.5% →
@@ -926,41 +903,18 @@ window.WL = window.WL || {};
       if (roll >= miss + tb.dodgePct) {
         r.landed++;
         jowProc(true);                                                   // [A64]
-        var dps = m.baseDps + (m.apPerSp * warlockSpNow() + extraAp) / m.apPerDps;                      // [A46] own AP rule; + Windfury's attack power
+        var dps = m.baseDps + m.apPerSp * warlockSpNow() / m.apPerDps;                                  // [A46] own AP rule
         var amt = dps * m.swing * (1 - armorRed) * petMult('physical');                                  // [A54] boss armor − debuffs
         var glance = roll < miss + tb.dodgePct + tb.glancePct;
         var crit = !glance && roll < miss + tb.dodgePct + tb.glancePct + critCh;
         if (glance) { amt *= tb.glanceDmgPct / 100; r.glances++; }
         if (crit) amt *= 2;
         deal(rk, amt, crit, false);
-        if (extraAp) L('pet', rk, { dmg: Math.round(amt), crit: crit });
         brandProc();
-        if (FT) flametongueHit();
         return true;
       }
       r.misses++; return false;
     }
-    // Flametongue Totem (round 128, user; A88): pets with a melee attack benefit. Every landed swing — glancing blows too
-    // ("each main hand hit") — adds a Fire hit of
-    // per100 × attack speed / 100 (Rank 4: 1363 → 27.3 for a 2.0 s swing). No spell power part (triggered spell 16368).
-    // Treated as a spell of the pet, like Firebolt and Lash of Pain: it can miss (your hit chance) and crit (your crit,
-    // ×1.5) and takes the pet's damage modifiers and Curse of the Elements. It is not an attack: no Demonic Brand charge,
-    // no Judgement of Wisdom. Its own damage row ('pet:flametongue') and its own random stream, so nothing else moves.
-    // Round 131 (user): it no longer stacks with Windfury Totem — WL.activeBuffs lets only one of the two through, so FT
-    // and WF are never both set from the buff list. (A Windfury extra attack would still carry a Fire hit: it is a landed
-    // main hand hit like any other; only a hand-made setup without the `excl` tags gets there.)
-    function flametongueHit() {
-      var r = row('pet:flametongue');
-      r.casts++;
-      if (R.ft() * 100 >= stats.hitPct) { r.misses++; L('miss', 'pet:flametongue'); return; }
-      r.landed++;
-      var amt = FT.per100 * P.c.melee.swing / 100 * petMult('fire');
-      var crit = R.ft() * 100 < stats.critPct;
-      if (crit) amt *= cb.critMultiplier;
-      deal('pet:flametongue', amt, crit, false);
-      L('pet', 'pet:flametongue', { dmg: Math.round(amt), crit: crit });
-    }
-
     // ---------- mid-fight pet swap (round 35, A63) ----------
     // At execute: Demonic Sacrifice on the active pet (off the GCD; its buff replaces the old sacrifice buff), Fel
     // Domination (off the GCD), summon the other demon (10 s − 6 s Fel Domination − 2/4 s Master Summoner; one GCD).
@@ -1227,7 +1181,7 @@ window.WL = window.WL || {};
       row(PRE).casts++; row(PRE).castTime += preGcd;
       S.minManaCheck();
       L('cast', PRE, { castTime: 0, gcd: +preGcd.toFixed(3), precast: +preCast.toFixed(3) });
-      H.push({ t: SPELLS[PRE].projectile ? TRAVEL : 0, o: -1, type: 'castEnd', key: PRE, eureka: 1, baseMult: 1, target: 0 });
+      H.push({ t: SPELLS[PRE].projectile ? TRAVEL : 0, o: -1, type: 'castEnd', key: PRE, baseMult: 1, target: 0 });
       decideToken++; H.push({ t: preGcd + LAT, o: 2, type: 'decide', token: decideToken });   // your next cast: after the GCD and your reaction time, as after every cast
     } else scheduleDecide(0);
     if (HEAL) for (var ht = HEAL.every; ht < dur - EPS; ht += HEAL.every) H.push({ t: ht, o: 0, type: 'heal' });
@@ -1248,10 +1202,8 @@ window.WL = window.WL || {};
         decide();
       } else if (ev.type === 'castEnd') {
         if (ev.dead) continue;                                // pushed back: a later copy of this event lands it (round 78)
-        if (!land(ev.key, ev.eureka, ev.baseMult, ev.target) && ev.tl && TL) TL.turn = true;   // missed timeline cast → priority turn
-        if (ev.eurekaHeld) eurekaRelease();                   // Eureka!'s aura part of this cast ends when it lands
-      } else if (ev.type === 'eurekaEnd') {                    // 15 s after the pop (round 42)
-        if (ev.pop === S.cds.racial && eurekaUp()) { S.eurekaCharges = 0; S.eurekaPending = 0; L('expire', 'eureka'); }
+        var fin = ev.t - (SPELLS[ev.key].projectile && TRAVEL > EPS ? TRAVEL : 0);   // when the cast finished (a projectile flies on)
+        if (!land(ev.key, eurekaAt(ev.key, fin), ev.baseMult, ev.target) && ev.tl && TL) TL.turn = true;   // missed timeline cast → priority turn
       } else if (ev.type === 'mana') {
         var before = S.mana; S.mana = Math.min(stats.maxMana, S.mana + ev.amount); res.manaFromBuffs = (res.manaFromBuffs || 0) + (S.mana - before);
         L('mana', ev.src, { gain: Math.round(S.mana - before) });
@@ -1285,7 +1237,6 @@ window.WL = window.WL || {};
       } else if (ev.type === 'chanEnd') {                      // a channel shortened by pushback ends (round 78)
         var ch = S.channel;
         if (!ch || ch.inst !== ev.inst || ch.end > S.t + EPS) continue;
-        if (ch.eurekaHeld) eurekaRelease();
         S.channel = null;
       } else if (ev.type === 'chanTick') {
         var c = S.channel;
@@ -1293,15 +1244,13 @@ window.WL = window.WL || {};
         if (ev.t > c.end + EPS) continue;                     // cut off by pushback (round 78); chanEnd closes the channel
         if (SPELLS[ev.key].aoe) aoeTick(ev.key, ev.i); else periodicTick(ev.key, c.snap, ev.i, true);
         var last = ev.i === table[ev.key].ticks - 1;
-        if (last) { if (c.eurekaHeld) eurekaRelease(); S.channel = null; continue; }
+        if (last) { S.channel = null; continue; }
         if (SPELLS[ev.key].selfDamage && S.health <= selfTick(ev.key)) {   // the next Hellfire tick would kill you: stop channelling (round 119)
-          if (c.eurekaHeld) eurekaRelease();
           S.channel = null; res.clipped++; row(ev.key).castTime -= (c.end - S.t);
           S.busyUntil = S.t; L('clip', ev.key, { for: 'health' }); scheduleDecide(Math.max(S.t, S.gcdReady)); continue;
         }
         // A priority channel in a timeline gap ends when the next timeline entry is due (round 70).
         if (TL && TL.i < TL.list.length && TL.list[TL.i].t <= S.t + EPS && !c.tl) {
-          if (c.eurekaHeld) eurekaRelease();
           S.channel = null; res.clipped++; row(ev.key).castTime -= (c.end - S.t);
           S.busyUntil = S.t; L('clip', ev.key, { for: 'timeline' }); scheduleDecide(S.t); continue;
         }
@@ -1310,7 +1259,6 @@ window.WL = window.WL || {};
           var idx = c.idx != null ? c.idx : ROT.indexOf(ev.key);   // the action that started it (round 106: an action's key need not be the spell's)
           var higher = pickAction(idx >= 0 ? idx : ROT.length);
           if (higher) {
-            if (c.eurekaHeld) eurekaRelease();                // a clipped channel ends here
             S.channel = null; res.clipped++;
             row(ev.key).castTime -= (c.end - S.t);
             S.busyUntil = S.t; L('clip', ev.key, { for: higher.key });

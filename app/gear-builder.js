@@ -50,8 +50,8 @@ WL.gearNaked = function (cfg) {
 WL.gearRound = function (x) { return Math.round(x * 100) / 100; };   // the sheet shows two decimals
 
 // Everything the builder shows: per stat the naked value, the items' sum, the enchants' sum, your own additions and the
-// resulting sheet value (rounded to 2 decimals); `crit from Int` separately; which slots / enchants count; and the main
-// hand's weapon type for Sword Specialization (true / false, or null when the main hand says nothing about it).
+// resulting sheet value (rounded to 2 decimals); `crit from Int` separately; which slots / enchants count. (Until round 149
+// also the main hand's weapon type, for Sword Specialization; Ruthless needs no sword.)
 WL.gearSheet = function (gb, cfg) {
   gb = gb || {}; var slots = gb.slots || {}, ench = gb.enchants || {}, manual = gb.manual || {};
   var naked = WL.gearNaked(cfg), items = {}, enchants = {}, mine = {}, sheet = {}, used = [], enchUsed = [];
@@ -67,9 +67,8 @@ WL.gearSheet = function (gb, cfg) {
   });
   var critFromInt = (items.int + enchants.int + mine.int) * cfg.combat.critPerInt;
   WL.GEAR_STAT_KEYS.forEach(function (k) { sheet[k] = WL.gearRound(naked[k] + items[k] + enchants[k] + mine[k] + (k === 'critPct' ? critFromInt : 0)); });
-  var mh = used.indexOf('mainHand') >= 0 ? WL.gearItem(slots.mainHand) : null;
   return { naked: naked, items: items, enchants: enchants, manual: mine, critFromInt: critFromInt, sheet: sheet, used: used, enchUsed: enchUsed,
-           offHandBlocked: blocked, sword: mh && mh.weapon ? mh.weapon === 'sword' : null };
+           offHandBlocked: blocked };
 };
 
 // You typed `value` into the Stats panel for stat k while the builder is on: what you added by hand becomes the difference
@@ -82,13 +81,13 @@ WL.gearManualFor = function (gb, cfg, k, value) {
 
 // Round 148: what the Sheet (gear) values change by when `entry` goes into slot `slotKey` (null = take it off), with
 // everything else as worn — the slot's enchant stays, a two-handed weapon empties the off hand. Works whether the builder
-// is on or off: add the result to cfg.gear. `sword` = the Sword box after the swap (null = the main hand says nothing).
+// is on or off: add the result to cfg.gear.
 WL.gearSwapDelta = function (gb, slotKey, entry, cfg) {
   var after = JSON.parse(JSON.stringify(gb || {})); after.slots = after.slots || {};
   if (entry) after.slots[slotKey] = entry; else delete after.slots[slotKey];
   var a = WL.gearSheet(gb, cfg), b = WL.gearSheet(after, cfg), d = {};
   WL.GEAR_STAT_KEYS.forEach(function (k) { d[k] = WL.gearRound(b.sheet[k] - a.sheet[k]); });
-  return { delta: d, sword: b.sword };
+  return { delta: d };
 };
 
 // Round 148: an item's (or enchant's) worth for a build from its stat weights (DPS per 1 of each stat, as in the results

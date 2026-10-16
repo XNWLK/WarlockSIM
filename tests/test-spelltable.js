@@ -15,18 +15,18 @@
     T.near(sb.sp, 721, 1e-9, 'SB uses SP 700 + 21 Spellstone');
     T.near(sb.critPct, 22 + 5, 1e-9, 'SB crit = 22 + Malevolence 5');
     T.near(sb.critMult, 1.5, 1e-12, 'SB crit mult 1.5 (no Ruin)');
-    T.near(sb.directDmg, (251 + 0.857 * 721) * 1.05 * 1.15, 1e-9, 'SB = (251 + 0.857×721) × 1.05 × 1.15 = 1049.19');
+    T.near(sb.directDmg, (251 + 0.857 * 721) * 1.10 * 1.15, 1e-9, 'SB = (251 + 0.857×721) × (1 + Shadow Mastery 10%) × DS 1.15 = 1099.15');
     var co = t.corruption;
     T.near(co.cast, 0, 1e-9, 'Corruption instant (Improved Corruption 5/5)');
     T.eq(co.ticks, 6, 'Corruption 6 ticks');
     T.near(co.critMult, 2.0, 1e-12, 'Corruption crit mult 2.0 (Pandemic 3/3)');
-    // Round 43 (A68): spell modifiers of one group add up — periodic: Shadow Mastery 5 + Improved Corruption 10 +
-    // Malediction 5 = +20%; the Demonic Sacrifice aura (×1.15) multiplies.
-    T.near(co.tickDmg, (57 + 0.2 * 721) * 1.15 * (1 + 0.05 + 0.10 + 0.05), 1e-9, 'Corruption tick = 201.2 × DS 1.15 × (1 + SM 5% + ImpCorr 10% + Malediction 5%)');
+    // Round 43 (A68): spell modifiers of one group add up — periodic: Shadow Mastery 10 (patch 2026-10-16) + Improved
+    // Corruption 10 = +20%; the Demonic Sacrifice aura (×1.15) multiplies.
+    T.near(co.tickDmg, (57 + 0.2 * 721) * 1.15 * (1 + 0.10 + 0.10), 1e-9, 'Corruption tick = 201.2 × DS 1.15 × (1 + SM 10% + ImpCorr 10%)');
     var wr = t.wrack;
-    T.near(wr.tickDmg, (36 + 0.143 * 721) * 1.15 * (1 + 0.05 + 0.20 + 0.05), 1e-9, 'Wrack tick = DS × (1 + SM 5% + Improved Drains 20% + Malediction 5%)');
+    T.near(wr.tickDmg, (36 + 0.143 * 721) * 1.15 * (1 + 0.10 + 0.20), 1e-9, 'Wrack tick = DS × (1 + SM 10% + Improved Drains 20%)');
     T.near(wr.critMult, 2.0, 1e-12, 'Wrack crit mult 2.0 (Pandemic)');
-    T.near(t.baneOfAgony.tickDmg, (46 + 0.133 * 721) * 1.15 * (1 + 0.05 + 0.10 + 0.05), 1e-9, 'BoA avg tick = DS × (1 + SM 5% + Improved BoA 10% + Malediction 5%)');
+    T.near(t.baneOfAgony.tickDmg, (46 + 0.133 * 721) * 1.15 * (1 + 0.10 + 0.10), 1e-9, 'BoA avg tick = DS × (1 + SM 10% + Improved BoA 10%)');
     T.near(t.immolate.critMult, 1.5, 1e-12, 'Immolate crit mult 1.5');
     T.ok(!t.incinerate && !t.conflagrate && !t.shadowburn, 'Destruction talent spells unavailable', Object.keys(t).join(','));
   });
@@ -40,8 +40,8 @@
     T.near(inc.critMult, 2.0, 1e-12, 'Incinerate crit mult 2.0 (Ruin 5/5)');
     T.near(inc.directDmg, (217 + 0.714 * 721) * 1.15 * 1.10, 1e-9, 'Incinerate × DS Succ 1.15 × AgF 1.10');
     T.near(t.immolate.directDmg, (146 + 0.2 * 721) * 1.15 * (1 + 0.10 + 0.50), 1e-9, 'Immolate direct = DS × (1 + AgF 10% + Aftermath 50%) (round 43: same modifier group adds)');
-    T.near(t.immolate.tickDmg, (52 + 0.13 * 721) * 1.15 * 1.10, 1e-9, 'Immolate tick: no Aftermath/Malediction');
-    T.near(t.conflagrate.critPct, 22 + 25, 1e-9, 'Conflagrate crit 22 (incl. Firestone) + Fire and Brimstone 25');
+    T.near(t.immolate.tickDmg, (52 + 0.13 * 721) * 1.15 * 1.10, 1e-9, 'Immolate tick: no Aftermath');
+    T.near(t.conflagrate.critPct, 23 + 25, 1e-9, 'Conflagrate crit 23 (incl. Firestone and Savage) + Fire and Brimstone 25');
     T.near(t.soulFire.cast, 4.0, 1e-9, 'Soul Fire cast 6 − 2 (Bane)');
     T.near(t.shadowburn.directDmg, (266 + 0.429 * 700) * 1.10, 1e-9, 'Shadowburn: no Spellstone SP, AgF only');
     T.near(t.corruption.cast, 1.2, 1e-9, 'Corruption cast 2.0 − 0.8 (Improved Corruption 2/5)');

@@ -51,14 +51,15 @@ WL.buildSpellTable = function (build, stats, cfg) {
     //  * talent spell modifiers ADD UP within their modifier group and the groups multiply with the auras:
     //    op0  "Modifies Damage/Healing Done" (direct hits):  Shadow Mastery (Shadow spells), Agonizing Flames
     //         (Destruction spells), Aftermath (Immolate); live in the sim: Decimation, Eureka!
-    //    op22 "Modifies Periodic Damage/Healing Done" (ticks): Shadow Mastery, Agonizing Flames (Immolate), Malediction
-    //         (all periodic), Improved Corruption, Improved Bane of Agony, Improved Drains; live: Eureka!
+    //    op22 "Modifies Periodic Damage/Healing Done" (ticks): Shadow Mastery, Agonizing Flames (Immolate), Improved
+    //         Corruption, Improved Bane of Agony, Improved Drains; live: Eureka! (channel ticks). Malediction was here until
+    //         the patch of 2026-10-16.
     //  Until round 42 every one of them multiplied.
     var aura = (stats.mult[s.school] || 1) * stats.mult.all;
     var sm = s.school === 'shadow' ? tv('shadowMastery', 'shadowPct') : 0;
     var agf = s.tree === 'destruction' && !s.noAgonizingFlames ? tv('agonizingFlames', 'dmgPct') : 0;   // not Hellfire [A79]
     var op0 = sm + agf + (key === 'immolate' ? tv('aftermath', 'immoInitPct') : 0);
-    var op22 = sm + agf + (s.noMalediction ? 0 : tv('malediction', 'periodicPct'))           // Malediction [A41]; not Rain of Fire [A79]
+    var op22 = sm + agf
       + (key === 'corruption' ? tv('improvedCorruption', 'dmgPct') : 0)
       + (key === 'baneOfAgony' ? tv('improvedBaneOfAgony', 'dmgPct') : 0)
       + (s.drain ? tv('improvedDrains', 'dmgPct') : 0);

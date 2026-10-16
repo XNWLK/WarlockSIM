@@ -1,9 +1,9 @@
-// Round 38 tests: Eureka! (Gnome) as a live +10% damage aura until 3 spells have been cast (user), and its pop timing:
-// right before a long cast. (Rounds 38–87 had options.eurekaPolicy 'any' / 'long' / 'doom'; removed in round 88.)
+// Round 38 tests: Eureka! (Gnome) as a live +10% damage aura (user; round 149: an 8 s buff, a cast counts when it finishes
+// inside it — rounds 38–148: until 3 spells had been cast), and its pop timing: right before a long cast. (Rounds 38–87 had options.eurekaPolicy 'any' / 'long' / 'doom'; removed in round 88.)
 (function () {
   function det() {                                    // 100% hit, no crit, no curse, no pierce → exact damage
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
-    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.weaponIsSword = false;
+    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.critPct -= 2;
     c.gear.pierce = 0; c.options.useCurseOfElements = false; c.combat.levelResist.on = false; c.fight.durationVarPct = 0;
     c.options.activesPolicy = 'pull';                       // cooldowns on the pull (round 87 default: first Doom explosion)
     return c;
@@ -26,15 +26,14 @@
     T.ok(inT.every(function (e) { return Math.abs(e.dmg - base) <= 1; }), 'ticks during the aura = the normal tick (' + inT.map(function (e) { return e.dmg; }).join(', ') + ' vs ' + base + ')');
     T.ok(outT.every(function (e) { return Math.abs(e.dmg - base) <= 1; }), 'ticks outside the aura are normal — nothing is snapshotted');
 
-    T.group('the 3 empowered casts, and when the aura ends');
+    T.group('the empowered casts, and when the aura ends');
     var sb = r.log.filter(function (e) { return e.type === 'cast' && e.spell === 'shadowBolt'; });
-    var emp = sb.filter(function (e) { return e.eureka; });
-    T.eq(emp.length, 3, 'exactly 3 empowered Shadow Bolts');
+    var emp = sb.filter(function (e) { return e.eureka; }), iv = r.auras.eureka[0];
+    T.ok(emp.length >= 2 && emp.every(function (e) { return e.t + e.castTime < iv[1] + 1e-6; }), emp.length + ' empowered Shadow Bolts, all finished inside the 8 s');
     var hits = r.log.filter(function (e) { return e.type === 'hit' && e.spell === 'shadowBolt'; });
     var normal = hits[hits.length - 1].dmg;
-    T.ok(hits.slice(0, 3).every(function (e) { return Math.abs(e.dmg / normal - 1.10) < 0.01; }), 'the 3 empowered Shadow Bolts hit for 1.10 × (' + hits.slice(0, 3).map(function (e) { return e.dmg; }).join(', ') + ' vs ' + normal + ')');
-    var iv = r.auras.eureka[0];
-    T.near(iv[1], emp[2].t + emp[2].castTime, 0.002, 'aura ends when the 3rd empowered Shadow Bolt lands (' + iv[1].toFixed(2) + ' s)');
+    T.ok(hits.slice(0, emp.length).every(function (e) { return Math.abs(e.dmg / normal - 1.10) < 0.01; }), 'the empowered Shadow Bolts hit for 1.10 × (' + hits.slice(0, emp.length).map(function (e) { return e.dmg; }).join(', ') + ' vs ' + normal + ')');
+    T.near(iv[1] - iv[0], 8, 1e-6, 'the aura lasts 8 s (' + iv[0].toFixed(2) + ' – ' + iv[1].toFixed(2) + ')');
 
     T.group('pop timing: never before a DoT or an instant; no option of its own (round 88)');
     T.ok(!('eurekaPolicy' in WL.DEFAULT_CONFIG.options), 'options.eurekaPolicy is gone');
@@ -43,7 +42,7 @@
     T.eq(JSON.stringify(a.auras.eureka), JSON.stringify(r.auras.eureka), 'a config that still carries the old setting behaves the same');
     var d = WL.simulateOnce(tb(['bane', 'corruption', 'immolate', 'shadowBolt']), 'gnome', det(), { seed: 1, duration: 100, log: true });
     var emp2 = d.log.filter(function (e) { return e.type === 'cast' && e.eureka; });
-    T.ok(emp2.length >= 3 && emp2.every(function (e) { return e.spell === 'shadowBolt'; }), 'only Shadow Bolts are empowered (' + emp2.map(function (e) { return e.spell; }).join(', ') + '), never Doom, Corruption or Immolate');
+    T.ok(emp2.length >= 2 && emp2[0].spell === 'shadowBolt' && emp2.every(function (e) { return WL.SPELLS[e.spell].kind !== 'dot' && WL.SPELLS[e.spell].kind !== 'utility'; }), 'popped right before a Shadow Bolt; never a Bane, Corruption or a curse (' + emp2.map(function (e) { return e.spell; }).join(', ') + ')');
     var dc = det(); dc.options.activesPolicy = 'doom';
     var dd = WL.simulateOnce(tb(['bane', 'corruption', 'shadowBolt']), 'gnome', dc, { seed: 1, duration: 100, log: true });
     var boom = dd.log.filter(function (e) { return e.type === 'tick' && e.spell === 'baneOfDoom'; })[0], dpop = dd.log.filter(function (e) { return e.type === 'racial'; })[0];

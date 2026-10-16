@@ -26,7 +26,7 @@ const TALENT_NOTES = {
   improvedLifeTap: 'Life Tap gives (430 + Spirit) × 1.10 / 1.20 mana. Its health cost stays 430.',
   suppression: 'Adds to your hit chance. Your pet\'s spells use your hit chance too, and its melee misses less (see Pets). Also lowers all the threat you cause.',
   improvedCorruption: 'Shortens Corruption\'s 2 s cast (instant at 5 points) and adds to Corruption\'s periodic talent group.',
-  malediction: 'Adds to the periodic talent group of every DoT tick and channel tick of yours, except Rain of Fire.',
+  grimReach: 'No effect on damage: the boss is always in range. The longer range is only listed.',
   soulHarvesting: 'Not simulated: it needs an enemy dying under your Drain Soul.',
   improvedDrains: 'Adds to the periodic talent group of Drain Life, Drain Soul and Wrack.',
   improvedBaneOfAgony: 'Adds to Bane of Agony\'s periodic talent group.',
@@ -43,7 +43,7 @@ const TALENT_NOTES = {
   improvedHealthFunnel: 'Not simulated (Health Funnel is never cast).',
   improvedImp: 'Multiplies the Imp\'s whole Firebolt hit by 1.10 / 1.20 / 1.30. Fire Shield is not simulated.',
   demonicEmbrace: 'Multiplies your Stamina. That only matters for your health and for Touch of the Grave.',
-  unholyPower: 'Multiplies everything your demon deals: melee, Firebolt, Lash of Pain, the Demonic Brand hit and the totem hits.',
+  unholyPower: 'Multiplies everything your demon deals: melee, Firebolt, Lash of Pain and the Demonic Brand hit.',
   demonicAegis: 'Not simulated (armor spells).',
   improvedVoidwalker: 'Not simulated.',
   felVitality: 'Multiplies your maximum mana (it adds with the Gnome\'s Expansive Mind) and your demon\'s maximum mana. Demon health is not simulated.',
@@ -60,7 +60,7 @@ const TALENT_NOTES = {
   masterDemonologist: 'Succubus out: more Shadow damage for you and for her. Imp out: more Fire damage for you and for the Imp. An aura: it multiplies. Voidwalker and Felhunter: no damage effect.',
   demonicPact: 'Keeps the Demonic Sacrifice bonus while a different demon is out.',
   destructiveReach: 'No effect on damage: the boss is always in range. The longer range is only listed.',
-  improvedShadowBolt: 'Every Shadow Bolt crit puts the debuff on that target for 12 s: your Shadow damage on it is this much higher - hits, ticks and Touch of the Grave. No charges; a new crit restarts the 12 s. Another Warlock\'s debuff does not count for you, and demons do not benefit.',
+  improvedShadowBolt: 'Every Shadow Bolt crit puts the debuff on that target for 12 s: your Shadow damage on it is this much higher - hits and ticks. No charges; a new crit restarts the 12 s. Another Warlock\'s debuff does not count for you, and demons do not benefit.',
   bane: 'Shorter cast of Shadow Bolt, Immolate and Incinerate (first values) and of Soul Fire (second values), before haste.',
   moltenSkin: 'Lowers the damage you do to yourself (Hellfire, Demonic Rune, Goblin Sapper). Multiplies with Soul Link. Life Tap is not reduced.',
   cataclysm: 'Lowers the mana cost of every Destruction spell.',
@@ -73,14 +73,14 @@ const TALENT_NOTES = {
   pyroclasm: 'Not simulated (stuns).',
   baneOfHavoc: 'Only with 2 or 3 targets: Bane of Havoc sits on target 2, and 15% of everything you (not your demon) deal to the other targets is dealt to it as well.',
   fireAndBrimstone: 'Adds to Conflagrate\'s crit chance.',
-  shadowAndFlame: 'A landed Conflagrate gives this much more Shadow damage for 20 s, a landed Shadowburn this much more Fire damage for 20 s (auras: they multiply; Touch of the Grave takes the Shadow one). Second values: the chance that Conflagrate does not consume Immolate, and that Shadowburn refunds its soul shard.',
+  shadowAndFlame: 'A landed Conflagrate gives this much more Shadow damage for 20 s, a landed Shadowburn this much more Fire damage for 20 s (auras: they multiply). Second values: the chance that Conflagrate does not consume Immolate, and that Shadowburn refunds its soul shard.',
   incinerate: 'Gives the spell Incinerate.',
 };
 // label of each talent value: [text before the numbers, text after them]
 const VALUE_LABELS = {
   'improvedLifeTap.manaPct': ['Life Tap mana +', '%'], 'suppression.hitPct': ['hit +', '%'], 'suppression.threatPct': ['threat −', '%'],
   'improvedCorruption.castRed': ['Corruption cast −', ' s'], 'improvedCorruption.dmgPct': ['Corruption damage +', '%'],
-  'malediction.periodicPct': ['periodic damage +', '%'], 'improvedDrains.dmgPct': ['drain damage +', '%'],
+  'grimReach.rangePct': ['range +', '%'], 'improvedDrains.dmgPct': ['drain damage +', '%'],
   'improvedBaneOfAgony.dmgPct': ['Bane of Agony damage +', '%'], 'felConcentration.resistPct': ['pushback ignored ', '%'],
   'amplifyCurse.boaPct': ['Bane of Agony base +', '%'], 'pandemic.critBonusPct': ['crit bonus +', '%'],
   'malevolence.shadowCritPct': ['Shadow crit +', '%'], 'nightfall.procPct': ['chance per tick ', '%'],
@@ -108,8 +108,8 @@ const SPELL_NOTES = {
   conflagrate: 'Can only be cast with your Immolate on the target and consumes it - unless Shadow and Flame keeps it.',
   shadowburn: 'Uses a soul shard; shards never run out in the sim.',
   soulFire: 'Its cooldown starts when the cast is complete. Uses a soul shard (unlimited). With the Decimation buff: faster cast, no shard. Projectile.',
-  hellfire: 'Channel. Every tick hits every target of the fight (each with its own hit, crit and resist roll) and hits you for the tick\'s value before talents (206 + 0.022 × SP), without a crit, reduced by Molten Skin and Soul Link. Only started when your health covers the whole channel, counting the heals due during it; it stops early if the next tick would kill you. Malediction applies, Agonizing Flames does not.',
-  rainOfFire: 'Channel. Every tick hits every target of the fight (each with its own hit, crit and resist roll). Agonizing Flames applies, Malediction does not.',
+  hellfire: 'Channel. Every tick hits every target of the fight (each with its own hit, crit and resist roll) and hits you for the tick\'s value before talents (206 + 0.022 × SP), without a crit, reduced by Molten Skin and Soul Link. Only started when your health covers the whole channel, counting the heals due during it; it stops early if the next tick would kill you. Agonizing Flames does not apply.',
+  rainOfFire: 'Channel. Every tick hits every target of the fight (each with its own hit, crit and resist roll). Agonizing Flames applies.',
   corruption: 'A DoT with a cast time, unless Improved Corruption makes it instant.',
   baneOfAgony: 'The ticks ramp up: ticks 1-4 deal 50%, ticks 5-8 100% and ticks 9-12 150% of the tick value in the table. One Bane per target.',
   baneOfDoom: 'One hit after 60 s. It counts as a periodic tick (periodic talent group, it can crit). Only cast when at least 60 s of the fight are left. One Bane per target.',
@@ -119,7 +119,7 @@ const SPELL_NOTES = {
   drainSoul: 'Listed because talents name it. No priority action casts it.',
   wrack: 'Channel. While it runs, the ticks of your Corruption, Bane of Agony, Siphon Life and Bane of Doom deal 10% more. It counts as a drain for Improved Drains, Soul Siphon, Fel Concentration and Nightfall.',
   deathCoil: 'Heals you for the damage it deals. Projectile.',
-  curseOfElements: 'Has to hit. On the target for 5 minutes: it takes 10% more damage from your spells, your demon\'s spells and totem hits, your explosives and Touch of the Grave, and its resistance drops by 75 (which removes the level resistance).',
+  curseOfElements: 'Has to hit. On the target for 5 minutes: it takes 10% more damage from your spells, your demon\'s spells and your explosives, and its resistance drops by 75 (which removes the level resistance).',
   lifeTap: 'Instant, one global cooldown: 430 health become (430 + Spirit) mana, more with Improved Life Tap. It does not restart the 5-second rule.',
 };
 
@@ -327,7 +327,7 @@ B.examples = (function () {
 
   // Corruption
   const co = tb.corruption, coS = SP.corruption, coBase = coS.tickBase + coS.tickCoef * co.sp;
-  const cgrp = [['Shadow Mastery', tv(build, 'shadowMastery', 'shadowPct')], ['Malediction', tv(build, 'malediction', 'periodicPct')], ['Improved Corruption', tv(build, 'improvedCorruption', 'dmgPct')]].filter(x => x[1]);
+  const cgrp = [['Shadow Mastery', tv(build, 'shadowMastery', 'shadowPct')], ['Improved Corruption', tv(build, 'improvedCorruption', 'dmgPct')]].filter(x => x[1]);
   near(coBase * (1 + co.op22) * auraMult, co.tickDmg, 'Corruption');
   near(cgrp.reduce((a, x) => a + x[1], 0) / 100, co.op22, 'Corruption talent group');
   P('#### 3. Corruption');
@@ -348,7 +348,7 @@ B.examples = (function () {
   // Touch of the Grave
   const tog = WL.RACES.undead.racials.filter(r => r.effect === 'proc')[0], togBase = st.maxHealth * tog.maxHealthPct / 100;
   P('#### 5. Touch of the Grave');
-  P(n(st.maxHealth) + ' health × ' + tog.maxHealthPct + '% = ' + n(togBase) + '; × ' + n(auraMult, 4) + ' auras = **' + n(togBase * auraMult) + '**; with the curse and Improved Shadow Bolt on the boss **' + n(togBase * auraMult * coe * isb) + '**. No spell power, no crit, no resist roll. ' + tog.chancePct + '% chance per landed damaging cast.');
+  P(n(st.maxHealth) + ' health × ' + tog.maxHealthPct + '% = **' + n(togBase) + '**. Nothing multiplies it: no aura, no curse, no Improved Shadow Bolt, no Power Infusion. No spell power, no crit, no resist roll. ' + tog.chancePct + '% chance per landed damaging cast, then nothing for ' + tog.icd + ' s.');
   P('');
 
   // Succubus
@@ -383,14 +383,14 @@ B.examples = (function () {
   const b2 = WL.BUILDS.filter(b => b.key === 'destro_incin_succ')[0], st2 = WL.computeStats(b2, race, cfg), t2 = WL.buildSpellTable(b2, st2, cfg);
   if (Math.abs(st2.mult.fire * st2.mult.all - 1) > 1e-9) throw new Error('worked example: the Destruction build has Fire auras this text does not cover');
   const im = t2.immolate, imS = SP.immolate, inc = t2.incinerate, inS = SP.incinerate;
-  const agf = tv(b2, 'agonizingFlames', 'dmgPct'), aft = tv(b2, 'aftermath', 'immoInitPct'), mal = tv(b2, 'malediction', 'periodicPct'), snf = 1 + tv(b2, 'shadowAndFlame', 'schoolPct') / 100;
+  const agf = tv(b2, 'agonizingFlames', 'dmgPct'), aft = tv(b2, 'aftermath', 'immoInitPct'), snf = 1 + tv(b2, 'shadowAndFlame', 'schoolPct') / 100;
   near((imS.base + imS.coef * im.sp) * (1 + (agf + aft) / 100), im.directDmg, 'Immolate hit');
-  near((imS.tickBase + imS.tickCoef * im.sp) * (1 + (agf + mal) / 100), im.tickDmg, 'Immolate tick');
+  near((imS.tickBase + imS.tickCoef * im.sp) * (1 + agf / 100), im.tickDmg, 'Immolate tick');
   near((inS.base + inS.coef * inc.sp) * (1 + agf / 100), inc.directDmg, 'Incinerate');
   P('#### 8. Talents of one group add up: Immolate and Incinerate');
   P('Build **' + b2.short + '**, Undead, default settings; Fire spell power ' + n(st2.sp) + ' + ' + st2.schoolSp.fire + ' ' + st2.oilName + ' = ' + n(im.sp) + '. No auras: this build has no Demonology points.');
   P('- Immolate\'s hit: (' + imS.base + ' + ' + imS.coef + ' × ' + n(im.sp) + ') × (1 + ' + agf + '% Agonizing Flames + ' + aft + '% Aftermath) = ' + n(imS.base + imS.coef * im.sp) + ' × ' + (1 + (agf + aft) / 100).toFixed(2) + ' = **' + n(im.directDmg) + '**. The two talents add to 60%; they do not multiply to 65%.');
-  P('- Immolate\'s burn, per tick: (' + imS.tickBase + ' + ' + imS.tickCoef + ' × ' + n(im.sp) + ') × (1 + ' + agf + '% Agonizing Flames + ' + mal + '% Malediction) = **' + n(im.tickDmg) + '**; ' + im.ticks + ' ticks.');
+  P('- Immolate\'s burn, per tick: (' + imS.tickBase + ' + ' + imS.tickCoef + ' × ' + n(im.sp) + ') × (1 + ' + agf + '% Agonizing Flames) = **' + n(im.tickDmg) + '**; ' + im.ticks + ' ticks.');
   P('- Incinerate: (' + inS.base + ' + ' + inS.coef + ' × ' + n(inc.sp) + ') × ' + (1 + agf / 100).toFixed(2) + ' Agonizing Flames = ' + n(inc.directDmg) + '; × ' + (1 + inS.immolateBonusPct / 100).toFixed(2) + ' with Immolate on the boss × ' + coe.toFixed(2) + ' curse × ' + snf.toFixed(2) + ' Shadow and Flame (after a Shadowburn) = **' +
     n(inc.directDmg * (1 + inS.immolateBonusPct / 100) * coe * snf) + '**; a crit (' + n(inc.critPct, 2) + '%) deals × ' + n(inc.critMult, 3) + '.');
   P('');

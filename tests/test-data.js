@@ -30,6 +30,10 @@
       var r = rawByWid[t.wid];
       if (!r) { T.ok(false, t.key + ' exists in raw', 'wid ' + t.wid + ' not found'); return; }
       var rt = r.rt;
+      if (t.patch) {                     // changed by a Forever patch after the archive (round 149): only its place in the tree
+        T.ok(t.tree === r.tree && t.row === rt.row && t.col === rt.col, t.key + ' (patch ' + t.patch + ') sits where the archive has ' + rt.name);
+        return;
+      }
       T.eq(t.name, rt.name, t.key + ' name');
       T.eq(t.tree, r.tree, t.key + ' tree');
       T.eq(t.row, rt.row, t.key + ' row');
@@ -85,6 +89,7 @@
     WL.RACE_KEYS.forEach(function (rk) {
       var ids = raw.racials['9'][raceIds[rk]];
       WL.RACES[rk].racials.forEach(function (rc) {
+        if (rc.patch) return;              // changed by a Forever patch after the archive (round 149)
         T.ok(ids.indexOf(rc.id) >= 0, rk + ': ' + rc.name + ' (' + rc.id + ') is a Warlock racial', 'ids=' + ids);
         T.eq(raw.racialNames[rc.id], rc.name, rk + ': racial name');
       });

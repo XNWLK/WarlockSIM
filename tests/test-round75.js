@@ -19,11 +19,11 @@
     T.ok(B.scrollOfAgility && WL.SHIPPED_ON.buffs.scrollOfAgility && B.scrollOfAgility.agi === 17, 'Scroll of Agility IV: +17 Agility, on by default');
     T.eq(B.markOfTheWild.agi, 16, 'Mark of the Wild gives Agility too');
 
-    T.group('Agility = (50 base + race offset + gear + buffs + consumables) × Kings; melee crit = 2% + Agility / 20 + Sword Spec');
+    T.group('Agility = (50 base + race offset + gear + buffs + consumables) × Kings; melee crit = 2% + Agility / 20 + Ruthless / Savage');
     var c = shipped(), offs = { human: 0, gnome: 3, orc: -3, undead: -2, troll: 2 };
     WL.RACE_KEYS.forEach(function (r) {
       var s = WL.computeStats(nob, r, c), agi = (50 + offs[r] + 16 + 17) * 1.1;
-      var mc = 2 + agi / 20 + (r === 'human' && c.gear.weaponIsSword ? 2 : 0);
+      var mc = 2 + agi / 20 + (r === 'human' ? 2 : r === 'orc' ? 1 : 0);   // round 149: Ruthless 2%, Savage 1%
       T.ok(Math.abs(s.agi - agi) < 1e-9 && Math.abs(s.meleeCritPct - mc) < 1e-9, WL.RACES[r].name + ': Agility ' + s.agi.toFixed(1) + ', melee crit ' + s.meleeCritPct.toFixed(2) + '%');
     });
     var s0 = WL.computeStats(nob, 'human', c);

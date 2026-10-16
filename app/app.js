@@ -14,7 +14,7 @@
     wrack: '#6A2D9E', drainLife: '#8C7CC9', shadowburn: '#D0B0FF', deathCoil: '#5C4B8C',
     immolate: '#E0662F', incinerate: '#F2A03D', conflagrate: '#B8401C', soulFire: '#F5CD5E', searingPain: '#D98530',
     hellfire: '#C9302C', rainOfFire: '#EE7B5B',
-    'pet:melee': '#2F8F5F', 'pet:lashOfPain': '#5CC08A', 'pet:firebolt': '#3AA776', 'pet:brand': '#8FD6A8', 'pet:windfury': '#1F7A4F', 'pet:flametongue': '#A8D45A', touchOfTheGrave: '#8A8F98',
+    'pet:melee': '#2F8F5F', 'pet:lashOfPain': '#5CC08A', 'pet:firebolt': '#3AA776', 'pet:brand': '#8FD6A8', touchOfTheGrave: '#8A8F98',
   };
   var ACTION_ICON = { curseOfElements: 'curseOfElements', shadowTrance: 'shadowTrance', bane: 'baneOfDoom', baneOfAgony: 'baneOfAgony', corruption: 'corruption',
     siphonLife: 'siphonLife', immolate: 'immolate', conflagrate: 'conflagrate', shadowburn: 'shadowburn', soulFire: 'soulFire',
@@ -106,7 +106,7 @@
       '<div class="tt-body">' + para((WL.SPELL_TEXT || {})[rc.id] || '') + '</div>' +
       '<div class="tt-rule">' + esc(racialRule(rc)) + '</div>';
   }
-  // How the sim uses a racial cooldown (Eureka!: live +10% aura; no pop-timing option of its own since round 88).
+  // How the sim uses a racial cooldown (Eureka!: an 8 s buff since the patch of 2026-10-16; no pop-timing option of its own since round 88).
   // First use of the short cooldowns (options.activesPolicy, round 87).
   function activesWhen() {
     var a = (runCfg.options || {}).activesPolicy || 'doom';
@@ -115,9 +115,9 @@
       'when the first Bane of Doom explodes (on the pull for builds that never cast it)';
   }
   function racialRule(rc) {
-    if (!rc.charges) return 'First used ' + activesWhen() + ', then whenever it is ready — right before a damaging spell (never before a curse or Life Tap)';
-    return 'First allowed ' + activesWhen() + ', then whenever it is ready. A +10% damage aura on your direct hits and channel ticks (not on DoT ticks) until 3 spells have been cast. ' +
-      'Popped right before a long cast (Shadow Bolt, Searing Pain, Incinerate, Soul Fire, a channel), so no charge goes to a DoT';
+    if (!rc.dmgPct) return 'First used ' + activesWhen() + ', then whenever it is ready — right before a damaging spell (never before a curse or Life Tap)';
+    return 'First allowed ' + activesWhen() + ', then whenever it is ready. For ' + rc.duration + ' s every damaging spell that finishes while it is up deals ' + rc.dmgPct + '% more and costs ' + rc.costRedPct + '% less ' +
+      '(a channel: each tick while it is up; never DoT ticks). Popped right before a long cast (Shadow Bolt, Searing Pain, Incinerate, Soul Fire, a channel)';
   }
   // Round 148 (user): talents the sim does not simulate, or only in part, or only with a setting — a mark on the talent in
   // every tree (build editor, details, compare) and a line in its tooltip. The full notes are in MECHANICS.md.
@@ -129,6 +129,7 @@
     improvedVoidwalker: ['none', 'Not simulated.'],
     improvedFelhunter: ['none', 'Not simulated.'],
     pyroclasm: ['none', 'Not simulated: stuns.'],
+    grimReach: ['none', 'No effect: the boss is always in range.'],
     destructiveReach: ['none', 'No effect: the boss is always in range.'],
     improvedImp: ['part', 'Partly simulated: the Firebolt bonus counts, Fire Shield does not.'],
     felVitality: ['part', 'Partly simulated: the mana for you and your demon counts, demon health does not.'],
@@ -209,7 +210,7 @@
     if (t.id && t.id.indexOf('b_') === 0 && t.checked) {               // raid buffs of one group do not stack either (round 118)
       var bg = (cfg.buffs[t.id.slice(2)] || {}).group;
       if (bg) Object.keys(cfg.buffs).forEach(function (k) { if (cfg.buffs[k].group === bg && 'b_' + k !== t.id) $('b_' + k).checked = false; });
-      var bt = cfg.buffs[t.id.slice(2)];                             // … nor do buffs that cannot be up together (Windfury / Flametongue / Grace of Air / Tranquil Air Totem)
+      var bt = cfg.buffs[t.id.slice(2)];                             // … nor do buffs that cannot be up together (`excl` tags; none today)
       if (bt) Object.keys(cfg.buffs).forEach(function (k) { if (WL.buffsClash(bt, cfg.buffs[k])) $('b_' + k).checked = false; });
     }
     if (t.id === 'cdSelT') cdSetSelTime(parseFloat(t.value));          // seconds box of the selected timeline block (round 92)
@@ -274,12 +275,12 @@
     numFields.forEach(function (f) { if (f[1] === 'fight') $(f[0]).value = cfg.fight[f[2]]; });
     $('o_multiDot').checked = cfg.fight.multiDot;
   }
-  var boxFields = [['o_coe', 'options', 'useCurseOfElements'], ['o_pet', 'options', 'includePetDamage'], ['o_critAll', 'gear', 'critIncludesAll'], ['o_sword', 'gear', 'weaponIsSword'],
+  var boxFields = [['o_coe', 'options', 'useCurseOfElements'], ['o_pet', 'options', 'includePetDamage'], ['o_critAll', 'gear', 'critIncludesAll'],
     ['o_multiDot', 'fight', 'multiDot'], ['o_ltMove', 'fight', 'lifeTapWhileMoving'], ['o_bookRanks', 'options', 'bookRanks'], ['o_dotEnd', 'options', 'dotEndCheck'],
     ['o_eng', 'professions', 'engineering']];
   function initSettings() {
-    // Buffs that cannot be up together: a loaded code may have several of them on (a "Max" setup saved while Windfury and
-    // Flametongue Totem still stacked). Show what the sim counts — the first listed — not a tick that does nothing.
+    // Buffs that cannot be up together (`excl` tags, none today): a loaded code may have several of them on. Show what the
+    // sim counts — the first listed — not a tick that does nothing.
     var actB = WL.activeBuffs(cfg);
     Object.keys(cfg.buffs).forEach(function (k) { var b = cfg.buffs[k]; if (b.on && b.excl && actB.indexOf(b) < 0) b.on = false; });
     // Stats table: editable Sheet (gear) inputs + read-only Total, built once so typing keeps focus
@@ -365,7 +366,6 @@
     // Weapon effects come from the Consumables tab: the Spellstone / Firestone and a weapon oil stack (round 86). The stone
     // depends on the build, so it is left out of the total and named in the note instead; the oil is in the total.
     var race = $('t_race').value || 'human';
-    $('swordLbl').hidden = race !== 'human';                // round 110 (user): the sword box only concerns Humans
     renderSetupBar();
     var perBuild = WL.activeConsumables(cfg).some(function (c) { return c.group === 'stone' && c.buildOil; });
     var s = WL.computeStats({ talents: {}, pet: null, sacrifice: null, oil: 'none', rotation: [] }, race, cfg);
@@ -405,7 +405,7 @@
   }
   function applySidePreset(c, which) {
     if (which !== 'max') { SIDE_GROUPS.forEach(function (g) { Object.keys(c[g]).forEach(function (k) { c[g][k].on = !!WL.DEFAULT_CONFIG[g][k].on; }); }); return; }
-    var seenB = {}, seenX = {};                             // one buff per group, and of buffs that cannot be up together the first listed (Windfury before Flametongue and Grace of Air)
+    var seenB = {}, seenX = {};                             // one buff per group, and of buffs that cannot be up together the first listed (`excl` tags)
     Object.keys(c.buffs).forEach(function (k) {
       var b = c.buffs[k], x = WL.buffExcl(b);
       b.on = !(b.group && seenB[b.group]) && !x.some(function (t) { return seenX[t]; });
@@ -509,7 +509,7 @@
   function cdRacial(race) { return WL.RACES[race].racials.filter(function (x) { return x.effect === 'cooldown'; })[0]; }
   function cdRacialTip(race) {
     var x = cdRacial(race);
-    return WL.RACES[race].name + ': ' + x.name + ' — ' + (x.charges ? x.charges + ' casts (at most ' + x.duration + ' s)' : x.duration + ' s') + ', ' + x.cd / 60 + ' min cooldown';
+    return WL.RACES[race].name + ': ' + x.name + ' — ' + x.duration + ' s, ' + x.cd / 60 + ' min cooldown';
   }
   var CD_ORDER = ['majorSpellblasting', 'majorManaPotion', 'restoredManaPotion', 'demonicRune', 'goblinSapper', 'denseDynamite', 'thoriumGrenade'];
   function cdLen() { return cfg.fight.duration * (1 + (cfg.fight.durationVarPct || 0) / 100); }
@@ -867,8 +867,6 @@
     if (k === 'pet:lashOfPain') return 'Lash of Pain (Succubus)';
     if (k === 'pet:firebolt') return 'Firebolt (Imp)';
     if (k === 'pet:brand') return 'Demonic Brand (pet bonus)';
-    if (k === 'pet:windfury') return 'Windfury extra attacks (pet)';
-    if (k === 'pet:flametongue') return 'Flametongue Totem hits (pet)';
     if (k === 'touchOfTheGrave') return 'Touch of the Grave';
     if (k === 'heal') return 'Healing received';                                                  // log entries of the health model (round 119)
     if (k === 'health') return 'low health';
@@ -888,8 +886,6 @@
     if (k === 'demonicSacrifice' || k === 'felDomination') return 'talent_' + k;
     if (k.indexOf('summon:') === 0) return 'pet_' + k.slice(7);
     if (k === 'pet:brand') return 'talent_demonicBrand';            // round 45: the brand bonus had no icon
-    if (k === 'pet:windfury') return 'buff_windfuryTotem';
-    if (k === 'pet:flametongue') return 'buff_flametongueTotem';
     return k === 'pet:lashOfPain' ? 'lashOfPain' : k === 'pet:firebolt' ? 'firebolt' : k === 'pet:melee' ? 'pet_succubus' : k.indexOf('item:') === 0 ? 'consumable_' + k.slice(5) : k; }
   // Tracked auras (engine keys) → label, icon, group. Buffs on you vs effects on the boss. (W4, W5)
   var AURAS = {
@@ -900,7 +896,7 @@
     'dot:siphonLife': ['Siphon Life', 'siphonLife', 'boss'],
     shadowTrance: ['Shadow Trance (Nightfall)', 'shadowTrance', 'you'], decimation: ['Decimation', 'talent_decimation', 'you'],
     snfShadow: ['Shadow and Flame: Shadow +10%', 'talent_shadowAndFlame', 'you'], snfFire: ['Shadow and Flame: Fire +10%', 'talent_shadowAndFlame', 'you'],
-    eureka: ['Eureka! (charges left)', 'racial_eureka', 'you'], bloodFury: ['Blood Fury', 'racial_bloodFury', 'you'], berserking: ['Berserking', 'racial_berserking', 'you'],
+    eureka: ['Eureka!', 'racial_eureka', 'you'], bloodFury: ['Blood Fury', 'racial_bloodFury', 'you'], berserking: ['Berserking', 'racial_berserking', 'you'],
     spPotion: ['Spellblasting Potion', 'consumable_majorSpellblasting', 'you'], powerInfusion: ['Power Infusion', 'buff_powerInfusion', 'you'],
   };
   // [label, icon, group] for an aura key; 'dot2:corruption' = a DoT on extra target 2 (multi-DoT, group 'extra').
@@ -1140,7 +1136,7 @@
         kv('Execute (below ' + exP + '%)', fmt(r.dpsExec, 1) + ' <span style="color:var(' + (exGain >= 0 ? '--good' : '--bad') + ')">(' + (exGain >= 0 ? '+' : '') + exGain.toFixed(1) + '%)</span>') : '') +
       kv('Median · worst – best fight', fmt(r.dpsMedian, 1) + ' · ' + fmt(r.dpsMin, 0) + ' – ' + fmt(r.dpsMax, 0)) +
       kv('vs best overall', ((r.dps / top - 1) * 100).toFixed(2) + '%') + kv('Life Taps per fight', fmt(r.lifeTaps, 1)) +
-      (r.tps != null ? '<span title="Threat you generate per second: your damage (Searing Pain counts double, less with Demonic Brand), reduced by Suppression, Blessing of Salvation and Tranquil Air Totem. Your pet\'s damage is the pet\'s threat.">Threat per second</span><span class="n">' +
+      (r.tps != null ? '<span title="Threat you generate per second: your damage (Searing Pain counts double, less with Demonic Brand), reduced by Suppression and Salvation. Your pet\'s damage is the pet\'s threat.">Threat per second</span><span class="n">' +
         fmt(r.tps, 1) + ' <span class="meta">' + fmt(100 * r.tps / r.dps, 0) + '% of the DPS</span></span>' : '') +
       (r.clipped > 0.05 ? kv('Channels clipped per fight', fmt(r.clipped, 1)) : '') +
       (r.pushback && (r.pushback.n > 0.05 || r.pushback.resisted > 0.05) ? kv('Pushbacks per fight', fmt(r.pushback.n, 1) + ' · ' + fmt(r.pushback.time, 1) + ' s lost' + (r.pushback.resisted > 0.05 ? ' · ' + fmt(r.pushback.resisted, 1) + ' resisted' : '')) : '') +   // round 78
@@ -1177,7 +1173,7 @@
         }).join('');
         var val = s[4] ? (s[1] > 0 ? '+' : '') + fmt(s[1], 1) + '%' : fmt(s[1], s[3]);
         return '<tr><td>' + esc(s[0]) + '</td><td class="n"><b>' + val + '</b></td><td class="srcs">' + (src || '<span class="meta">–</span>') + '</td></tr>';
-      }).join('') + '</tbody></table></div><p class="meta">Talent damage modifiers (Shadow Mastery, Malediction, …) are not in these rows: they add up per spell.</p></div>';
+      }).join('') + '</tbody></table></div><p class="meta">Talent damage modifiers (Shadow Mastery, Improved Corruption, …) are not in these rows: they add up per spell.</p></div>';
 
     // ---- spells ----
     var keys = Object.keys(r.bySpell).sort(function (a, c) { return r.bySpell[c].dmg - r.bySpell[a].dmg; });
@@ -1766,7 +1762,7 @@
     clearTimeout(resetTimers[id]); btn.classList.remove('armed'); btn.textContent = label;
     return true;
   }
-  // Stats panel: gear values, race, sword, crit option, Engineering. The right-hand tabs are left alone.
+  // Stats panel: gear values, race, crit option, Engineering. The right-hand tabs are left alone.
   function resetStats() {
     if (!armed('resetStats')) return;
     var D = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
@@ -1821,7 +1817,7 @@
       if (codeKind(v) === 'build') {
         var d = edLoadBuild(WL.decodeBuild(v));
         $('edCode').value = v.trim(); $('editor').open = true;
-        edMsg('Build code loaded' + (WL.validateBuild(d).length ? ' — see the checks.' : ' — press "Add to the sheet" to simulate it.'));
+        edMsg('Build code loaded' + (d.migrated ? ' (' + d.migrated.join('; ') + ')' : '') + (WL.validateBuild(d).length ? ' — see the checks.' : ' — press "Add to the sheet" to simulate it.'));
         codeMsg('Build code loaded: "' + d.short + '" is now open in the build editor below.');
         $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
         return;
@@ -1857,14 +1853,22 @@
   };
   var PET_NAMES = { imp: 'Imp', succubus: 'Succubus', felhunter: 'Felhunter', voidwalker: 'Voidwalker' };
   function customBuilds() { return WL.BUILDS.filter(function (b) { return b.custom; }); }
+  // Round 149: saved builds a game patch made illegal (Malediction's points) are kept here, not lost: listed in the editor
+  // as "needs fixing" until you open and save them (or remove them). Not simulated meanwhile.
+  var heldCustoms = [];
   function saveCustoms() {
-    try { localStorage.setItem('wfs.customBuilds', JSON.stringify(customBuilds().map(function (b) { return { key: b.key, code: WL.encodeBuild(b) }; }))); } catch (e) { /* page only */ }
+    try { localStorage.setItem('wfs.customBuilds', JSON.stringify(customBuilds().map(function (b) { return { key: b.key, code: WL.encodeBuild(b) }; })
+      .concat(heldCustoms.map(function (h) { return { key: h.key, code: h.code }; })))); } catch (e) { /* page only */ }
   }
   function loadCustoms() {
     var list = [];
     try { list = JSON.parse(localStorage.getItem('wfs.customBuilds') || '[]') || []; } catch (e) { list = []; }
     list.forEach(function (x) {
-      try { var b = WL.decodeBuild(x.code); if (!WL.validateBuild(b).length) WL.BUILDS.push(makeCustom(b, x.key)); } catch (e) { /* skip damaged entries */ }
+      try {
+        var b = WL.decodeBuild(x.code), errs = WL.validateBuild(b);
+        if (!errs.length) WL.BUILDS.push(makeCustom(b, x.key));
+        else heldCustoms.push({ key: x.key, code: x.code, short: b.short, why: (b.migrated || []).concat(errs) });
+      } catch (e) { /* skip damaged entries */ }
     });
   }
   function makeCustom(b, key) {
@@ -1880,7 +1884,7 @@
       timeline: src.timeline ? src.timeline.map(function (e) { return { t: e.t, k: e.k }; }) : undefined,
       params: src.params ? JSON.parse(JSON.stringify(src.params)) : undefined }
       : { short: 'My build', talents: {}, pet: null, sacrifice: null, oil: 'spellstone', rotation: ['bane', 'curseOfElements', 'corruption', 'immolate', 'shadowBolt'] };
-    ed.editing = src && src.custom ? src.key : null;
+    ed.editing = src && src.custom ? src.key : null; ed.held = null;
     ed.from = src ? src.key : null; quick = null; quickSel = null;   // round 110: the quick-sim panel starts over
     tl.sel = -1; $('edTlOn').checked = !!ed.b.timeline;
     $('edFrom').value = src ? src.key : '';
@@ -1888,7 +1892,7 @@
   }
   // Puts a decoded build into the editor as a new build (build code loaded, round 102).
   function edLoadBuild(d) {
-    ed.b = d; ed.editing = null; ed.from = null; quick = null; quickSel = null;
+    ed.b = d; ed.editing = null; ed.held = null; ed.from = null; quick = null; quickSel = null;
     tl.sel = -1; $('edTlOn').checked = !!d.timeline; $('edFrom').value = '';
     renderEditor();
     return d;
@@ -1955,9 +1959,12 @@
     $('edSave').disabled = !!errs.length;
     $('edSave').textContent = ed.editing ? 'Update on the sheet' : 'Add to the sheet';
     if (!quickRunning) renderQuickOut();                                 // marks an older quick sim as out of date
-    $('edList').innerHTML = customBuilds().length ? customBuilds().map(function (c) {
+    $('edList').innerHTML = customBuilds().map(function (c) {
       return '<li><b>' + split(c) + ' ' + esc(c.short) + '</b><button type="button" data-edit="' + esc(c.key) + '">Edit</button><button type="button" data-edremove="' + esc(c.key) + '">Remove</button></li>';
-    }).join('') : '<li class="meta" style="list-style:none;margin-left:-20px">None yet.</li>';
+    }).join('') + heldCustoms.map(function (h) {
+      return '<li><b>' + esc(h.short) + '</b> <span class="meta" title="' + esc(h.why.join(' · ')) + '">needs fixing after a game patch: ' + esc(h.why[0]) + '</span>' +
+        '<button type="button" data-edheld="' + esc(h.key) + '">Fix in the editor</button><button type="button" data-edheldremove="' + esc(h.key) + '">Remove</button></li>';
+    }).join('') || '<li class="meta" style="list-style:none;margin-left:-20px">None yet.</li>';
   }
   function edTalent(key, delta) {
     var t = ed.b.talents, x = WL.TALENT_BY_KEY[key], n = (t[key] || 0) + delta;
@@ -1974,7 +1981,10 @@
       WL.BUILDS[i] = makeCustom(b, ed.editing);
       results = results.filter(function (r) { return r.build.key !== ed.editing; });
       delete weights[ed.editing];                                        // re-measured with the edited talents (round 55)
-    } else { var c = makeCustom(b); WL.BUILDS.push(c); ed.editing = c.key; }
+    } else {
+      var c = makeCustom(b, ed.held || undefined); WL.BUILDS.push(c); ed.editing = c.key;
+      if (ed.held) { heldCustoms = heldCustoms.filter(function (h) { return h.key !== ed.held; }); ed.held = null; }   // fixed: it joins the sheet
+    }
     saveCustoms(); edOptions(); renderEditor(); render(); showStale();   // a build change does not invalidate the other rows (round 55)
     edMsg('Saved "' + b.short + '" — press Sim! to simulate it' + (sameSettings() ? ' (settings unchanged: only this build is simulated)' : '') +
       '. Custom builds are always shown, whatever the cut-off.');
@@ -2313,6 +2323,16 @@
     if (t.closest('#edQuick')) { quickSim(); return true; }
     if ((x = t.closest('[data-edit]'))) { edStart(WL.BUILDS.filter(function (y) { return y.key === x.getAttribute('data-edit'); })[0]); edMsg('Editing — press "Update on the sheet" when done.'); return true; }
     if ((x = t.closest('[data-edremove]'))) { edRemove(x.getAttribute('data-edremove')); return true; }
+    if ((x = t.closest('[data-edheld]'))) {
+      var hk = x.getAttribute('data-edheld'), hb = heldCustoms.filter(function (h) { return h.key === hk; })[0]; if (!hb) return true;
+      edLoadBuild(WL.decodeBuild(hb.code)); ed.held = hk;
+      edMsg(hb.why[0] + '. Spend the points, then press "Add to the sheet".'); return true;
+    }
+    if ((x = t.closest('[data-edheldremove]'))) {
+      var rk = x.getAttribute('data-edheldremove'); heldCustoms = heldCustoms.filter(function (h) { return h.key !== rk; });
+      if (ed.held === rk) ed.held = null;
+      saveCustoms(); renderEditor(); edMsg('Removed.'); return true;
+    }
     if (t.closest('#edCopy')) {
       $('edCode').value = WL.encodeBuild(b);
       try { navigator.clipboard.writeText($('edCode').value).then(function () { edMsg('Build code copied.'); }, function () { $('edCode').select(); edMsg('Selected — press Ctrl+C.'); }); }
@@ -2325,7 +2345,7 @@
         if (codeKind($('edCode').value) === 'gear') edMsg('That is a gear code (WFG1), not a build code — ' + gbLoadCode($('edCode').value));
         else if (codeKind($('edCode').value) === 'settings') {        // a settings code in the build box (round 102)
           edMsg('That is a settings code (WFS1), not a build code — settings loaded: ' + applySettingsCode($('edCode').value));
-        } else { var d = edLoadBuild(WL.decodeBuild($('edCode').value)); edMsg('Build code loaded' + (WL.validateBuild(d).length ? ' — see the checks.' : '.')); }
+        } else { var d = edLoadBuild(WL.decodeBuild($('edCode').value)); edMsg('Build code loaded' + (d.migrated ? ' (' + d.migrated.join('; ') + ')' : '') + (WL.validateBuild(d).length ? ' — see the checks.' : '.')); }
       } catch (e3) { edMsg(e3.message, true); }
       return true;
     }
@@ -2584,7 +2604,7 @@
   // Round 148 (user, idea 9): what each raid buff and boss debuff is worth to one build. One run with the settings as they
   // are, then one per buff / debuff with it switched: one that is on is switched off (what you would lose), one that is
   // off is switched on (what you would gain) — together with what it needs (Restorative Totems: Mana Spring Totem), and
-  // instead of what cannot be up with it (Windfury / Grace of Air, Sunder / Expose Armor, …). Same fights everywhere.
+  // instead of what cannot be up with it (Sunder / Expose Armor, …). Same fights everywhere.
   function buffVariants() {
     var out = [];
     ['buffs', 'debuffs'].forEach(function (grp) {
@@ -2807,10 +2827,9 @@
     });
   }
   // Builder on: the sheet values = naked + items + enchants + yours, written into cfg.gear and the Stats panel (not into
-  // the field you are typing in). The crit option is off (the sum is the sheet before talents); a main hand that says
-  // sword or not sets the Sword box.
+  // the field you are typing in). The crit option is off (the sum is the sheet before talents).
   function gbSync() {
-    var g = gb(); $('o_critAll').disabled = !!g.on; $('o_sword').disabled = false;
+    var g = gb(); $('o_critAll').disabled = !!g.on;
     $('gbNote').hidden = !g.on;
     if (!g.on) return;
     var r = WL.gearSheet(g, cfg);
@@ -2819,7 +2838,6 @@
       if (document.activeElement !== $('g_' + k)) $('g_' + k).value = r.sheet[k];
     });
     cfg.gear.critIncludesAll = false; $('o_critAll').checked = false;
-    if (r.sword !== null) { cfg.gear.weaponIsSword = r.sword; $('o_sword').checked = r.sword; $('o_sword').disabled = true; }
   }
   function gbChanged(msg) {                                // items / enchants changed
     gbSave(); gbMsgText = msg || ''; gbCmp = null;
@@ -3007,16 +3025,15 @@
     var s = WL.gearSlot(gbSel), item = gbFormItem(); if (!s || !item) return;
     readSettings();
     var g = gb(), sw = WL.gearSwapDelta(g, s.key, { custom: item }, cfg), d = sw.delta;
-    if (!WL.GEAR_STAT_KEYS.some(function (k) { return d[k]; }) && (sw.sword === null || sw.sword === cfg.gear.weaponIsSword)) { gbCmp = { slot: s.key, same: true, item: item.name }; renderGbCmp(); return; }
+    if (!WL.GEAR_STAT_KEYS.some(function (k) { return d[k]; })) { gbCmp = { slot: s.key, same: true, item: item.name }; renderGbCmp(); return; }
     var by = runByRace(), order = WL.BUILDS.slice().sort(function (a, z) { return (listedDps(by[z.key] || {}) || 0) - (listedDps(by[a.key] || {}) || 0); }).slice(0, CH_MAX);
     var c0 = JSON.parse(JSON.stringify(cfg)), c1 = JSON.parse(JSON.stringify(cfg)), n = cfg.fight.weightIterations;
     WL.GEAR_STAT_KEYS.forEach(function (k) { c1.gear[k] = WL.gearRound((c1.gear[k] || 0) + d[k]); });
-    if (sw.sword !== null) c1.gear.weaponIsSword = sw.sword;
     var rows = order.map(function (b) { var mr = mainRow(b.key); return { b: b, race: mr ? mr.race : (myRace || 'undead'), now: null, with: null }; });
     var jobs = [], done = 0, t0 = performance.now();
     rows.forEach(function (r, i) { jobs.push({ kind: 'weight', build: r.b, race: r.race, cfg: c0, n: n, stat: null, i: i, side: 'now' }); jobs.push({ kind: 'weight', build: r.b, race: r.race, cfg: c1, n: n, stat: null, i: i, side: 'with' }); });
     var cur = WL.gearItem(g.slots[s.key]);
-    gbCmp = { slot: s.key, item: item.name, cur: cur ? cur.name : null, delta: d, rows: rows, n: n, busy: 'Simulating 0 / ' + jobs.length + '…', sword: sw.sword };
+    gbCmp = { slot: s.key, item: item.name, cur: cur ? cur.name : null, delta: d, rows: rows, n: n, busy: 'Simulating 0 / ' + jobs.length + '…' };
     gbCmpRunning = chartRunning = true; renderGbCmp();
     WL.SimPool.run(jobs, function (j, res) { rows[j.i][j.side] = res.dps; gbCmp.busy = 'Simulating ' + (++done) + ' / ' + jobs.length + '…'; renderGbCmp(); },
       function () { gbCmpRunning = chartRunning = false; gbCmp.busy = null; gbCmp.secs = ((performance.now() - t0) / 1000).toFixed(1); renderGbCmp(); });
@@ -3026,8 +3043,7 @@
     var C = gbCmp; if (!C || C.slot !== gbSel) { box.innerHTML = ''; return; }
     if (C.same) { box.innerHTML = '<p class="meta">' + esc(C.item) + ' changes none of your stats here: nothing to compare.</p>'; return; }
     var dtext = WL.GEAR_STAT_KEYS.filter(function (k) { return C.delta[k]; }).map(function (k) { return (C.delta[k] > 0 ? '+' : '') + gbNum(C.delta[k], k) + (isPctStat(k) ? '% ' : ' ') + statLabel(k).replace(/ %$/, ''); }).join(', ');
-    var h = '<h4>' + esc(C.item) + ' instead of ' + (C.cur ? esc(C.cur) : 'nothing') + '</h4><p class="meta">Your sheet changes by: ' + esc(dtext || 'nothing') +
-      (C.sword !== null && C.sword !== undefined ? (C.sword ? '; a sword in the main hand' : '; no sword in the main hand') : '') + '.</p>';
+    var h = '<h4>' + esc(C.item) + ' instead of ' + (C.cur ? esc(C.cur) : 'nothing') + '</h4><p class="meta">Your sheet changes by: ' + esc(dtext || 'nothing') + '.</p>';
     if (C.busy) { box.innerHTML = h + '<p class="meta">' + esc(C.busy) + '</p>'; return; }
     var rows = C.rows.slice().sort(function (a, z) { return (z.with - z.now) - (a.with - a.now); });
     h += '<div class="scroll"><table class="gbcmpt"><thead><tr><th>Build</th><th>Race</th><th class="n">Now</th><th class="n">With it</th><th class="n">Change</th>' +

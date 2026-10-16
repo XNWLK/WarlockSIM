@@ -12,9 +12,8 @@ WL.talentValue = function (build, key, field) {
 
 // Buffs that are switched on (a buff with `requires` only counts when that buff is also on, e.g. Restorative Totems).
 // Buffs that cannot be up together carry the same `excl` tag — one tag or a list of tags; two buffs clash when they share
-// one. 'airTotem' (round 125): Windfury / Grace of Air / Tranquil Air Totem. 'meleeTotem' (round 131, user): Windfury /
-// Flametongue / Grace of Air Totem — Flametongue and Tranquil Air share no tag and can still be up together. Of clashing
-// buffs that are on only the first listed counts. The page keeps them exclusive; this covers hand-made settings.
+// one (rounds 125–148 the Shaman totems; none of today's buffs has a tag since round 149). Of clashing buffs that are on
+// only the first listed counts. The page keeps them exclusive; this covers hand-made settings.
 WL.buffExcl = function (b) { return b && b.excl ? [].concat(b.excl) : []; };
 WL.buffsClash = function (a, b) {
   var x = WL.buffExcl(b);
@@ -182,15 +181,15 @@ WL.computeStats = function (build, raceKey, cfg) {
   critPct += buffStat('critPct') + conCrit();                            // e.g. Moonkin Form aura, Elixir of the Owl
   if (!gear.critIncludesAll) {
     critPct += oilStat('critPct');
-    var sword = racial('critPctIfSword');
-    if (sword && gear.weaponIsSword) critPct += add('critPct', 'Sword Specialization [A30]', sword.value);
+    var rc = racial('critPct');                                         // Ruthless (Human), Savage (Orc) [A93]
+    if (rc) critPct += add('critPct', rc.name + ' [A93]', rc.value);
   }
 
-  // --- Melee crit --- [A75]: 2.0% + Agility / 20 (Classic L60 Warlock) + Sword Specialization; no spell-crit sources.
+  // --- Melee crit --- [A75]: 2.0% + Agility / 20 (Classic L60 Warlock) + Ruthless / Savage; no spell-crit sources.
   var meleeCritPct = add('meleeCritPct', 'Base (L60 Warlock) [A75]', cb.meleeCritBasePct != null ? cb.meleeCritBasePct : 2)
                    + add('meleeCritPct', 'Agility ' + Math.round(agi * 10) / 10 + ' / ' + (cb.agiPerMeleeCrit || 20), agi / (cb.agiPerMeleeCrit || 20));
-  var swordM = racial('critPctIfSword');
-  if (swordM && gear.weaponIsSword) meleeCritPct += add('meleeCritPct', 'Sword Specialization [A30]', swordM.value);
+  var rcM = racial('critPct');
+  if (rcM) meleeCritPct += add('meleeCritPct', rcM.name + ' [A93]', rcM.value);
 
   // --- Haste --- [A05][A08]
   var hastePct = add('hastePct', 'Gear', gear.hastePct || 0)

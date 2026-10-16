@@ -27,8 +27,8 @@ pet, racial, raid buff and consumable does in the sim, with worked examples.
 - DPS with error margin, gap to the best build, and **stat weights** for spell power, hit, crit, haste and Intellect
   (shown as the spell power they are worth; Spell Pierce in the details).
 - Shows every build by default; an optional cut-off hides builds behind the best, and a **pin** keeps any build shown.
-- Races: Human, Gnome, Orc, Undead, Troll with their racials (Sword Specialization, Eureka!, Blood Fury, Touch of the
-  Grave, Berserking…).
+- Races: Human, Gnome, Orc, Undead, Troll with their racials (Ruthless, Eureka!, Savage, Blood Fury, Touch of the Grave,
+  Berserking…).
 
 ### Build details
 Click a build for:
@@ -76,10 +76,7 @@ Click a build for:
   wins short and long fights), for one build or all of them.
 - **Rank arrows** show which builds moved up or down after you change your settings.
 - **Health and threat:** Life Tap and Hellfire cost health, you set how much healing you get, and every build shows its
-  threat per second (with Blessing of Salvation and Tranquil Air Totem as raid buffs).
-- **Windfury Totem** for pets with a melee attack: extra attacks that also use up Demonic Brand charges.
-- **Flametongue Totem** for pets with a melee attack: extra Fire damage on every hit. Windfury, Flametongue and Grace of
-  Air Totem do not stack: one of the three at a time.
+  threat per second (with Salvation as a raid buff).
 - **Rank for your race**: list the builds for the race you play instead of each build's best race.
 - **Batch compare:** save several setups (e.g. pre-raid vs raid-buffed) and run them all, or add the current run to
   compare later runs against it.

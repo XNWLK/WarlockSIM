@@ -96,9 +96,9 @@ Level-60 Warlock before the race: Intellect 110, Spirit 115, Stamina 65, Agility
 
 | Race | Intellect | Spirit | Stamina | Agility | Racials in the sim |
 |---|---|---|---|---|---|
-| Human | 0 | 0 | 0 | 0 | The Human Spirit, Sword Specialization |
+| Human | 0 | 0 | 0 | 0 | The Human Spirit, Ruthless |
 | Gnome | +3 | 0 | −1 | +3 | Expansive Mind, Eureka! |
-| Orc | −3 | +3 | +2 | −3 | Blood Fury |
+| Orc | −3 | +3 | +2 | −3 | Savage, Blood Fury |
 | Undead | −2 | +5 | +1 | −2 | Touch of the Grave |
 | Troll | −4 | +1 | +1 | +2 | Berserking |
 <!-- /gen:races -->
@@ -146,17 +146,17 @@ crit chance = sheet crit
             + raid buffs (Moonkin Form aura 3%)
             + consumables
             + Firestone 2% + weapon oil crit
-            + Sword Specialization 2% (Human, "Sword equipped" ticked)
+            + Ruthless 2% (Human) or Savage 1% (Orc)
 ```
 
 - 60 Intellect = 1% crit. The crit on your sheet already holds your own Intellect, so only the Intellect that buffs,
   consumables and Blessing of Kings add on top is converted.
 - Elixir of the Owl and Elixir of Sages do not stack their 2% crit: together they give 2%.
 - Per spell, talents add more: Malevolence (Shadow spells), Agonizing Flames (Searing Pain), Fire and Brimstone (Conflagrate).
-- Option "Sheet crit % already includes talents, racials & oil": then Malevolence, the Firestone or oil crit and Sword
-  Specialization are not added again. Raid buffs, consumables and the two spell-specific talents still are.
+- Option "Sheet crit % already includes talents, racials & oil": then Malevolence, the Firestone or oil crit, Ruthless and
+  Savage are not added again. Raid buffs, consumables and the two spell-specific talents still are.
 
-**Your melee crit** = 2% + Agility ÷ 20, + 2% Sword Specialization. Only the Succubus uses it (section 7). Crit on gear is
+**Your melee crit** = 2% + Agility ÷ 20, + 2% Ruthless (Human) or 1% Savage (Orc). Only the Succubus uses it (section 7). Crit on gear is
 spell crit only and does not count here.
 
 **Haste** = gear + consumables + Spellstone 2%. Berserking is applied on top during the fight (section 1).
@@ -182,11 +182,11 @@ together inside their group, and the group is applied once.
 
 | Group | Talents in it |
 |---|---|
-| Direct (hits) | Shadow Mastery (Shadow spells) · Agonizing Flames (Destruction spells except Hellfire) · Aftermath (Immolate's hit) · Decimation (Shadow Bolt and Searing Pain while the boss is below 35%) · Eureka! (+10% while it is up) |
-| Periodic (DoT and channel ticks) | Shadow Mastery (Shadow spells) · Agonizing Flames (Destruction spells except Hellfire) · Malediction (everything except Rain of Fire) · Improved Corruption · Improved Bane of Agony · Improved Drains · Eureka! (+10%, channel ticks only) |
+| Direct (hits) | Shadow Mastery (Shadow spells) · Agonizing Flames (Destruction spells except Hellfire) · Aftermath (Immolate's hit) · Decimation (Shadow Bolt and Searing Pain while the boss is below 35%) · Eureka! (+10% for a cast that finishes while it is up) |
+| Periodic (DoT and channel ticks) | Shadow Mastery (Shadow spells) · Agonizing Flames (Destruction spells except Hellfire) · Improved Corruption · Improved Bane of Agony · Improved Drains · Eureka! (+10%, channel ticks while it is up) |
 
-Example: Corruption with 5/5 Improved Corruption, 5/5 Malediction and 5/5 Shadow Mastery gets × (1 + 10% + 5% + 5%) =
-× 1.20, not 1.10 × 1.05 × 1.05 = 1.213.
+Example: Corruption with 5/5 Improved Corruption and 5/5 Shadow Mastery gets × (1 + 10% + 10%) = × 1.20, not
+1.10 × 1.10 = 1.21.
 
 **Auras: each one multiplies.** Effects that say "increases your Shadow damage" or "damage taken":
 
@@ -258,7 +258,7 @@ The examples use the build **Demo Pact Shadow Bolt Succubus** as an Undead with 
 (1,742 + 4 × 581) × 1.3029 auras = **5,297.8**; with the curse and Improved Shadow Bolt on the boss **6,993.1**; a crit deals × 1.5.
 
 #### 5. Touch of the Grave
-4,666 health × 5% = 233.3; × 1.3029 auras = **304**; with the curse and Improved Shadow Bolt on the boss **401.3**. No spell power, no crit, no resist roll. 10% chance per landed damaging cast.
+4,666 health × 5% = **233.3**. Nothing multiplies it: no aura, no curse, no Improved Shadow Bolt, no Power Infusion. No spell power, no crit, no resist roll. 30% chance per landed damaging cast, then nothing for 25 s.
 
 #### 6. The Succubus
 - Attack table of one swing: miss 8% − (89 − 83 − 1)% = **3%**, dodge **6.5%**, glancing blow **40%** (at 65% damage), crit 7.52 + 6.46 − 4.8 = **9.18%** (× 2), normal hit the remaining **41.33%**.
@@ -275,7 +275,7 @@ The examples use the build **Demo Pact Shadow Bolt Succubus** as an Undead with 
 #### 8. Talents of one group add up: Immolate and Incinerate
 Build **Destro Incinerate Succubus**, Undead, default settings; Fire spell power 500 + 21 Major Firestone = 521. No auras: this build has no Demonology points.
 - Immolate's hit: (146 + 0.2 × 521) × (1 + 10% Agonizing Flames + 50% Aftermath) = 250.2 × 1.60 = **400.3**. The two talents add to 60%; they do not multiply to 65%.
-- Immolate's burn, per tick: (52 + 0.13 × 521) × (1 + 10% Agonizing Flames + 5% Malediction) = **137.7**; 5 ticks.
+- Immolate's burn, per tick: (52 + 0.13 × 521) × (1 + 10% Agonizing Flames) = **131.7**; 5 ticks.
 - Incinerate: (217 + 0.714 × 521) × 1.10 Agonizing Flames = 647.9; × 1.25 with Immolate on the boss × 1.10 curse × 1.10 Shadow and Flame (after a Shadowburn) = **979.9**; a crit (16.29%) deals × 2.
 
 #### 9. Resistance before the curse, and Spell Pierce
@@ -325,8 +325,8 @@ tooltip says 246 to 274). A spell's "family" decides which talents count it as a
 - **Conflagrate.** Can only be cast with your Immolate on the target and consumes it - unless Shadow and Flame keeps it.
 - **Shadowburn.** Uses a soul shard; shards never run out in the sim.
 - **Soul Fire.** Its cooldown starts when the cast is complete. Uses a soul shard (unlimited). With the Decimation buff: faster cast, no shard. Projectile.
-- **Hellfire.** Channel. Every tick hits every target of the fight (each with its own hit, crit and resist roll) and hits you for the tick's value before talents (206 + 0.022 × SP), without a crit, reduced by Molten Skin and Soul Link. Only started when your health covers the whole channel, counting the heals due during it; it stops early if the next tick would kill you. Malediction applies, Agonizing Flames does not.
-- **Rain of Fire.** Channel. Every tick hits every target of the fight (each with its own hit, crit and resist roll). Agonizing Flames applies, Malediction does not.
+- **Hellfire.** Channel. Every tick hits every target of the fight (each with its own hit, crit and resist roll) and hits you for the tick's value before talents (206 + 0.022 × SP), without a crit, reduced by Molten Skin and Soul Link. Only started when your health covers the whole channel, counting the heals due during it; it stops early if the next tick would kill you. Agonizing Flames does not apply.
+- **Rain of Fire.** Channel. Every tick hits every target of the fight (each with its own hit, crit and resist roll). Agonizing Flames applies.
 - **Corruption.** A DoT with a cast time, unless Improved Corruption makes it instant.
 - **Bane of Agony.** The ticks ramp up: ticks 1-4 deal 50%, ticks 5-8 100% and ticks 9-12 150% of the tick value in the table. One Bane per target.
 - **Bane of Doom.** One hit after 60 s. It counts as a periodic tick (periodic talent group, it can crit). Only cast when at least 60 s of the fight are left. One Bane per target.
@@ -336,7 +336,7 @@ tooltip says 246 to 274). A spell's "family" decides which talents count it as a
 - **Drain Soul.** Listed because talents name it. No priority action casts it.
 - **Wrack.** Channel. While it runs, the ticks of your Corruption, Bane of Agony, Siphon Life and Bane of Doom deal 10% more. It counts as a drain for Improved Drains, Soul Siphon, Fel Concentration and Nightfall.
 - **Death Coil.** Heals you for the damage it deals. Projectile.
-- **Curse of the Elements.** Has to hit. On the target for 5 minutes: it takes 10% more damage from your spells, your demon's spells and totem hits, your explosives and Touch of the Grave, and its resistance drops by 75 (which removes the level resistance).
+- **Curse of the Elements.** Has to hit. On the target for 5 minutes: it takes 10% more damage from your spells, your demon's spells and your explosives, and its resistance drops by 75 (which removes the level resistance).
 - **Life Tap.** Instant, one global cooldown: 430 health become (430 + Spirit) mana, more with Improved Life Tap. It does not restart the 5-second rule.
 <!-- /gen:spells -->
 
@@ -371,7 +371,7 @@ Every talent of the three trees. "Talent group" and "aura" are explained in sect
 | Improved Life Tap | 2 | Life Tap mana +10 / 20% | Life Tap gives (430 + Spirit) × 1.10 / 1.20 mana. Its health cost stays 430. |
 | Suppression | 5 | hit +1 / 2 / 3 / 4 / 5%; threat −4 / 8 / 12 / 16 / 20% | Adds to your hit chance. Your pet's spells use your hit chance too, and its melee misses less (see Pets). Also lowers all the threat you cause. |
 | Improved Corruption | 5 | Corruption cast −0.4 / 0.8 / 1.2 / 1.6 / 2 s; Corruption damage +2 / 4 / 6 / 8 / 10% | Shortens Corruption's 2 s cast (instant at 5 points) and adds to Corruption's periodic talent group. |
-| Malediction | 5 | periodic damage +1 / 2 / 3 / 4 / 5% | Adds to the periodic talent group of every DoT tick and channel tick of yours, except Rain of Fire. |
+| Grim Reach | 2 | range +10 / 20% | No effect on damage: the boss is always in range. The longer range is only listed. |
 | Soul Harvesting | 2 | — | Not simulated: it needs an enemy dying under your Drain Soul. |
 | Improved Drains | 3 | drain damage +7 / 13 / 20% | Adds to the periodic talent group of Drain Life, Drain Soul and Wrack. |
 | Improved Bane of Agony | 2 | Bane of Agony damage +5 / 10% | Adds to Bane of Agony's periodic talent group. |
@@ -383,7 +383,7 @@ Every talent of the three trees. "Talent group" and "aura" are explained in sect
 | Curse of Exhaustion | 1 | — | Not simulated (a movement slow). |
 | Siphon Life | 1 | — | Gives the spell Siphon Life. |
 | Soul Siphon | 3 | per effect +4 / 8 / 12%; maximum +12 / 24 / 36% | Multiplies the ticks of Drain Life, Drain Soul and Wrack by 1 + this much for each of these on the target: Corruption, Bane of Agony, Bane of Doom, Siphon Life, Curse of the Elements - up to the maximum. A multiplier of its own. |
-| Shadow Mastery | 5 | Shadow damage +1 / 2 / 3 / 4 / 5% | Adds to the direct and the periodic talent group of every Shadow spell of yours. Not applied to Touch of the Grave or to pets. |
+| Shadow Mastery | 5 | Shadow damage +2 / 4 / 6 / 8 / 10% | Adds to the direct and the periodic talent group of every Shadow spell of yours. Not applied to Touch of the Grave or to pets. |
 | Wrack | 1 | — | Gives the spell Wrack. |
 <!-- /gen:talents-affliction -->
 
@@ -395,7 +395,7 @@ Every talent of the three trees. "Talent group" and "aura" are explained in sect
 | Improved Health Funnel | 2 | — | Not simulated (Health Funnel is never cast). |
 | Improved Imp | 3 | Firebolt +10 / 20 / 30% | Multiplies the Imp's whole Firebolt hit by 1.10 / 1.20 / 1.30. Fire Shield is not simulated. |
 | Demonic Embrace | 5 | Stamina +3 / 6 / 9 / 12 / 15% | Multiplies your Stamina. That only matters for your health and for Touch of the Grave. |
-| Unholy Power | 5 | demon damage +2 / 4 / 6 / 8 / 10% | Multiplies everything your demon deals: melee, Firebolt, Lash of Pain, the Demonic Brand hit and the totem hits. |
+| Unholy Power | 5 | demon damage +2 / 4 / 6 / 8 / 10% | Multiplies everything your demon deals: melee, Firebolt, Lash of Pain and the Demonic Brand hit. |
 | Demonic Aegis | 2 | — | Not simulated (armor spells). |
 | Improved Voidwalker | 3 | — | Not simulated. |
 | Fel Vitality | 3 | maximum mana +5 / 10 / 15% | Multiplies your maximum mana (it adds with the Gnome's Expansive Mind) and your demon's maximum mana. Demon health is not simulated. |
@@ -419,7 +419,7 @@ Every talent of the three trees. "Talent group" and "aura" are explained in sect
 | Talent | Points | Value per point | What it does in the sim |
 |---|---|---|---|
 | Destructive Reach | 2 | range +10 / 20% | No effect on damage: the boss is always in range. The longer range is only listed. |
-| Improved Shadow Bolt | 5 | Shadow damage taken +4 / 8 / 12 / 16 / 20% | Every Shadow Bolt crit puts the debuff on that target for 12 s: your Shadow damage on it is this much higher - hits, ticks and Touch of the Grave. No charges; a new crit restarts the 12 s. Another Warlock's debuff does not count for you, and demons do not benefit. |
+| Improved Shadow Bolt | 5 | Shadow damage taken +4 / 8 / 12 / 16 / 20% | Every Shadow Bolt crit puts the debuff on that target for 12 s: your Shadow damage on it is this much higher - hits and ticks. No charges; a new crit restarts the 12 s. Another Warlock's debuff does not count for you, and demons do not benefit. |
 | Bane | 5 | cast −0.1 / 0.2 / 0.3 / 0.4 / 0.5 s; Soul Fire cast −0.4 / 0.8 / 1.2 / 1.6 / 2 s | Shorter cast of Shadow Bolt, Immolate and Incinerate (first values) and of Soul Fire (second values), before haste. |
 | Molten Skin | 5 | damage to yourself −2 / 4 / 6 / 8 / 10% | Lowers the damage you do to yourself (Hellfire, Demonic Rune, Goblin Sapper). Multiplies with Soul Link. Life Tap is not reduced. |
 | Cataclysm | 3 | mana cost −3 / 6 / 10% | Lowers the mana cost of every Destruction spell. |
@@ -432,7 +432,7 @@ Every talent of the three trees. "Talent group" and "aura" are explained in sect
 | Pyroclasm | 2 | — | Not simulated (stuns). |
 | Bane of Havoc | 1 | — | Only with 2 or 3 targets: Bane of Havoc sits on target 2, and 15% of everything you (not your demon) deal to the other targets is dealt to it as well. |
 | Fire and Brimstone | 3 | Conflagrate crit +8 / 17 / 25% | Adds to Conflagrate's crit chance. |
-| Shadow and Flame | 5 | Shadow / Fire damage +2 / 4 / 6 / 8 / 10%; chance 20 / 40 / 60 / 80 / 100% | A landed Conflagrate gives this much more Shadow damage for 20 s, a landed Shadowburn this much more Fire damage for 20 s (auras: they multiply; Touch of the Grave takes the Shadow one). Second values: the chance that Conflagrate does not consume Immolate, and that Shadowburn refunds its soul shard. |
+| Shadow and Flame | 5 | Shadow / Fire damage +2 / 4 / 6 / 8 / 10%; chance 20 / 40 / 60 / 80 / 100% | A landed Conflagrate gives this much more Shadow damage for 20 s, a landed Shadowburn this much more Fire damage for 20 s (auras: they multiply). Second values: the chance that Conflagrate does not consume Immolate, and that Shadowburn refunds its soul shard. |
 | Incinerate | 1 | — | Gives the spell Incinerate. |
 <!-- /gen:talents-destruction -->
 
@@ -508,7 +508,7 @@ Sunder and Expose do not stack with each other, nor do Faerie Fire and Curse of 
 *Their melee values are assumed.*
 
 **Demonic Brand** (talent). A landed Searing Pain brands the boss for 10 s with 2 / 4 / 6 charges. Every landed attack of
-your demon (a swing, a Windfury extra attack, a Firebolt, a Lash of Pain) spends one charge and adds:
+your demon (a swing, a Firebolt, a Lash of Pain) spends one charge and adds:
 
 ```
 Demonic Brand hit = (66.5 + 0.078 × your Shadow spell power) × demon multipliers
@@ -516,13 +516,8 @@ Demonic Brand hit = (66.5 + 0.078 × your Shadow spell power) × demon multiplie
 
 It is Fire for the Imp and Shadow for the Succubus, so Master Demonologist counts for both. It cannot miss or crit.
 
-**Windfury Totem.** Each landed swing has a 20% chance of one extra attack at once, with 246 more attack power (+17.6
-damage per second for that attack). The extra attack rolls on the same table, spends a Demonic Brand charge and cannot
-trigger another one.
-
-**Flametongue Totem.** Each landed swing adds a Fire hit of 1,363 × swing time ÷ 100 = 27.3 for a 2.0 s swing, × demon
-multipliers. It has no spell power part. It can miss (your hit chance) and crit (your spell crit, × 1.5). It spends no
-Demonic Brand charge.
+**Shaman totems.** Windfury Totem and Flametongue Totem only affect players, so they do nothing for your demon. Grace of
+Air Totem still raises your Agility and with it the melee crit the Succubus inherits.
 
 **Judgement of Wisdom** on the boss gives the demon 59 mana on 50% of its landed swings and spells.
 
@@ -545,24 +540,23 @@ racials, so you can read off what each race adds.
 | Racial | In the sim |
 |---|---|
 | The Human Spirit (Human) | Spirit × 1.05. |
-| Sword Specialization (Human) | +2% spell crit and +2% melee crit while "Sword equipped" is ticked. |
+| Ruthless (Human) | +2% spell crit and +2% melee crit. |
 | Expansive Mind (Gnome) | Maximum mana +5% (adds with Fel Vitality). |
-| Eureka! (Gnome) | 2 min cooldown. Your next 3 damaging spells cost 10% less mana, and until the third of them has landed (a channel: ended) - or 15 s have passed - your direct hits and channel ticks get +10%, added to their talent group (section 3). DoT ticks get nothing. Every damaging cast uses up one of the three, also a DoT or an instant, so the sim only starts Eureka! right before a direct spell or channel of at least 1.4 s. |
-| Blood Fury (Orc) | 2 min cooldown, 15 s: your spell power × 1.10. That also raises what your demon gets from you, and a Bane of Doom that explodes while it is up. |
+| Eureka! (Gnome) | 2 min cooldown, 8 s. Every damaging spell that finishes while it is up costs 10% less mana and deals +10%, added to its talent group (section 3): a spell with a cast time when the cast is complete, an instant when it is cast. A cast that is still going when the 8 s end gets nothing. A channel costs 10% less when it starts inside the 8 s, and each of its ticks that comes while Eureka! is up gets +10%. DoT ticks get nothing. The sim starts Eureka! right before a direct spell or channel of at least 1.4 s. |
+| Savage (Orc) | +1% spell crit and +1% melee crit. |
+| Blood Fury (Orc) | 3 min cooldown, 15 s: your spell power × 1.10. That also raises what your demon gets from you, and a Bane of Doom that explodes while it is up. |
 | Berserking (Troll) | 3 min cooldown, 10 s: 10% haste. Shortens casts and the global cooldown. |
-| Touch of the Grave (Undead) | Each landed cast of a damaging spell (a direct spell, a DoT when it is applied, a channel when it starts - never a tick, a curse or Life Tap) has a 10% chance to deal 5% of your maximum health as Shadow damage and heal you for the same amount. |
+| Touch of the Grave (Undead) | Each landed cast of a damaging spell (a direct spell, a DoT when it is applied, a channel when it starts - never a tick, a curse or Life Tap) has a 30% chance to deal 5% of your maximum health as Shadow damage and heal you for the same amount. After it happens it cannot happen again for 25 s. |
 
 **Touch of the Grave in full.**
 
 ```
 damage = 5% of maximum health
-         × Demonic Sacrifice (Imp) × Master Demonologist (Succubus out) × Soul Link
-         × Curse of the Elements × Improved Shadow Bolt     (on the target it hits)
-         × Shadow and Flame × Power Infusion                (while they are up)
 ```
 
-It scales with Stamina, not with spell power. Shadow Mastery and Malediction do not apply. It cannot crit and is never
-resisted.
+Nothing multiplies it: no talent, no aura (Demonic Sacrifice, Master Demonologist, Soul Link), no debuff on the target
+(Curse of the Elements, Improved Shadow Bolt), no Shadow and Flame, no Power Infusion. It scales with Stamina, not with
+spell power. It cannot crit and is never resisted.
 
 The three cooldown racials are used together with your other cooldowns (section 15), and only right before a spell that
 does damage - never before a curse or a Life Tap.
@@ -599,7 +593,8 @@ priority action "Life Tap when mana is below …%"), or to feed the demon (Demon
 | Mana potion / Demonic Rune | Used when you are missing at least what they restore; 2 min cooldown each (potions share one, the rune has its own). |
 | Voidwalker sacrifice | 2% of your maximum mana every 4 s. |
 
-**Costs.** Cataclysm lowers the cost of Destruction spells by 3 / 6 / 10%. Eureka! lowers its three spells by 10%. A Soul
+**Costs.** Cataclysm lowers the cost of Destruction spells by 3 / 6 / 10%. Eureka! lowers the spells that finish while it
+is up by 10%. A Soul
 Fire under Decimation costs its normal mana (only the shard is free). Soul shards never run out.
 
 ---
@@ -654,11 +649,10 @@ Demons, explosives and Touch of the Grave are never resisted and get nothing fro
 The sim reports your threat per second; it does not check it against a tank.
 
 ```
-threat = damage × (1 − Suppression 4% per point) × (1 − Blessing of Salvation 30% or Tranquil Air Totem 20%) × spell factor
+threat = damage × (1 − Suppression 4% per point) × (1 − Salvation 30%) × spell factor
 ```
 
 - Spell factor: 2 for Searing Pain, lowered by Demonic Brand's 17 / 33 / 50%; 1 for everything else.
-- Blessing of Salvation and Tranquil Air Totem do not stack: only the bigger one counts.
 - The copy Bane of Havoc makes of your damage counts. Your demon's damage is the demon's threat, not yours.
 - Not counted: threat from healing yourself, from gaining mana and from applying curses.
 
@@ -678,20 +672,16 @@ threat = damage × (1 − Suppression 4% per point) × (1 − Blessing of Salvat
 | Blessing of Wisdom | Paladin | on | 40 mana every 5 s |
 | Mana Spring Totem | Shaman | off | 10 mana every 2 s (25 MP5) |
 | Restorative Totems (on Mana Spring) | Shaman | off | Mana Spring +25% |
-| Windfury Totem | Shaman | off | Pet melee: 20% chance per hit of an extra attack with +246 attack power (not with Flametongue, Grace of Air or Tranquil Air) |
-| Flametongue Totem | Shaman | off | +27 Fire damage per pet melee hit (not with Windfury or Grace of Air) |
-| Grace of Air Totem | Shaman | off | +89 Agility (melee crit for the Succubus; not with Windfury, Flametongue, Tranquil Air or the Scroll of Agility) |
+| Grace of Air Totem | Shaman | off | +89 Agility (melee crit for the Succubus; does not stack with the Scroll of Agility) |
 | Mana Tide Totem | Shaman | off | 290 mana every 3 s for 12 s, once, when you drop below 50% mana |
 | Innervate | Druid | off | 5× mana regen while casting for 20 s, once, when you drop below 50% mana |
-| Moonkin Form aura | Druid | on | +3% crit (party) |
+| Moonkin Form aura | Druid | on | +3% spell crit (raid) |
 | Scroll of Agility IV | Scroll | on | +17 Agility (melee crit for the Succubus; does not stack with Grace of Air) |
-| Blessing of Salvation | Paladin | off | −30% threat (does not stack with Tranquil Air Totem) |
-| Tranquil Air Totem | Shaman | off | −20% threat (does not stack with Blessing of Salvation, Windfury Totem or Grace of Air Totem) |
+| Salvation | Paladin | off | −30% threat |
 | Power Infusion | Priest | off | +20% spell damage for 15 s (3 min cooldown); cast on you when you pop your cooldowns |
 <!-- /gen:buffs -->
 
-- **Totems.** Windfury, Flametongue and Grace of Air Totem do not stack with each other: only one of the three can be on.
-  Tranquil Air Totem cannot be on together with Windfury or Grace of Air, but it can with Flametongue.
+- **Totems.** Windfury Totem and Flametongue Totem are not in the list: they only affect players, not your demon.
 - **Power Infusion** is cast on you when you use your cooldowns (section 15) and again whenever it is ready.
 - Buffs that are personal in Forever are not available to you from others: Shadow Weaving, Improved Scorch, Winter's
   Chill, Stormstrike and another Warlock's Improved Shadow Bolt.
@@ -825,7 +815,7 @@ Eureka!), the Major Spellblasting Potion and Power Infusion. After the first use
 
 ### Aff Pact Shadow Bolt Succubus (13/31/7)
 - Succubus out, Imp sacrificed, Major Spellstone.
-- Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 2/5, Malediction 1/5, Pandemic 3/3.
+- Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 3/5, Pandemic 3/3.
 - Demonology: Unholy Power 5/5, Fel Vitality 3/3, Demonic Energies 2/2, Improved Sayaad 3/3, Demonic Sacrifice 1/1, Master Summoner 2/2, Decimation 2/2, Demonic Brand 3/3, Soul Link 1/1, Demonic Knowledge 3/3, Master Demonologist 5/5, Demonic Pact 1/1.
 - Destruction: Improved Shadow Bolt 2/5, Bane 5/5.
 - Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Curse of the Elements if missing · 4. Searing Pain to (re)apply Demonic Brand when it is down · 5. Corruption if missing/expiring · 6. Immolate if missing/expiring · 7. Life Tap when mana is below 80% and more than 45 s remain · 8. Shadow Bolt (filler).
@@ -837,9 +827,10 @@ Eureka!), the Major Spellblasting Potion and Power Infusion. After the first use
 - Destruction: Bane 5/5, Aftermath 5/5, Ruin 5/5, Agonizing Flames 3/3.
 - Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Searing Pain to (re)apply Demonic Brand when it is down · 3. Life Tap to feed the pet (Demonic Energies) when it is nearly out of mana · 4. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 5. Curse of the Elements if missing · 6. Immolate if missing/expiring · 7. Soul Fire while Decimation buff is up · 8. Corruption if missing/expiring · 9. Life Tap when mana is below 80% and more than 45 s remain · 10. Searing Pain (filler).
 
-### Destro Incinerate Succubus (18/0/33)
+### Destro Incinerate Succubus (14/4/33)
 - Succubus out, nothing sacrificed, Major Firestone.
-- Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 3/5, Malediction 5/5, Pandemic 3/3.
+- Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 3/5, Amplify Curse 1/1, Pandemic 3/3.
+- Demonology: Unholy Power 4/5.
 - Destruction: Bane 5/5, Cataclysm 3/3, Aftermath 5/5, Ruin 5/5, Shadowburn 1/1, Agonizing Flames 3/3, Conflagrate 1/1, Bane of Havoc 1/1, Fire and Brimstone 3/3, Shadow and Flame 5/5, Incinerate 1/1.
 - Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Curse of the Elements if missing · 4. Immolate if missing/expiring · 5. Corruption if missing/expiring · 6. Conflagrate on cooldown while Immolate is up · 7. Shadowburn on cooldown (needs a Soul Shard) · 8. Life Tap when mana is below 50% and more than 25 s remain · 9. Incinerate (filler).
 
@@ -852,14 +843,14 @@ Eureka!), the Major Spellblasting Potion and Power Infusion. After the first use
 
 ### SM Ruin (classic) (30/0/21)
 - Succubus out, nothing sacrificed, Major Spellstone.
-- Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 2/5, Malediction 5/5, Pandemic 3/3, Malevolence 5/5, Nightfall 2/2, Siphon Life 1/1, Shadow Mastery 5/5.
+- Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 4/5, Improved Bane of Agony 2/2, Amplify Curse 1/1, Pandemic 3/3, Malevolence 5/5, Nightfall 2/2, Siphon Life 1/1, Shadow Mastery 5/5.
 - Destruction: Improved Shadow Bolt 5/5, Bane 5/5, Cataclysm 3/3, Ruin 5/5, Agonizing Flames 3/3.
 - Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Corruption if missing/expiring · 4. Shadow Bolt (max rank) if Shadow Trance (Nightfall) is up · 5. Siphon Life if missing/expiring · 6. Curse of the Elements if missing · 7. Immolate if missing/expiring · 8. Life Tap when mana is below 40% and more than 25 s remain · 9. Shadow Bolt (filler).
 
-### Wrack Succubus (40/0/11)
+### Wrack Succubus (37/0/14)
 - Succubus out, nothing sacrificed, Major Spellstone.
-- Affliction: Suppression 5/5, Improved Corruption 5/5, Malediction 5/5, Improved Drains 3/3, Improved Bane of Agony 2/2, Pandemic 3/3, Malevolence 5/5, Nightfall 2/2, Siphon Life 1/1, Soul Siphon 3/3, Shadow Mastery 5/5, Wrack 1/1.
-- Destruction: Improved Shadow Bolt 5/5, Bane 5/5, Ruin 1/5.
+- Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 5/5, Improved Drains 3/3, Improved Bane of Agony 2/2, Pandemic 3/3, Malevolence 5/5, Nightfall 2/2, Siphon Life 1/1, Soul Siphon 3/3, Shadow Mastery 5/5, Wrack 1/1.
+- Destruction: Improved Shadow Bolt 5/5, Bane 5/5, Ruin 4/5.
 - Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Agony if no Bane (never Bane of Doom) · 3. Corruption if missing/expiring · 4. Siphon Life if missing/expiring · 5. Curse of the Elements if missing · 6. Immolate if missing/expiring · 7. Shadow Bolt (max rank) to keep Improved Shadow Bolt up on the boss · 8. Shadow Bolt (max rank) if Shadow Trance (Nightfall) is up · 9. Life Tap when mana is below 60% and more than 25 s remain · 10. Wrack (filler channel).
 <!-- /gen:builds -->
 
@@ -883,7 +874,7 @@ Eureka!), the Major Spellblasting Potion and Power Infusion. After the first use
 - How much damage Spell Pierce adds below 0 resistance.
 - Which consumables exclude each other.
 - Values taken from Classic because Forever's are not known: base stats of a level-60 Warlock, boss armor (3,731),
-  Blessing of Salvation (30%), Concentration Aura (35%).
+  Salvation (30%), Concentration Aura (35%).
 
 **Simplified**
 
@@ -898,6 +889,7 @@ Eureka!), the Major Spellblasting Potion and Power Infusion. After the first use
 - Damage the boss does to you, and dying.
 - Range and positioning: the boss is always in range.
 - Soul shard limits (they never run out) and potions used before the pull.
-- A demon's health, and demon abilities other than the ones in section 7.
+- A demon's health (so the smaller demon health in Forever changes nothing here), and demon abilities other than the
+  ones in section 7.
 - Seed of Corruption, Drain Mana, Health Funnel, and curses other than Curse of the Elements.
 - Talents marked "not simulated" in section 6.

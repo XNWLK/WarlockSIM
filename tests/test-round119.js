@@ -4,7 +4,7 @@
 (function () {
   function det(mod) {
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
-    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.weaponIsSword = false;
+    c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.critPct -= 2;
     c.gear.pierce = 0; c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.combat.levelResist.on = false; c.options.includePetDamage = false;
     c.options.activesPolicy = 'pull'; c.options.dotEndCheck = false;
     Object.keys(c.buffs).forEach(function (k) { c.buffs[k].on = false; });
@@ -100,11 +100,9 @@
     T.ok(near(tp.bySpell.searingPain.threat / tp.bySpell.searingPain.dmg, 2, 1e-9), 'Searing Pain: twice its damage ("a high amount of threat")');
     T.ok(near(tpb.bySpell.searingPain.threat / tpb.bySpell.searingPain.dmg, 1, 1e-9), 'with Demonic Brand 3/3 (−50%): back to 1 per damage');
     var B = WL.DEFAULT_CONFIG.buffs;
-    T.ok(B.blessingOfSalvation.threatPct === 30 && B.tranquilAir.threatPct === 20 && !B.blessingOfSalvation.on && !B.tranquilAir.on, 'Blessing of Salvation −30%, Tranquil Air Totem −20%, both off by default');
+    T.ok(B.blessingOfSalvation.threatPct === 30 && !B.blessingOfSalvation.on && !B.tranquilAir, 'Salvation −30%, off by default (Tranquil Air Totem removed in round 149)');
     var ts = run(tb(['shadowBolt']), det(function (c) { c.buffs.blessingOfSalvation.on = true; }), 60);
-    var tst = run(tb(['shadowBolt']), det(function (c) { c.buffs.blessingOfSalvation.on = true; c.buffs.tranquilAir.on = true; }), 60);
     T.ok(near(ts.threat / ts.total, 0.70, 1e-9) && near(ts.total, t0.total), 'Salvation: threat × 0.70, damage unchanged');
-    T.ok(near(tst.threat / tst.total, 0.70, 1e-9), 'Salvation + Tranquil Air do not stack (round 125): × 0.70, the bigger of the two');
     var cpet = det(function (c) { c.options.includePetDamage = true; }), tpet = run(tb(['shadowBolt'], {}, { pet: 'imp' }), cpet, 60), petDmg = 0;
     Object.keys(tpet.bySpell).forEach(function (k) { if (k.indexOf('pet:') === 0) { petDmg += tpet.bySpell[k].dmg; if (tpet.bySpell[k].threat) petDmg = NaN; } });
     T.ok(petDmg > 0 && near(tpet.threat, tpet.total - petDmg, 1e-6), 'the pet\'s damage is its own threat: yours = your damage only (' + Math.round(tpet.threat) + ' of ' + Math.round(tpet.total) + ')');

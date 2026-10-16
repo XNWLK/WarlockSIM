@@ -44,14 +44,11 @@
     T.eq([r.sheet.sp, r.sheet.shadowSp, r.sheet.hitPct, r.sheet.hastePct, r.sheet.pierce, r.sheet.int, r.sheet.spi, r.sheet.sta, r.sheet.mp5].join('/'),
       '102/25/2/1/10/36/5/8/4', 'spell power 102, Shadow 25, hit 2%, haste 1%, Spell Pierce 10, Intellect 36, Spirit 5, Stamina 8, MP5 4');
     T.eq(r.sheet.critPct, WL.gearRound(1.7 + 110 / 60 + 1 + 36 / 60), 'crit = naked 3.53% + 1% from the head + 36 Intellect / 60 = ' + r.sheet.critPct + '%');
-    T.eq(r.sword, true, 'a sword in the main hand: Sword Specialization counts');
     var g2 = JSON.parse(JSON.stringify(g)); g2.slots.mainHand = own('twoHand', { sp: 60 }, { weapon: 'staff' });
     var r2 = WL.gearSheet(g2, c);
     T.ok(r2.offHandBlocked && r2.used.indexOf('offHand') < 0, 'a two-handed weapon (staff): the off hand does not count');
     T.eq([r2.sheet.sp, r2.sheet.int, r2.sheet.pierce].join('/'), '122/20/0', '… its stats are gone from the sum (spell power 122, Intellect 20, Spell Pierce 0)');
-    T.eq(r2.sword, false, '… and a staff is not a sword');
     var g3 = JSON.parse(JSON.stringify(g)); delete g3.slots.mainHand.custom.weapon;
-    T.eq(WL.gearSheet(g3, c).sword, null, 'a weapon without a type says nothing about Sword Specialization');
     var g4 = { slots: { head: own('finger', { sp: 99 }), neck: { id: 999999999 } }, manual: {} };
     T.eq(WL.gearSheet(g4, c).used.length, 0, 'a ring in the head slot and an item id this page does not know: neither counts');
     T.ok(WL.gearFits('mainHand', { slot: 'twoHand' }) && WL.gearFits('mainHand', { slot: 'oneHand' }) && !WL.gearFits('offHand', { slot: 'oneHand' }), 'weapons: one- and two-handed in the main hand, no weapon in the off hand');

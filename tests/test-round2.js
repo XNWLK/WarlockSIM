@@ -3,7 +3,7 @@
   function detCfg() {   // deterministic: 100% hit, 0% crit, no CoE
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     c.combat.baseHitPct = 100; c.combat.maxHitPct = 100;
-    c.gear.critPct = 0; c.gear.hitPct = 0; c.gear.weaponIsSword = false;
+    c.gear.critPct = 0; c.gear.hitPct = 0; c.gear.critPct -= 2;
     c.options.useCurseOfElements = false; c.combat.levelResist.on = false;
     return c;
   }
@@ -116,8 +116,8 @@
     });
     var g = WL.simulateOnce(WL.TEST_BUILDS[0], 'gnome', c, { log: true });
     var eur = g.log.filter(function (e) { return e.type === 'cast' && e.eureka; }).map(function (e) { return e.spell; });
-    T.eq(eur.length, 3, 'Eureka! empowers exactly 3 casts in the first minute: ' + eur.join(', '));
-    T.ok(eur.every(function (s) { return WL.SPELLS[s].kind !== 'utility'; }), 'no Eureka charge spent on a curse', eur.join(','));
+    T.ok(eur.length >= 1 && eur.length <= 6, 'Eureka! (8 s) covers ' + eur.length + ' casts: ' + eur.join(', '));
+    T.ok(eur.every(function (s) { return WL.SPELLS[s].kind !== 'utility' && WL.SPELLS[s].kind !== 'dot'; }), 'never a curse or a DoT (round 149: "non-periodic damaging abilities")', eur.join(','));
   });
 
   T.run('weights', function () {

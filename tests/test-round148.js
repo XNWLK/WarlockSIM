@@ -28,7 +28,6 @@
     T.eq([sw.delta.sp, sw.delta.int, sw.delta.critPct].join('/'), '10/12/1.2', 'a better hood: +10 spell power, +12 Intellect, +1.2% crit (1% + 12 / 60); its enchant stays');
     var sw2 = WL.gearSwapDelta(g, 'mainHand', own('oneHand', { sp: 40 }, { weapon: 'sword' }), c);
     T.eq([sw2.delta.sp, sw2.delta.int].join('/'), '-20/6', 'staff → one-hand sword: −20 spell power, and the off hand counts again (+6 Intellect)');
-    T.eq(sw2.sword, true, '… and the Sword box would be on');
     var sw3 = WL.gearSwapDelta(g, 'legs', null, c);
     T.eq([sw3.delta.sp, sw3.delta.int].join('/'), '-30/-18', 'taking the legs off also takes their enchant away');
     var gOff = { slots: {}, enchants: {}, manual: {} };
