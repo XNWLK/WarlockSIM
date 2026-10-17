@@ -547,7 +547,7 @@ window.WL = window.WL || {};
     }
     function periodicTickX(ti, key, snap, i) {
       var s = SPELLS[key], e = table[key], rk = xkey(ti, key);
-      var amt = (s.tickBase * (snap.baseMult || 1) + s.tickCoef * spNow(e)) * e.periodicMult * liveMultX(key, ti, true);
+      var amt = (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * liveMultX(key, ti, true) * (snap.castMult || 1);
       if (s.ramp) amt *= s.ramp[i];
       amt *= vulnMult(s.school, ti);
       var crit = R.crit() * 100 < e.critPct;
@@ -560,7 +560,7 @@ window.WL = window.WL || {};
     }
     // A spell landing on an extra target: Curse of the Elements (round 39), a DoT, Immolate, or a direct spell (Shadow Bolt
     // spread for Improved Shadow Bolt, round 39).
-    function landExtra(key, eureka, baseMult, ti) {
+    function landExtra(key, eureka, castMult, ti) {
       var s = SPELLS[key], e = table[key], rk = xkey(ti, key), r = row(rk);
       if (R.hit() * 100 >= stats.hitPct) { r.misses++; L('miss', rk); return false; }
       r.landed++;
@@ -581,19 +581,19 @@ window.WL = window.WL || {};
         if (logOn) L('hit', rk, Object.assign({ dmg: Math.round(amt), crit: crit }, vulnLog(amt)));
         if (isSB(key) && crit && tv('improvedShadowBolt')) { S.xdeb[ti].isb = S.t + 12; L('debuff', xkey(ti, 'isb')); }
       }
-      if (s.kind !== 'direct') { applyDotX(ti, key, makeSnap(baseMult)); L('apply', rk); }
+      if (s.kind !== 'direct') { applyDotX(ti, key, makeSnap(castMult)); L('apply', rk); }
       touchOfTheGrave(ti);                                                // any landed damaging cast, as on the boss [A29]
       return true;
     }
 
-    // baseMult scales only the spell's base value, not its spell-power part (Amplify Curse, A52).
-    function makeSnap(baseMult) {
-      return { baseMult: baseMult || 1 };   // what belongs to this cast; spell power and crit are read live per tick (round 96) [A13]
+    // castMult multiplies every tick of this cast as a whole (Amplify Curse, A52; round 153 — it was the base value only).
+    function makeSnap(castMult) {
+      return { castMult: castMult || 1 };   // what belongs to this cast; spell power and crit are read live per tick (round 96) [A13]
     }
 
     function periodicTick(key, snap, i, isChannel) {
       var s = SPELLS[key], e = table[key];
-      var amt = (s.tickBase * (snap.baseMult || 1) + s.tickCoef * spNow(e)) * e.periodicMult * liveMult(key, true);
+      var amt = (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * liveMult(key, true) * (snap.castMult || 1);
       if (s.ramp) amt *= s.ramp[i];                                                                     // [A15]
       amt *= vulnMult(s.school);
       var crit = R.crit() * 100 < e.critPct;                                                               // [A07]
@@ -627,8 +627,8 @@ window.WL = window.WL || {};
     // Improved Shadow Bolt (A20): every Shadow Bolt crit applies the debuff. Rounds 54–122 rolled a second spell-hit check
     // for it; round 123 (user): there is no separate roll — a crit is guaranteed to apply it.
     // Direct-damage landing (cast finished or instant). Returns true if it hit.
-    function land(key, eureka, baseMult, target) {
-      if (target > 1) return landExtra(key, eureka, baseMult, target);
+    function land(key, eureka, castMult, target) {
+      if (target > 1) return landExtra(key, eureka, castMult, target);
       var s = SPELLS[key], e = table[key], r = row(key);
       if (R.hit() * 100 >= stats.hitPct) { r.misses++; L('miss', key); return false; }                  // [A01][A17]
       r.landed++;
@@ -637,7 +637,7 @@ window.WL = window.WL || {};
         jowProc(false);                                                                                   // [A64]
         return true;
       }
-      if (s.kind === 'dot') { applyDot(key, makeSnap(baseMult)); L('apply', key); touchOfTheGrave(); jowProc(false); return true; }
+      if (s.kind === 'dot') { applyDot(key, makeSnap(castMult)); L('apply', key); touchOfTheGrave(); jowProc(false); return true; }
       // direct or hybrid
       var sp = spNow(e);
       var amt = (s.base + s.coef * sp) * e.directMult * liveMult(key, false) * (eureka ? eurekaMult(key, false) : 1);   // eureka: the cast finished inside Eureka!
@@ -664,7 +664,7 @@ window.WL = window.WL || {};
         S.buffs.snfFire = S.t + 20;
         if (R.proc() * 100 < tv('shadowAndFlame', 'procPct')) { S.shards++; L('refund', 'soulShard'); }
       }
-      if (s.kind === 'hybrid') applyDot(key, makeSnap(baseMult));
+      if (s.kind === 'hybrid') applyDot(key, makeSnap(castMult));
       touchOfTheGrave();
       jowProc(false);                                                                                     // [A64]
       return true;
@@ -718,11 +718,11 @@ window.WL = window.WL || {};
       S.mana -= paid;
       if (paid > 0) { if (castT > EPS && s.kind !== 'channel') S.spendAt = S.t + castT; else S.lastSpend = S.t; }   // 5-second rule (round 114)
       var eurekaCast = eurekaAt(key, finishesAt(key));                   // Eureka! counts this cast (its cost is already cut)
-      // Amplify Curse: off the GCD, next Bane of Agony +50%; 3 min cooldown. [A52] Its aura is "Modifies Spell
-      // Effectiveness" (spell 18288), which scales the base value only — the spell-power part is not amplified (user, round 25).
-      var baseMult = 1;
+      // Amplify Curse: off the GCD, next Bane of Agony +50%; 3 min cooldown. [A52] Round 153 (user): it takes that Bane of
+      // Agony's final tick value after all calculations and multiplies it by 1.5 (rounds 25–152: the base value only).
+      var castMult = 1;
       if (key === 'baneOfAgony' && tv('amplifyCurse') && S.ready('amplifyCurse') && slotGate('amplifyCurse') !== 0) {   // timeline row (round 120): held for its placed time
-        baseMult = 1 + tv('amplifyCurse', 'boaPct') / 100; S.cds.amplifyCurse = S.t + 180; L('buff', 'amplifyCurse'); slotUsed('amplifyCurse');
+        castMult = 1 + tv('amplifyCurse', 'boaPct') / 100; S.cds.amplifyCurse = S.t + 180; L('buff', 'amplifyCurse'); slotUsed('amplifyCurse');
       }
       if (s.shards && !(key === 'soulFire' && S.buff('decimation'))) S.shards -= s.shards;
       if (key === 'soulFire' && S.buff('decimation')) delete S.buffs.decimation;
@@ -754,16 +754,16 @@ window.WL = window.WL || {};
         S.busyUntil = S.t + castT; S.gcdReady = S.t + gcdT;
         row(rk).castTime += castT;
         // projectiles land `TRAVEL` s after the cast ends (round 39; the caster is free at cast end)
-        var ce = { t: S.busyUntil + (s.projectile ? TRAVEL : 0), o: 1, type: 'castEnd', key: key, baseMult: baseMult, target: target, tl: fromTL };
+        var ce = { t: S.busyUntil + (s.projectile ? TRAVEL : 0), o: 1, type: 'castEnd', key: key, castMult: castMult, target: target, tl: fromTL };
         H.push(ce);
         S.cast = { key: key, rk: rk, full: castT, end: S.busyUntil, ev: ce, n: 0 };     // pushback (round 78)
         scheduleDecide(Math.max(S.busyUntil, S.gcdReady));
       } else {
         S.busyUntil = S.t; S.gcdReady = S.t + gcdT;
         row(rk).castTime += gcdT;
-        if (s.projectile && TRAVEL > EPS) H.push({ t: S.t + TRAVEL, o: 1, type: 'castEnd', key: key, baseMult: baseMult, target: target, tl: fromTL });
+        if (s.projectile && TRAVEL > EPS) H.push({ t: S.t + TRAVEL, o: 1, type: 'castEnd', key: key, castMult: castMult, target: target, tl: fromTL });
         else {
-          if (!land(key, eurekaAt(key, S.t), baseMult, target) && fromTL) TL.turn = true;
+          if (!land(key, eurekaAt(key, S.t), castMult, target) && fromTL) TL.turn = true;
         }
         scheduleDecide(S.gcdReady);
       }
@@ -1022,8 +1022,8 @@ window.WL = window.WL || {};
       var f = altBelow(S.actionIndex), fRate = f ? expCast(f, 0, key === 'immolate') / (occupies(f) + LAT) : 0;
       var cost = (occupies(key) + LAT) * fRate;
       var end = Math.min(dur, tL + s.duration), gcd = S.gcd(), value = 0;
-      var baseMult = key === 'baneOfAgony' && tv('amplifyCurse') && S.ready('amplifyCurse') && slotGate('amplifyCurse') !== 0 ? 1 + tv('amplifyCurse', 'boaPct') / 100 : 1;
-      var tickAmt = (s.tickBase * baseMult + s.tickCoef * spNow(e)) * e.periodicMult * lmult(key, ti, true) * expVuln(s.school, ti) * expCrit(e.critPct, e.critMult);
+      var castMult = key === 'baneOfAgony' && tv('amplifyCurse') && S.ready('amplifyCurse') && slotGate('amplifyCurse') !== 0 ? 1 + tv('amplifyCurse', 'boaPct') / 100 : 1;
+      var tickAmt = (s.tickBase + s.tickCoef * spNow(e)) * castMult * e.periodicMult * lmult(key, ti, true) * expVuln(s.school, ti) * expCrit(e.critPct, e.critMult);
       if (f === 'wrack' && SPELLS.wrack.debuffSpells.indexOf(key) >= 0) tickAmt *= 1 + SPELLS.wrack.debuffPct / 100;   // ticks during the Wrack filler
       // Conflagrate (Destruction): a new Immolate lets the next Conflagrate happen, which then consumes it (unless
       // Shadow and Flame keeps it) — so ticks after that moment count only with the keep chance.
@@ -1182,7 +1182,7 @@ window.WL = window.WL || {};
       row(PRE).casts++; row(PRE).castTime += preGcd;
       S.minManaCheck();
       L('cast', PRE, { castTime: 0, gcd: +preGcd.toFixed(3), precast: +preCast.toFixed(3) });
-      H.push({ t: SPELLS[PRE].projectile ? TRAVEL : 0, o: -1, type: 'castEnd', key: PRE, baseMult: 1, target: 0 });
+      H.push({ t: SPELLS[PRE].projectile ? TRAVEL : 0, o: -1, type: 'castEnd', key: PRE, castMult: 1, target: 0 });
       decideToken++; H.push({ t: preGcd + LAT, o: 2, type: 'decide', token: decideToken });   // your next cast: after the GCD and your reaction time, as after every cast
     } else scheduleDecide(0);
     if (HEAL) for (var ht = HEAL.every; ht < dur - EPS; ht += HEAL.every) H.push({ t: ht, o: 0, type: 'heal' });
@@ -1204,7 +1204,7 @@ window.WL = window.WL || {};
       } else if (ev.type === 'castEnd') {
         if (ev.dead) continue;                                // pushed back: a later copy of this event lands it (round 78)
         var fin = ev.t - (SPELLS[ev.key].projectile && TRAVEL > EPS ? TRAVEL : 0);   // when the cast finished (a projectile flies on)
-        if (!land(ev.key, eurekaAt(ev.key, fin), ev.baseMult, ev.target) && ev.tl && TL) TL.turn = true;   // missed timeline cast → priority turn
+        if (!land(ev.key, eurekaAt(ev.key, fin), ev.castMult, ev.target) && ev.tl && TL) TL.turn = true;   // missed timeline cast → priority turn
       } else if (ev.type === 'mana') {
         var before = S.mana; S.mana = Math.min(stats.maxMana, S.mana + ev.amount); res.manaFromBuffs = (res.manaFromBuffs || 0) + (S.mana - before);
         L('mana', ev.src, { gain: Math.round(S.mana - before) });

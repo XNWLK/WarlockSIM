@@ -90,16 +90,16 @@
   });
 
   T.run('amplify curse', function () {
-    T.group('talents: Amplify Curse (next Bane of Agony: base damage +50%, spell-power part unchanged; 3 min cooldown)');
+    T.group('talents: Amplify Curse (next Bane of Agony: every tick × 1.5 after everything else, round 153; 3 min cooldown)');
     var c = det(); c.fight.duration = 30;
-    // Round 25 (user): the aura "Modifies Spell Effectiveness" scales the base value only (46 since round 42), not 0.133 × SP.
-    var amp = 46 * 1.5 + 0.133 * 700, plain = 46 + 0.133 * 700;
+    // Round 153 (user): the final tick × 1.5 (rounds 25–152: the base value 46 only, not 0.133 × SP).
+    var amp = (46 + 0.133 * 700) * 1.5, plain = 46 + 0.133 * 700;
     var r = WL.simulateOnce(tb(['bane', 'shadowBolt'], { amplifyCurse: 1 }), 'human', c, { log: true });
     var ticks = hits(r, 'baneOfAgony', 'tick');
-    T.eq(ticks[0], Math.round(amp * 0.5), 'first BoA tick = (46 × 1.5 + 0.133 × 700) × 0.5 (ramp)');
+    T.eq(ticks[0], Math.round(amp * 0.5), 'first BoA tick = (46 + 0.133 × 700) × 1.5 × 0.5 (ramp)');
     T.eq(r.log.filter(function (e) { return e.spell === 'amplifyCurse'; }).length, 1, 'used once, then on its 3 min cooldown');
     var r0 = WL.simulateOnce(tb(['bane', 'shadowBolt'], {}), 'human', c, { log: true });
-    T.near(r.bySpell.baneOfAgony.dmg / r0.bySpell.baneOfAgony.dmg, amp / plain, 1e-9, 'Bane of Agony × ' + (amp / plain).toFixed(3) + ' (not × 1.5)');
+    T.near(r.bySpell.baneOfAgony.dmg / r0.bySpell.baneOfAgony.dmg, amp / plain, 1e-9, 'Bane of Agony × ' + (amp / plain).toFixed(3) + ' (the whole spell)');
     T.ok(!r.log.some(function (e) { return e.type === 'cast' && e.eureka; }), 'not mislabelled as Eureka! in the log', '');
   });
 })();

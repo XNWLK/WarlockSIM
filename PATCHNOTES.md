@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v142
+- **Amplify Curse** now raises the whole Bane of Agony: every tick of the Bane of Agony it is used with is multiplied by
+  1.5 after everything else (talents, auras, curse, crit). Before, only the base value was raised, not the spell power
+  part. The four builds with Amplify Curse gain: Destruction – Incinerate, Succubus +0.4% (658.0), Destruction – Incinerate,
+  Imp +0.4% (630.8), SM Ruin (classic) +0.6% (630.5), Wrack Succubus +1.0% (578.2). The others do not use it.
+
 ## v141
 - **Demons crit with your spell crit.** Every demon attack, the Succubus' melee too, now crits with your spell crit (minus
   the usual 4.8% for melee against a level-63 boss). Her own 7.52% melee crit is gone. So Agility does nothing any more:

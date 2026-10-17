@@ -212,7 +212,7 @@ window.WL = window.WL || {};
       if (!once) step('All ' + e.ticks + ' ' + what + 's', f(tvv) + ' × ' + e.ticks + ', one every ' + s.tickEvery + ' s', f(tvv * e.ticks) + ' before crits');
       step('A crit', critCalc + (once ? '' : '; every tick rolls its own'), f(tvv * e.critMult));
       if (s.ramp) notes.push('The ticks ramp up: ticks 1–4 deal 50%, ticks 5–8 100% and ticks 9–12 150% of the tick above (' + f(tvv * 0.5) + ' / ' + f(tvv) + ' / ' + f(tvv * 1.5) + ').');
-      if (bk === 'baneOfAgony' && tv('amplifyCurse')) notes.push('Amplify Curse (every 3 minutes): the base ' + s.tickBase + ' becomes ' + f(s.tickBase * (1 + tv('amplifyCurse', 'boaPct') / 100)) + ' for that Bane of Agony; the spell-power part is not raised.');
+      if (bk === 'baneOfAgony' && tv('amplifyCurse')) notes.push('Amplify Curse (every 3 minutes): every tick of that Bane of Agony × ' + f(1 + tv('amplifyCurse', 'boaPct') / 100, 2) + ', after everything else (' + f(tvv) + ' → ' + f(tvv * (1 + tv('amplifyCurse', 'boaPct') / 100)) + ' for the tick above).');
       if (s.aoe) notes.push('Every tick hits every target of the fight, each with its own hit, crit and resist roll.' + (s.selfDamage ? ' It also hits you for ' + f(tbase) + ' per tick (no talents, no crit; less with Molten Skin and Soul Link).' : ''));
       var op = others(true, 1 + e.op22); if (op.length) notes.push((s.base != null ? 'The burn — comes and goes: ' : 'Comes and goes: ') + op.join('; ') + '.');
       notes.push('Spell power is read at every tick: a potion or Blood Fury that starts later still counts for the ticks after it.');

@@ -201,8 +201,8 @@ Example: Corruption with 5/5 Improved Corruption and 5/5 Shadow Mastery gets × 
 | Soul Siphon | up to +36% | the ticks of Drain Life, Drain Soul and Wrack |
 | Immolate on the target | +25% | Incinerate |
 
-**Amplify Curse and Improved Sayaad** raise only the *base* of the spell (the number before the spell power part), not
-the whole hit.
+**Improved Sayaad** raises only the *base* of Lash of Pain (the number before the spell power part), not the whole hit.
+**Amplify Curse** multiplies every tick of its Bane of Agony by 1.5, after everything else.
 
 **Resist roll.** See section 11. At the default settings nothing is resisted once Curse of the Elements is on the boss.
 
@@ -372,7 +372,7 @@ Every talent of the three trees. "Talent group" and "aura" are explained in sect
 | Improved Drains | 3 | drain damage +7 / 13 / 20% | Adds to the periodic talent group of Drain Life, Drain Soul and Wrack. |
 | Improved Bane of Agony | 2 | Bane of Agony damage +5 / 10% | Adds to Bane of Agony's periodic talent group. |
 | Fel Concentration | 3 | pushback ignored 23 / 47 / 70% | Only matters when "Take a hit every (s)" is set: chance to ignore the pushback on Drain Life, Drain Soul and Wrack. |
-| Amplify Curse | 1 | Bane of Agony base +50% | Used with every Bane of Agony cast while its 3-minute cooldown is ready (off the global cooldown). That Bane of Agony's base value is 50% higher for all 12 ticks; the spell-power part is not raised. Never used on Bane of Doom. |
+| Amplify Curse | 1 | Bane of Agony +50% | Used with every Bane of Agony cast while its 3-minute cooldown is ready (off the global cooldown). Every tick of that Bane of Agony is multiplied by 1.5 after everything else (talents, auras, curse, crit). Never used on Bane of Doom. |
 | Pandemic | 3 | crit bonus +33 / 67 / 100% | Crits of Corruption, Bane of Agony, Bane of Doom, Drain Soul, Drain Life, Siphon Life and Wrack deal ×1.665 / ×1.835 / ×2.0 instead of ×1.5. |
 | Malevolence | 5 | Shadow crit +1 / 2 / 3 / 4 / 5% | Adds to the crit chance of every Shadow spell of yours. Not added when "Sheet crit % already includes talents, racials & oil" is ticked. |
 | Nightfall | 2 | chance per tick 2 / 4% | Every tick of Corruption, Drain Soul, Drain Life and Wrack has this chance to give Shadow Trance for 10 s: your next Shadow Bolt has no cast time (it still costs its mana and a global cooldown). |
