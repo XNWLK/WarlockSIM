@@ -790,6 +790,17 @@ The last entry is a filler that is always possible.
 | Searing Pain (filler) | Always (filler). |
 <!-- /gen:actions -->
 
+**Your own rules, groups and variables** (build editor). Besides the actions above, a priority list can hold
+
+- **rules**: cast a spell when your conditions hold. A condition is a DoT's or a buff's time left, a cooldown's time
+  left, the fight time left or gone, the boss's health %, your mana %, your Soul Shards or Demonic Brand's charges, compared
+  with a number; conditions combine with "all of", "any of" and "not". The spell is cast only when it is talented and off
+  cooldown; the rule checks nothing else (a DoT rule needs its own "time left" condition). A rule without a condition is a
+  filler.
+- **groups**: a named list of actions, put in the list where you place the group.
+- **variables**: a number or a condition with a name, used in your rules (for example "Doom tick = 60").
+
+
 **DoTs at the end of the fight.** A DoT that can still run its full duration is always recast. When it cannot, the sim
 adds up what the recast would still bring - the ticks that land in time, Immolate's hit, and what the DoT makes possible
 (Incinerate's 25%, a Conflagrate, Nightfall procs, Soul Siphon, Wrack's bonus) - and compares it with what the next
@@ -866,8 +877,10 @@ Eureka!), the Major Spellblasting Potion and Power Infusion. After the first use
 - **DPS** = all damage of a fight ÷ its length, averaged over all fights. The ± next to it is the 95% margin of that
   average: 1.96 × standard deviation ÷ √fights.
 - **Stat weights.** The build is simulated again with +100 spell power, +2% hit, +2% crit, +2% haste, +120 Intellect and
-  +20 Spell Pierce, on exactly the same fights and rolls. The weight is the DPS gained per point. Hit, crit, haste and
-  Intellect are shown as the spell power they are worth (their weight ÷ the spell power weight).
+  +20 Spell Pierce (and, when you choose them, +20 Spell Penetration, +40 Spirit, +10 MP5), on exactly the same fights and
+  rolls. The weight is the DPS gained per point. Hit, crit, haste and Intellect are shown as the spell power they are worth
+  (their weight ÷ the spell power weight). With a precision set, the weights are measured again on new fights (up to 10
+  times) until each is known to ± that much spell power; the ± is then shown with them.
 - **Before / in the execute phase** splits the damage at 35% boss health.
 
 **Assumed, not verified in Forever yet**
@@ -877,7 +890,7 @@ Eureka!), the Major Spellblasting Potion and Power Infusion. After the first use
 - How much damage Spell Pierce adds below 0 resistance.
 - Which consumables exclude each other.
 - Values taken from Classic because Forever's are not known: base stats of a level-60 Warlock, boss armor (3,731),
-  Salvation (30%), Concentration Aura (35%).
+  Salvation (30%), Concentration Aura (35%), the Atiesh auras (+33 spell power, +2% spell crit, 11 MP5), Blood Pact (+42 Stamina).
 
 **Simplified**
 

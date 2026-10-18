@@ -28,18 +28,38 @@ WL.validateBuild = function (b) {
   if (b.sacrifice && b.pet && !t.demonicPact) errs.push('Keeping a pet out after a sacrifice needs Demonic Pact');
   if (b.sacrifice && b.pet && b.pet === b.sacrifice) errs.push('Demonic Pact: the sacrificed demon cannot be the one you keep out');
   if (!WL.OILS[b.oil]) errs.push('Unknown weapon oil "' + b.oil + '"');
-  var rot = b.rotation || [];
+  // Round 157: rules ('rule:N'), groups ('group:Name', put in place) and variables of the build's own.
+  (b.rotation || []).forEach(function (a) {
+    var m = /^group:(.+)$/.exec(a); if (!m) return;
+    var g = (b.groups || {})[m[1]];
+    if (!Array.isArray(g)) errs.push('No group named "' + m[1] + '"');
+    else if (!g.length) errs.push('Group "' + m[1] + '" is empty');
+    else g.forEach(function (x) { if (/^group:/.test(x)) errs.push('Group "' + m[1] + '": a group cannot hold another group'); });
+  });
+  (b.rules || []).forEach(function (r, i) {
+    var where = 'Rule ' + (i + 1) + (r && r.name ? ' (' + r.name + ')' : ''), s = r && WL.SPELLS[r.spell];
+    if (!s || WL.RULE_SPELLS.indexOf(r.spell) < 0) { errs.push(where + ': unknown spell "' + (r && r.spell) + '"'); return; }
+    if (s.talent && !t[s.talent]) errs.push(where + ': ' + s.name + ' needs the ' + WL.TALENT_BY_KEY[s.talent].name + ' talent');
+    errs = errs.concat(WL.condErrors(r.when, b, where));
+  });
+  Object.keys(b.vars || {}).forEach(function (k) {
+    var v = b.vars[k];
+    if (!/^[A-Za-z][\w -]{0,29}$/.test(k)) errs.push('Variable "' + k + '": a name of letters, digits and spaces (up to 30)');
+    if (!v || (v.cond == null && !(typeof v.num === 'number' && isFinite(v.num)))) errs.push('Variable "' + k + '" is empty');
+    else if (v.cond) errs = errs.concat(WL.condErrors(v.cond, b, 'Variable "' + k + '"'));
+  });
+  var rot = WL.expandGroups(b);
   if (!rot.length) errs.push('The priority list is empty');
-  rot.forEach(function (a) { if (!WL.ACTIONS[a]) errs.push('Unknown priority action "' + a + '"'); });
-  var fi = rot.map(function (a) { return WL.ACTIONS[a] && WL.ACTIONS[a].filler; }).indexOf(true);
-  if (fi < 0 && rot.length) errs.push('The priority list needs a filler (Shadow Bolt, Searing Pain, Incinerate, …) at the end');
-  else if (fi >= 0 && fi < rot.length - 1) errs.push('Everything after the first filler (' + WL.ACTIONS[rot[fi]].label + ') is never cast — move the filler to the end');
+  rot.forEach(function (a) { if (!WL.actionOf(a, b)) errs.push(/^rule:/.test(a) ? 'The priority list names a rule that does not exist (' + a + ')' : 'Unknown priority action "' + a + '"'); });
+  var fi = rot.map(function (a) { var A = WL.actionOf(a, b); return !!(A && A.filler); }).indexOf(true);
+  if (fi < 0 && rot.length) errs.push('The priority list needs a filler (Shadow Bolt, Searing Pain, Incinerate, … or a rule without a condition) at the end');
+  else if (fi >= 0 && fi < rot.length - 1) errs.push('Everything after the first filler (' + WL.actionOf(rot[fi], b).label + ') is never cast — move the filler to the end');
   // Talent-gated actions without the talent (they would silently never fire).
   var gated = { conflagrate: 'conflagrate', conflagrateExpire: 'conflagrate', shadowburn: 'shadowburn', incinerate: 'incinerate', wrack: 'wrack', wrackDots: 'wrack', siphonLife: 'siphonLife',
     searingPainBrand: 'demonicBrand', searingPainDecimation: 'decimation', lifeTapPet: 'demonicEnergies', shadowburnSnF: 'shadowAndFlame', conflagrateSnF: 'shadowAndFlame', shadowBoltSpread: 'improvedShadowBolt', isbUpkeep: 'improvedShadowBolt' };
   if (rot.indexOf('shadowburnSnF') >= 0 && !t.shadowburn) errs.push('"' + WL.ACTIONS.shadowburnSnF.label + '" needs the Shadowburn talent');
   if (rot.indexOf('conflagrateSnF') >= 0 && !t.conflagrate) errs.push('"' + WL.ACTIONS.conflagrateSnF.label + '" needs the Conflagrate talent');
-  rot.forEach(function (a) { if (gated[a] && !t[gated[a]]) errs.push('"' + WL.ACTIONS[a].label + '" needs the ' + WL.TALENT_BY_KEY[gated[a]].name + ' talent'); });
+  rot.forEach(function (a) { if (gated[a] && !t[gated[a]]) errs.push('"' + WL.ACTIONS[a].label + '" needs the ' + WL.TALENT_BY_KEY[gated[a]].name + ' talent'); });   // rot: groups put in place
   rot.forEach(function (a) {                                             // numbers of an action inside their limits (round 104)
     var A = WL.ACTIONS[a]; if (!A || !A.params) return;
     var v = WL.actionParams(b, a);
@@ -112,7 +132,10 @@ WL.actionParams = function (b, key) {
 };
 // The action's label with the build's numbers in place of the "_".
 WL.actionLabel = function (b, key) {
-  var A = WL.ACTIONS[key]; if (!A) return key;
+  var g = /^group:(.+)$/.exec(key || '');
+  if (g) { var n = ((b && b.groups) || {})[g[1]]; return 'Group "' + g[1] + '"' + (n ? ' (' + n.length + ' action' + (n.length === 1 ? '' : 's') + ')' : ''); }   // round 157
+  var A = WL.actionOf(key, b); if (!A) return key;
+  if (A.rule) return A.label;
   if (!A.params) return A.label;
   var v = WL.actionParams(b, key), i = 0;
   return A.label.replace(/_/g, function () { var p = A.params[i++]; return p ? String(v[p.key]) : '_'; });
@@ -134,6 +157,9 @@ WL.encodeBuild = function (b) {
   var o = { v: 1, short: b.short, talents: b.talents, pet: b.pet || null, sacrifice: b.sacrifice || null, oil: b.oil, rotation: b.rotation };
   if (b.timeline && b.timeline.length) o.tl = b.timeline.map(function (e) { return [Math.round(e.t * 100) / 100, e.k]; });   // round 70
   var p = WL.cleanParams(b.params, b.rotation); if (p) o.p = p;                                                        // round 104
+  if (b.rules && b.rules.length) o.rules = b.rules;                                                                    // round 157
+  if (b.groups && Object.keys(b.groups).length) o.groups = b.groups;
+  if (b.vars && Object.keys(b.vars).length) o.vars = b.vars;
   return WL.BUILD_CODE_PREFIX + btoa(unescape(encodeURIComponent(JSON.stringify(o))));
 };
 
@@ -176,6 +202,9 @@ WL.decodeBuild = function (code) {
            params: WL.cleanParams(o.p),
            timeline: Array.isArray(o.tl) ? o.tl.map(function (x) { return { t: +x[0], k: String(x[1]) }; }).filter(function (e) { return e.k !== 'shadowBoltR2'; }) : undefined };
   if (mt.notes.length) b.migrated = mt.notes;                       // round 149: what a patch changed in this build
+  if (Array.isArray(o.rules)) b.rules = o.rules.filter(function (r) { return r && typeof r.spell === 'string'; }).map(function (r) { var x = { spell: r.spell }; if (r.when) x.when = r.when; if (r.name) x.name = String(r.name).slice(0, 40); return x; });   // round 157
+  if (o.groups && typeof o.groups === 'object') { b.groups = {}; Object.keys(o.groups).forEach(function (k) { if (Array.isArray(o.groups[k])) b.groups[String(k).slice(0, 30)] = o.groups[k].map(String); }); }
+  if (o.vars && typeof o.vars === 'object') { b.vars = {}; Object.keys(o.vars).forEach(function (k) { var v = o.vars[k]; if (v && (v.cond || typeof v.num === 'number')) b.vars[String(k).slice(0, 30)] = v.cond ? { cond: v.cond } : { num: +v.num }; }); }
   return b;
 };
 

@@ -434,6 +434,7 @@ window.WL = window.WL || {};
     var NT = Math.max(1, Math.min(3, cfg.fight.targets || 1));
     var HAV_T = HAV ? 2 : 0;
     var ROT = WL.effectiveRotation(build, cfg);
+    var ACTS = ROT.map(function (k) { return WL.actionOf(k, build); });   // round 157: built-in actions and the build's rules
     // Fight timeline (round 70, user; A73): an optional list of spells at fixed start times, built in the editor's
     // "super advanced" mode. A due entry is cast before the priority; the priority fills the gaps (only casts that end before
     // the next entry is due) and takes over after the timeline ends; a timeline cast that misses gives the priority one
@@ -1013,7 +1014,7 @@ window.WL = window.WL || {};
                     swapToImp: 1, swapToSuccubus: 1, shadowBoltSpread: 1, isbUpkeep: 1, deathCoilFinisher: 1 };
     function altBelow(idx) {
       for (var i = (idx == null ? -1 : idx) + 1; i < ROT.length; i++) {
-        var a = WL.ACTIONS[ROT[i]];
+        var a = ACTS[i];
         if (!a || NOT_ALT[ROT[i]]) continue;
         var k = a.pick(S), s = k && SPELLS[k];
         if (s && table[k] && (s.kind === 'direct' || s.kind === 'channel')) return k;
@@ -1090,7 +1091,7 @@ window.WL = window.WL || {};
       var list = ROT;                                                    // build priority (+ multiDot if the option is on)
       for (var i = 0; i < list.length; i++) {
         if (excludeFrom != null && i >= excludeFrom) return null;
-        var a = WL.ACTIONS[list[i]];
+        var a = ACTS[i];
         if (!a) throw new Error('Unknown rotation action: ' + list[i]);
         S.nextTarget = 0;                                                // set by multiDot to 2 / 3
         S.actionIndex = i;                                               // lets the DoT check find the filler below (round 53)
@@ -1393,7 +1394,7 @@ window.WL = window.WL || {};
   };
   WL.combineWeights = function (cfg, base, dpsByKey) {
     var out = { base: base };
-    Object.keys(dpsByKey).forEach(function (k) { out[k] = (dpsByKey[k] - base) / cfg.weightDeltas[k]; });   // round 157: the stats that were run
+    WL.WEIGHT_STATS.forEach(function (k) { if (k in dpsByKey) out[k] = (dpsByKey[k] - base) / cfg.weightDeltas[k]; });   // round 157: the stats that were run, in a fixed order
     return out;
   };
   WL.statWeights = function (build, raceKey, cfg, n) {

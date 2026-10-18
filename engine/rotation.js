@@ -26,7 +26,7 @@ WL.DOT_ACTIONS = { corruption: 'corruption', immolate: 'immolate', siphonLife: '
 // Shortest time left on those DoTs. A DoT that is not on the boss right now is not counted (its own action recasts
 // it, or the end-of-fight check decided against it); Infinity when none is running.
 WL.minDotLeft = function (S) {
-  var rot = S.build.rotation, min = Infinity;
+  var rot = WL.expandGroups(S.build), min = Infinity;
   for (var i = 0; i < rot.length; i++) {
     var d = WL.DOT_ACTIONS[rot[i]]; if (!d) continue;
     var left = S.dotLeft(d);
@@ -177,9 +177,9 @@ WL.ACTIONS = {
     label: 'Death Coil as the finisher (when the filler would not land before the boss dies)',
     pick: function (S) {
       if (!S.ready('deathCoil')) return null;
-      var rot = S.build.rotation, f = null;
+      var rot = WL.expandGroups(S.build), f = null;
       // what the list would cast as its filler right now: a conditional filler (preFiller, round 106) when it applies, else the filler
-      for (var i = 0; i < rot.length && !f; i++) { var A = WL.ACTIONS[rot[i]]; if (A && (A.filler || A.preFiller)) f = A.pick(S); }
+      for (var i = 0; i < rot.length && !f; i++) { var A = WL.actionOf(rot[i], S.build); if (A && (A.filler || A.preFiller)) f = A.pick(S); }
       var sf = f && WL.SPELLS[f], need = !f ? S.gcd() : sf.kind === 'channel' ? sf.tickEvery : Math.max(S.castTime(f), 0.001);
       var travel = Math.max(0, (S.cfg.fight.travelMs || 0) / 1000);
       return S.remaining < need - 1e-6 && S.remaining > travel + 1e-6 ? 'deathCoil' : null;
@@ -289,14 +289,121 @@ WL.ACTIONS = {
   searingPain: { label: 'Searing Pain (filler)',  filler: true, pick: function () { return 'searingPain'; } },
 };
 
+// ---------- rules, groups and variables of your own (round 157, user: "an action priority list" like other sims) ----------
+// Besides the actions above, a build's priority can hold
+//   'rule:N'     build.rules[N] = { spell, when, name? }: cast `spell` when the condition `when` holds (no condition = always);
+//                the spell must be talented and off cooldown. A rule never checks more than you wrote: a DoT rule without
+//                "Corruption has ≤ 0 s left" recasts the DoT at once.
+//   'group:Name' build.groups[Name] = [action keys]: the group's actions are put in its place (one level; a group in a group
+//                is taken out).
+// Conditions (`when`, and the named ones in build.vars) are trees of
+//   { t: 'all', c: [...] } every one holds · { t: 'any', c: [...] } at least one · { t: 'not', c: node }
+//   { t: 'dot',  spell, op, v }  seconds left on your DoT on the boss (0 when it is not up)
+//   { t: 'aura', aura, op, v }   seconds left on a buff / debuff (WL.RULE_AURAS; 0 when it is not up)
+//   { t: 'cd',   spell, op, v }  seconds until the spell's cooldown is ready (0 = ready)
+//   { t: 'fight', what: 'remaining' | 'elapsed' | 'bossHp', op, v }   fight seconds left / gone, boss health %
+//   { t: 'mana', op, v }         your mana in % of the maximum · { t: 'shards', op, v } · { t: 'brand', op, v } charges left
+//   { t: 'var', name }           a named condition of build.vars
+// op = '<', '<=', '>', '>=' or '='; v = a number, or { var: name } = a named number of build.vars ({ num: 12 }).
+WL.RULE_SPELLS = Object.keys(WL.SPELLS).filter(function (k) { return k !== 'drainSoul' && k !== 'baneOfHavoc'; });
+WL.RULE_DOTS = ['corruption', 'immolate', 'siphonLife', 'baneOfAgony', 'baneOfDoom'];
+WL.RULE_AURAS = [['shadowTrance', 'Shadow Trance (Nightfall)'], ['decimation', 'Decimation'], ['isb', 'Improved Shadow Bolt on the boss'],
+  ['coe', 'Curse of the Elements on the boss'], ['brand', 'Demonic Brand on the boss'], ['snfFire', 'Shadow and Flame (Fire)'], ['snfShadow', 'Shadow and Flame (Shadow)'],
+  ['bloodFury', 'Blood Fury'], ['berserking', 'Berserking'], ['eureka', 'Eureka!'], ['powerInfusion', 'Power Infusion'], ['spPotion', 'Spellblasting potion']];
+WL.RULE_OPS = ['<', '<=', '>', '>=', '='];
+function ruleCmp(a, op, b) { return op === '<' ? a < b - 1e-9 : op === '<=' ? a <= b + 1e-9 : op === '>' ? a > b + 1e-9 : op === '>=' ? a >= b - 1e-9 : Math.abs(a - b) < 1e-6; }
+WL.ruleNum = function (v, build) {
+  if (v && typeof v === 'object' && v.var != null) { var x = ((build && build.vars) || {})[v.var]; return x && typeof x.num === 'number' ? x.num : NaN; }
+  return +v;
+};
+WL.ruleCond = function (n, S, build, depth) {
+  if (!n) return true;
+  depth = depth || 0; if (depth > 12) return false;                      // a variable that refers to itself
+  var b = build || S.build, val = function () { return WL.ruleNum(n.v, b); };
+  switch (n.t) {
+    case 'all': return (n.c || []).every(function (x) { return WL.ruleCond(x, S, b, depth + 1); });
+    case 'any': return (n.c || []).some(function (x) { return WL.ruleCond(x, S, b, depth + 1); });
+    case 'not': return !WL.ruleCond(n.c, S, b, depth + 1);
+    case 'dot': return ruleCmp(Math.max(0, S.dotLeft(n.spell)), n.op, val());
+    case 'aura': return ruleCmp(S.buff(n.aura) ? S.buffs[n.aura] - S.t : 0, n.op, val());
+    case 'cd': return ruleCmp(Math.max(0, (S.cds[n.spell] || 0) - S.t), n.op, val());
+    case 'fight': return ruleCmp(n.what === 'elapsed' ? S.t : n.what === 'bossHp' ? S.targetHpPct : S.remaining, n.op, val());
+    case 'mana': return ruleCmp(100 * S.mana / S.maxMana, n.op, val());
+    case 'shards': return ruleCmp(S.shards, n.op, val());
+    case 'brand': return ruleCmp(S.buff('brand') ? S.brandCharges || 0 : 0, n.op, val());
+    case 'var': { var x = ((b && b.vars) || {})[n.name]; return !!(x && x.cond) && WL.ruleCond(x.cond, S, b, depth + 1); }
+  }
+  return false;
+};
+// The action object of a priority key for this build (built-in, or one of the build's rules); null when unknown.
+WL.actionOf = function (key, build) {
+  if (WL.ACTIONS[key]) return WL.ACTIONS[key];
+  var m = /^rule:(\d+)$/.exec(key || ''), r = m && build && build.rules && build.rules[+m[1]];
+  if (!r || WL.RULE_SPELLS.indexOf(r.spell) < 0) return null;
+  return { rule: r, label: WL.ruleText(r, build), filler: !r.when, pick: function (S) {
+    if (!S.has(r.spell) || !S.ready(r.spell)) return null;
+    return WL.ruleCond(r.when, S, build) ? r.spell : null;
+  } };
+};
+// A condition / rule in words (for the page and the validator).
+WL.condText = function (n, build) {
+  if (!n) return 'always';
+  var sn = function (k) { return (WL.SPELLS[k] || {}).name || k; }, an = function (k) { var a = WL.RULE_AURAS.filter(function (x) { return x[0] === k; })[0]; return a ? a[1] : k; };
+  var v = function () { return n.v && typeof n.v === 'object' && n.v.var != null ? n.v.var : String(n.v); };
+  switch (n.t) {
+    case 'all': return (n.c || []).length ? '(' + n.c.map(function (x) { return WL.condText(x, build); }).join(' and ') + ')' : 'always';
+    case 'any': return (n.c || []).length ? '(' + n.c.map(function (x) { return WL.condText(x, build); }).join(' or ') + ')' : 'never';
+    case 'not': return 'not ' + WL.condText(n.c, build);
+    case 'dot': return sn(n.spell) + ' time left ' + n.op + ' ' + v() + ' s';
+    case 'aura': return an(n.aura) + ' time left ' + n.op + ' ' + v() + ' s';
+    case 'cd': return sn(n.spell) + ' cooldown ' + n.op + ' ' + v() + ' s';
+    case 'fight': return (n.what === 'elapsed' ? 'fight time gone' : n.what === 'bossHp' ? 'boss health %' : 'fight time left') + ' ' + n.op + ' ' + v() + (n.what === 'bossHp' ? '' : ' s');
+    case 'mana': return 'mana % ' + n.op + ' ' + v();
+    case 'shards': return 'Soul Shards ' + n.op + ' ' + v();
+    case 'brand': return 'Demonic Brand charges ' + n.op + ' ' + v();
+    case 'var': return n.name;
+  }
+  return '?';
+};
+WL.ruleText = function (r, build) { return (r.name ? r.name + ': ' : '') + ((WL.SPELLS[r.spell] || {}).name || r.spell) + (r.when ? ' if ' + WL.condText(r.when, build) : ''); };
+// Faults in a rule's condition (unknown spell, aura, operator, variable, a number that is not one).
+WL.condErrors = function (n, build, where, depth) {
+  var out = [], b = build || {}; depth = depth || 0;
+  if (!n) return out;
+  if (depth > 12) return [where + ': the condition is nested too deep'];
+  var num = function () { var x = WL.ruleNum(n.v, b); if (!isFinite(x)) out.push(where + ': ' + (n.v && n.v.var != null ? 'no number named "' + n.v.var + '"' : 'a number is missing')); if (WL.RULE_OPS.indexOf(n.op) < 0) out.push(where + ': unknown comparison "' + n.op + '"'); };
+  switch (n.t) {
+    case 'all': case 'any': (n.c || []).forEach(function (x) { out = out.concat(WL.condErrors(x, b, where, depth + 1)); }); break;
+    case 'not': out = out.concat(WL.condErrors(n.c, b, where, depth + 1)); break;
+    case 'dot': if (WL.RULE_DOTS.indexOf(n.spell) < 0) out.push(where + ': "' + n.spell + '" is not a DoT'); num(); break;
+    case 'aura': if (!WL.RULE_AURAS.some(function (x) { return x[0] === n.aura; })) out.push(where + ': unknown buff "' + n.aura + '"'); num(); break;
+    case 'cd': if (!WL.SPELLS[n.spell]) out.push(where + ': unknown spell "' + n.spell + '"'); num(); break;
+    case 'fight': if (['remaining', 'elapsed', 'bossHp'].indexOf(n.what) < 0) out.push(where + ': unknown fight value'); num(); break;
+    case 'mana': case 'shards': case 'brand': num(); break;
+    case 'var': { var x = (b.vars || {})[n.name]; if (!x || !x.cond) out.push(where + ': no condition named "' + n.name + '"'); break; }
+    default: out.push(where + ': unknown condition');
+  }
+  return out;
+};
+// Groups put in place (one level).
+WL.expandGroups = function (build, rot) {
+  var g = (build && build.groups) || {}, out = [];
+  (rot || build.rotation).forEach(function (a) {
+    var m = /^group:(.+)$/.exec(a);
+    if (!m) { out.push(a); return; }
+    (g[m[1]] || []).forEach(function (x) { if (!/^group:/.test(x)) out.push(x); });
+  });
+  return out;
+};
+
 // The priority list actually simulated: with 2+ targets and fight.multiDot on, "Keep DoTs on the extra targets" is
 // inserted right before the first filler (unless the build already places it itself). (round 27)
 // Round 39: if the build has "Shadow Bolt an extra target", multi-DoT goes right above it — otherwise the spread action
 // keeps bolting target 2 and target 3 never gets its DoTs (found in the round-39 value check, MISTAKES A20).
 WL.effectiveRotation = function (build, cfg) {
-  var rot = build.rotation.slice(), f = cfg && cfg.fight || {};
+  var rot = WL.expandGroups(build), f = cfg && cfg.fight || {};   // round 157: groups put in place
   if (f.multiDot && (f.targets || 1) >= 2 && rot.indexOf('multiDot') < 0) {
-    var fi = rot.map(function (a) { return !!(WL.ACTIONS[a] && (WL.ACTIONS[a].filler || WL.ACTIONS[a].preFiller)); }).indexOf(true);   // before the filler and any conditional filler (round 106)
+    var fi = rot.map(function (a) { var A = WL.actionOf(a, build); return !!(A && (A.filler || A.preFiller)); }).indexOf(true);   // before the filler and any conditional filler (round 106)
     var si = rot.indexOf('shadowBoltSpread');
     if (si >= 0 && (fi < 0 || si < fi)) fi = si;
     rot.splice(fi < 0 ? rot.length : fi, 0, 'multiDot');

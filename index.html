@@ -666,7 +666,16 @@
   .tl-mana { fill: var(--c-hit); opacity: .35; }
   .tl-gcd { fill: var(--muted); opacity: .7; }
   .tlopts { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: -2px 0 6px; font-size: 12px; }
-  .bcount { width: 42px; margin: 0 2px 0 6px; padding: 0 2px; font: 600 12px var(--mono); }
+  /* round 157: the rule editor */
+  .edrules { margin-top: 8px; } .edrules summary { font-weight: 600; cursor: pointer; }
+  .ruleform { border: 1px solid var(--line); border-radius: 6px; padding: 8px; margin: 8px 0; display: grid; gap: 6px; }
+  .ruleform h4 { margin: 0; }
+  .cgrp { border-left: 2px solid var(--accent); padding-left: 8px; display: grid; gap: 4px; margin: 2px 0; }
+  .chead, .cleaf { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; }
+  .cval { width: 90px; } .cbtn { padding: 1px 6px; font-size: 12px; } .cneg { font-size: 12px; }
+  .rulelist { margin: 4px 0 8px; padding-left: 18px; font-size: 12.5px; } .rulelist li { margin: 2px 0; }
+  input[type=number].bcount { width: 46px; display: inline-block; margin: 0 2px 0 6px; padding: 0 3px; font: 600 12px var(--mono); }
+  .cval { width: 90px !important; }
   .refbar { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; }
   .mv.up { color: var(--good); }
   .mv.down { color: var(--bad); }
@@ -1086,6 +1095,9 @@
             <h2>Priority (top = checked first)</h2>
             <ol id="edRot" class="edrot"></ol>
             <div class="btnrow"><select id="edAddAct" aria-label="Action to add"></select><button type="button" id="edAdd">Add to the priority</button></div>
+            <details class="edrules" id="edRulesBox"><summary>Your own rules, groups and variables</summary>
+              <p class="meta">A rule casts a spell when your conditions hold: DoT or buff time left, cooldowns, fight time, boss health, mana, Soul Shards, Demonic Brand charges — combined with "all of", "any of" and "not". A group is a list of actions you can put in the priority as one; a variable is a number or a condition with a name, used in your rules. A rule without a condition is a filler.</p>
+              <div id="edRules"></div></details>
           </div>
           <div>
             <h2>Checks</h2>

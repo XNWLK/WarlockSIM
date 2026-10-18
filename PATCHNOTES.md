@@ -5,6 +5,24 @@ What each version added or changed, newest first. Version = the version of the
 
 ## v144
 - Gear builder: clicking the Main Hand slot while another slot was open did nothing (the other slot stayed open). Fixed.
+- **Your own rules in the priority list** (build editor → "Your own rules, groups and variables"): a rule casts a spell when
+  your conditions hold — DoT or buff time left, cooldowns, fight time left or gone, boss health, mana, Soul Shards, Demonic
+  Brand charges — combined with "all of", "any of" and "not". Groups put a list of actions in the priority as one;
+  variables give a number or a condition a name. Build codes carry them.
+- **Gear builder:**
+  - the item list has filters (item level range, side, source: crafted, quest, vendor, drop, PvP, or a raid), favourites (★)
+    and a compare button (⇄) on every row, and warnings (a unique item already worn, the other side's item, a two-hander that
+    would switch off your off-hand item);
+  - **gear sets** with names: save what you wear, load it again;
+  - **best combination**: tries your favourites and the bag items of a gear code (the addon's "Bags too") in every slot and
+    shows the best five, simulated for the build under "Value for" (all combinations when there are few, else one slot at a
+    time); lock the slots you want to keep.
+- **Results:** "Set as reference" keeps a run: every row then shows its change against it. The spell table has the average
+  hit. The fight timeline can show your mana, one row per spell and the global cooldown after each cast.
+- **Stat weights:** choose which ones are computed (Spell Penetration, Spirit and MP5 can be added), and a precision (more runs
+  on new fights until every weight is known to ± that much spell power). "Copy as Pawn scale" in a build's details.
+- **Raid buffs:** the Atiesh auras of a Warlock, a Mage or a Druid in your party, and Blood Pact from another Warlock's Imp.
+  Innervate and Power Infusion take a count (several Druids / Priests).
 
 ## v143
 - **Gear builder: the item list is here.** Every item a Warlock can wear that has at least one stat the sim uses (spell
