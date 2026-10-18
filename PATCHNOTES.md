@@ -9,7 +9,7 @@ What each version added or changed, newest first. Version = the version of the
   Wowhead Forever database, with their icons. Pieces of other classes' item sets are left out. Click a slot and the items for it are listed best first for the build chosen under
   "Value for", with item level, required level, stats and their worth in spell power; type a name to narrow the list.
   Hit, crit and haste ratings are turned into % the way the sim counts them (10 hit = 1%, 14 crit = 1%, 10 haste = 1%).
-- **Every enchant** (123: Enchanting and permanent item enhancements), listed under the items of each slot that
+- **Every Enchanting enchant** (123; armor kits, arcanums and other item enhancements follow), listed under the items of each slot that
   takes one, best first; enchants for two-handed weapons only show while a two-handed weapon is in the main hand. The
   held off-hand item takes enchants now too. Items and enchants that are not on Wowhead yet: type them in, or load a gear
   code from the in-game addon, as before. The gear builder is still under construction.
