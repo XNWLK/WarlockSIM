@@ -60,6 +60,20 @@ function from(x) {                                         // a short "where it 
   return '';
 }
 
+// Round 157 (item filters): what kind of source, and which raid (from the drop's zone, or a quest's zone).
+const RAIDS = { 2717: 'Molten Core', 2159: "Onyxia's Lair", 2677: 'Blackwing Lair', 1977: "Zul'Gurub", 3429: "Ruins of Ahn'Qiraj", 3428: "Temple of Ahn'Qiraj", 3456: 'Naxxramas' };
+const PVP_NAME = /\b(Marshal|Warlord|General|Legionnaire|Knight-Lieutenant|Knight-Captain|Blood Guard|Champion|Lieutenant Commander|Sergeant|Stone Guard|Premier)\b/;   // PvP gear by its rank names
+function srcKind(x) {
+  const src = x.src || [];
+  if (PVP_NAME.test(x.n)) return 'pvp';
+  if (src.indexOf(1) >= 0) return 'crafted';
+  if (src.indexOf(4) >= 0) return 'quest';
+  if (src.indexOf(5) >= 0) return 'vendor';
+  if (src.indexOf(2) >= 0) return 'drop';
+  return src.length ? 'other' : '';
+}
+function raidOf(x) { const m = (x.sm || []).map(y => RAIDS[y.z] || RAIDS[y.c]).filter(Boolean)[0]; return m || ''; }
+
 // Item sets for other classes: their pieces are out
 const otherClassSet = {}, otherClassPiece = {};
 (raw.sets || []).forEach(s => { if (s.rc && !(s.rc & WARLOCK_BIT)) { otherClassSet[s.id] = s.n; (s.p || []).forEach(id => { otherClassPiece[id] = s.n; }); } });
@@ -83,6 +97,8 @@ raw.items.slice().sort((a, b) => a.id - b.id).forEach(x => {
   const side = x.rr && !(x.rr & HORDE) ? 'Alliance' : x.rr && !(x.rr & ALLIANCE) ? 'Horde' : '';
   if (side) it.side = side;
   const f = from(x); if (f) it.from = f;
+  const sc = srcKind(x); if (sc) it.src = sc;
+  const rd = raidOf(x); if (rd) it.raid = rd;
   items[x.id] = it;
 });
 

@@ -118,7 +118,7 @@ WL.computeStats = function (build, raceKey, cfg) {
   var int = intFlat * (1 + kingsPct / 100);
   if (kingsPct) add('int', 'Blessing of Kings +' + kingsPct + '%', int - intFlat);
   var spiFlat = add('spi', 'Base (L60 Warlock) [A09]', base.spi) + add('spi', race.name + ' offset', race.offset.spi)
-          + add('spi', 'Gear', gear.spi) + buffStat('spi') + conStat('spi');
+          + add('spi', 'Gear', gear.spi) + buffStat('spi') + conStat('spi') + add('spi', 'Stat-weight test', ex.spi || 0);
   var spiPct = racial('spiritPct') ? racial('spiritPct').value : 0;
   var spi = spiFlat * (1 + spiPct / 100) * (1 + kingsPct / 100);       // percentage bonuses multiply [A16]
   if (spiPct) add('spi', 'The Human Spirit +' + spiPct + '%', spiFlat * spiPct / 100);
@@ -148,7 +148,7 @@ WL.computeStats = function (build, raceKey, cfg) {
   var sacrificeActive = !!build.sacrifice && (!build.pet || tv('demonicPact') > 0);
 
   // --- Spell power ---
-  var sp = add('sp', 'Gear', gear.sp) + add('sp', 'Stat-weight test', ex.sp || 0) + conStat('sp') + oilStat('sp');
+  var sp = add('sp', 'Gear', gear.sp) + add('sp', 'Stat-weight test', ex.sp || 0) + conStat('sp') + oilStat('sp') + buffStat('sp');   // buffStat: round 157 (Atiesh)
   var dkSp = 0;   // Demonic Knowledge: "your spell damage and your Demon pet's spell damage" — the pet gets it too (round 31)
   if (petActive && tv('demonicKnowledge')) {
     dkSp = Math.round(60 * tv('demonicKnowledge', 'levelPct') / 100);
@@ -186,9 +186,9 @@ WL.computeStats = function (build, raceKey, cfg) {
                + add('hastePct', 'Stat-weight test', ex.hastePct || 0)
                + oilStat('hastePct') + conStat('hastePct');
   var pierce = add('pierce', 'Gear', gear.pierce || 0) + add('pierce', 'Stat-weight test', ex.pierce || 0);
-  var spellPen = add('spellPen', 'Gear', gear.spellPen || 0);                // round 155: lowers resistance down to 0 [A96]
+  var spellPen = add('spellPen', 'Gear', gear.spellPen || 0) + add('spellPen', 'Stat-weight test', ex.spellPen || 0);                // round 155: lowers resistance down to 0 [A96]
 
-  var mp5 = add('mp5', 'Gear', gear.mp5 || 0) + buffStat('mp5') + conStat('mp5') + oilStat('mp5');
+  var mp5 = add('mp5', 'Gear', gear.mp5 || 0) + buffStat('mp5') + conStat('mp5') + oilStat('mp5') + add('mp5', 'Stat-weight test', ex.mp5 || 0);
 
   // --- Static caster damage AURAS per school ("Mod Damage Done %" buffs: they multiply with each other and with the
   // talent spell modifiers [A16]). Talent spell modifiers (Shadow Mastery, Agonizing Flames, Malediction, …) are not

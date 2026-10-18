@@ -25,6 +25,8 @@ WL.settingsSnapshot = function (c) {
   // Round 147: the gear builder's items and your own additions, only while the builder is on (its numbers are in gear
   // anyway; this lets a code or link bring the builder back as it was). Off = not part of the settings.
   var gb = c.gearBuilder;
+  var cn = {}; Object.keys(c.buffs || {}).forEach(function (k) { var b = c.buffs[k]; if (b.on && b.count > 1) cn[k] = b.count; });   // round 157: Innervate / PI counts
+  if (Object.keys(cn).length) snap.counts = cn;
   if (gb && gb.on) snap.gb = { slots: gb.slots || {}, manual: gb.manual || {}, enchants: gb.enchants || {} };   // enchants: round 148
   return snap;
 };
@@ -67,6 +69,7 @@ WL.applySettings = function (c, o) {
   if (typeof o.levelResist === 'boolean' && c.combat.levelResist) c.combat.levelResist.on = o.levelResist;
   // Gear builder (round 147): a code with it switches it on with its items; a code without it switches it off and keeps
   // the items you had (they no longer count).
+  Object.keys(c.buffs || {}).forEach(function (k) { if (c.buffs[k].count != null) { var n = (o.counts || {})[k]; c.buffs[k].count = n > 0 ? Math.min(c.buffs[k].maxCount || 5, Math.round(n)) : 1; } });   // round 157
   if (o.gb && typeof o.gb === 'object') c.gearBuilder = { on: true, slots: o.gb.slots || {}, manual: o.gb.manual || {}, enchants: o.gb.enchants || {} };
   else if (c.gearBuilder) c.gearBuilder.on = false;
   return unknown;

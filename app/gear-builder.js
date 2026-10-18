@@ -96,7 +96,7 @@ WL.gearSwapDelta = function (gb, slotKey, entry, cfg) {
 // school (`share` = { shadow, fire }, 0–1). Spirit, Stamina and MP5 have no weight: listed in `unvalued`.
 WL.gearValue = function (stats, w, share) {
   stats = stats || {}; share = share || {};
-  var per = { sp: w.sp, hitPct: w.hitPct, critPct: w.critPct, hastePct: w.hastePct, int: w.int, pierce: w.pierce,
+  var per = { sp: w.sp, hitPct: w.hitPct, critPct: w.critPct, hastePct: w.hastePct, int: w.int, pierce: w.pierce, spellPen: w.spellPen, spi: w.spi, mp5: w.mp5,   // round 157: the last three when computed
               shadowSp: w.sp * (share.shadow || 0), fireSp: w.sp * (share.fire || 0) };
   var dps = 0, unvalued = [];
   WL.GEAR_STAT_KEYS.forEach(function (k) {
@@ -162,6 +162,20 @@ WL.GEAR_CODE_PREFIX = 'WFG1:';
       var en = { name: String(x.name).slice(0, 80), stats: cleanStats(x.stats) }; if (x.id != null) en.id = x.id;
       enchants[k] = { custom: en };
     });
-    return { slots: slots, enchants: enchants, ignored: ignored };
+    // Round 157: the items in the bags (the in-game addon's "Bags too"), as slot entries — a listed item by its id, any other
+    // with the name and stats it carries. Only what fits a Warlock slot type and has a stat of the sheet; the addon sends
+    // every equippable item, so an item that is not in the list may still be one a Warlock cannot wear (flagged `unlisted`).
+    var bag = [], seen = {};
+    (Array.isArray(o.bag) ? o.bag : []).forEach(function (x) {
+      if (!x) return;
+      var key = x.id != null ? 'i' + x.id : 'n' + x.name; if (seen[key]) return;
+      if (x.id != null && WL.ITEMS[x.id]) { seen[key] = 1; bag.push({ id: +x.id }); return; }
+      var st = cleanStats(x.stats), types = WL.GEAR_SLOTS.reduce(function (a, s) { return a.concat(s.fits); }, []);
+      if (!x.name || types.indexOf(x.slot) < 0 || !Object.keys(st).some(function (k) { return k !== 'sta'; })) return;
+      var it = { name: String(x.name).slice(0, 80), slot: x.slot, stats: st, unlisted: true };
+      if (x.id != null) it.id = x.id; if (x.quality) it.quality = String(x.quality); if (x.weapon) it.weapon = String(x.weapon);
+      seen[key] = 1; bag.push({ custom: it });
+    });
+    return { slots: slots, enchants: enchants, ignored: ignored, bag: bag };
   };
 })();

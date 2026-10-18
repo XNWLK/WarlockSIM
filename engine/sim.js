@@ -206,7 +206,7 @@ window.WL = window.WL || {};
     var armorRed = WL.armorReduction(cfg);
     var buffList = WL.activeBuffs(cfg);
     var PI = buffList.filter(function (b) { return b.spellDmgPct; })[0] || null;
-    var manaBuffs = buffList.filter(function (b) { return b.tide || b.innervate; }).map(function (b) { return { b: b, used: false }; });
+    var manaBuffs = buffList.filter(function (b) { return b.tide || b.innervate; }).map(function (b) { return { b: b, left: Math.max(1, Math.round(b.count || 1)), until: 0 }; });   // round 157: count
     // ---------- health (round 119, user) [A83] ----------
     // Your health starts full. It pays for Life Tap (430), Hellfire's ticks on yourself, the Demonic Rune (800) and the Goblin
     // Sapper; it comes back from the healing setting (fight.healAmount every fight.healEvery s), from Drain Life, Siphon Life,
@@ -247,7 +247,8 @@ window.WL = window.WL || {};
     function manaBuffCheck() {
       if (!manaBuffs.length || S.mana >= 0.5 * stats.maxMana) return;
       manaBuffs.forEach(function (mb) {
-        if (mb.used) return; mb.used = true;
+        if (mb.left <= 0 || S.t < mb.until - EPS) return;              // round 157: the next one when the last one is over
+        mb.left--; mb.until = S.t + (mb.b.innervate ? mb.b.innervate.duration : mb.b.tide.ticks * mb.b.tide.every);
         if (mb.b.tide) for (var i = 0; i < mb.b.tide.ticks; i++) H.push({ t: S.t + i * mb.b.tide.every, o: 0, type: 'mana', amount: mb.b.tide.amount, src: mb.b.name });
         if (mb.b.innervate) {
           var perTick = (cb.spiritRegenBase + cb.spiritRegenPerSpi * stats.spi) * mb.b.innervate.mult;   // per 2 s
@@ -327,9 +328,15 @@ window.WL = window.WL || {};
       var toBoom = d.expires - S.t, sp = SPELLS[key], len = sp.kind === 'channel' ? sp.duration : Math.max(S.castTime(key), S.gcd());
       return actOpen = toBoom > S.remaining || toBoom <= len + EPS;
     }
+    // Round 157: count = how many Priests give you their Power Infusion; each has its own 3 min cooldown, and the next one
+    // comes when the last has run out (it does not stack with itself).
+    var piCd = [];
     function usePowerInfusion() {
-      if (!PI || !S.ready('powerInfusion')) return false;
-      S.cds.powerInfusion = S.t + PI.cd; S.buffs.powerInfusion = S.t + PI.duration;
+      if (!PI || S.buff('powerInfusion')) return false;
+      var n = Math.max(1, Math.round(PI.count || 1)), i = -1;
+      for (var q = 0; q < n; q++) if ((piCd[q] || 0) <= S.t + EPS) { i = q; break; }
+      if (i < 0) return false;
+      piCd[i] = S.t + PI.cd; S.cds.powerInfusion = Math.min.apply(null, piCd.concat(n > piCd.length ? [0] : [])); S.buffs.powerInfusion = S.t + PI.duration;
       L('buff', PI.name);
       return true;
     }
@@ -1376,6 +1383,7 @@ window.WL = window.WL || {};
   // Stat weights: DPS gained per 1 SP, per 1% hit, per 1% crit, per 1% haste, per 1 Int, per 1 Spell Pierce.
   // Common random numbers: baseline and every +stat run use the same seed, so noise largely cancels.
   WL.STAT_WEIGHT_KEYS = ['sp', 'hitPct', 'critPct', 'hastePct', 'int', 'pierce'];
+  WL.WEIGHT_STATS = ['sp', 'hitPct', 'critPct', 'hastePct', 'int', 'pierce', 'spellPen', 'spi', 'mp5'];   // round 157: the ones a weight can be computed for
   // One stat-weight run: the baseline DPS (k = null) or the DPS with +weightDeltas[k] of stat k (round 76: split out so
   // the Web Workers can run the 7 runs of a build in parallel; WL.statWeights combines them exactly as before).
   WL.statWeightRun = function (build, raceKey, cfg, n, k) {
@@ -1385,7 +1393,7 @@ window.WL = window.WL || {};
   };
   WL.combineWeights = function (cfg, base, dpsByKey) {
     var out = { base: base };
-    WL.STAT_WEIGHT_KEYS.forEach(function (k) { out[k] = (dpsByKey[k] - base) / cfg.weightDeltas[k]; });
+    Object.keys(dpsByKey).forEach(function (k) { out[k] = (dpsByKey[k] - base) / cfg.weightDeltas[k]; });   // round 157: the stats that were run
     return out;
   };
   WL.statWeights = function (build, raceKey, cfg, n) {

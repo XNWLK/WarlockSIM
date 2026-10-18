@@ -674,10 +674,14 @@ threat = damage × (1 − Suppression 4% per point) × (1 − Salvation 30%) × 
 | Mana Spring Totem | Shaman | off | 10 mana every 2 s (25 MP5) |
 | Restorative Totems (on Mana Spring) | Shaman | off | Mana Spring +25% |
 | Mana Tide Totem | Shaman | off | 290 mana every 3 s for 12 s, once, when you drop below 50% mana |
-| Innervate | Druid | off | 5× mana regen while casting for 20 s, once, when you drop below 50% mana |
+| Innervate | Druid | off | 5× mana regen while casting for 20 s, when you drop below 50% mana (once per Innervate) |
 | Moonkin Form aura | Druid | on | +3% spell crit (raid) |
+| Atiesh aura (Warlock) | Warlock | off | +33 spell damage and healing (another Warlock in your party holds Atiesh) |
+| Atiesh aura (Mage) | Mage | off | +2% spell crit (a Mage in your party holds Atiesh) |
+| Atiesh aura (Druid) | Druid | off | 11 mana every 5 s (a Druid in your party holds Atiesh) |
+| Blood Pact (another Warlock) | Warlock | off | +42 Stamina (another Warlock's Imp in your party) |
 | Salvation | Paladin | off | −30% threat |
-| Power Infusion | Priest | off | +20% spell damage for 15 s (3 min cooldown); cast on you when you pop your cooldowns |
+| Power Infusion | Priest | off | +20% spell damage for 15 s (3 min cooldown per Priest); cast on you when you pop your cooldowns |
 <!-- /gen:buffs -->
 
 - **Totems.** Windfury Totem and Flametongue Totem are not in the list: they only affect players, not your demon.

@@ -76,8 +76,8 @@ WL.DEFAULT_CONFIG = {
   },
   // Added on top of gear by the stat-weight runs (normally all 0).
   // Gear in Forever lists percentages (e.g. 1.2% hit), not ratings, so weights are measured per 1%.
-  extra: { sp: 0, hitPct: 0, critPct: 0, hastePct: 0, int: 0, pierce: 0 },
-  weightDeltas: { sp: 100, hitPct: 2, critPct: 2, hastePct: 2, int: 120, pierce: 20 },   // weights = DPS per 1 SP, per 1% hit/crit/haste, per 1 Int, per 1 Spell Pierce
+  extra: { sp: 0, hitPct: 0, critPct: 0, hastePct: 0, int: 0, pierce: 0, spellPen: 0, spi: 0, mp5: 0 },   // spellPen / spi / mp5: round 157
+  weightDeltas: { sp: 100, hitPct: 2, critPct: 2, hastePct: 2, int: 120, pierce: 20, spellPen: 20, spi: 40, mp5: 10 },   // weights = DPS per 1 SP, per 1% hit/crit/haste, per 1 Int, per 1 Spell Pierce
   // Raid buffs from other classes (values from the Forever tooltips in the archived Wowhead data). Round 60 (user): Arcane
   // Intellect, Mark of the Wild, Fortitude, Divine Spirit, Kings, Wisdom and Moonkin aura on by default; the rest off [A38].
   // Personal in Forever and therefore NOT available to us: Shadow Weaving, Improved Scorch, Winter's Chill,
@@ -99,12 +99,18 @@ WL.DEFAULT_CONFIG = {
     // Round 152 (user): demons crit with your spell crit only, so Agility does nothing — Grace of Air Totem and Scroll of
     // Agility IV removed (rounds 75–151 they raised the melee crit the Succubus inherited). [A95]
     manaTide:         { on: false, id: 17359, name: 'Mana Tide Totem',               cls: 'Shaman',  desc: '290 mana every 3 s for 12 s, once, when you drop below 50% mana', tide: { amount: 290, every: 3, ticks: 4 } },
-    innervate:        { on: false, id: 29166, name: 'Innervate',                     cls: 'Druid',   desc: '5× mana regen while casting for 20 s, once, when you drop below 50% mana', innervate: { mult: 5, duration: 20 } },
+    innervate:        { on: false, id: 29166, name: 'Innervate',                     cls: 'Druid',   desc: '5× mana regen while casting for 20 s, when you drop below 50% mana (once per Innervate)', innervate: { mult: 5, duration: 20 }, count: 1, maxCount: 5 },   // count: round 157
     moonkinAura:      { on: true, id: 24858, name: 'Moonkin Form aura',             cls: 'Druid',   desc: '+3% spell crit (raid)', critPct: 3 },
+    // Round 157 (user: ideas from another sim): Atiesh, Greatstaff of the Guardian's party auras — one per holder in your
+    // party (Classic values; Forever's not checked) [A97]; Blood Pact of another Warlock's Imp in your party (Rank 5, Classic).
+    atieshWarlock:    { on: false, id: 28143, name: 'Atiesh aura (Warlock)',          cls: 'Warlock', desc: '+33 spell damage and healing (another Warlock in your party holds Atiesh)', sp: 33 },
+    atieshMage:       { on: false, id: 28142, name: 'Atiesh aura (Mage)',             cls: 'Mage',    desc: '+2% spell crit (a Mage in your party holds Atiesh)', critPct: 2 },
+    atieshDruid:      { on: false, id: 28145, name: 'Atiesh aura (Druid)',            cls: 'Druid',   desc: '11 mana every 5 s (a Druid in your party holds Atiesh)', mp5: 11 },
+    bloodPact:        { on: false, id: 11767, name: 'Blood Pact (another Warlock)',   cls: 'Warlock', desc: '+42 Stamina (another Warlock\'s Imp in your party)', sta: 42 },
     // Threat reduction (round 119, user). Classic value — the tooltip is not in the archived Forever data [A84]. Patch
     // 2026-10-16: Blessing of Salvation is now "Salvation", which no longer takes up a blessing (same key, old codes still load).
     blessingOfSalvation: { on: false, id: 1038, name: 'Salvation',                   cls: 'Paladin', desc: '−30% threat', threatPct: 30 },
-    powerInfusion:    { on: false, id: 10060, name: 'Power Infusion',                cls: 'Priest',  desc: '+20% spell damage for 15 s (3 min cooldown); cast on you when you pop your cooldowns', spellDmgPct: 20, duration: 15, cd: 180 },
+    powerInfusion:    { on: false, id: 10060, name: 'Power Infusion',                cls: 'Priest',  desc: '+20% spell damage for 15 s (3 min cooldown per Priest); cast on you when you pop your cooldowns', spellDmgPct: 20, duration: 15, cd: 180, count: 1, maxCount: 5 },   // count = Priests giving you theirs (round 157)
   },
   // Consumables (data/consumables.js, loaded before this file). Only the per-build weapon oil is on by default. [A57]
   consumables: JSON.parse(JSON.stringify(WL.CONSUMABLES || {})),
@@ -130,6 +136,8 @@ WL.DEFAULT_CONFIG = {
   options: {
     useCurseOfElements: true,  // [A34]
     includePetDamage: true,    // [A26]
+    weightStats: ['sp', 'hitPct', 'critPct', 'hastePct', 'int', 'pierce'],   // round 157: which stat weights are computed (sp always)
+    weightPrecision: 0,        // round 157: 0 = one run of "Fights per stat weight"; > 0 = batches of them until every weight is ± this much spell power (95%)
     showWithinPct: 0,          // display cut-off: only rows within this % of the best DPS; 0 = all (default since round 66, user; 10 in rounds 17–65).
                                // Display only (changing it never reruns); pinned builds (📌, per browser) stay shown whatever the cut-off.
     // When to pop the short cooldowns for the first time (round 87, user): the racial cooldown (Blood Fury, Berserking,

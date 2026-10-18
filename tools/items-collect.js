@@ -52,7 +52,7 @@ const COLLECT = `(async () => {
       K.forEach(k => { if (eq[k]) s[k] = eq[k]; });
       items[x.id] = { id: x.id, n: x.name, l: x.level, r: x.reqlevel || eq.reqlevel || 0, q: x.quality, sl: x.slotbak || x.slot, sub: x.subclass, cls: x.classs,
         ic: gi.icon || '', set: eq.itemset || 0, mx: eq.maxcount || 0, rc: x.reqclass || 0, rr: x.reqrace || 0, rf: eq.reqfaction || 0, s,
-        src: x.source || [], sm: (x.sourcemore || []).map(m => ({ n: m.n, t: m.t, z: m.z, ti: m.ti })), cat: c };
+        src: x.source || [], sm: (x.sourcemore || []).map(m => ({ n: m.n, t: m.t, z: m.z, c: m.c, ti: m.ti })), cat: c };   // c: a quest's zone
     });
   }
   // item sets: which class each is for

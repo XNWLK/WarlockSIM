@@ -28,7 +28,14 @@
     { k: 'critPct', label: 'per 1% crit', unit: '1% crit', c: '--c-crit' }, { k: 'hastePct', label: 'per 1% haste', unit: '1% haste', c: '--c-haste' },
     { k: 'int', label: 'per 1 Int', unit: '1 Int', c: '--c-int' },
   ];
-  var STATS_ALL = STATS.concat([{ k: 'pierce', label: 'per 1 Spell Pierce', unit: '1 Spell Pierce', c: '--c-pierce' }]);
+  var STATS_ALL = STATS.concat([{ k: 'pierce', label: 'per 1 Spell Pierce', unit: '1 Spell Pierce', c: '--c-pierce' },
+    { k: 'spellPen', label: 'per 1 Spell Penetration', unit: '1 Spell Penetration', c: '--c-pierce' }, { k: 'spi', label: 'per 1 Spirit', unit: '1 Spirit', c: '--c-int' },
+    { k: 'mp5', label: 'per 1 MP5', unit: '1 MP5', c: '--c-hit' }]);   // round 157: Spell Penetration, Spirit, MP5 when chosen
+  var WSTAT_NAMES = { sp: 'Spell power', hitPct: 'Hit', critPct: 'Crit', hastePct: 'Haste', int: 'Intellect', pierce: 'Spell Pierce', spellPen: 'Spell Penetration', spi: 'Spirit', mp5: 'MP5' };
+  function wKeys(c) {                                     // round 157: the chosen stat weights (spell power always)
+    var sel = ((c || runCfg).options || {}).weightStats || WL.STAT_WEIGHT_KEYS;
+    return WL.WEIGHT_STATS.filter(function (k) { return k === 'sp' || sel.indexOf(k) >= 0; });
+  }
   var RACIAL_ICON = { 'Blood Fury': 'racial_bloodFury', 'Berserking': 'racial_berserking', 'Eureka!': 'racial_eureka' };
   // Dark or light label text depending on the segment colour (relative luminance).
   function textOn(hex) {
@@ -294,6 +301,11 @@
     boxFields.forEach(function (f) { $(f[0]).checked = !!cfg[f[1]][f[2]]; });
     $('encPreset').value = '';                            // loaded / reset settings: no preset shown
     $('p_spPct').value = cfg.petSpPct; $('p_succAp').value = cfg.pets.succubus.melee.apPerSp; $('p_succBase').value = cfg.pets.succubus.melee.baseDps;
+    var wsel = cfg.options.weightStats || WL.STAT_WEIGHT_KEYS;   // round 157
+    $('wStats').innerHTML = WL.WEIGHT_STATS.map(function (k) {
+      return '<label for="ws_' + k + '"><input id="ws_' + k + '" type="checkbox"' + (k === 'sp' || wsel.indexOf(k) >= 0 ? ' checked' : '') + (k === 'sp' ? ' disabled' : '') + '> ' + esc(WSTAT_NAMES[k]) + '</label>';
+    }).join('');
+    $('weightPrecision').value = cfg.options.weightPrecision || 0;
     function box(prefix, k, o) {
       var iconKey = ({ b_: 'buff_', d_: 'debuff_', c_: 'consumable_' })[prefix] + k;
       var isCon = prefix === 'c_', text = isCon ? o.text : (WL.SPELL_TEXT || {})[o.id];
@@ -301,8 +313,9 @@
         (o.id ? ' · Wowhead ' + (isCon ? 'item ' : 'spell ') + o.id : '') + '</div>' +
         (text ? '<div class="tt-body">' + para(text) + '</div>' : '') +
         '<div class="tt-rule">Simulated as: ' + esc(o.desc || '') + '</div>';
+      var cnt = o.count != null ? ' <input id="bn_' + k + '" class="bcount" type="number" min="1" max="' + (o.maxCount || 5) + '" step="1" value="' + (o.count || 1) + '" title="How many (round 157)" aria-label="How many: ' + esc(o.name) + '">×' : '';
       return '<label class="c" for="' + prefix + k + '"><input id="' + prefix + k + '" type="checkbox"' + (o.on ? ' checked' : '') + '> ' +
-        icon(iconKey, o.name, '', tip) + (isCon ? '' : '<span class="cls">' + esc(o.cls || '') + '</span>') + '<span>' + esc(o.name) + ' <span class="eff">' + esc(o.desc || '') + '</span></span></label>';
+        icon(iconKey, o.name, '', tip) + (isCon ? '' : '<span class="cls">' + esc(o.cls || '') + '</span>') + '<span>' + esc(o.name) + cnt + ' <span class="eff">' + esc(o.desc || '') + '</span></span></label>';
     }
     $('buffBoxes').innerHTML = Object.keys(cfg.buffs).map(function (k) { return box('b_', k, cfg.buffs[k]); }).join('');
     $('debuffBoxes').innerHTML = Object.keys(cfg.debuffs).map(function (k) { return box('d_', k, cfg.debuffs[k]); }).join('');
@@ -463,7 +476,10 @@
     gbTakeTyped();                                        // gear builder on: a sheet value you changed = your addition
     numFields.forEach(function (f) { var v = parseFloat($(f[0]).value); if (isFinite(v)) cfg[f[1]][f[2]] = v; });
     boxFields.forEach(function (f) { cfg[f[1]][f[2]] = $(f[0]).checked; });
-    Object.keys(cfg.buffs).forEach(function (k) { cfg.buffs[k].on = $('b_' + k).checked; });
+    Object.keys(cfg.buffs).forEach(function (k) {
+      cfg.buffs[k].on = $('b_' + k).checked;
+      var bn = $('bn_' + k); if (bn) { var v = Math.round(parseFloat(bn.value)); cfg.buffs[k].count = isFinite(v) && v > 0 ? Math.min(cfg.buffs[k].maxCount || 5, v) : 1; }   // round 157
+    });
     Object.keys(cfg.debuffs).forEach(function (k) { cfg.debuffs[k].on = $('d_' + k).checked; });
     Object.keys(cfg.consumables).forEach(function (k) { cfg.consumables[k].on = $('c_' + k).checked; });
     var ba = parseFloat($('bossArmor').value); if (isFinite(ba)) cfg.combat.bossArmor = ba;
@@ -480,6 +496,8 @@
     cfg.pets.succubus.melee.baseDps = num('p_succBase', cfg.pets.succubus.melee.baseDps);
     cfg.fight.iterations = Math.max(1, Math.round(cfg.fight.iterations));
     cfg.fight.weightIterations = Math.max(1, Math.round(cfg.fight.weightIterations));
+    cfg.options.weightStats = WL.WEIGHT_STATS.filter(function (k) { var x = $('ws_' + k); return k === 'sp' || (x && x.checked); });   // round 157
+    cfg.options.weightPrecision = Math.max(0, num('weightPrecision', cfg.options.weightPrecision || 0));
     advNote();
   }
 
@@ -721,17 +739,36 @@
       $('runMeta').textContent = (done < nCombos ? 'Simulating ' + (keep ? 'new builds ' : 'builds ') + done + ' / ' + nCombos
         : 'Stat weights ' + wDone + ' / ' + nWeights) + '… (' + WL.SimPool.mode() + ')';
     }
-    function weightJobs() {                                              // shown builds without stat weights yet: 6 runs each
+    // Round 157: the chosen stats (wKeys), and with a precision target batches of new fights: batch 0 uses the run's seed,
+    // batch i the seed + i × 7919; after each batch the builds whose weights are not yet ± the target (95%, in spell power)
+    // run another one, at most 10. wAcc[build] collects the weights of every batch.
+    var wAcc = {}, WMAX = 10;
+    function weightJobs(batch, only) {                                   // shown builds without stat weights yet
       // Round 79: with as many fights per weight run as per combo, the unchanged "base" run is exactly the best-race row
       // (same build, race, settings and seeds), so its DPS is reused instead of simulated again (7 → 6 runs per build).
-      var list = [], reuse = runCfg.fight.weightIterations === runCfg.fight.iterations;
-      bestRaceJobs(builds).filter(function (x) { return !weights[x.b.key]; }).forEach(function (x) {
-        var acc = { race: x.r, base: reuse ? bestRow(x.b.key).dps : null, by: {}, left: (reuse ? 0 : 1) + WL.STAT_WEIGHT_KEYS.length };
-        (reuse ? [] : [null]).concat(WL.STAT_WEIGHT_KEYS).forEach(function (k) {
-          list.push({ kind: 'weight', b: x.b, build: x.b, race: x.r, cfg: runCfg, n: runCfg.fight.weightIterations, stat: k, acc: acc });
+      var keys = wKeys(), list = [], reuse = !batch && runCfg.fight.weightIterations === runCfg.fight.iterations;
+      var c = runCfg; if (batch) { c = JSON.parse(JSON.stringify(runCfg)); c.fight.seed = runCfg.fight.seed + batch * 7919; }
+      bestRaceJobs(builds).filter(function (x) { return only ? only[x.b.key] : !weights[x.b.key]; }).forEach(function (x) {
+        var acc = { race: x.r, base: reuse ? bestRow(x.b.key).dps : null, by: {}, left: (reuse ? 0 : 1) + keys.length, cfg: c };
+        (reuse ? [] : [null]).concat(keys).forEach(function (k) {
+          list.push({ kind: 'weight', b: x.b, build: x.b, race: x.r, cfg: c, n: runCfg.fight.weightIterations, stat: k, acc: acc });
         });
       });
       return list;
+    }
+    function settle(key, race) {                                         // mean of the batches, and its ± (95%) per stat
+      var L = wAcc[key], n = L.length, w = {}, err = {};
+      Object.keys(L[0]).forEach(function (k) {
+        var m = L.reduce(function (a, x) { return a + x[k]; }, 0) / n; w[k] = m;
+        if (n > 1) { var v = L.reduce(function (a, x) { return a + (x[k] - m) * (x[k] - m); }, 0) / (n - 1); err[k] = 1.96 * Math.sqrt(v / n); }
+      });
+      return { race: race, w: w, err: n > 1 ? err : null, batches: n };
+    }
+    function precise(o) {                                                // every chosen weight (not spell power itself) within ± target SP
+      var t = runCfg.options.weightPrecision || 0; if (!(t > 0)) return true;
+      if (!o.err) return false;
+      var sp = o.w.sp; if (!(sp > 1e-9)) return true;
+      return Object.keys(o.err).every(function (k) { return k === 'sp' || o.err[k] / sp <= t; });
     }
     function finished() {
       running = false; dirty = !sameSettings();                          // settings edited during the run → stale
@@ -745,13 +782,22 @@
         : 'Added ' + todo.length + ' build' + (todo.length === 1 ? '' : 's') + ' (' + nCombos + ' combos × ' + fmt(runCfg.fight.iterations) +
           ' fights' + (nWeights ? ' + stat weights' : '') + ') in ' + secs + ' s' + how + '; the other builds keep their results (same settings) · seed ' + runCfg.fight.seed;
     }
-    function runWeights() {
-      var wj = weightJobs(); nWeights = wj.length; progress();
+    function runWeights(batch, only) {
+      batch = batch || 0;
+      var wj = weightJobs(batch, only); nWeights += wj.length; progress();
+      var pend = {};
       WL.SimPool.run(wj, function (j, res) {
         var a = j.acc; if (j.stat) a.by[j.stat] = res.dps; else a.base = res.dps;
-        if (--a.left === 0) weights[j.b.key] = { race: a.race, w: WL.combineWeights(runCfg, a.base, a.by) };
+        if (--a.left === 0) {
+          var k = j.b.key; if (!batch) wAcc[k] = [];
+          wAcc[k].push(WL.combineWeights(runCfg, a.base, a.by));
+          var o = settle(k, a.race); weights[k] = o;
+          if (batch + 1 < WMAX && !precise(o)) pend[k] = 1;
+        }
         wDone++; progress();
-      }, finished);
+      }, function () {
+        if (Object.keys(pend).length) runWeights(batch + 1, pend); else finished();
+      });
     }
     progress();
     WL.SimPool.run(combos, function (j, res) {
@@ -1013,7 +1059,8 @@
     var sp = w.w.sp, wbest = null;
     ['hitPct', 'critPct', 'hastePct'].forEach(function (k) { if (!wbest || w.w[k] > w.w[wbest]) wbest = k; });   // same unit (per 1%) only
     return STATS.map(function (s) {
-      var v = w.w[s.k], eq = s.k !== 'sp' && sp > 1e-9 ? v / sp : null;
+      var v = w.w[s.k]; if (v == null) return '<td class="wt"><span class="meta" title="Not chosen in Fight &amp; pets → Advanced → Stat weights for">–</span></td>';   // round 157
+      var eq = s.k !== 'sp' && sp > 1e-9 ? v / sp : null;
       var shown = s.k === 'sp' ? v.toFixed(2) : eq != null ? eq.toFixed(s.k === 'int' ? 2 : 1) : v.toFixed(2);
       return '<td class="wt' + (s.k === wbest ? ' top' : '') + '" style="--c:var(' + s.c + ')" title="' +
         esc(s.unit + ' = ' + v.toFixed(3) + ' DPS' + (eq != null ? ' = ' + eq.toFixed(2) + ' spell power' : '') + ' · computed on ' + WL.RACES[w.race].name) + '">' + shown + '</td>';
@@ -1031,6 +1078,24 @@
   // lost (▼) against the run before — the listed race then vs now (best race, or your race), counted among the builds that
   // are in both runs, so adding or removing a build moves nobody. prevRun = that earlier run's DPS per build and race.
   var prevRun = null;
+  // Round 157 (idea 8): a reference run. "Set as reference" keeps this run's DPS per build and race; every row then shows its
+  // change against the same build and race in it, until cleared. Kept in this browser.
+  var refRun = null;
+  try { refRun = JSON.parse(localStorage.getItem('wfs.refRun') || 'null'); } catch (e) { refRun = null; }
+  function saveRef() { try { if (refRun) localStorage.setItem('wfs.refRun', JSON.stringify(refRun)); else localStorage.removeItem('wfs.refRun'); } catch (e) { /* page only */ } }
+  function refTag(r) {
+    if (!refRun || !refRun.by || isBase(r)) return '';
+    var was = (refRun.by[r.build.key] || {})[r.race]; if (!(was > 0)) return '';
+    var d = (r.dps / was - 1) * 100;
+    return '<span class="refd" title="' + esc('Reference run: ' + fmt(was, 1) + ' DPS for this build and race') + '" style="color:var(' + (Math.abs(d) < 0.005 ? '--muted' : d > 0 ? '--good' : '--bad') + ')">' +
+      (d > 0 ? '+' : '') + d.toFixed(2) + '% vs ref</span>';
+  }
+  function renderRefBar() {
+    var el = $('refBar'); if (!el) return;
+    if (refRun) el.innerHTML = '<span class="meta" title="' + esc(refRun.label || '') + '">Reference: ' + esc(new Date(refRun.at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })) + '</span>' +
+      '<button type="button" class="resetbtn" id="refClear" title="Stop comparing with the reference run">Clear</button>';
+    else el.innerHTML = '<button type="button" class="resetbtn" id="refSet" title="Keep this run as the reference: every row then shows how much it gains or loses against it, for the same build and race"' + (results.length && !running ? '' : ' disabled') + '>Set as reference</button>';
+  }
   function runByRace() {              // { buildKey: { race: dps } } of the real races
     var o = {}; results.forEach(function (r) { if (!isBase(r)) (o[r.build.key] = o[r.build.key] || {})[r.race] = r.dps; }); return o;
   }
@@ -1057,6 +1122,7 @@
   function render() {
     var tb = document.querySelector('#results tbody'), top = best(), rows = rowsForView(), moves = rankMoves();
     $('moveNote').hidden = !Object.keys(moves).length;
+    renderRefBar();                                                       // round 157
     if (ed.b && !quickRunning) renderQuickOut();                          // the quick-sim panel can show a sheet build's results
     if (!rows.length) { tb.innerHTML = '<tr><td colspan="' + ncols() + '" class="meta">Simulating…</td></tr>'; return; }
     var rank = 0;
@@ -1076,7 +1142,7 @@
         '<td class="bname">' + buildName(r, true) + '</td>' + raceTd +
         '<td><div class="pets">' + (pets || '<span class="none">–</span>') + '</div></td>' +
         '<td><div class="pdrow">' + prioDamage(r, r.avgDuration || r.firstFight.duration) + '</div></td>' +
-        '<td class="n dps" title="Mean of ' + fmt(r.iterations) + ' fights; ± = 95% confidence of the mean"><b>' + fmt(r.dps, 1) + '</b><span class="err">±' + fmt(r.dpsErr, 1) + '</span>' + dpsBar(r.dps, top) + '</td>' +
+        '<td class="n dps" title="Mean of ' + fmt(r.iterations) + ' fights; ± = 95% confidence of the mean"><b>' + fmt(r.dps, 1) + '</b><span class="err">±' + fmt(r.dpsErr, 1) + '</span>' + refTag(r) + dpsBar(r.dps, top) + '</td>' +
         '<td class="n delta ' + (Math.abs(d) < 1e-9 ? 'best' : 'neg') + '">' + (Math.abs(d) < 1e-9 ? 'best' : d.toFixed(2) + '%') + '</td>' +
         raceCell(r) + weightCells(b) + '</tr>';
       if (isOpen) h += '<tr class="detail"><td colspan="' + ncols() + '">' + detail(r) + '</td></tr>';
@@ -1092,7 +1158,7 @@
         ' <span class="meta">' + WL.RACES[x.race].racials.map(function (y) { return esc(y.name); }).join(', ') + '</span>') + '</td>' +
       '<td>' + (base ? '<span class="norace" title="No race: Human base stats, no racials (baseline)">–</span>' : icon('race_' + x.race, WL.RACES[x.race].name)) + '</td>' +
       '<td></td><td class="meta rvs">' + (dB > 0 ? '+' : '') + dB.toFixed(2) + '% vs ' + esc(WL.RACES[bestOfBuild.race].name) + '</td>' +
-      '<td class="n dps"><b>' + fmt(x.dps, 1) + '</b><span class="err">±' + fmt(x.dpsErr, 1) + '</span>' + dpsBar(x.dps, top) + '</td>' +
+      '<td class="n dps"><b>' + fmt(x.dps, 1) + '</b><span class="err">±' + fmt(x.dpsErr, 1) + '</span>' + refTag(x) + dpsBar(x.dps, top) + '</td>' +
       '<td class="n delta ' + (d > 0 ? 'best' : 'neg') + '">' + (d > 0 ? '+' : '') + d.toFixed(2) + '%</td>' + raceCell(x) + '<td colspan="' + STATS.length + '"></td></tr>';
     if (isOpen) h += '<tr class="detail"><td colspan="' + ncols() + '">' + detail(x) + '</td></tr>';
     return h;
@@ -1180,7 +1246,7 @@
       '<th>Spell</th><th class="n">% dmg</th><th class="n">DPS</th><th class="n" title="Threat per second from this source. Pet damage is the pet\'s threat, not yours.">Threat/s</th>' +
       '<th class="n" title="Damage per execute time: damage ÷ seconds spent casting it (cast time, channel time, or the GCD for instants). DoTs count all their ticks.">DPET</th>' +
       '<th class="n">Casts</th><th class="n">Hits</th><th class="n">Ticks</th>' +
-      '<th class="n">Crit %</th><th class="n">Miss %</th><th class="n">Dmg / cast</th><th class="n">Busy s</th></tr></thead><tbody>' +
+      '<th class="n">Crit %</th><th class="n">Miss %</th><th class="n" title="Average damage of one hit or tick, crits included (round 157)">Avg hit</th><th class="n">Dmg / cast</th><th class="n">Busy s</th></tr></thead><tbody>' +
       keys.map(function (k) {
         var x = r.bySpell[k], att = x.landed + x.misses, crits = x.crits + x.tickCrits, ev = x.hits + x.ticks;
         var mk = id(r) + '|' + k, mx = WL.explainSpell(r.build, r.race, runCfg, k, r.stats, r.table), mOpen = mx && !!mathOpen[mk];   // show the maths (round 138)
@@ -1190,9 +1256,9 @@
           '<td class="n">' + (x.castTime > 1e-9 && x.dmg ? fmt(x.dmg / x.castTime, 0) : '–') + '</td>' +
           '<td class="n">' + (x.casts ? fmt(x.casts, 1) : '–') + '</td><td class="n">' + (x.hits ? fmt(x.hits, 1) : '–') + '</td>' +
           '<td class="n">' + (x.ticks ? fmt(x.ticks, 1) : '–') + '</td><td class="n">' + (ev ? fmt(100 * crits / ev, 1) : '–') + '</td>' +
-          '<td class="n">' + (att ? fmt(100 * x.misses / att, 1) : '–') + '</td><td class="n">' + (x.casts && x.dmg ? fmt(x.dmg / x.casts, 0) : '–') + '</td>' +
+          '<td class="n">' + (att ? fmt(100 * x.misses / att, 1) : '–') + '</td><td class="n">' + (ev && x.dmg ? fmt(x.dmg / ev, 0) : '–') + '</td><td class="n">' + (x.casts && x.dmg ? fmt(x.dmg / x.casts, 0) : '–') + '</td>' +
           '<td class="n">' + (x.castTime ? fmt(x.castTime, 1) : '–') + '</td></tr>' +
-          (mOpen ? '<tr class="mathrow"><td colspan="12">' + mathHtml(r, mx) + '</td></tr>' : '');
+          (mOpen ? '<tr class="mathrow"><td colspan="13">' + mathHtml(r, mx) + '</td></tr>' : '');
       }).join('') + '</tbody></table></div></div>';
 
     // ---- talents ----
@@ -1350,6 +1416,13 @@
   }
   // W5: timeline of fight #1 — your casts (instants drawn as their GCD), pet hits, and every tracked aura.
   var TL_PX = 8;   // pixels per second
+  // Round 157 (idea 7): timeline options, kept in this browser — mana row, one row per spell, the GCD after each cast.
+  var tlOpt = (function () { try { return JSON.parse(localStorage.getItem('wfs.tlOpt') || 'null') || { mana: true, split: false, gcd: false }; } catch (e) { return { mana: true, split: false, gcd: false }; } })();
+  document.addEventListener('change', function (e) {
+    var k = e.target.getAttribute && e.target.getAttribute('data-tlopt'); if (!k) return;
+    tlOpt[k] = e.target.checked; try { localStorage.setItem('wfs.tlOpt', JSON.stringify(tlOpt)); } catch (x) { /* page only */ }
+    render();
+  });
   function timelineBlock(r) {
     var ff = r.firstFight, log = r.log || [], D = ff.duration, rowH = 16, gap = 4, lanes = [];
     var casts = [], clips = log.filter(function (e) { return e.type === 'clip'; });
@@ -1358,13 +1431,19 @@
       // off-GCD instants (gcd 0: Bane of Havoc, Demonic Sacrifice, Fel Domination) are drawn as a thin marker
       var end = e.t + (e.channel || (e.castTime > 1e-9 ? e.castTime : (e.gcd != null ? e.gcd : 1.5)));
       if (e.channel) { var c = clips.filter(function (x) { return x.spell === e.spell && x.t > e.t - 1e-9 && x.t < end; })[0]; if (c) end = c.t; }
-      casts.push({ a: e.t, b: Math.min(end, D), k: e.spell, instant: !e.channel && !(e.castTime > 1e-9), tip: clock(e.t) + ' ' + spellName(e.spell) + (e.precast != null ? ' (precast: its ' + e.precast.toFixed(2) + ' s cast ended as the fight started)' : e.channel ? ' (channel)' : e.castTime > 1e-9 ? ' (' + e.castTime.toFixed(2) + ' s cast)' : e.gcd === 0 ? ' (instant, off the GCD)' : ' (instant, GCD)') });
+      casts.push({ a: e.t, b: Math.min(end, D), g: e.gcd > 0 ? Math.min(e.t + e.gcd, D) : null, k: e.spell, instant: !e.channel && !(e.castTime > 1e-9), tip: clock(e.t) + ' ' + spellName(e.spell) + (e.precast != null ? ' (precast: its ' + e.precast.toFixed(2) + ' s cast ended as the fight started)' : e.channel ? ' (channel)' : e.castTime > 1e-9 ? ' (' + e.castTime.toFixed(2) + ' s cast)' : e.gcd === 0 ? ' (instant, off the GCD)' : ' (instant, GCD)') });
     });
     // Boss health (round 34): HP falls linearly 100% → 0% over the fight [A24]; the execute phase (below executePct,
     // Decimation's range) is drawn in red and marked by a dashed line through every lane.
     var exPct = (runCfg.fight && runCfg.fight.executePct != null) ? runCfg.fight.executePct : 35, exT = D * (1 - exPct / 100);
     lanes.push({ label: 'Boss health (execute < ' + exPct + '% from ' + clock(exT).replace(/\.\d+$/, '') + ')', hp: true, h: 24 });
-    lanes.push({ label: 'Your casts', items: casts });
+    if (tlOpt.mana) lanes.push({ label: 'Mana', mana: true, h: 24 });
+    if (tlOpt.split) {                                  // one row per spell, the most cast first
+      var bySp = {}; casts.forEach(function (c) { (bySp[c.k] = bySp[c.k] || []).push(c); });
+      Object.keys(bySp).sort(function (a, b) { return bySp[b].length - bySp[a].length; }).forEach(function (k) {
+        lanes.push({ label: spellName(k) + ' (' + bySp[k].length + ')', icon: iconKeyOf(k), items: bySp[k], casts: true });
+      });
+    } else lanes.push({ label: 'Your casts', items: casts, casts: true });
     var pets = log.filter(function (e) { return e.type === 'pet'; });
     if (pets.length) lanes.push({ label: 'Pet hits', ticks: pets.map(function (e) { return { t: e.t, k: e.spell, tip: clock(e.t) + ' ' + spellName(e.spell) + ' ' + fmt(e.dmg) + (e.crit ? ' crit' : '') }; }) });
     var au = ff.auras || {};
@@ -1389,7 +1468,19 @@
         for (var ls = 30; ls < D - 8; ls += 30) svg += '<text x="' + (ls * TL_PX + 2).toFixed(1) + '" y="' + (y + h - 3) + '" class="hptxt">' + (100 * (1 - ls / D)).toFixed(0) + '%</text>';
         return;
       }
+      if (L.mana) {                                    // mana row (round 157): your mana as a filled line
+        var mh = L.h, mx = r.stats.maxMana || 1, pts = [[0, mx]];
+        log.forEach(function (e) { if (e.mana != null) pts.push([e.t, e.mana]); });
+        var my = function (v) { return (y + mh * (1 - Math.max(0, Math.min(1, v / mx)))).toFixed(1); };
+        svg += '<polygon class="tl-mana" points="0,' + (y + mh) + ' ' + pts.map(function (p) { return (p[0] * TL_PX).toFixed(1) + ',' + my(p[1]); }).join(' ') + ' ' + (pts[pts.length - 1][0] * TL_PX).toFixed(1) + ',' + (y + mh) + '"/>';
+        for (var ms = 0; ms < D; ms += 5) {             // hover: mana at each 5 s step
+          var at = pts.filter(function (p) { return p[0] <= ms + 1e-9; }).pop();
+          svg += '<rect x="' + (ms * TL_PX).toFixed(1) + '" y="' + y + '" width="' + (Math.min(5, D - ms) * TL_PX).toFixed(1) + '" height="' + mh + '" fill="transparent"><title>' + esc(clock(ms).replace(/\.\d+$/, '') + ' — mana ' + fmt(at ? at[1] : mx, 0) + ' / ' + fmt(mx, 0)) + '</title></rect>';
+        }
+        return;
+      }
       (L.items || []).forEach(function (it) {
+        if (L.casts && tlOpt.gcd && it.g != null && it.g > it.a) svg += '<rect x="' + (it.a * TL_PX).toFixed(1) + '" y="' + (y + rowH - 3) + '" width="' + Math.max(1, (it.g - it.a) * TL_PX - 1).toFixed(1) + '" height="3" class="tl-gcd"><title>' + esc('Global cooldown ' + (it.g - it.a).toFixed(2) + ' s') + '</title></rect>';
         var fill = L.aura ? 'var(--accent)' : colorOf(it.k);
         svg += '<rect x="' + (it.a * TL_PX).toFixed(1) + '" y="' + y + '" width="' + Math.max(1.5, (it.b - it.a) * TL_PX - (L.aura ? 0 : 1)).toFixed(1) + '" height="' + rowH + '" rx="2" fill="' + fill + '"' +
           (L.aura ? ' opacity=".55"' : it.instant ? ' opacity=".6"' : '') + '><title>' + esc(it.tip) + '</title></rect>';
@@ -1406,7 +1497,10 @@
       return '<div style="height:' + (L.h || rowH) + 'px;margin-bottom:' + gap + 'px"' + (L.hp ? ' class="hplab" title="' + esc(L.label) + '"' : '') + '>' +
         (L.icon ? icon(L.icon, L.label) + ' ' : '') + esc(L.hp ? 'Boss health' : L.label) + (L.hp ? '<span class="meta"> · execute ' + clock(exT).replace(/\.\d+$/, '') + '</span>' : '') + '</div>';
     }).join('') + '</div>';
-    return '<div class="wide"><h2>Timeline · fight #1 (' + fmt(D, 1) + ' s)</h2><div class="tl-wrap">' + labels + '<div class="tl-scroll">' + svg + '</div></div>' +
+    var opts = '<span class="tlopts">' + [['mana', 'Mana'], ['split', 'One row per spell'], ['gcd', 'Show the GCD']].map(function (o) {
+      return '<label class="c"><input type="checkbox" data-tlopt="' + o[0] + '"' + (tlOpt[o[0]] ? ' checked' : '') + '> ' + o[1] + '</label>';
+    }).join('') + '</span>';
+    return '<div class="wide"><h2>Timeline · fight #1 (' + fmt(D, 1) + ' s)</h2>' + opts + '<div class="tl-wrap">' + labels + '<div class="tl-scroll">' + svg + '</div></div>' +
       '<p class="meta">Boss health falls evenly over the fight; red = execute phase (below ' + exPct + '%, Decimation\'s range), dashed line = when it starts. ' +
       'Bars in "Your casts" use the spell colours from the damage split; faded bars are instants (their GCD). Hover any bar for details.</p></div>';
   }
@@ -1415,15 +1509,40 @@
     var w = weights[r.build.key];
     if (!w) return '<div class="dcard"><h2>Stat weights</h2><p class="meta">' + (running ? 'Being computed…' : 'Only computed for builds shown in the table.') + '</p></div>';
     var sp = w.w.sp;
-    return '<div class="dcard"><h2>Stat weights · ' + esc(WL.RACES[w.race].name) + '</h2><div class="kv wkv">' + STATS_ALL.map(function (s) {
-      var v = w.w[s.k], eq = s.k !== 'sp' && sp > 1e-9 ? v / sp : null;
+    return '<div class="dcard"><h2>Stat weights · ' + esc(WL.RACES[w.race].name) + '</h2><div class="kv wkv">' + STATS_ALL.filter(function (s) { return w.w[s.k] != null; }).map(function (s) {
+      var v = w.w[s.k], eq = s.k !== 'sp' && sp > 1e-9 ? v / sp : null, e = w.err && w.err[s.k];
+      var pm = e != null ? ' ± ' + (s.k === 'sp' ? e.toFixed(3) + ' DPS' : (sp > 1e-9 ? (e / sp).toFixed(2) + ' SP' : e.toFixed(3))) : '';   // round 157
       return '<span><span class="sw" style="background:var(' + s.c + ')"></span>' + esc(s.unit) + '</span><span class="n">' + v.toFixed(3) + ' DPS' +
-        (eq != null ? ' <span class="meta">= ' + eq.toFixed(2) + ' SP</span>' : '') + '</span>';
-    }).join('') + '</div><p class="meta">Computed on the build\'s best race with ' + fmt(runCfg.fight.weightIterations) + ' fights per stat (common random numbers). ' +
+        (eq != null ? ' <span class="meta">= ' + eq.toFixed(2) + ' SP</span>' : '') + (pm ? ' <span class="meta">' + pm + '</span>' : '') + '</span>';
+    }).join('') + '</div>' +
+      '<div class="btnrow"><button type="button" class="resetbtn" data-pawn="' + esc(r.build.key) + '" title="Copies these weights as a Pawn scale (spell power = 1; hit, crit and haste per rating point), to paste into the Pawn addon">Copy as Pawn scale</button></div>' +
+      '<p class="meta">Computed on the build\'s best race with ' + fmt(runCfg.fight.weightIterations) + ' fights per stat' + (w.batches > 1 ? ', ' + w.batches + ' runs of them with new fights (± = 95%)' : '') + ' (common random numbers). ' +
       'The table shows hit / crit / haste / Int as spell power: "1% hit = 12 SP" means 1% hit adds as much DPS as 12 spell power. ' +
       'How Spell Pierce works in Forever is not confirmed yet, so its weight is only listed here.</p></div>';
   }
 
+  // Round 157 (idea 10): a Pawn scale of a build's weights. Pawn counts ratings, so hit / crit / haste are per rating point
+  // (the sim's rates: 10 / 14 / 10 per 1%); spell power = 1. The client calls Spell Pierce "Spell Piercing" (its
+  // ITEM_MOD_SPELL_PENETRATION), which Pawn names SpellPenetration.
+  function pawnScale(b) {
+    var w = weights[b.key]; if (!w || !(w.w.sp > 1e-9)) return '';
+    var sp = w.w.sp, cb = runCfg.combat, share = gbShareOf(b.key), v = function (x) { return Math.round(x / sp * 1000) / 1000; }, out = ['Class=Warlock', 'SpellPower=1'];
+    if (share.shadow > 0.001) out.push('ShadowSpellDamage=' + v(sp * share.shadow));
+    if (share.fire > 0.001) out.push('FireSpellDamage=' + v(sp * share.fire));
+    var add = function (name, val) { if (val != null && isFinite(val)) out.push(name + '=' + v(val)); };
+    add('HitRating', w.w.hitPct != null ? w.w.hitPct / cb.ratingPerHitPct : null);
+    add('CritRating', w.w.critPct != null ? w.w.critPct / cb.ratingPerCritPct : null);
+    add('HasteRating', w.w.hastePct != null ? w.w.hastePct / cb.ratingPerHastePct : null);
+    add('Intellect', w.w.int); add('Spirit', w.w.spi); add('Mp5', w.w.mp5); add('SpellPenetration', w.w.pierce);
+    return '( Pawn: v1: "Warlock - ' + b.short.replace(/"/g, '') + '": ' + out.join(', ') + ' )';
+  }
+  document.addEventListener('click', function (e) {
+    var pb = e.target.closest && e.target.closest('[data-pawn]'); if (!pb) return;
+    var b = (results.filter(function (r) { return r.build.key === pb.getAttribute('data-pawn'); })[0] || {}).build; if (!b) return;
+    var s = pawnScale(b); if (!s) return;
+    var done = function () { pb.textContent = 'Copied'; setTimeout(function () { pb.textContent = 'Copy as Pawn scale'; }, 1500); };
+    try { navigator.clipboard.writeText(s).then(done, function () { window.prompt('Pawn scale:', s); }); } catch (x) { window.prompt('Pawn scale:', s); }
+  });
   // DoT uptime chart of fight #1 (round 44, user): one lane per DoT (and Curse of the Elements) on the boss — and on the
   // extra targets with multi-DoT — coloured by spell, with tick marks (tall = crit), ▲ applications, red gaps, early
   // refreshes (a DoT re-applied while it still had time left) and the execute line. Positions in % → fits any width.
@@ -2792,6 +2911,44 @@
     ['mace', 'Mace (one hand)', 'oneHand'], ['other1', 'Other one-hand weapon', 'oneHand'], ['other2', 'Other two-hand weapon', 'twoHand']];
   var GB_QUALITY = { poor: '#9d9d9d', common: 'var(--ink)', uncommon: '#1eff00', rare: '#0070dd', epic: '#a335ee', legendary: '#ff8000' };
   var GB_HITS = 60;                                       // round 154: list rows shown at once (the rest: type to narrow)
+  // Round 157: the item list's filters (item level range, side, source / raid, favourites only), your favourite items and
+  // your named gear sets — all kept in this browser.
+  function gbLoadJson(k, d) { try { var v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } }
+  function gbKeep(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* page only */ } }
+  var gbFilt = gbLoadJson('wfs.gbFilter', { min: '', max: '', side: '', src: '', fav: false });
+  var gbFav = gbLoadJson('wfs.gbFav', {});
+  var gbSets = gbLoadJson('wfs.gbSets', []);
+  var GB_SRC = [['crafted', 'Crafted'], ['quest', 'Quest'], ['vendor', 'Vendor'], ['drop', 'Drop'], ['pvp', 'PvP']];
+  var GB_RAIDS = ['Molten Core', "Onyxia's Lair", 'Blackwing Lair', "Zul'Gurub", "Ruins of Ahn'Qiraj", "Temple of Ahn'Qiraj", 'Naxxramas'];
+  function gbPasses(id, it) {                            // the filters, for the item list only
+    var f = gbFilt, lv = it.ilvl || 0;
+    if (f.min !== '' && lv < +f.min) return false;
+    if (f.max !== '' && lv > +f.max) return false;
+    if (f.side && it.side && it.side !== f.side) return false;
+    if (f.src && (f.src.indexOf('raid:') === 0 ? it.raid !== f.src.slice(5) : it.src !== f.src)) return false;
+    if (f.fav && !gbFav[id]) return false;
+    return true;
+  }
+  function gbFiltHtml() {
+    var f = gbFilt, opt = function (v, t) { return '<option value="' + esc(v) + '"' + (f.src === v ? ' selected' : '') + '>' + esc(t) + '</option>'; };
+    return '<div class="gbfilt">' +
+      '<label class="c" title="Only items of this item level">iLvl <input id="gbfMin" type="number" min="0" placeholder="min" value="' + esc(f.min) + '" aria-label="Lowest item level"> – ' +
+      '<input id="gbfMax" type="number" min="0" placeholder="max" value="' + esc(f.max) + '" aria-label="Highest item level"></label>' +
+      '<select id="gbfSide" aria-label="Side"><option value="">Both sides</option><option' + (f.side === 'Alliance' ? ' selected' : '') + '>Alliance</option><option' + (f.side === 'Horde' ? ' selected' : '') + '>Horde</option></select>' +
+      '<select id="gbfSrc" aria-label="Source">' + opt('', 'Any source') + GB_SRC.map(function (s) { return opt(s[0], s[1]); }).join('') +
+      '<optgroup label="Raid">' + GB_RAIDS.map(function (r) { return opt('raid:' + r, r); }).join('') + '</optgroup></select>' +
+      '<label class="c" title="Only the items you marked with a star"><input id="gbfFav" type="checkbox"' + (f.fav ? ' checked' : '') + '> ★ only</label></div>';
+  }
+  function gbWarn(id, it) {                              // what to know before putting it on (round 157)
+    var g = gb(), w = [], other = gbSel === 'finger1' ? 'finger2' : gbSel === 'finger2' ? 'finger1' : gbSel === 'trinket1' ? 'trinket2' : gbSel === 'trinket2' ? 'trinket1' : '';
+    var o = other && g.slots[other];
+    if (it.unique && o && String(o.id) === String(id)) w.push('Unique: you already wear it in the other slot');
+    var race = myRace || ($('t_race') ? $('t_race').value : '');
+    if (it.side && race && WL.RACES[race] && WL.RACES[race].faction && WL.RACES[race].faction !== it.side) w.push(it.side + ' only: not for a ' + WL.RACES[race].name);
+    if (it.req > 60) w.push('Requires level ' + it.req);
+    if (it.slot === 'twoHand' && WL.gearItem(g.slots.offHand)) w.push('Two-handed: your off-hand item would stop counting');
+    return w;
+  }
   // Round 154: an item's icon from the icon sheet (art/items/icons.jpg, WL.ITEM_ICONS), drawn `px` pixels wide.
   function gbIconStyle(it, px) {
     var I = WL.ITEM_ICONS; if (!I || !it || it.icon == null || it.icon >= I.names.length) return '';
@@ -2928,21 +3085,25 @@
   function gbHitsHtml(list, q, what, attr) {
     q = q.trim().toLowerCase();
     if (!list.length) return '<p class="meta">' + (what === 'item' ? 'No listed item fits this slot yet. Type it in on the right.' : 'The enchant list is still empty: type the enchant in on the right.') + '</p>';
-    var ctx = gbValCtx();
-    var hits = list.filter(function (x) { return !q || x.it.name.toLowerCase().indexOf(q) >= 0; }).map(function (x) {
+    var ctx = gbValCtx(), isItem = what === 'item';
+    var hits = list.filter(function (x) { return (!q || x.it.name.toLowerCase().indexOf(q) >= 0) && (!isItem || gbPasses(x.id, x.it)); }).map(function (x) {
       return { x: x, v: ctx ? WL.gearValue(x.it.stats, ctx.w, ctx.share) : null };
     }).sort(function (a, b) {
       return ((b.v ? b.v.dps : 0) - (a.v ? a.v.dps : 0)) || ((b.x.it.ilvl || 0) - (a.x.it.ilvl || 0)) || (a.x.it.name < b.x.it.name ? -1 : a.x.it.name > b.x.it.name ? 1 : 0);
     });
-    var head = '<p class="meta gbhitsum">' + fmt(hits.length) + ' ' + what + (hits.length === 1 ? '' : 's') + (q ? ' with that name' : ' for this slot') +
+    var filtered = isItem && (gbFilt.min !== '' || gbFilt.max !== '' || gbFilt.side || gbFilt.src || gbFilt.fav);
+    var head = '<p class="meta gbhitsum">' + fmt(hits.length) + ' ' + what + (hits.length === 1 ? '' : 's') + (q ? ' with that name' : ' for this slot') + (filtered ? ' (filtered)' : '') +
       (ctx && hits.length > 1 ? ', best first for ' + esc(ctx.b.short) : '') + (hits.length > GB_HITS ? '. The first ' + GB_HITS + ' are shown: type a name to narrow it down.' : '.') + '</p>';
     return head + '<ul class="gblist">' + (hits.length ? hits.slice(0, GB_HITS).map(function (h) {
       var it = h.x.it, st = gbStatText(it.stats), meta = [it.ilvl ? 'iLvl ' + it.ilvl : '', it.req ? 'Req ' + it.req : '', st || it.text || ''].filter(Boolean).join(' · ');
       var tip = it.name + (st ? '\n' + st : '') + (it.text ? '\n' + it.text : '') + (it.twoHand ? '\nTwo-handed weapons only' : '') + (it.from ? '\n' + it.from : '') + (it.side ? '\n' + it.side + ' only' : '') + (it.unique ? '\nUnique' : '') +
         (h.v && h.v.sp != null ? '\n' + gbValText(it.stats, ctx, true) : '');
-      return '<li><button type="button" class="gbhit" ' + attr + '="' + esc(h.x.id) + '" title="' + esc(tip) + '">' + gbIconHtml(it, 28, it.name.charAt(0).toUpperCase()) +
-        '<span class="gbhn" style="color:' + (GB_QUALITY[it.quality] || 'var(--ink)') + '">' + esc(it.name) + '</span>' +
-        '<span class="gbhm">' + esc(meta) + '</span><span class="gbhv">' + (h.v && h.v.sp != null && h.v.dps ? '≈ ' + fmt(h.v.sp, Math.abs(h.v.sp) < 10 ? 1 : 0) + ' SP' : '') + '</span></button></li>';
+      var warn = isItem ? gbWarn(h.x.id, it) : [];
+      var side = isItem ? '<button type="button" class="gbstar' + (gbFav[h.x.id] ? ' on' : '') + '" data-gfav="' + esc(h.x.id) + '" aria-pressed="' + !!gbFav[h.x.id] + '" title="' + (gbFav[h.x.id] ? 'Remove from your favourites' : 'Add to your favourites') + '" aria-label="Favourite ' + esc(it.name) + '">★</button>' +
+        '<button type="button" class="gbcmpb" data-gcmp="' + esc(h.x.id) + '" title="Compare it with what you wear in this slot (real fights for the best builds)" aria-label="Compare ' + esc(it.name) + '">⇄</button>' : '';
+      return '<li class="gbhitli"><button type="button" class="gbhit" ' + attr + '="' + esc(h.x.id) + '" title="' + esc(tip + (warn.length ? '\n⚠ ' + warn.join('\n⚠ ') : '')) + '">' + gbIconHtml(it, 28, it.name.charAt(0).toUpperCase()) +
+        '<span class="gbhn" style="color:' + (GB_QUALITY[it.quality] || 'var(--ink)') + '">' + (warn.length ? '<span class="gbwarn" aria-label="Warning">⚠</span> ' : '') + esc(it.name) + '</span>' +
+        '<span class="gbhm">' + esc(meta) + '</span><span class="gbhv">' + (h.v && h.v.sp != null && h.v.dps ? '≈ ' + fmt(h.v.sp, Math.abs(h.v.sp) < 10 ? 1 : 0) + ' SP' : '') + '</span></button>' + side + '</li>';
     }).join('') : '<li class="meta">Nothing for this slot has that name.</li>') + '</ul>';
   }
   function gbItemList() { return gbList(WL.ITEMS, function (it) { return WL.gearFits(gbSel, it); }); }
@@ -3007,7 +3168,7 @@
       (s.key === 'offHand' && WL.gearOffHandBlocked(g) ? '<p class="meta">A two-handed weapon is in your main hand, so this slot does not count.</p>' : '') +
       '<div class="gbedcols"><div class="gbfind"><h4>Find an item</h4>' +
       '<input id="gbFind" type="text" placeholder="Item name" aria-label="Find an item by name" value="' + esc(gbFind) + '"' + (gbItemList().length ? '' : ' disabled') + '>' +
-      '<div id="gbHits">' + gbHitsHtml(gbItemList(), gbFind, 'item', 'data-gpick') + '</div></div>' +
+      gbFiltHtml() + '<div id="gbHits">' + gbHitsHtml(gbItemList(), gbFind, 'item', 'data-gpick') + '</div></div>' +
       '<div class="gbown"><h4>' + (own ? 'Your item' : 'Type in your own item') + '</h4>' +
       '<div class="btnrow"><input id="gbName" type="text" maxlength="60" placeholder="Item name" aria-label="Item name" value="' + esc(own ? own.name : '') + '">' + weap + '</div>' +
       '<div class="gbfields">' + gbFields('gbs_', own && own.stats) + '</div>' +
@@ -3028,10 +3189,165 @@
     $('gbMsg').textContent = gbMsgText;
     if (WL.ITEM_DB && $('gbDbInfo')) $('gbDbInfo').textContent = 'The ' + fmt(WL.ITEM_DB.count) + ' items come from the Wowhead Forever database (' + WL.ITEM_DB.collected + ': everything a Warlock can wear with at least one stat the sim uses)';   // round 154
     $('gbClear').disabled = !Object.keys(g.slots).length && !Object.keys(g.enchants).length;
+    renderGbSets(); renderGbOpt();                        // round 157
     var list = gbValBuilds(), vs = $('gbValFor');
     vs.innerHTML = list.length ? list.map(function (b) { return '<option value="' + esc(b.key) + '">' + esc(b.short) + '</option>'; }).join('') : '<option value="">— after Sim! —</option>';
     vs.disabled = !list.length; if (ctx) vs.value = ctx.b.key;
     if (gbSel) gbFormValues();
+  }
+  // ----- best combination (round 157, idea 4) -----
+  // Candidates per slot: what you wear there, your favourite items (★) that fit and the bag items of your last gear code.
+  // Rings and trinkets are one pool for both slots (two different items); a two-handed weapon leaves the off hand empty.
+  // A locked slot keeps what you wear. Each combination = your settings with the Sheet (gear) values changed by what the
+  // swap changes (as in "compare"), simulated for the "Value for" build on the same fights. Up to GB_OPT_ALL combinations
+  // are all simulated; more: one slot at a time (every candidate of that slot with the others as they are), repeated
+  // until a whole pass finds nothing better.
+  var gbBag = gbLoadJson('wfs.gbBag', []), gbOpt = { lock: {}, off: {} }, gbOptRes = null, gbOptRunning = false, GB_OPT_ALL = 240;
+  var GB_GROUPS = [['head'], ['neck'], ['shoulder'], ['back'], ['chest'], ['wrist'], ['hands'], ['waist'], ['legs'], ['feet'], ['finger1', 'finger2'], ['trinket1', 'trinket2'], ['mainHand', 'offHand'], ['ranged']];
+  function gbEntryKey(e) { return e ? (e.id != null && !e.custom ? 'i' + e.id : 'c' + JSON.stringify(e.custom)) : 'none'; }
+  function gbCands(slotKey) {                              // the entries that can go in a slot (no duplicates)
+    var g = gb(), out = [], seen = {}, add = function (e) { var it = WL.gearItem(e); if (!it || !WL.gearFits(slotKey, it)) return; var k = gbEntryKey(e); if (seen[k]) return; seen[k] = 1; out.push(e); };
+    var pair = slotKey === 'finger1' || slotKey === 'finger2' ? ['finger1', 'finger2'] : slotKey === 'trinket1' || slotKey === 'trinket2' ? ['trinket1', 'trinket2'] : [slotKey];
+    pair.forEach(function (k) { if (g.slots[k]) add(g.slots[k]); });
+    Object.keys(gbFav).forEach(function (id) { if (WL.ITEMS[id]) add({ id: +id }); });
+    gbBag.forEach(add);
+    return out.filter(function (e) { return !gbOpt.off[slotKey + '|' + gbEntryKey(e)]; });
+  }
+  function gbOptChoices() {                                // per group: the options (each = { slotKey: entry|null })
+    var g = gb();
+    return GB_GROUPS.map(function (grp) {
+      var cur = {}; grp.forEach(function (k) { cur[k] = g.slots[k] || null; });
+      if (grp.every(function (k) { return gbOpt.lock[k]; })) return [cur];
+      if (grp.length === 2 && grp[0] !== 'mainHand') {      // rings / trinkets: two different items from one pool
+        var pool = gbCands(grp[0]), opts = [cur];
+        if (gbOpt.lock[grp[0]] || gbOpt.lock[grp[1]]) {       // one locked: the other from the pool
+          var fixed = gbOpt.lock[grp[0]] ? grp[0] : grp[1], free = fixed === grp[0] ? grp[1] : grp[0];
+          pool.forEach(function (e) { if (gbEntryKey(e) === gbEntryKey(cur[fixed])) return; var o = {}; o[fixed] = cur[fixed]; o[free] = e; opts.push(o); });
+        } else for (var i = 0; i < pool.length; i++) for (var j = i + 1; j < pool.length; j++) { var o2 = {}; o2[grp[0]] = pool[i]; o2[grp[1]] = pool[j]; opts.push(o2); }
+        return gbUniq(opts, grp);
+      }
+      if (grp[0] === 'mainHand') {                          // weapons: a two-hander, or a one-hander + an off-hand item
+        var mh = gbOpt.lock.mainHand ? [cur.mainHand] : gbCands('mainHand'), oh = gbOpt.lock.offHand ? [cur.offHand] : gbCands('offHand').concat([null]), w = [cur];
+        mh.forEach(function (m) { var it = WL.gearItem(m); if (it && it.slot === 'twoHand') { if (!gbOpt.lock.offHand) w.push({ mainHand: m, offHand: null }); } else oh.forEach(function (x) { w.push({ mainHand: m, offHand: x }); }); });
+        return gbUniq(w, grp);
+      }
+      return gbUniq([cur].concat(gbCands(grp[0]).map(function (e) { var o = {}; o[grp[0]] = e; return o; })), grp);
+    });
+  }
+  function gbUniq(opts, grp) { var seen = {}; return opts.filter(function (o) { var k = grp.map(function (s) { return gbEntryKey(o[s]); }).sort().join('&'); if (seen[k]) return false; seen[k] = 1; return true; }); }
+  function gbOptCfg(pick) {                                // settings with the gear of this pick
+    var g = gb(), after = JSON.parse(JSON.stringify(g));
+    Object.keys(pick).forEach(function (k) { if (pick[k]) after.slots[k] = pick[k]; else delete after.slots[k]; });
+    var a = WL.gearSheet(g, cfg), b = WL.gearSheet(after, cfg), c = JSON.parse(JSON.stringify(cfg));
+    WL.GEAR_STAT_KEYS.forEach(function (k) { c.gear[k] = WL.gearRound((c.gear[k] || 0) + b.sheet[k] - a.sheet[k]); });
+    return c;
+  }
+  function gbOptRun() {
+    if (gbOptRunning || running || batchRunning || chartRunning || quickRunning || gbCmpRunning) { gbOptRes = { msg: 'Wait for the current run to finish.' }; renderGbOpt(); return; }
+    var ctx = gbValCtx(); if (!ctx) { gbOptRes = { msg: 'Press Sim! first: the search uses the build chosen under "Value for".' }; renderGbOpt(); return; }
+    readSettings();
+    var groups = gbOptChoices(), total = groups.reduce(function (a, o) { return a * o.length; }, 1), n = cfg.fight.weightIterations, t0 = performance.now();
+    if (total <= 1) { gbOptRes = { msg: 'Nothing to try: add candidates (★ favourites, or a gear code with "Bags too"), or unlock slots.' }; renderGbOpt(); return; }
+    var b = ctx.b, race = ctx.race, merge = function (picks) { var p = {}; picks.forEach(function (x) { Object.keys(x).forEach(function (k) { p[k] = x[k]; }); }); return p; };
+    var seen = {}, tried = [], sims = 0;
+    function evalAll(picks, done) {                        // picks: merged picks to simulate (cached)
+      var jobs = [];
+      picks.forEach(function (p) { var k = JSON.stringify(Object.keys(p).sort().map(function (s) { return s + ':' + gbEntryKey(p[s]); })); if (seen[k] == null) { seen[k] = -1; jobs.push({ kind: 'weight', build: b, race: race, cfg: gbOptCfg(p), n: n, stat: null, key: k, pick: p }); } });
+      if (!jobs.length) return done();
+      WL.SimPool.run(jobs, function (j, res) { seen[j.key] = res.dps; tried.push({ pick: j.pick, dps: res.dps }); sims++; gbOptRes = { busy: 'Simulating ' + sims + (total <= GB_OPT_ALL ? ' / ' + total : '') + ' combinations…' }; renderGbOpt(); }, done);
+    }
+    function finish(mode) {
+      gbOptRunning = chartRunning = false;
+      var base = tried.filter(function (x) { return Object.keys(x.pick).every(function (k) { return gbEntryKey(x.pick[k]) === gbEntryKey(gb().slots[k] || null); }); })[0];
+      tried.sort(function (x, y) { return y.dps - x.dps; });
+      gbOptRes = { top: tried.slice(0, 5), base: base ? base.dps : null, b: b, race: race, n: n, sims: sims, total: total, mode: mode, secs: ((performance.now() - t0) / 1000).toFixed(1) };
+      renderGbOpt();
+    }
+    gbOptRunning = chartRunning = true; gbOptRes = { busy: 'Simulating…' }; renderGbOpt();
+    if (total <= GB_OPT_ALL) {                            // every combination
+      var all = [[]]; groups.forEach(function (opts) { var nx = []; all.forEach(function (a) { opts.forEach(function (o) { nx.push(a.concat([o])); }); }); all = nx; });
+      evalAll(all.map(merge), function () { finish('all'); });
+    } else {                                              // one slot group at a time, from what you wear
+      var best = groups.map(function (o) { return o[0]; }), gi = 0, pass = 0, changed = false;
+      var step = function () {
+        if (gi >= groups.length) { pass++; if (!changed || pass >= 4) return finish('greedy'); gi = 0; changed = false; }
+        var g0 = gi++, opts = groups[g0]; if (opts.length < 2) return step();
+        var picks = opts.map(function (o) { var x = best.slice(); x[g0] = o; return merge(x); });
+        evalAll(picks, function () {
+          var bi = 0, bv = -Infinity;
+          picks.forEach(function (p, i) { var k = JSON.stringify(Object.keys(p).sort().map(function (s) { return s + ':' + gbEntryKey(p[s]); })), v = seen[k]; if (v > bv + 1e-9) { bv = v; bi = i; } });
+          if (opts[bi] !== best[g0]) { best[g0] = opts[bi]; changed = true; }
+          step();
+        });
+      };
+      step();
+    }
+  }
+  function gbOptWear(i) {
+    var x = gbOptRes && gbOptRes.top && gbOptRes.top[i]; if (!x) return;
+    var g = gb(); Object.keys(x.pick).forEach(function (k) { if (x.pick[k]) g.slots[k] = x.pick[k]; else delete g.slots[k]; });
+    gbOptRes = null; gbChanged('You now wear the chosen combination.');
+  }
+  function renderGbOpt() {
+    var box = $('gbOptBody'); if (!box || !$('gbOpt').open) return;
+    var g = gb(), R = gbOptRes, ctx = gbValCtx();
+    var rows = GB_GROUPS.map(function (grp) {
+      return grp.map(function (k) {
+        var s = WL.gearSlot(k);
+        var g0 = gbOpt.off; gbOpt.off = {}; var list = gbCands(k); gbOpt.off = g0;   // every candidate, also the unticked ones
+        var chips = list.map(function (e) {
+          var it = WL.gearItem(e), key = k + '|' + gbEntryKey(e), on = !gbOpt.off[key], worn = gbEntryKey(g.slots[k] || null) === gbEntryKey(e);
+          return '<label class="c gboc" title="' + esc(it.name + (gbStatText(it.stats) ? ': ' + gbStatText(it.stats) : '') + (it.unlisted ? '\nFrom your bags, not in the item list: make sure a Warlock can wear it' : '')) + '"><input type="checkbox" data-gooff="' + esc(key) + '"' + (on ? ' checked' : '') + '> ' +
+            '<span style="color:' + (GB_QUALITY[it.quality] || 'var(--ink)') + '">' + esc(it.name) + '</span>' + (worn ? ' <span class="meta">(worn)</span>' : '') + (it.unlisted ? ' <span class="gbwarn">⚠</span>' : '') + '</label>';
+        }).join('');
+        return '<tr><td>' + esc(s.name) + '</td><td><label class="c" title="Keep what you wear in this slot"><input type="checkbox" data-golock="' + k + '"' + (gbOpt.lock[k] ? ' checked' : '') + '> lock</label></td><td>' + (chips || '<span class="meta">' + (g.slots[k] ? 'only what you wear' : 'empty') + '</span>') + '</td></tr>';
+      }).join('');
+    }).join('');
+    var groups = gbOptChoices(), total = groups.reduce(function (a, o) { return a * o.length; }, 1);
+    var h = '<p class="meta">Candidates: what you wear, your ★ favourites and the bag items of your last gear code (' + gbBag.length + ' item' + (gbBag.length === 1 ? '' : 's') + '; the in-game addon\'s "Bags too" box). ' +
+      'Untick a candidate to leave it out; lock a slot to keep what you wear. Simulated for ' + (ctx ? esc(ctx.b.short) + ' (' + esc(WL.RACES[ctx.race].name) + ')' : 'the "Value for" build') + ', ' + fmt(cfg.fight.weightIterations) + ' fights each, the same fights for every combination.</p>' +
+      '<div class="scroll"><table class="gbotab"><tbody>' + rows + '</tbody></table></div>' +
+      '<div class="btnrow"><button type="button" class="primary" id="gbOptGo"' + (total > 1 ? '' : ' disabled') + '>Find the best combination</button><span class="meta">' + fmt(total) + ' combination' + (total === 1 ? '' : 's') +
+      (total > GB_OPT_ALL ? ' — too many to try all: it improves one slot at a time instead' : '') + '</span></div>';
+    if (R && R.msg) h += '<p class="meta">' + esc(R.msg) + '</p>';
+    else if (R && R.busy) h += '<p class="meta">' + esc(R.busy) + '</p>';
+    else if (R && R.top) {
+      h += '<div class="scroll"><table class="gbcmpt"><thead><tr><th>#</th><th>Changes against what you wear</th><th class="n">DPS</th><th class="n">Change</th><th></th></tr></thead><tbody>' + R.top.map(function (x, i) {
+        var ch = Object.keys(x.pick).filter(function (k) { return gbEntryKey(x.pick[k]) !== gbEntryKey(g.slots[k] || null); }).map(function (k) { var it = WL.gearItem(x.pick[k]); return WL.gearSlot(k).name + ': ' + (it ? it.name : 'empty'); });
+        var d = R.base ? x.dps - R.base : null;
+        return '<tr><td>' + (i + 1) + '</td><td>' + (ch.length ? esc(ch.join(' · ')) : '<span class="meta">what you wear now</span>') + '</td><td class="n">' + fmt(x.dps, 1) + '</td>' +
+          '<td class="n" style="color:var(' + (d > 0 ? '--good' : d < 0 ? '--bad' : '--muted') + ')">' + (d == null ? '–' : (d >= 0 ? '+' : '') + fmt(d, 1) + ' (' + (d >= 0 ? '+' : '') + (100 * d / R.base).toFixed(2) + '%)') + '</td>' +
+          '<td>' + (ch.length ? '<button type="button" class="resetbtn" data-gowear="' + i + '">Wear this</button>' : '') + '</td></tr>';
+      }).join('') + '</tbody></table></div><p class="meta">' + fmt(R.sims) + ' combination' + (R.sims === 1 ? '' : 's') + ' simulated' + (R.mode === 'greedy' ? ' (one slot at a time, out of ' + fmt(R.total) + ')' : '') + ' for ' + esc(R.b.short) + ' in ' + R.secs + ' s. ' +
+        'Enchants stay where they are. Differences below the ± of the run are noise.</p>';
+    }
+    box.innerHTML = h;
+  }
+  // Round 157 (idea 5): named gear sets — what you wear here (items and enchants), saved under a name in this browser.
+  function renderGbSets() {
+    var sel = $('gbSetSel'); if (!sel) return;
+    var cur = sel.value;
+    sel.innerHTML = gbSets.length ? gbSets.map(function (s, i) { return '<option value="' + i + '">' + esc(s.name) + ' (' + Object.keys(s.slots || {}).length + (Object.keys(s.slots || {}).length === 1 ? ' item' : ' items') + ')</option>'; }).join('') : '<option value="">No saved sets yet</option>';
+    if (cur !== '' && gbSets[+cur]) sel.value = cur;
+    sel.disabled = !gbSets.length; $('gbSetLoad').disabled = $('gbSetDel').disabled = !gbSets.length;
+  }
+  function gbSetSave() {
+    var g = gb(), name = $('gbSetName').value.trim();
+    if (!Object.keys(g.slots).length) { gbMsgText = 'Put some items on first: an empty set is not saved.'; renderGear(); return; }
+    if (!name) name = 'Set ' + (gbSets.length + 1);
+    var set = { name: name, slots: JSON.parse(JSON.stringify(g.slots)), enchants: JSON.parse(JSON.stringify(g.enchants || {})) };
+    var at = gbSets.findIndex(function (s) { return s.name === name; });
+    if (at >= 0) gbSets[at] = set; else gbSets.push(set);
+    gbKeep('wfs.gbSets', gbSets); $('gbSetName').value = '';
+    gbMsgText = (at >= 0 ? 'Gear set "' + name + '" replaced' : 'Saved as gear set "' + name + '"') + ' (' + Object.keys(set.slots).length + (Object.keys(set.slots).length === 1 ? ' item' : ' items') + ').';
+    renderGear(); $('gbSetSel').value = String(at >= 0 ? at : gbSets.length - 1);
+  }
+  function gbSetLoad() {
+    var s = gbSets[+$('gbSetSel').value]; if (!s) return;
+    readSettings();
+    var g = gb(); g.slots = JSON.parse(JSON.stringify(s.slots || {})); g.enchants = JSON.parse(JSON.stringify(s.enchants || {})); g.manual = {}; g.on = true; gbSel = null; gbCmp = null;
+    gbSave(); gbSync(); renderTotals(); markDirty(); renderGear(); renderGearEdit();
+    gbMsgText = 'Gear set "' + s.name + '" is on, and the gear builder now gives your stats. Press Sim! to simulate.'; renderGear();
   }
   function gbEquip() {
     var s = WL.gearSlot(gbSel), item = gbFormItem(); if (!s || !item) return;
@@ -3048,11 +3364,11 @@
   // Two runs per build on the same fights: the settings as they are now, and with the Sheet (gear) values changed by
   // what swapping the typed item into the slot changes (WL.gearSwapDelta: the slot's enchant stays, a two-hander empties
   // the off hand). Works with the builder off too: the change is added to the Stats panel's numbers.
-  function gbCompare() {
+  function gbCompare(listId) {                            // round 157: listId = an item of the list (⇄), else the typed item
     if (gbCmpRunning || running || batchRunning || chartRunning || quickRunning) { gbMsgText = 'Wait for the current run to finish.'; renderGear(); return; }
-    var s = WL.gearSlot(gbSel), item = gbFormItem(); if (!s || !item) return;
+    var s = WL.gearSlot(gbSel), item = listId != null ? WL.ITEMS[listId] : gbFormItem(); if (!s || !item) return;
     readSettings();
-    var g = gb(), sw = WL.gearSwapDelta(g, s.key, { custom: item }, cfg), d = sw.delta;
+    var g = gb(), sw = WL.gearSwapDelta(g, s.key, listId != null ? { id: +listId } : { custom: item }, cfg), d = sw.delta;
     if (!WL.GEAR_STAT_KEYS.some(function (k) { return d[k]; })) { gbCmp = { slot: s.key, same: true, item: item.name }; renderGbCmp(); return; }
     var by = runByRace(), order = WL.BUILDS.slice().sort(function (a, z) { return (listedDps(by[z.key] || {}) || 0) - (listedDps(by[a.key] || {}) || 0); }).slice(0, CH_MAX);
     var c0 = JSON.parse(JSON.stringify(cfg)), c1 = JSON.parse(JSON.stringify(cfg)), n = cfg.fight.weightIterations;
@@ -3092,10 +3408,11 @@
     var o = WL.decodeGear(v), g = gb();
     readSettings();
     g.slots = o.slots; g.enchants = o.enchants; g.manual = {}; g.on = true; gbSel = null; gbCmp = null;
+    if (o.bag && o.bag.length) { gbBag = o.bag; gbKeep('wfs.gbBag', gbBag); }   // round 157: for the optimizer
     gbSave(); gbSync(); renderTotals(); markDirty(); renderGear(); renderGearEdit();
     var ni = Object.keys(o.slots).length, ne = Object.keys(o.enchants).length;
     return 'Gear code loaded: ' + ni + ' item' + (ni === 1 ? '' : 's') + ' and ' + ne + ' enchant' + (ne === 1 ? '' : 's') + '. The gear builder is on: your stats now come from this gear. Press Sim! to simulate.' +
-      (o.ignored.length ? ' Not used: ' + o.ignored.join(', ') + '.' : '');
+      (o.ignored.length ? ' Not used: ' + o.ignored.join(', ') + '.' : '') + (o.bag && o.bag.length ? ' It also brought ' + o.bag.length + ' bag item' + (o.bag.length === 1 ? '' : 's') + ' for "Best combination".' : '');
   }
 
   $('gear').addEventListener('click', function (e) {
@@ -3107,6 +3424,10 @@
       if (gbSel) { var f = $('gbName'); if (f) f.focus({ preventScroll: true }); $('gbEdit').scrollIntoView({ block: 'nearest' }); }
       return;
     }
+    var fv = t.closest('[data-gfav]');                     // round 157: favourite, compare from the list
+    if (fv) { var fid = fv.getAttribute('data-gfav'); if (gbFav[fid]) delete gbFav[fid]; else gbFav[fid] = 1; gbKeep('wfs.gbFav', gbFav); $('gbHits').innerHTML = gbHitsHtml(gbItemList(), gbFind, 'item', 'data-gpick'); return; }
+    var cp = t.closest('[data-gcmp]');
+    if (cp && gbSel) { gbCompare(cp.getAttribute('data-gcmp')); var cb = $('gbCmp'); if (cb) cb.scrollIntoView({ block: 'nearest' }); return; }
     var pk = t.closest('[data-gpick]');
     if (pk && gbSel) { var id = pk.getAttribute('data-gpick'); g.slots[gbSel] = { id: +id }; gbChanged(WL.ITEMS[id].name + ' is in the ' + WL.gearSlot(gbSel).name + ' slot.'); return; }
     var ep = t.closest('[data-gepick]');
@@ -3137,13 +3458,39 @@
     else if (id === 'gbEnFind') { gbEnFind = e.target.value; $('gbEnHits').innerHTML = gbHitsHtml(gbEnchList(), gbEnFind, 'enchant', 'data-gepick'); }
     else if (e.target.closest('.gbown')) gbFormValues();
   });
-  $('gear').addEventListener('change', function (e) { if (e.target.id === 'gbValFor') { gbValKey = e.target.value; renderGear(); } });
+  $('gear').addEventListener('change', function (e) {
+    var id = e.target.id;
+    if (id === 'gbValFor') { gbValKey = e.target.value; renderGear(); return; }
+    if (/^gbf/.test(id)) {                                  // round 157: the item list's filters
+      gbFilt = { min: $('gbfMin').value, max: $('gbfMax').value, side: $('gbfSide').value, src: $('gbfSrc').value, fav: $('gbfFav').checked };
+      gbKeep('wfs.gbFilter', gbFilt); $('gbHits').innerHTML = gbHitsHtml(gbItemList(), gbFind, 'item', 'data-gpick');
+    }
+    if (id === 'gbSetSel') renderGbSets();
+  });
   $('gear').addEventListener('keydown', function (e) {    // Enter in a form puts the item / the enchant on
     if (e.key !== 'Enter' || e.target.tagName !== 'INPUT' || !e.target.closest('.gbown')) return;
     e.preventDefault();
     if (e.target.closest('.gbench')) gbEnchant(); else gbEquip();
   });
   $('gbOn').addEventListener('change', function () { gbSwitch(this.checked); });
+  $('gbOpt').addEventListener('toggle', renderGbOpt);      // round 157: best combination
+  $('gbOpt').addEventListener('click', function (e) {
+    if (e.target.closest('#gbOptGo')) return gbOptRun();
+    var w = e.target.closest('[data-gowear]'); if (w) return gbOptWear(+w.getAttribute('data-gowear'));
+  });
+  $('gbOpt').addEventListener('change', function (e) {
+    var l = e.target.getAttribute('data-golock'), o = e.target.getAttribute('data-gooff');
+    if (l) { if (e.target.checked) gbOpt.lock[l] = 1; else delete gbOpt.lock[l]; }
+    if (o) { if (e.target.checked) delete gbOpt.off[o]; else gbOpt.off[o] = 1; }
+    if (l || o) { gbOptRes = null; renderGbOpt(); }
+  });
+  $('gbSetSave').addEventListener('click', gbSetSave);
+  $('gbSetLoad').addEventListener('click', gbSetLoad);
+  $('gbSetDel').addEventListener('click', function () {
+    var i = +$('gbSetSel').value, s = gbSets[i]; if (!s || !armed('gbSetDel')) return;
+    gbSets.splice(i, 1); gbKeep('wfs.gbSets', gbSets); gbMsgText = 'Gear set "' + s.name + '" deleted.'; renderGear();
+  });
+  $('gbSetName').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); gbSetSave(); } });
   $('gbClear').addEventListener('click', function () {
     if (!armed('gbClear')) return;
     var g = gb(); g.slots = {}; g.enchants = {}; gbSel = null; gbChanged('Every slot is empty.');
@@ -3218,6 +3565,12 @@
   // Rank for (round 116): each build's best race, or the race you play.
   $('myRace').innerHTML = '<option value="">each build\'s best race</option>' + WL.RACE_KEYS.map(function (r) { return '<option value="' + r + '">' + esc(WL.RACES[r].name) + '</option>'; }).join('');
   $('myRace').value = myRace;
+  $('refBar').addEventListener('click', function (e) {                // round 157: reference run
+    if (e.target.closest('#refSet') && results.length) refRun = { at: new Date().toISOString(), label: WL.describeSettings(WL.settingsSnapshot(runCfg)), by: runByRace() };
+    else if (e.target.closest('#refClear')) refRun = null;
+    else return;
+    saveRef(); render();
+  });
   $('myRace').addEventListener('change', function () {
     myRace = this.value; raceOpen = {};
     try { if (myRace) localStorage.setItem('wfs.myRace', myRace); else localStorage.removeItem('wfs.myRace'); } catch (e) { /* page only */ }

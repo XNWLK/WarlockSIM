@@ -174,6 +174,24 @@
   .gbhm { grid-column: 2; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .gbhv { grid-column: 3; grid-row: 1 / span 2; font: 600 11.5px var(--mono); color: var(--ink); text-align: right; }
   .gbhitsum { margin: 6px 0 0; font-size: 11px; }
+  /* round 157: filters, favourites, compare, warnings, gear sets */
+  .gbfilt { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; margin-top: 6px; font-size: 12px; }
+  .gbfilt input[type=number] { width: 58px; }
+  .gbfilt select { max-width: 170px; }
+  .gblist .gbhitli { display: flex; align-items: center; gap: 2px; }
+  .gblist .gbhitli .gbhit { flex: 1 1 auto; min-width: 0; }
+  .gblist .gbstar, .gblist .gbcmpb { flex: none; width: 26px; height: 26px; padding: 0; text-align: center; background: none; border: 0; color: var(--muted); font-size: 14px; }
+  .gblist .gbstar.on { color: #e3b23c; }
+  .gblist .gbstar:hover, .gblist .gbcmpb:hover { color: var(--accent); background: var(--sunk); }
+  .gbwarn { color: #e3b23c; }
+  .gbopt { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 8px; }
+  .gbopt summary { font-weight: 600; cursor: pointer; }
+  .gbotab td { padding: 3px 6px; vertical-align: top; font-size: 12px; }
+  .gbotab td:first-child { white-space: nowrap; color: var(--muted); }
+  .gboc { display: inline-flex; margin-right: 10px; }
+  .gbsets { margin-top: 6px; }
+  .gbsets select { max-width: 220px; }
+  .gbsets input[type=text] { flex: 1 1 160px; }
   .gblist button:hover { background: var(--sunk); }
   .gbnote { margin: 0; color: var(--accent); }
   /* round 148: item value, enchants, compare, gear code */
@@ -642,6 +660,14 @@
   .dbar { height: 4px; }
   /* rank arrows: places gained / lost since the previous run */
   .mv { font: 600 10px var(--mono); margin-left: 3px; }
+  .refd { display: block; font: 600 10px var(--mono); }                 /* round 157: change vs the reference run */
+  .wsel span { display: flex; flex-wrap: wrap; gap: 2px 10px; }
+  .wsel label { font-weight: 400; display: inline-flex; gap: 4px; align-items: center; }
+  .tl-mana { fill: var(--c-hit); opacity: .35; }
+  .tl-gcd { fill: var(--muted); opacity: .7; }
+  .tlopts { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: -2px 0 6px; font-size: 12px; }
+  .bcount { width: 42px; margin: 0 2px 0 6px; padding: 0 2px; font: 600 12px var(--mono); }
+  .refbar { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; }
   .mv.up { color: var(--good); }
   .mv.down { color: var(--bad); }
   .mv.same { color: var(--muted); opacity: .5; }
@@ -973,10 +999,12 @@
         <fieldset><legend>Run</legend>
           <label class="f" for="durVar" title="Each fight lasts the duration ± up to this % (uniform), so results don't hinge on one exact fight length.">Length variation ± %<input id="durVar" type="number" min="0" max="50" step="5"></label>
           <label class="f" for="weightIterations">Fights per stat weight<input id="weightIterations" type="number" min="10" step="100"></label>
+          <label class="f" for="weightPrecision" title="0 = each stat weight from one run of the fights above. A number = keep adding runs of them (new fights each time, up to 10) until every chosen weight is known to ± this much spell power (95%). The details then show the ± of each weight.">Stat weight precision ± SP<input id="weightPrecision" type="number" min="0" step="0.1"></label>
+          <div class="f wsel" title="Which stat weights a Sim! computes. Spell power is always on: the others are shown as spell power. Each one is one more run per build.">Stat weights for <span id="wStats"></span></div>
           <label class="f" for="seed" title="Same seed = the same fights = reproducible results.">Random seed<input id="seed" type="number"></label>
           <label class="f" for="showPct" title="Rows more than this % behind the best DPS are hidden (still simulated); applies at once, no rerun. 0 = show all (default). Pinned builds (the pin left of the rank) always stay shown.">Show builds within % of best<input id="showPct" type="number" min="0" max="100" step="1"></label>
         </fieldset>
-        <fieldset><legend title="Measured in Forever: 10 of your spell power = 1 pet spell power, 6 = 1 pet attack power (the Imp's tooltip: attack power 17% of your spell damage). Demonic Knowledge adds its bonus to the pet directly. Succubus base melee 73.5 DPS and her own 7.52% crit are Season of Discovery values; she adds your spell crit and hit, and against the boss 40% of her swings are glancing blows (65% damage) and her crit is 4.8% lower.">Pet scaling (10% SP / 1 AP per 6 SP — measured in Forever)</legend>
+        <fieldset><legend title="Measured in Forever: 10 of your spell power = 1 pet spell power, 6 = 1 pet attack power (the Imp's tooltip: attack power 17% of your spell damage). Demonic Knowledge adds its bonus to the pet directly. Succubus base melee 73.5 DPS is a Season of Discovery value; she crits with your spell crit and hits with your hit, and against the boss 40% of her swings are glancing blows (65% damage) and her crit is 4.8% lower.">Pet scaling (10% SP / 1 AP per 6 SP — measured in Forever)</legend>
           <label class="f" for="p_spPct">Pet spells: % of your SP<input id="p_spPct" type="number" min="0" step="1"></label>
           <label class="f" for="p_succAp">Succubus melee: AP per 1 SP<input id="p_succAp" type="number" min="0" step="0.01"></label>
           <label class="f" for="p_succBase">Succubus melee: base DPS<input id="p_succBase" type="number" min="0" step="5"></label>
@@ -1105,7 +1133,7 @@
       <span id="staleMsg"><b>Settings changed since this run.</b> The results below are from the previous settings.</span>
       <button type="button" id="staleRun" class="primary">Sim!</button>
     </div>
-    <div class="tabletools"><label class="c" for="myRace" title="Rank the builds for the race you play. Each build's best race: every build is listed with whichever race does the most damage with it.">Rank for <select id="myRace"></select></label><span class="meta" id="moveNote" hidden><span class="mv up">▲</span> <span class="mv down">▼</span> places gained / lost since the previous run (hover for the DPS change)</span><span class="sharebtns"><button type="button" id="shareBtn" class="resetbtn" title="Copies a link that opens the sim with these settings loaded">Share link</button><button type="button" id="copyResBtn" class="resetbtn" title="Copies the results table as text that reads well in a chat (Discord), with a link that opens these settings">Copy results</button></span><label class="switch" for="allRaces" title="Open every build's other races and its no-race baseline under its row. The pill next to each race still opens or closes one build."><input id="allRaces" type="checkbox"> Show all races</label></div>
+    <div class="tabletools"><label class="c" for="myRace" title="Rank the builds for the race you play. Each build's best race: every build is listed with whichever race does the most damage with it.">Rank for <select id="myRace"></select></label><span class="meta" id="moveNote" hidden><span class="mv up">▲</span> <span class="mv down">▼</span> places gained / lost since the previous run (hover for the DPS change)</span><span class="refbar" id="refBar"></span><span class="sharebtns"><button type="button" id="shareBtn" class="resetbtn" title="Copies a link that opens the sim with these settings loaded">Share link</button><button type="button" id="copyResBtn" class="resetbtn" title="Copies the results table as text that reads well in a chat (Discord), with a link that opens these settings">Copy results</button></span><label class="switch" for="allRaces" title="Open every build's other races and its no-race baseline under its row. The pill next to each race still opens or closes one build."><input id="allRaces" type="checkbox"> Show all races</label></div>
     <div class="shareout" id="shareOut" hidden>
       <div class="cardhead"><span class="meta" id="shareMsg" role="status"></span><button type="button" id="shareClose" class="resetbtn">Close</button></div>
       <textarea id="shareText" rows="2" readonly spellcheck="false" aria-label="Text to share" hidden></textarea>
@@ -1172,6 +1200,13 @@
       <button type="button" id="gbCodeLoad" class="primary" title="Puts the items and enchants of a gear code into every slot (replacing what is there) and switches the gear builder on">Load gear code</button>
       <button type="button" id="gbCodeMake" title="A gear code of what you wear here, copied to the clipboard">Make gear code</button>
     </div>
+    <div class="btnrow gbsets">
+      <select id="gbSetSel" aria-label="Your saved gear sets"></select>
+      <button type="button" id="gbSetLoad" title="Puts the chosen set's items and enchants in every slot (replacing what is there) and switches the gear builder on">Load set</button>
+      <button type="button" id="gbSetDel" class="resetbtn" data-label="Delete set" data-armed="Click again to delete it">Delete set</button>
+      <input id="gbSetName" type="text" maxlength="40" placeholder="Name for what you wear now" aria-label="Name of the new gear set">
+      <button type="button" id="gbSetSave" title="Saves what you wear here (items and enchants) under this name, in this browser">Save as set</button>
+    </div>
     <p class="meta" id="gbMsg" role="status"></p>
     <div class="gbdoll">
       <div class="gbcol" id="gbLeft"></div>
@@ -1180,6 +1215,7 @@
       <div id="gbWeap"></div>
     </div>
     <div class="gbedit" id="gbEdit" hidden></div>
+    <details class="gbopt" id="gbOpt"><summary>Best combination: try your favourites and bag items in every slot</summary><div id="gbOptBody"></div></details>
   </section>
 </div>
 

@@ -44,7 +44,11 @@ foreach ($line in $cfg -split "`n") {
     if (-not $ic -and $Matches[1] -eq 'judgementOfWisdom') { $ic = 'spell_holy_righteousnessaura' }   # Wowhead Forever tooltip icon (round 38)
     # Not in the raw spell data: Classic icon names (round 78)
     if (-not $ic -and $Matches[1] -eq 'concentrationAura') { $ic = 'spell_holy_mindsooth' }
-    if ($ic) { $map["$($section)_$($Matches[1])"] = $ic }
+    # Round 157: Atiesh's party auras (the staff's icon) and Blood Pact
+    $bk = $Matches[1]                                      # (-match below would overwrite $Matches)
+    if (-not $ic -and $bk.StartsWith('atiesh')) { $ic = 'inv_staff_medivh' }
+    if (-not $ic -and $bk -eq 'bloodPact') { $ic = 'spell_shadow_bloodboil' }
+    if ($ic) { $map["$($section)_$bk"] = $ic }
   }
 }
 # 5. Consumables: icon name is given directly in data/consumables.js (from the Forever item XML <icon> field)
