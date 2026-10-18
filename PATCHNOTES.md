@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v144
+- Gear builder: clicking the Main Hand slot while another slot was open did nothing (the other slot stayed open). Fixed.
+
 ## v143
 - **Gear builder: the item list is here.** Every item a Warlock can wear that has at least one stat the sim uses (spell
   power, Shadow or Fire power, hit, crit, haste, Spell Pierce, Spell Penetration, Intellect, Spirit, MP5): 2,042 items from the

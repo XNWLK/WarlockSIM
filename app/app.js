@@ -2966,7 +2966,7 @@
   function gbFormItem() {                                 // the item typed into the open slot's form
     var s = WL.gearSlot(gbSel); if (!s || !$('gbName')) return null;
     var item = { name: $('gbName').value.trim() || 'My ' + s.name.toLowerCase(), slot: s.fits[0], stats: gbReadFields('gbs_') };
-    if (s.key === 'mainHand') {
+    if (s.key === 'mainHand' && $('gbWeapon')) {           // round 156: the open form may still be another slot's (no weapon box) while switching
       var w = GB_WEAPONS.filter(function (x) { return x[0] === $('gbWeapon').value; })[0] || GB_WEAPONS[0];
       item.slot = w[2]; item.weapon = /^other/.test(w[0]) ? 'other' : w[0];
     }
