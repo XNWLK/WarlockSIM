@@ -1,7 +1,7 @@
 // Items for the gear builder (round 147, user: "a character style layout where you click on every slot and input the item
 // you want"). The builder adds up the stats of what you wear into the Stats panel's Sheet (gear) values; the fight engine
-// never reads this file. The item list itself comes later, from the Wowhead Forever database, once there is enough data
-// there — until then WL.ITEMS is empty and every slot takes an item you type in yourself.
+// never reads this file. The item list itself is data/item-db.js (round 154), made from the Wowhead Forever database by
+// tools/gen-items.js; any slot also takes an item you type in yourself or one from a gear code.
 window.WL = window.WL || {};
 
 // The stats an item can carry: the same values as the Sheet (gear) column of the Stats panel (cfg.gear), in its units —
@@ -37,10 +37,12 @@ WL.GEAR_SLOTS = [
 
 // The item list, keyed by the game's item id (the in-game addon recognises what you wear by that id). Format:
 //   12345: { name: 'Item name', slot: 'head', quality: 'epic', stats: { sp: 20, int: 15, critPct: 1 }, weapon: 'sword' }
+// Round 154 (data/item-db.js) adds: ilvl (item level), req (required level), icon (position in WL.ITEM_ICONS.names), set (item
+// set id), unique, side ('Alliance' / 'Horde' when only one can wear it), from (where it comes from, when known).
 // slot = one of the `fits` types above · quality = poor / common / uncommon / rare / epic / legendary (colour only) ·
 // stats = WL.GEAR_STAT_KEYS, missing = 0 · weapon (weapons only) = 'sword', 'dagger', 'staff', 'mace' … — kept for the
 // record (until round 149 a sword in the main hand ticked Sword Specialization for Humans). "Use:" and "Chance on hit:" effects are not simulated yet.
-WL.ITEMS = {};
+WL.ITEMS = {};                                            // filled by data/item-db.js (loaded after this file)
 
 // Enchants (round 148), keyed by the game's enchant id. Format:
 //   2543: { name: 'Enchant name', slots: ['head', 'legs'], stats: { sp: 8, hitPct: 1 } }

@@ -3,6 +3,15 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v143
+- **Gear builder: the item list is here.** Every item a Warlock can wear that has at least one stat the sim uses (spell
+  power, Shadow or Fire power, hit, crit, haste, Spell Pierce, Intellect, Spirit, MP5): 2,059 items from the Wowhead
+  Forever database, with their icons. Click a slot and the items for it are listed best first for the build chosen under
+  "Value for", with item level, required level, stats and their worth in spell power; type a name to narrow the list.
+  Hit, crit and haste ratings are turned into % the way the sim counts them (10 hit = 1%, 14 crit = 1%, 10 haste = 1%);
+  Spell Penetration counts as Spell Pierce. Items that are not on Wowhead yet: type them in, or load a gear code from the
+  in-game addon, as before. Enchants: still typed in for now. The gear builder is still under construction.
+
 ## v142
 - **Amplify Curse** now raises the whole Bane of Agony: every tick of the Bane of Agony it is used with is multiplied by
   1.5 after everything else (talents, auras, curse, crit). Before, only the base value was raised, not the spell power

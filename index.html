@@ -160,12 +160,20 @@
   .gbedit h3 { margin: 0; font-size: 13px; }
   .gbedit h4 { margin: 0 0 4px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; }
   .gbedit .meta { margin: 6px 0; }
-  .gbedcols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 16px; }
+  .gbedcols { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; }
   .gbown .btnrow input[type=text] { flex: 2 1 200px; }
   .gbfields { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); gap: 4px 16px; margin-top: 6px; }
   label.f.gbf { grid-template-columns: minmax(0, 1fr) 80px; }
-  .gblist { list-style: none; margin: 6px 0 0; padding: 0; max-height: 240px; overflow: auto; display: grid; gap: 1px; }
+  .gblist { list-style: none; margin: 6px 0 0; padding: 0; max-height: 360px; overflow: auto; display: grid; gap: 1px; }
   .gblist button { width: 100%; text-align: left; background: none; border: 0; padding: 3px 4px; }
+  .gbico.img { border: 1px solid var(--line); background-color: #181818; background-repeat: no-repeat; }
+  .gbslot.full .gbico.img { border-color: var(--accent); background-color: #181818; }
+  .gblist .gbhit { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 1px 8px; align-items: center; }
+  .gbhit .gbico { width: 28px; height: 28px; grid-row: span 2; font-size: 13px; }
+  .gbhn { font-weight: 600; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gbhm { grid-column: 2; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gbhv { grid-column: 3; grid-row: 1 / span 2; font: 600 11.5px var(--mono); color: var(--ink); text-align: right; }
+  .gbhitsum { margin: 6px 0 0; font-size: 11px; }
   .gblist button:hover { background: var(--sunk); }
   .gbnote { margin: 0; color: var(--accent); }
   /* round 148: item value, enchants, compare, gear code */
@@ -1158,7 +1166,7 @@
       <button type="button" id="gbClear" class="resetbtn gbclear" data-label="Take everything off" data-armed="Click again to empty every slot">Take everything off</button>
     </div>
     <div class="tape" aria-hidden="true"><div><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span></div></div>
-    <p class="meta">Click a slot to put an item and its enchant in. The lists of items and enchants will come from the Wowhead Forever database once it has enough of them; until then you type the stats in yourself, or load a gear code made by the in-game addon. Your items are kept in this browser.</p>
+    <p class="meta">Click a slot to put an item and its enchant in. <span id="gbDbInfo">The items come from the Wowhead Forever database</span>, best first for the build chosen under "Value for". An item that is not listed yet: type it in yourself, or load a gear code made by the in-game addon. Enchants: type them in for now. Your items are kept in this browser.</p>
     <div class="btnrow gbcode">
       <input id="gbCode" type="text" spellcheck="false" placeholder="WFG1:… gear code from the in-game addon" aria-label="Gear code">
       <button type="button" id="gbCodeLoad" class="primary" title="Puts the items and enchants of a gear code into every slot (replacing what is there) and switches the gear builder on">Load gear code</button>
@@ -1195,5 +1203,6 @@
 <script src="app/sim-pool.js"></script>
 <script src="data/default-results.js"></script>
 <script src="data/items.js"></script>
+<script src="data/item-db.js"></script>
 <script src="app/gear-builder.js"></script>
 <script src="app/app.js"></script>

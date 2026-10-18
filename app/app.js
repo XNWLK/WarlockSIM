@@ -2789,6 +2789,17 @@
   var GB_WEAPONS = [['dagger', 'Dagger (one hand)', 'oneHand'], ['sword', 'Sword (one hand)', 'oneHand'], ['staff', 'Staff (two hands)', 'twoHand'],
     ['mace', 'Mace (one hand)', 'oneHand'], ['other1', 'Other one-hand weapon', 'oneHand'], ['other2', 'Other two-hand weapon', 'twoHand']];
   var GB_QUALITY = { poor: '#9d9d9d', common: 'var(--ink)', uncommon: '#1eff00', rare: '#0070dd', epic: '#a335ee', legendary: '#ff8000' };
+  var GB_HITS = 60;                                       // round 154: list rows shown at once (the rest: type to narrow)
+  // Round 154: an item's icon from the icon sheet (art/items/icons.jpg, WL.ITEM_ICONS), drawn `px` pixels wide.
+  function gbIconStyle(it, px) {
+    var I = WL.ITEM_ICONS; if (!I || !it || it.icon == null || it.icon >= I.names.length) return '';
+    var rows = Math.ceil(I.names.length / I.cols);
+    return 'background-image:url(' + I.file + ');background-size:' + (I.cols * px) + 'px ' + (rows * px) + 'px;background-position:-' + (it.icon % I.cols) * px + 'px -' + Math.floor(it.icon / I.cols) * px + 'px';
+  }
+  function gbIconHtml(it, px, letter) {
+    var st = gbIconStyle(it, px);
+    return st ? '<span class="gbico img" aria-hidden="true" style="' + st + '"></span>' : '<span class="gbico" aria-hidden="true">' + (letter ? esc(letter) : '') + '</span>';
+  }
   function gb() {
     var g = cfg.gearBuilder || (cfg.gearBuilder = { on: false, slots: {}, manual: {} });
     if (!g.enchants) g.enchants = {};
@@ -2886,7 +2897,7 @@
     var stats = shown ? gbStatText(it.stats) : '', val = shown ? gbValText(it.stats, ctx) : '';
     return '<button type="button" class="gbslot' + (shown ? ' full' : '') + (off ? ' blocked' : '') + (sel ? ' sel' : '') + '" data-gslot="' + s.key + '" aria-expanded="' + sel + '" aria-controls="gbEdit"' +
       (shown ? ' title="' + esc(it.name + (stats ? ': ' + stats : '') + (en ? '\nEnchant: ' + en.name + (gbStatText(en.stats) ? ' (' + gbStatText(en.stats) + ')' : '') : '') + (val ? '\n' + gbValText(it.stats, ctx, true) : '')) + '"' : '') + '>' +
-      '<span class="gbico" aria-hidden="true">' + (shown ? esc(it.name.charAt(0).toUpperCase()) : '') + '</span>' +
+      gbIconHtml(shown ? it : null, 34, shown ? it.name.charAt(0).toUpperCase() : '') +
       '<span class="gbtxt"><span class="gbsn">' + esc(s.name) + (val ? ' <span class="gbval">' + esc(val.replace(' spell power', ' SP')) + '</span>' : '') + '</span>' +
       '<span class="gbin"' + (shown ? ' style="color:' + (GB_QUALITY[it.quality] || 'var(--ink)') + '"' : '') + '>' + name + '</span>' +
       (en ? '<span class="gben">' + esc(en.name) + '</span>' : '') + '</span></button>';
@@ -2910,13 +2921,26 @@
   function gbList(src, fits) {                            // entries of WL.ITEMS / WL.ENCHANTS for the open slot
     return Object.keys(src).map(function (id) { return { id: id, it: src[id] }; }).filter(function (x) { return fits(x.it); });
   }
+  // Round 154: the list for the open slot, best first for the build under "Value for" (its stat weights), then by item
+  // level; a name filter; the first GB_HITS rows.
   function gbHitsHtml(list, q, what, attr) {
     q = q.trim().toLowerCase();
-    if (!list.length) return '<p class="meta">The ' + what + ' list is still empty. It will come from the Wowhead Forever database once there is enough data there. Until then, type it in on the right.</p>';
-    var hits = list.filter(function (x) { return !q || x.it.name.toLowerCase().indexOf(q) >= 0; })
-      .sort(function (a, b) { return a.it.name < b.it.name ? -1 : a.it.name > b.it.name ? 1 : 0; }).slice(0, 40);
-    return '<ul class="gblist">' + (hits.length ? hits.map(function (x) {
-      return '<li><button type="button" ' + attr + '="' + esc(x.id) + '" style="color:' + (GB_QUALITY[x.it.quality] || 'var(--ink)') + '">' + esc(x.it.name) + '</button></li>';
+    if (!list.length) return '<p class="meta">' + (what === 'item' ? 'No listed item fits this slot yet. Type it in on the right.' : 'The enchant list is still empty: type the enchant in on the right.') + '</p>';
+    var ctx = gbValCtx();
+    var hits = list.filter(function (x) { return !q || x.it.name.toLowerCase().indexOf(q) >= 0; }).map(function (x) {
+      return { x: x, v: ctx ? WL.gearValue(x.it.stats, ctx.w, ctx.share) : null };
+    }).sort(function (a, b) {
+      return ((b.v ? b.v.dps : 0) - (a.v ? a.v.dps : 0)) || ((b.x.it.ilvl || 0) - (a.x.it.ilvl || 0)) || (a.x.it.name < b.x.it.name ? -1 : a.x.it.name > b.x.it.name ? 1 : 0);
+    });
+    var head = '<p class="meta gbhitsum">' + fmt(hits.length) + ' ' + what + (hits.length === 1 ? '' : 's') + (q ? ' with that name' : ' for this slot') +
+      (ctx && hits.length > 1 ? ', best first for ' + esc(ctx.b.short) : '') + (hits.length > GB_HITS ? '. The first ' + GB_HITS + ' are shown: type a name to narrow it down.' : '.') + '</p>';
+    return head + '<ul class="gblist">' + (hits.length ? hits.slice(0, GB_HITS).map(function (h) {
+      var it = h.x.it, st = gbStatText(it.stats), meta = [it.ilvl ? 'iLvl ' + it.ilvl : '', it.req ? 'Req ' + it.req : '', st].filter(Boolean).join(' · ');
+      var tip = it.name + (st ? '\n' + st : '') + (it.from ? '\n' + it.from : '') + (it.side ? '\n' + it.side + ' only' : '') + (it.unique ? '\nUnique' : '') +
+        (h.v && h.v.sp != null ? '\n' + gbValText(it.stats, ctx, true) : '');
+      return '<li><button type="button" class="gbhit" ' + attr + '="' + esc(h.x.id) + '" title="' + esc(tip) + '">' + gbIconHtml(it, 28, it.name.charAt(0).toUpperCase()) +
+        '<span class="gbhn" style="color:' + (GB_QUALITY[it.quality] || 'var(--ink)') + '">' + esc(it.name) + '</span>' +
+        '<span class="gbhm">' + esc(meta) + '</span><span class="gbhv">' + (h.v && h.v.sp != null ? '≈ ' + fmt(h.v.sp, Math.abs(h.v.sp) < 10 ? 1 : 0) + ' SP' : '') + '</span></button></li>';
     }).join('') : '<li class="meta">Nothing for this slot has that name.</li>') + '</ul>';
   }
   function gbItemList() { return gbList(WL.ITEMS, function (it) { return WL.gearFits(gbSel, it); }); }
@@ -2995,6 +3019,7 @@
     $('gbLeft').innerHTML = col('left'); $('gbRight').innerHTML = col('right'); $('gbWeap').innerHTML = col('weapons');
     $('gbMid').innerHTML = gbSummaryHtml(ctx);
     $('gbMsg').textContent = gbMsgText;
+    if (WL.ITEM_DB && $('gbDbInfo')) $('gbDbInfo').textContent = 'The ' + fmt(WL.ITEM_DB.count) + ' items come from the Wowhead Forever database (' + WL.ITEM_DB.collected + ': everything a Warlock can wear with at least one stat the sim uses)';   // round 154
     $('gbClear').disabled = !Object.keys(g.slots).length && !Object.keys(g.enchants).length;
     var list = gbValBuilds(), vs = $('gbValFor');
     vs.innerHTML = list.length ? list.map(function (b) { return '<option value="' + esc(b.key) + '">' + esc(b.short) + '</option>'; }).join('') : '<option value="">— after Sim! —</option>';
