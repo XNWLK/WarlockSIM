@@ -1,23 +1,39 @@
-// Collects the Wowhead Forever item data for the gear builder. Runs in a browser tab on any www.wowhead.com/forever page
-// (the item list pages only open in a real browser), in two steps:
+// Collects the Wowhead Forever item and enchant data for the gear builder. Runs in a browser tab on any
+// www.wowhead.com/forever page (those pages only open in a real browser), in two steps:
 //
-//   1. Paste COLLECT (below) into that tab's console. It reads every list a Warlock's gear can come from (cloth per slot,
-//      cloaks, necks, rings, trinkets, held-in-off-hand items, daggers, one-handed swords, staves, wands), keeps each item's
-//      list entry and its stats, drops items for other classes only, and keeps the result in this tab's local storage
-//      (key __wlx). It answers with the number of parts to send.
+//   1. Paste COLLECT (below) into that tab's console. It takes about 10 minutes: it pauses between requests, and waits a
+//      minute whenever Wowhead refuses one (it does when asked too fast). It reads
+//      - every item list a Warlock's gear can come from (cloth per slot, cloaks, necks, rings, trinkets, held-in-off-hand
+//        items, daggers, one-handed swords, staves, wands): each item's list entry and its stats, without items that name
+//        other classes only;
+//      - the item sets (which class each set is for: a set piece of another class's set cannot be worn by a Warlock);
+//      - every enchant: the Enchanting recipes ("Enchant …") and the permanent item enhancements (armor kits, arcanums, …),
+//        each with its game enchant id and name from the spell page and its text;
+//      and keeps the result in this tab's local storage (key __wlx). What it read from spell pages and tooltips is also
+//      kept (key __wlx_cache), so a run that had to stop does not read it again. It answers with the number of parts.
 //   2. Start tools/items-receive.js (node), then for each part i = 0, 1, … paste SEND(i) into a wowhead.com tab: the tab
 //      opens http://127.0.0.1:8799/save?… with that part, and the receiver writes it to research/raw/. After the last part
-//      the receiver joins them into research/raw/forever-items.json, and SEND(-1) removes __wlx from the tab again.
+//      the receiver joins them into research/raw/forever-items.json; SEND(-1) then removes __wlx and __wlx_cache again.
 //
-// Then: node tools/gen-items.js (the list, and what is new / changed / gone) and tools/gen-item-icons.ps1 (new icons).
-// A list page shows at most 1,000 items, so cloth is read slot by slot; COLLECT says how many each list had — a list at
+// Then: node tools/gen-items.js (items and enchants, and what is new / changed / gone) and tools/gen-item-icons.ps1.
+// A list page shows at most 1,000 entries, so cloth is read slot by slot; COLLECT says how many each list had — a list at
 // 1,000 has been cut off and needs splitting further.
 
 const COLLECT = `(async () => {
+  function arr(t, from) { const s = t.indexOf('[', from); let d = 0, e = s; for (; e < t.length; e++) { const c = t[e]; if (c === '[') d++; else if (c === ']') { d--; if (!d) break; } } return Function('return ' + t.slice(s, e + 1))(); }
+  const pause = ms => new Promise(r => setTimeout(r, ms));
+  async function page(p) {                                         // refused (403): wait a minute and try again, up to 5 times
+    for (let k = 0; ; k++) {
+      await pause(700); const r = await fetch(p);
+      if (r.status !== 403) return r.text();
+      if (k >= 5) throw new Error('Wowhead keeps refusing ' + p + ': wait a while and run COLLECT again (what was read is kept)');
+      await pause(60000);
+    }
+  }
+  let cache = {}; try { cache = JSON.parse(localStorage.getItem('__wlx_cache') || '{}'); } catch (e) { cache = {}; }
+  const keep = () => { try { localStorage.setItem('__wlx_cache', JSON.stringify(cache)); } catch (e) { /* storage full: no cache */ } };
   async function get(p) {
-    const t = await (await fetch('/forever/items/' + p)).text();
-    const b = t.indexOf('var listviewitems = '); let lv = [];
-    if (b >= 0) { const s = t.indexOf('[', b); let d = 0, e = s; for (; e < t.length; e++) { const c = t[e]; if (c === '[') d++; else if (c === ']') { d--; if (!d) break; } } lv = Function('return ' + t.slice(s, e + 1))(); }
+    const t = await page('/forever/items/' + p), b = t.indexOf('var listviewitems = '), lv = b >= 0 ? arr(t, b) : [];
     const g = {}, re = /WH\\.Gatherer\\.addData\\(3, 16, /g; let m;
     while ((m = re.exec(t))) { const s = m.index + m[0].length; let d = 0, e = s; for (; e < t.length; e++) { const c = t[e]; if (c === '{') d++; else if (c === '}') { d--; if (!d) break; } } Object.assign(g, JSON.parse(t.slice(s, e + 1))); }
     return { lv, g };
@@ -39,13 +55,48 @@ const COLLECT = `(async () => {
         src: x.source || [], sm: (x.sourcemore || []).map(m => ({ n: m.n, t: m.t, z: m.z, ti: m.ti })), cat: c };
     });
   }
-  const txt = JSON.stringify({ collected: new Date().toISOString(), counts, items: Object.values(items) });
+  // item sets: which class each is for
+  const st = await page('/forever/item-sets'), sb = st.indexOf('var itemSets = ');
+  const sets = (sb >= 0 ? arr(st, sb) : []).map(x => ({ id: x.id, n: x.name, rc: x.reqclass || 0, p: x.pieces || [] }));
+  counts.sets = sets.length;
+  // enchants: the spell page names the enchant ("Enchant Item: <name> (<enchant id>)"); temporary enchants are left out
+  async function enchOf(spellId) {
+    if (cache['s' + spellId]) return cache['s' + spellId];
+    const t = await page('/forever/spell=' + spellId);
+    const ef = [...t.matchAll(/Enchant Item: (?:<a[^>]*>)?<span[^>]*>([^<]*)<\\/span>(?:<\\/a>)?&nbsp;\\((\\d+)\\)/g)].map(x => ({ id: +x[2], n: x[1] }));
+    const desc = (t.match(/<meta name="description" content="([^"]*)"/) || [])[1] || '';
+    const ic = (t.match(/WH\\.Gatherer\\.addData\\(6, 16, \\{"\\d+":\\{[^}]*"icon":"([^"]+)"/) || [])[1] || '';
+    cache['s' + spellId] = { ef, desc: desc.replace(/ In the Profession Spells category\\..*$/, '').replace(/&amp;/g, '&').replace(/&#039;/g, "'").replace(/&quot;/g, '"'), ic };
+    keep(); return cache['s' + spellId];
+  }
+  async function tipOf(itemId) {                                  // the item's tooltip: its use spell and icon
+    if (cache['i' + itemId]) return cache['i' + itemId];
+    let tip = null;
+    for (let k = 0; k < 3 && !tip; k++) { await pause(700); try { tip = await (await fetch('https://nether.wowhead.com/tooltip/item/' + itemId + '?dataEnv=16&locale=0')).json(); } catch (e) { await pause(30000); } }
+    if (!tip) return null;
+    const m = (tip.tooltip || '').match(/spell=(\\d+)/);
+    cache['i' + itemId] = { spell: m ? +m[1] : 0, icon: tip.icon || '' }; keep(); return cache['i' + itemId];
+  }
+  const et = await page('/forever/spells/professions/enchanting'), eb = et.indexOf('var listviewspells = ');
+  const recipes = (eb >= 0 ? arr(et, eb) : []).filter(x => /^Enchant /.test(x.name));
+  counts.recipes = recipes.length;
+  const enchants = [];
+  for (const r of recipes) { const e = await enchOf(r.id); e.ef.forEach(x => enchants.push({ id: x.id, n: x.n, spell: r.id, sn: r.name, desc: e.desc, ic: e.ic, from: 'Enchanting', skill: r.learnedat || 0 })); }
+  const pt = await page('/forever/items=0.6'), pb = pt.indexOf('var listviewitems = '), perm = pb >= 0 ? arr(pt, pb) : [];
+  counts.enhancements = perm.length;
+  for (const it of perm) {
+    const tip = await tipOf(it.id); if (!tip || !tip.spell) continue;
+    const e = await enchOf(tip.spell);
+    e.ef.forEach(x => enchants.push({ id: x.id, n: x.n, spell: tip.spell, sn: it.name, desc: e.desc, ic: tip.icon || e.ic, from: it.name, item: it.id, req: it.reqlevel || 0 }));
+  }
+  counts.enchants = enchants.length;
+  const txt = JSON.stringify({ collected: new Date().toISOString(), counts, items: Object.values(items), sets, enchants });
   localStorage.setItem('__wlx', encodeURIComponent(txt));
   return { items: Object.keys(items).length, counts, parts: Math.ceil(localStorage.getItem('__wlx').length / 480000) };
 })()`;
 
 // SEND(i): part i of the collected data to the local receiver; SEND(-1): forget the collected data in this tab.
-const SEND = i => i < 0 ? `localStorage.removeItem('__wlx'); 'removed'` :
+const SEND = i => i < 0 ? "localStorage.removeItem('__wlx'); localStorage.removeItem('__wlx_cache'); 'removed'" :
   `(() => { const e = localStorage.getItem('__wlx'), N = 480000, i = ${i}, n = Math.ceil(e.length / N);
     const at = x => x >= e.length ? e.length : e[x - 1] === '%' ? x - 1 : e[x - 2] === '%' ? x - 2 : x;   // never cut through a %XX
     setTimeout(() => { location.href = 'http://127.0.0.1:8799/save?name=forever-items.json&part=' + i + '&of=' + n + '&d=' + e.slice(at(i * N), at((i + 1) * N)); }, 50);

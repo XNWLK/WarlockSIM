@@ -5,12 +5,17 @@ What each version added or changed, newest first. Version = the version of the
 
 ## v143
 - **Gear builder: the item list is here.** Every item a Warlock can wear that has at least one stat the sim uses (spell
-  power, Shadow or Fire power, hit, crit, haste, Spell Pierce, Intellect, Spirit, MP5): 2,059 items from the Wowhead
-  Forever database, with their icons. Click a slot and the items for it are listed best first for the build chosen under
+  power, Shadow or Fire power, hit, crit, haste, Spell Pierce, Spell Penetration, Intellect, Spirit, MP5): 2,042 items from the
+  Wowhead Forever database, with their icons. Pieces of other classes' item sets are left out. Click a slot and the items for it are listed best first for the build chosen under
   "Value for", with item level, required level, stats and their worth in spell power; type a name to narrow the list.
-  Hit, crit and haste ratings are turned into % the way the sim counts them (10 hit = 1%, 14 crit = 1%, 10 haste = 1%);
-  Spell Penetration counts as Spell Pierce. Items that are not on Wowhead yet: type them in, or load a gear code from the
-  in-game addon, as before. Enchants: still typed in for now. The gear builder is still under construction.
+  Hit, crit and haste ratings are turned into % the way the sim counts them (10 hit = 1%, 14 crit = 1%, 10 haste = 1%).
+- **Every enchant** (123: Enchanting and permanent item enhancements), listed under the items of each slot that
+  takes one, best first; enchants for two-handed weapons only show while a two-handed weapon is in the main hand. The
+  held off-hand item takes enchants now too. Items and enchants that are not on Wowhead yet: type them in, or load a gear
+  code from the in-game addon, as before. The gear builder is still under construction.
+- **Spell Penetration** is a stat of its own (Stats panel and gear builder): it lowers the boss's resistance, but never
+  below 0, so it only helps while something is still resisted (at the default settings: before Curse of the Elements is
+  up). Spell Pierce is a different stat that goes below 0.
 
 ## v142
 - **Amplify Curse** now raises the whole Bane of Agony: every tick of the Bane of Agony it is used with is multiplied by

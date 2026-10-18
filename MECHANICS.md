@@ -29,7 +29,7 @@ the fights.
 **Default settings**
 
 <!-- gen:gear -->
-- **Gear (character sheet, before talents, racials and weapon stone):** 500 spell power, 5% hit, 10% crit, 0% haste, Intellect 148, Spirit 54, Stamina 160, MP5 0, Spell Pierce 0.
+- **Gear (character sheet, before talents, racials and weapon stone):** 500 spell power, 5% hit, 10% crit, 0% haste, Intellect 148, Spirit 54, Stamina 160, MP5 0, Spell Pierce 0, Spell Penetration 0.
 - **Fight:** 120 s ± 10%, 1,000 fights per build and race, 1 target, execute phase below 35% boss health, healing on you 1,000 every 10 s.
 - **Hit-capped preset:** 1,000 spell power, 17% hit, 20% crit, Intellect 250, Spirit 100, Stamina 300.
 <!-- /gen:gear -->
@@ -624,9 +624,14 @@ whole channel.
 ## 11. Resistance and Spell Pierce
 
 ```
-resistance = (boss resistance for the school + 24 level resistance − 75 with Curse of the Elements, not below 0)
+resistance = (boss resistance for the school + 24 level resistance − 75 with Curse of the Elements
+              − your Spell Penetration, not below 0)
              − your Spell Pierce
 ```
+
+- **Spell Penetration** (on items) lowers the boss's resistance, but never below 0: it only helps while something is still
+  resisted, which at the default settings is only before Curse of the Elements is up. **Spell Pierce** is a different stat:
+  it goes below 0 (see below).
 
 - A boss three levels above you has 24 resistance to everything (8 per level). Curse of the Elements removes it.
   The boss's own Shadow and Fire resistance are 0 by default.

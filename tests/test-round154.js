@@ -3,7 +3,7 @@
 // sim's own rates, every item with an icon on the icon sheet.
 (function () {
   T.run('round 154: the item list', function () {
-    var I = WL.ITEMS, ids = Object.keys(I), useful = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'int', 'spi', 'mp5'];
+    var I = WL.ITEMS, ids = Object.keys(I), useful = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'spellPen', 'int', 'spi', 'mp5'];
     var Q = ['poor', 'common', 'uncommon', 'rare', 'epic', 'legendary', 'artifact', 'heirloom'];
     T.group('the list');
     T.ok(WL.ITEM_DB && WL.ITEM_DB.count === ids.length && ids.length > 1000, WL.ITEM_DB.count + ' items, collected ' + WL.ITEM_DB.collected);
@@ -24,14 +24,15 @@
     T.group('stats as on the tooltip (ratings → %: 10 hit = 1%, 14 crit = 1%, 10 haste = 1%)');
     var eq = function (id, want, what) { var it = I[id]; T.eq(it ? JSON.stringify(it.stats) : 'missing', JSON.stringify(want), what + ' (' + id + ')'); };
     eq(240139, { sp: 36, hitPct: 1, hastePct: 2, int: 14, spi: 20, sta: 12 }, 'Heretic Sandals: 36 spell power, 1% hit, 2% haste');
-    eq(22496, { sp: 47, hitPct: 1, critPct: 1, pierce: 13, int: 27, sta: 21 }, 'Frostfire Robe: 13 Spell Penetration → Spell Pierce');
+    eq(22943, { sp: 28, spellPen: 13, int: 8, sta: 9 }, 'Malice Stone Pendant: 13 Spell Penetration (its own stat, not Spell Pierce; round 155)');
     eq(14153, { sp: 46, int: 9, sta: 10 }, 'Robe of the Void (Forever: Intellect 9 added, Stamina 10)');
     T.eq(I[14153] && I[14153].slot, 'chest', 'a robe goes in the chest slot');
-    T.ok(I[22512] && !I[22512].stats.sp && I[22512].stats.mp5 === 5, 'healing-only spell power does not count (Robe of Faith: Intellect, Spirit, MP5 only)');
+    T.ok(!I[22496] && !I[22512] && I[22510], 'pieces of other classes\' sets are out (round 155: Frostfire = Mage, Faith = Priest), the Warlock set stays (Plagueheart)');
+    T.ok(!I[276765], 'Leafre\'s Ring of Precise Spell Power is out (round 155, user)');
 
     T.group('icons');
     var IC = WL.ITEM_ICONS;
-    T.ok(IC.file === 'art/items/icons.jpg' && IC.size === 36 && IC.cols === 24 && IC.names.length <= IC.cols * IC.cols, 'one sheet, ' + IC.names.length + ' icons of 36 px, 24 per row');
+    T.ok(IC.file === 'art/items/icons.jpg' && IC.size === 36 && IC.cols === 24 && IC.names.length <= IC.cols * IC.cols, 'one sheet, ' + IC.names.length + ' icons of 36 px, 24 per row (items and enchants)');
     T.eq(new Set(IC.names).size, IC.names.length, 'each icon once');
   });
 })();

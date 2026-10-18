@@ -228,7 +228,7 @@ window.WL = window.WL || {};
     castParts.push('misses ' + f(100 - stats.hitPct) + '% of the time' + (s.aoe ? ' (rolled for every tick and target)' : ''));
     notes.push(castParts.join(' · ') + '.');
     if (WL.levelResist(cfg) > 0 || (cb.targetResist[school] || 0) > 0 || stats.pierce > 0) {
-      var pr = WL.resistProfile(cfg, stats.pierce, school, hasCoe), pr0 = WL.resistProfile(cfg, stats.pierce, school, false);
+      var pr = WL.resistProfile(cfg, stats.pierce, school, hasCoe, stats.spellPen), pr0 = WL.resistProfile(cfg, stats.pierce, school, false, stats.spellPen);
       notes.push((hasCoe && pr0.mean < 0 ? 'Before the curse is on the ' + (extra ? 'target' : 'boss') + ', ' + f(-pr0.mean * 100, 1) + '% is resisted on average. ' : '') +
         (pr.mean < 0 ? 'On average ' + f(-pr.mean * 100, 1) + '% is resisted.' : pr.mean > 0 ? 'Spell Pierce adds ' + f(pr.mean * 100, 2) + '% on average.' : hasCoe ? 'With the curse up nothing is resisted.' : ''));
     }

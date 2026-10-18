@@ -69,6 +69,7 @@ WL.DEFAULT_CONFIG = {
     critIncludesAll: false, // user (round 4): critPct is the sheet BEFORE talents/racials/oil, so Malevolence, Ruthless / Savage and Firestone are valued
     hastePct: 0,
     pierce: 0,              // Spell Pierce (new stat) [A44]
+    spellPen: 0,            // Spell Penetration (round 155, user): lowers the boss's resistance, not below 0 — unlike Spell Pierce [A96]
     // Round 37 (user): Int 148 / Spirit 54 (was 48 / 4 = Classic pre-raid BiS item sums, round 13).
     // Round 39 (user): Stamina 160 (was 92), MP5 0 (was 4).
     int: 148, spi: 54, sta: 160, mp5: 0,  // gear only (race base is added by the engine); Int drives mana, Spirit drives Life Tap [A58]

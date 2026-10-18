@@ -218,7 +218,7 @@ B.races = (function () {
 B.gear = (function () {
   const g = cfg.gear, f = cfg.fight;
   return '- **Gear (character sheet, before talents, racials and weapon stone):** ' + g.sp + ' spell power, ' + g.hitPct + '% hit, ' + g.critPct + '% crit, ' + g.hastePct + '% haste, Intellect ' + g.int +
-    ', Spirit ' + g.spi + ', Stamina ' + g.sta + ', MP5 ' + g.mp5 + ', Spell Pierce ' + g.pierce + '.\n' +
+    ', Spirit ' + g.spi + ', Stamina ' + g.sta + ', MP5 ' + g.mp5 + ', Spell Pierce ' + g.pierce + ', Spell Penetration ' + (g.spellPen || 0) + '.\n' +
     '- **Fight:** ' + f.duration + ' s ± ' + f.durationVarPct + '%, ' + n(f.iterations, 0) + ' fights per build and race, ' + f.targets + ' target, execute phase below ' + f.executePct +
     '% boss health, healing on you ' + n(f.healAmount, 0) + ' every ' + f.healEvery + ' s.\n' +
     '- **Hit-capped preset:** 1,000 spell power, 17% hit, 20% crit, Intellect 250, Spirit 100, Stamina 300.';

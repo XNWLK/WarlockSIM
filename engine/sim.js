@@ -400,7 +400,7 @@ window.WL = window.WL || {};
     // `ti` > 1 = an extra target: its own Curse of the Elements counts (round 39; the boss's CoE does not carry over).
     function vulnMult(school, ti) {
       var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe'), key = school + (coe ? '1' : '0');
-      var pr = resCache[key] || (resCache[key] = WL.resistProfile(cfg, stats.pierce, school, coe));
+      var pr = resCache[key] || (resCache[key] = WL.resistProfile(cfg, stats.pierce, school, coe, stats.spellPen));
       var m = pr.flat;
       lastVulnPct = 0;
       if (pr.dist.length > 1) {
@@ -973,7 +973,7 @@ window.WL = window.WL || {};
     res.dotSkips = {};
     function expVuln(school, ti) {
       var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe'), key = school + (coe ? '1' : '0');
-      var pr = resCache[key] || (resCache[key] = WL.resistProfile(cfg, stats.pierce, school, coe));
+      var pr = resCache[key] || (resCache[key] = WL.resistProfile(cfg, stats.pierce, school, coe, stats.spellPen));
       return pr.flat * pr.dist.reduce(function (a, d) { return a + d.p * (1 + d.pct / 100); }, 0);
     }
     function expCrit(critPct, critMult) { return 1 + Math.max(0, Math.min(100, critPct)) / 100 * (critMult - 1); }

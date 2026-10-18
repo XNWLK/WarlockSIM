@@ -249,7 +249,7 @@
     ['duration', 'fight', 'duration'], ['durVar', 'fight', 'durationVarPct'], ['iterations', 'fight', 'iterations'], ['weightIterations', 'fight', 'weightIterations'],
     ['executePct', 'fight', 'executePct'], ['seed', 'fight', 'seed'],
     ['g_sp', 'gear', 'sp'], ['g_hitPct', 'gear', 'hitPct'], ['g_critPct', 'gear', 'critPct'], ['g_hastePct', 'gear', 'hastePct'],
-    ['g_pierce', 'gear', 'pierce'], ['g_int', 'gear', 'int'], ['g_spi', 'gear', 'spi'], ['g_mp5', 'gear', 'mp5'],
+    ['g_pierce', 'gear', 'pierce'], ['g_spellPen', 'gear', 'spellPen'], ['g_int', 'gear', 'int'], ['g_spi', 'gear', 'spi'], ['g_mp5', 'gear', 'mp5'],
     ['g_sta', 'gear', 'sta'], ['g_shadowSp', 'gear', 'shadowSp'], ['g_fireSp', 'gear', 'fireSp'],
     ['showPct', 'options', 'showWithinPct'],
     ['latencyMs', 'fight', 'latencyMs'], ['travelMs', 'fight', 'travelMs'], ['moveEvery', 'fight', 'moveEvery'], ['moveDuration', 'fight', 'moveDuration'], ['hitEvery', 'fight', 'hitEvery'], ['targets', 'fight', 'targets'],
@@ -352,6 +352,8 @@
     { k: 'critPct', label: 'Crit %', c: '--c-crit', d: 1, gear: function (g) { return g.critPct; }, tot: function (s) { return s.critPct; } },
     { k: 'hastePct', label: 'Haste %', c: '--c-haste', d: 1, gear: function (g) { return g.hastePct; }, tot: function (s) { return s.hastePct; } },
     { k: 'pierce', label: 'Spell Pierce', c: '--c-pierce', gear: function (g) { return g.pierce; }, tot: function (s) { return s.pierce; } },
+    // Round 155 (user): Spell Penetration lowers the boss's resistance down to 0 (Spell Pierce goes below it).
+    { k: 'spellPen', label: 'Spell Penetration', gear: function (g) { return g.spellPen || 0; }, tot: function (s) { return s.spellPen; } },
     { k: 'int', label: 'Intellect', c: '--c-int', gear: function (g) { return g.int; }, tot: function (s) { return s.int; } },
     { k: 'spi', label: 'Spirit', gear: function (g) { return g.spi; }, tot: function (s) { return s.spi; } },
     { k: 'sta', label: 'Stamina', gear: function (g) { return g.sta; }, tot: function (s) { return s.sta; } },
@@ -388,8 +390,8 @@
   // settings match it exactly. The preset list sits in the same bar (round 115): whole setups, built-in and your own.
   // Hit-capped (numbers from the user, round 111): 1000 SP and 17% hit — the full cap without any talent, so builds with
   // Suppression points have that much hit to spare; crit, Intellect, Spirit and Stamina as chosen in round 110.
-  var GEAR_KEYS = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'int', 'spi', 'sta', 'mp5'];
-  var HITCAP_GEAR = { sp: 1000, shadowSp: 0, fireSp: 0, hitPct: 17, critPct: 20, hastePct: 0, pierce: 0, int: 250, spi: 100, sta: 300, mp5: 0 };
+  var GEAR_KEYS = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'spellPen', 'int', 'spi', 'sta', 'mp5'];
+  var HITCAP_GEAR = { sp: 1000, shadowSp: 0, fireSp: 0, hitPct: 17, critPct: 20, hastePct: 0, pierce: 0, spellPen: 0, int: 250, spi: 100, sta: 300, mp5: 0 };
   // Max: every raid buff, every boss debuff that stacks (no second Warlock's Curse of the Elements — that changes your
   // rotation), and the best consumable of every group. Potion: always Major Spellblasting (user, round 111; round 110 had
   // Major Mana Potion, which shares its cooldown — 04_EXPLORATION §44). No Engineering explosives: that is a profession, switched on in the Stats panel.
@@ -1161,10 +1163,10 @@
     var statRows = [['Intellect', st.int, 'int', 1], ['Spirit', st.spi, 'spi', 1], ['Maximum mana', st.maxMana, 'maxMana', 0], ['Stamina', st.sta, 'sta', 1], ['Maximum health', st.maxHealth, 'maxHealth', 0],
       ['Spell power', st.sp, 'sp', 0], ['+ Shadow spell power', st.schoolSp.shadow, 'shadowSp', 0], ['+ Fire spell power', st.schoolSp.fire, 'fireSp', 0],
       ['Hit chance %', st.hitPct, 'hitPct', 1], ['Crit % (before talents)', st.critPct, 'critPct', 2], ['Haste %', st.hastePct, 'hastePct', 1],
-      ['Spell Pierce', st.pierce, 'pierce', 0],
+      ['Spell Pierce', st.pierce, 'pierce', 0], ['Spell Penetration', st.spellPen, 'spellPen', 0],
       ['Shadow damage (auras)', pctOf(st.mult.shadow), 'shadowDmgPct', 1, true], ['Fire damage (auras)', pctOf(st.mult.fire), 'fireDmgPct', 1, true], ['All damage (auras)', pctOf(st.mult.all), 'allDmgPct', 1, true]];
     h += '<div class="wide"><h2>Stats used in the fight</h2><div class="scroll"><table class="stattab"><thead><tr><th>Stat</th><th class="n">Value</th><th>Where it comes from</th></tr></thead><tbody>' +
-      statRows.filter(function (s) { return !(s[4] || /Sp$|pierce|haste/.test(s[2])) || Math.abs(s[1]) > 1e-9; }).map(function (s) {
+      statRows.filter(function (s) { return !(s[4] || /Sp$|pierce|spellPen|haste/.test(s[2])) || Math.abs(s[1]) > 1e-9; }).map(function (s) {
         var src = st.breakdown.filter(function (x) { return x.stat === s[2]; }).map(function (x) {
           return '<span class="src">' + esc(x.source.replace(/ \[A\d+\]/g, '')) + ' <b>' + (x.value > 0 ? '+' : '') + fmt(x.value, Math.abs(x.value) < 10 && x.value % 1 ? 1 : 0) + (s[4] ? '%' : '') + '</b></span>';
         }).join('');
@@ -1631,7 +1633,7 @@
     var st = [['Intellect', sA.int, sB.int, 0], ['Spirit', sA.spi, sB.spi, 0], ['Stamina', sA.sta, sB.sta, 0], ['Maximum mana', sA.maxMana, sB.maxMana, 0],
       ['Spell power', sA.sp, sB.sp, 0], ['+ Shadow spell power', sA.schoolSp.shadow, sB.schoolSp.shadow, 0, 1], ['+ Fire spell power', sA.schoolSp.fire, sB.schoolSp.fire, 0, 1],
       ['Hit chance %', sA.hitPct, sB.hitPct, 1], ['Crit % (before talents)', sA.critPct, sB.critPct, 2], ['Haste %', sA.hastePct, sB.hastePct, 1, 1],
-      ['Spell Pierce', sA.pierce, sB.pierce, 0, 1],
+      ['Spell Pierce', sA.pierce, sB.pierce, 0, 1], ['Spell Penetration', sA.spellPen, sB.spellPen, 0, 1],
       ['Shadow damage % (auras)', pctOf(sA.mult.shadow), pctOf(sB.mult.shadow), 1, 1], ['Fire damage % (auras)', pctOf(sA.mult.fire), pctOf(sB.mult.fire), 1, 1],
       ['All damage % (auras)', pctOf(sA.mult.all), pctOf(sB.mult.all), 1, 1]];
     h += '<div><h2>Stats used in the fight</h2><div class="scroll"><table class="cmpt"><thead><tr><th></th>' + th + '<th class="n">B − A</th></tr></thead><tbody>' +
@@ -2935,16 +2937,21 @@
     var head = '<p class="meta gbhitsum">' + fmt(hits.length) + ' ' + what + (hits.length === 1 ? '' : 's') + (q ? ' with that name' : ' for this slot') +
       (ctx && hits.length > 1 ? ', best first for ' + esc(ctx.b.short) : '') + (hits.length > GB_HITS ? '. The first ' + GB_HITS + ' are shown: type a name to narrow it down.' : '.') + '</p>';
     return head + '<ul class="gblist">' + (hits.length ? hits.slice(0, GB_HITS).map(function (h) {
-      var it = h.x.it, st = gbStatText(it.stats), meta = [it.ilvl ? 'iLvl ' + it.ilvl : '', it.req ? 'Req ' + it.req : '', st].filter(Boolean).join(' · ');
-      var tip = it.name + (st ? '\n' + st : '') + (it.from ? '\n' + it.from : '') + (it.side ? '\n' + it.side + ' only' : '') + (it.unique ? '\nUnique' : '') +
+      var it = h.x.it, st = gbStatText(it.stats), meta = [it.ilvl ? 'iLvl ' + it.ilvl : '', it.req ? 'Req ' + it.req : '', st || it.text || ''].filter(Boolean).join(' · ');
+      var tip = it.name + (st ? '\n' + st : '') + (it.text ? '\n' + it.text : '') + (it.twoHand ? '\nTwo-handed weapons only' : '') + (it.from ? '\n' + it.from : '') + (it.side ? '\n' + it.side + ' only' : '') + (it.unique ? '\nUnique' : '') +
         (h.v && h.v.sp != null ? '\n' + gbValText(it.stats, ctx, true) : '');
       return '<li><button type="button" class="gbhit" ' + attr + '="' + esc(h.x.id) + '" title="' + esc(tip) + '">' + gbIconHtml(it, 28, it.name.charAt(0).toUpperCase()) +
         '<span class="gbhn" style="color:' + (GB_QUALITY[it.quality] || 'var(--ink)') + '">' + esc(it.name) + '</span>' +
-        '<span class="gbhm">' + esc(meta) + '</span><span class="gbhv">' + (h.v && h.v.sp != null ? '≈ ' + fmt(h.v.sp, Math.abs(h.v.sp) < 10 ? 1 : 0) + ' SP' : '') + '</span></button></li>';
+        '<span class="gbhm">' + esc(meta) + '</span><span class="gbhv">' + (h.v && h.v.sp != null && h.v.dps ? '≈ ' + fmt(h.v.sp, Math.abs(h.v.sp) < 10 ? 1 : 0) + ' SP' : '') + '</span></button></li>';
     }).join('') : '<li class="meta">Nothing for this slot has that name.</li>') + '</ul>';
   }
   function gbItemList() { return gbList(WL.ITEMS, function (it) { return WL.gearFits(gbSel, it); }); }
-  function gbEnchList() { return gbList(WL.ENCHANTS, function (en) { return (en.slots || []).indexOf(gbSel) >= 0; }); }
+  // Round 155: an enchant made for two-handed weapons only shows for the main hand while it holds one.
+  function gbEnchList() {
+    var mh = WL.gearItem((gb().slots || {}).mainHand), two = !!(mh && mh.slot === 'twoHand');
+    return gbList(WL.ENCHANTS, function (en) { return (en.slots || []).indexOf(gbSel) >= 0 && !(en.twoHand && gbSel === 'mainHand' && !two); });
+  }
+
   function gbFields(prefix, stats) {
     return WL.GEAR_STAT_KEYS.map(function (k) {
       var v = stats && stats[k] ? stats[k] : '';
@@ -2984,7 +2991,7 @@
     var weap = s.key === 'mainHand' ? '<label class="c" for="gbWeapon">Weapon <select id="gbWeapon">' + GB_WEAPONS.map(function (w) {
       return '<option value="' + w[0] + '"' + (kind && kind[0] === w[0] ? ' selected' : '') + '>' + w[1] + '</option>'; }).join('') + '</select></label>' : '';
     var ench = !s.enchant ? '<p class="meta">This slot takes no enchant.</p>'
-      : '<details class="gbench"' + (ee ? ' open' : '') + '><summary>Enchant' + (en ? ': ' + esc(en.name) : '') + '</summary>' +
+      : '<details class="gbench" open><summary>Enchant' + (en ? ': ' + esc(en.name) : '') + '</summary>' +   // round 155: always open, under the items
         '<div class="gbedcols"><div class="gbfind"><h4>Find an enchant</h4>' +
         '<input id="gbEnFind" type="text" placeholder="Enchant name" aria-label="Find an enchant by name" value="' + esc(gbEnFind) + '"' + (gbEnchList().length ? '' : ' disabled') + '>' +
         '<div id="gbEnHits">' + gbHitsHtml(gbEnchList(), gbEnFind, 'enchant', 'data-gepick') + '</div></div>' +

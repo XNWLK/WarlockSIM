@@ -186,6 +186,7 @@ WL.computeStats = function (build, raceKey, cfg) {
                + add('hastePct', 'Stat-weight test', ex.hastePct || 0)
                + oilStat('hastePct') + conStat('hastePct');
   var pierce = add('pierce', 'Gear', gear.pierce || 0) + add('pierce', 'Stat-weight test', ex.pierce || 0);
+  var spellPen = add('spellPen', 'Gear', gear.spellPen || 0);                // round 155: lowers resistance down to 0 [A96]
 
   var mp5 = add('mp5', 'Gear', gear.mp5 || 0) + buffStat('mp5') + conStat('mp5') + oilStat('mp5');
 
@@ -202,7 +203,7 @@ WL.computeStats = function (build, raceKey, cfg) {
 
   return {
     race: raceKey, int: int, spi: spi, sta: sta, maxMana: maxMana, maxHealth: maxHealth,
-    sp: sp, dkSp: dkSp, schoolSp: schoolSp, hitPct: hitPct, hitPctUncapped: hitRaw, critPct: critPct, hastePct: hastePct, mp5: mp5, pierce: pierce,
+    sp: sp, dkSp: dkSp, schoolSp: schoolSp, hitPct: hitPct, hitPctUncapped: hitRaw, critPct: critPct, hastePct: hastePct, mp5: mp5, pierce: pierce, spellPen: spellPen,
     mult: mult, petActive: petActive, sacrificeActive: sacrificeActive, oilName: oils.length ? oils.map(function (o) { return o.name; }).join(' + ') : WL.OILS.none.name, breakdown: bd,
   };
 };

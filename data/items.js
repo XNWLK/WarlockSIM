@@ -6,7 +6,7 @@ window.WL = window.WL || {};
 
 // The stats an item can carry: the same values as the Sheet (gear) column of the Stats panel (cfg.gear), in its units —
 // spell power in points, hit / crit / haste in %, the rest in points. Order = the order the page lists them in.
-WL.GEAR_STAT_KEYS = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'int', 'spi', 'sta', 'mp5'];   // round 152: no Agility (it does nothing) [A95]
+WL.GEAR_STAT_KEYS = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'spellPen', 'int', 'spi', 'sta', 'mp5'];   // spellPen: round 155   // round 152: no Agility (it does nothing) [A95]
 
 // The character window's slots: a column on the left, one on the right and the weapons under them, top to bottom as in
 // the game. `fits` = the item slot types that can go in (a Warlock wears no shield and cannot hold a weapon in the off hand).
@@ -31,7 +31,7 @@ WL.GEAR_SLOTS = [
   { key: 'trinket1', name: 'Trinket',   col: 'right', inv: 13, enchant: false, fits: ['trinket'] },
   { key: 'trinket2', name: 'Trinket',   col: 'right', inv: 14, enchant: false, fits: ['trinket'] },
   { key: 'mainHand', name: 'Main Hand', col: 'weapons', inv: 16, enchant: true,  fits: ['oneHand', 'mainHand', 'twoHand'] },
-  { key: 'offHand',  name: 'Off Hand',  col: 'weapons', inv: 17, enchant: false, fits: ['offHand'] },
+  { key: 'offHand',  name: 'Off Hand',  col: 'weapons', inv: 17, enchant: true,  fits: ['offHand'] },   // round 155: Forever has off-hand enchants
   { key: 'ranged',   name: 'Wand',      col: 'weapons', inv: 18, enchant: false, fits: ['ranged'] },
 ];
 
