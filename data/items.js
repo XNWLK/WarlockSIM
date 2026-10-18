@@ -11,11 +11,11 @@ WL.GEAR_STAT_KEYS = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct'
 // The character window's slots: a column on the left, one on the right and the weapons under them, top to bottom as in
 // the game. `fits` = the item slot types that can go in (a Warlock wears no shield and cannot hold a weapon in the off hand).
 // `inv` = the game's inventory slot number (round 148, for gear codes from the in-game addon). `enchant` = the slot can
-// carry an enchant (round 148: the slots Classic enchants exist for; rings, neck, trinkets, the held off-hand item and the
-// wand cannot be enchanted there).
+// carry an enchant (round 148: the slots Classic enchants exist for; round 155: Forever also has enchants for the neck, the
+// belt and the held off-hand item; rings, trinkets, shirt, tabard and the wand have none).
 WL.GEAR_SLOTS = [
   { key: 'head',     name: 'Head',      col: 'left',  inv:  1, enchant: true,  fits: ['head'] },
-  { key: 'neck',     name: 'Neck',      col: 'left',  inv:  2, enchant: false, fits: ['neck'] },
+  { key: 'neck',     name: 'Neck',      col: 'left',  inv:  2, enchant: true,  fits: ['neck'] },
   { key: 'shoulder', name: 'Shoulder',  col: 'left',  inv:  3, enchant: true,  fits: ['shoulder'] },
   { key: 'back',     name: 'Back',      col: 'left',  inv: 15, enchant: true,  fits: ['back'] },
   { key: 'chest',    name: 'Chest',     col: 'left',  inv:  5, enchant: true,  fits: ['chest'] },
@@ -23,7 +23,7 @@ WL.GEAR_SLOTS = [
   { key: 'tabard',   name: 'Tabard',    col: 'left',  inv: 19, enchant: false, fits: ['tabard'] },
   { key: 'wrist',    name: 'Wrist',     col: 'left',  inv:  9, enchant: true,  fits: ['wrist'] },
   { key: 'hands',    name: 'Hands',     col: 'right', inv: 10, enchant: true,  fits: ['hands'] },
-  { key: 'waist',    name: 'Waist',     col: 'right', inv:  6, enchant: false, fits: ['waist'] },
+  { key: 'waist',    name: 'Waist',     col: 'right', inv:  6, enchant: true,  fits: ['waist'] },
   { key: 'legs',     name: 'Legs',      col: 'right', inv:  7, enchant: true,  fits: ['legs'] },
   { key: 'feet',     name: 'Feet',      col: 'right', inv:  8, enchant: true,  fits: ['feet'] },
   { key: 'finger1',  name: 'Ring',      col: 'right', inv: 11, enchant: false, fits: ['finger'] },

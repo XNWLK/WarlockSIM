@@ -101,6 +101,8 @@ function enchSlots(text) {
   if (/\bshoulders?\b/.test(t)) add('shoulder');
   if (/\brings?\b|\bfinger\b/.test(t)) add('finger1'), add('finger2');
   if (/\boffhand\b/.test(t)) add('offHand');
+  if (/\bnecklace\b|\bneck\b/.test(t)) add('neck');                 // Forever: necklace enchants
+  if (/\bbelt\b|\bwaist\b/.test(t)) add('waist');                   // Forever: belt augments
   if (/weapon|\bstaff\b/.test(t) && !/ranged weapon|\bscope\b|\bbow\b|\bgun\b|\bcrossbow\b/.test(t)) add('mainHand');
   return out;
 }
@@ -112,7 +114,7 @@ function enchStats(name, text) {
   const num = (re, s) => { const m = s.match(re); return m ? +(m[1] || m[2]) : 0; };
   const set = (k, v) => { if (v) o[k] = (o[k] || 0) + v; };
   const fromName = () => {
-    if (!/^(Frost|Arcane|Holy|Nature|Fire|Shadow)\b/i.test(n)) set('sp', num(/Spell Power \+(\d+)|\+(\d+) Spell Power/i, n) || num(/Healing and Spell Damage \+(\d+)|Spell Damage(?: and Healing)? \+(\d+)/i, n) ||
+    if (!/^(Frost|Arcane|Holy|Nature|Fire|Shadow)\b/i.test(n)) set('sp', num(/Spell Power \+(\d+)|\+(\d+) Spell Power/i, n) || num(/Healing and Spell Damage \+(\d+)|Spell Damage(?: and Healing)? \+(\d+)/i, n) || num(/\+(\d+) Spell Damage/i, n) ||
       num(/Damage Spells \+(\d+)/i, n));
     if (!/Frost|Arcane|Holy|Nature|Fire|Shadow/i.test(n)) { /* plain spell power handled above */ }
     set('shadowSp', num(/^Shadow (?:Spell )?Damage \+(\d+)/i, n));
@@ -121,9 +123,9 @@ function enchStats(name, text) {
     set('spi', num(/Spirit \+(\d+)|\+(\d+) Spirit/i, n));
     set('sta', num(/Stamina \+(\d+)|\+(\d+) Stamina/i, n));
     const all = num(/All Stats \+(\d+)|\+(\d+) All Stats/i, n); if (all) { set('int', all); set('spi', all); set('sta', all); }
-    set('mp5', num(/Mana Regen (\d+) per 5|(\d+) mana (?:every|per) 5/i, n));
+    set('mp5', num(/Mana Regen \+?(\d+)|(\d+) mana (?:every|per) 5/i, n));
     set('hastePct', num(/Haste \+(\d+)%|\+(\d+)% Haste/i, n));
-    set('hitPct', num(/(?:Spell )?Hit \+(\d+)%|\+(\d+)% (?:Spell )?Hit/i, n));
+    set('hitPct', num(/Spell Hit \+(\d+)%|\+(\d+)% Spell Hit/i, n));   // an enchant's plain "Hit +1%" is melee / ranged hit
     set('critPct', num(/Crit(?:ical Strike)?(?: Chance)? \+(\d+)%|\+(\d+)% (?:Spell )?Crit/i, n));
     set('hitPct', r2(num(/Hit Rating \+(\d+)|\+(\d+) Hit Rating/i, n) / cb.ratingPerHitPct));
     set('critPct', r2(num(/Critical Strike Rating \+(\d+)|\+(\d+) Critical Strike Rating/i, n) / cb.ratingPerCritPct));
@@ -140,16 +142,18 @@ function enchStats(name, text) {
 }
 const enchants = {}, enchDropped = { noSlot: 0 };
 (raw.enchants || []).forEach(e => {
-  const text = decode(e.desc), name = decode(e.n), slots = enchSlots(text);
+  const text = decode(e.desc), slots = enchSlots(text);
+  const name = /^\$/.test(e.n) ? decode(e.sn) : decode(e.n);       // an unfinished game text ("$@spelldesc…"): the item's name
+  const src = /^Enchant /.test(e.from) ? 'Enchanting' : e.from;   // an enchanting scroll counts as Enchanting
   if (!slots.length) { enchDropped.noSlot++; return; }
   const cur = enchants[e.id];
   if (cur) {                                               // the same enchant from another recipe / item: more slots, more sources
     slots.forEach(s => { if (cur.slots.indexOf(s) < 0) cur.slots.push(s); });
     if (slots.indexOf('mainHand') >= 0) cur.mh.push(twoHandOnly(text));
-    if (cur.from.indexOf(e.from) < 0) cur.from.push(e.from);
+    if (cur.from.indexOf(src) < 0) cur.from.push(src);
     return;
   }
-  const en = { name, slots, stats: enchStats(name, text), text, from: [e.from], icon: iconOf(e.ic), mh: slots.indexOf('mainHand') >= 0 ? [twoHandOnly(text)] : [] };
+  const en = { name, slots, stats: enchStats(name, text), text, from: [src], icon: iconOf(e.ic), mh: slots.indexOf('mainHand') >= 0 ? [twoHandOnly(text)] : [] };
   enchants[e.id] = en;
 });
 Object.keys(enchants).forEach(id => { const e = enchants[id]; e.slots.sort((a, b) => WL.GEAR_SLOTS.findIndex(s => s.key === a) - WL.GEAR_SLOTS.findIndex(s => s.key === b)); e.from = e.from.join(', '); if (e.mh.length && e.mh.every(Boolean)) e.twoHand = true; delete e.mh; });   // twoHand: only on a two-handed weapon

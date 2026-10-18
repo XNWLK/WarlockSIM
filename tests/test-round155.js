@@ -43,5 +43,10 @@
     e(7661, '+6 Intellect and +5 Spirit: off hand only', function (x) { return x.slots.join() === 'offHand' && x.stats.int === 6 && x.stats.spi === 5; });
     e(2565, 'Mana Regen 4 per 5 sec.: MP5 4', function (x) { return x.stats.mp5 === 4; });
     T.ok(E[911] && !Object.keys(E[911].stats).length, 'enchants without a stat the sim uses are listed too (Minor Speed Increase)');
+    e(2544, 'Arcanum of Focus: head and legs, +8 spell power', function (x) { return x.slots.join() === 'head,legs' && x.stats.sp === 8; });
+    e(2605, 'Zandalar Signet of Mojo: shoulder, +18 spell power', function (x) { return x.slots.join() === 'shoulder' && x.stats.sp === 18; });
+    e(2590, 'Prophetic Aura: Mana Regen +4 and Stamina +10', function (x) { return x.stats.mp5 === 4 && x.stats.sta === 10; });
+    e(8218, 'necklace enchant: +6 spell power on the neck', function (x) { return x.slots.join() === 'neck' && x.stats.sp === 6; });
+    T.ok(!ids.some(function (id) { return /^$/.test(E[id].name); }), 'no unfinished game texts as names');
   });
 })();

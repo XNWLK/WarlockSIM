@@ -8,8 +8,8 @@
 
     T.group('gear builder: enchants');
     T.ok(WL.ENCHANTS && typeof WL.ENCHANTS === 'object', 'the enchant list exists (' + Object.keys(WL.ENCHANTS).length + ' so far)');
-    T.eq(WL.GEAR_SLOTS.filter(function (s) { return s.enchant; }).map(function (s) { return s.key; }).join(','), 'head,shoulder,back,chest,wrist,hands,legs,feet,mainHand,offHand',
-      'enchantable: head, shoulder, back, chest, wrist, hands, legs, feet, main hand, off hand (round 155: Forever has off-hand enchants)');
+    T.eq(WL.GEAR_SLOTS.filter(function (s) { return s.enchant; }).map(function (s) { return s.key; }).join(','), 'head,neck,shoulder,back,chest,wrist,hands,waist,legs,feet,mainHand,offHand',
+      'enchantable: head, neck, shoulder, back, chest, wrist, hands, waist, legs, feet, main hand, off hand (round 155: Forever has neck, belt and off-hand enchants)');
     var invs = WL.GEAR_SLOTS.map(function (s) { return s.inv; }).sort(function (a, z) { return a - z; });
     T.eq(invs.join(','), '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19', 'every slot has its game inventory number, 1 to 19, once');
     var g = { slots: { head: own('head', { sp: 30, int: 12 }), legs: own('legs', { sp: 20 }), mainHand: own('twoHand', { sp: 60 }, { weapon: 'staff' }), offHand: own('offHand', { int: 6 }) },
@@ -47,7 +47,7 @@
     var back = WL.decodeGear(code);
     T.eq(Object.keys(back.slots).sort().join(','), 'head,legs,mainHand,offHand', 'it brings back every item');
     T.eq(JSON.stringify(back.slots.mainHand.custom), JSON.stringify({ name: 'Test twoHand', slot: 'twoHand', stats: { sp: 60 }, weapon: 'staff' }), '… with name, slot type, weapon type and stats');
-    T.eq(Object.keys(back.enchants).sort().join(','), 'feet,head,legs', '… and the enchants of enchantable slots (the neck one is left out when made)');
+    T.eq(Object.keys(back.enchants).sort().join(','), 'feet,head,legs,neck', '… and the enchants of enchantable slots (round 155: the neck takes enchants too)');
     T.eq(back.ignored.length, 0, 'nothing ignored');
     var addon = WL.GEAR_CODE_PREFIX + btoa(unescape(encodeURIComponent(JSON.stringify({ v: 1,
       items: { head: { id: 19375, name: 'Mish’undare, Circlet of the Mind Flayer', quality: 'epic', stats: { sp: 35, int: 24, critPct: 2, spi: 9, sta: 15 } },
