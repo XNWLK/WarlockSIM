@@ -35,7 +35,8 @@
     }
     T.eq(m, 0, 'at 100% hit no Shadow Bolt misses (' + n + ' casts over 20 fights)');
     T.eq(pm, 0, 'at 100% hit no Firebolt / Lash of Pain misses');
-    T.near(100 * mm / sw, WL.DEFAULT_CONFIG.combat.petMelee.dodgePct, 1.5, 'Succubus melee: only dodges left (' + mm + ' / ' + sw + ' swings = ' + (100 * mm / sw).toFixed(2) + '%, dodge 6.5%)');
+    var pmT = WL.DEFAULT_CONFIG.combat.petMelee, left = Math.max(0, pmT.missPct - (17 * pmT.hitFromSpell - pmT.hitSuppressionPct));   // round 158: 8/17 → 1% miss left
+    T.near(100 * mm / sw, pmT.dodgePct + left, 1.5, 'Succubus melee: dodges + ' + left + '% miss left (' + mm + ' / ' + sw + ' swings = ' + (100 * mm / sw).toFixed(2) + '%)');
     T.ok(m99 > 0, 'at 99% hit some casts still miss (the 17th % of hit has value)', m99 + ' misses / ' + n99 + ' Shadow Bolts');
   });
 })();

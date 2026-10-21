@@ -53,11 +53,12 @@ WL.DEFAULT_CONFIG = {
     vulnerableSpread: 0.2,                   // triangular spread (±20%) of the step distribution around the mean
     // Pet melee attack table vs a level-63 boss from behind (round 42, user: glancing blows + crit suppression; the pet
     // inherits your hit and crit) [A46]. Classic values for weapon skill 300 vs defense 315: one roll in the order
-    // miss → dodge → glancing → crit → hit. Miss 8% minus your hit above the base (gear, Suppression, buffs), of which the
-    // first 1% does not count (hit suppression vs +3); dodge 6.5%; glancing 40% of swings at 65% damage (never crit);
+    // miss → dodge → glancing → crit → hit. Miss 8% minus the pet's melee hit, of which the first 1% does not count (hit
+    // suppression vs +3). Round 158 (user): pet melee hit = 8/17 of your spell hit above the base (gear, Suppression, buffs;
+    // not capped) — before, all of it [A99]; dodge 6.5%; glancing 40% of swings at 65% damage (never crit);
     // crit = your spell crit (round 152, user: nothing of the pet's own; rounds 75–151 own + your melee crit, rounds 32–74
     // own + your spell crit) − 4.8% (3% skill gap + 1.8% vs a +3 boss). No parry / block from behind.
-    petMelee: { missPct: 8, dodgePct: 6.5, hitSuppressionPct: 1, glancePct: 40, glanceDmgPct: 65, critSuppressionPct: 4.8 },
+    petMelee: { missPct: 8, dodgePct: 6.5, hitSuppressionPct: 1, hitFromSpell: 8 / 17, glancePct: 40, glanceDmgPct: 65, critSuppressionPct: 4.8 },
   },
   // Gear (user, 2026-09-23; round 13: SP 500). Percentages are character-sheet values BEFORE talents, racials and weapon oil. [A35][A42]
   // Int / Spi / Sta / MP5 = Classic pre-raid BiS gear (Wowhead Classic pre-raid BiS list, no-PvP set, items + enchants) [A58].

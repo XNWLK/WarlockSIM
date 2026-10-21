@@ -68,7 +68,8 @@ window.WL = window.WL || {};
       }
       if (pk === 'melee' && pc.melee) {
         var m = pc.melee, tbm = cb.petMelee;
-        var hitBonus = Math.max(0, stats.hitPct - cb.baseHitPct - tbm.hitSuppressionPct), miss = Math.max(0, tbm.missPct - hitBonus);
+        var spellHit = Math.max(0, stats.hitPctUncapped - cb.baseHitPct), petHit = WL.petMeleeHit(stats, cb);
+        var hitBonus = Math.max(0, petHit - tbm.hitSuppressionPct), miss = Math.max(0, tbm.missPct - hitBonus);
         var critCh = Math.max(0, (m.critPct || 0) + (m.inheritSpellCrit ? stats.critPct : 0) - tbm.critSuppressionPct);
         var ap = m.apPerSp * stats.sp, dps = m.baseDps + ap / m.apPerDps, armor = WL.bossArmor(cfg), red = WL.armorReduction(cfg);
         step('Attack power from you', f(stats.sp) + ' spell power ÷ 6', f(ap));
@@ -77,7 +78,8 @@ window.WL = window.WL || {};
         var mp = petMultParts('physical', false), sw = dps * m.swing * (1 - red) * partsMult(mp);
         step('One normal swing', f(dps, 2) + ' × ' + m.swing + ' s × (1 − ' + f(red, 4) + ')' + (mp.length ? ' × ' + partsText(mp) : ''), f(sw));
         values.swing = sw; values.miss = miss; values.crit = critCh;
-        step('Miss', tbm.missPct + '% − (your hit ' + f(stats.hitPct) + '% − ' + cb.baseHitPct + '% − ' + tbm.hitSuppressionPct + '%)', f(miss) + '%');
+        step('Her melee hit', '8/17 of your spell hit ' + f(spellHit) + '% (above the ' + cb.baseHitPct + '% base)', f(petHit, 2) + '%');
+        step('Miss', tbm.missPct + '% − (' + f(petHit, 2) + '% − ' + tbm.hitSuppressionPct + '%)', f(miss, 2) + '%');
         step('Dodge', '', tbm.dodgePct + '%');
         step('Glancing blow', 'deals ' + tbm.glanceDmgPct + '% damage, cannot crit', tbm.glancePct + '% → ' + f(sw * tbm.glanceDmgPct / 100));
         step('Crit', (m.critPct ? m.critPct + '% own + ' : '') + (m.inheritSpellCrit ? 'your spell crit ' + f(stats.critPct, 2) + '%' : '') + ' − ' + tbm.critSuppressionPct + '%; deals × 2', f(critCh, 2) + '% → ' + f(sw * 2));

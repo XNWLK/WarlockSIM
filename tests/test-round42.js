@@ -60,14 +60,14 @@
       return c;
     };
     var c0 = shipped(), st0 = WL.computeStats(succ, 'human', c0), m0 = agg(c0);
-    var hitAbove = st0.hitPct - c0.combat.baseHitPct, miss = Math.max(0, 8 - Math.max(0, hitAbove - 1));
-    T.near(100 * m0.misses / m0.casts, miss + 6.5, 1.0, 'miss + dodge = ' + miss.toFixed(1) + '% (8% − (your ' + hitAbove.toFixed(1) + '% hit − 1%)) + 6.5% dodge (measured ' + (100 * m0.misses / m0.casts).toFixed(2) + '%)');
+    var hitAbove = st0.hitPct - c0.combat.baseHitPct, miss = Math.max(0, 8 - Math.max(0, hitAbove * 8 / 17 - 1));   // round 158: her melee hit = 8/17 of yours [A99]
+    T.near(100 * m0.misses / m0.casts, miss + 6.5, 1.0, 'miss + dodge = ' + miss.toFixed(1) + '% (8% − (8/17 of your ' + hitAbove.toFixed(1) + '% hit − 1%)) + 6.5% dodge (measured ' + (100 * m0.misses / m0.casts).toFixed(2) + '%)');
     T.near(100 * m0.glances / m0.casts, 40, 1.5, 'glancing blows ≈ 40% of swings (measured ' + (100 * m0.glances / m0.casts).toFixed(2) + '%)');
     var critExp = st0.critPct - 4.8;
     T.near(100 * m0.crits / m0.casts, critExp, 1.2, 'crits ≈ your spell crit ' + st0.critPct.toFixed(2) + ' − 4.8 = ' + critExp.toFixed(2) + '% of swings (measured ' + (100 * m0.crits / m0.casts).toFixed(2) + '%)');
-    var c20 = shipped(); c20.gear.hitPct = 12;
+    var c20 = shipped(); c20.gear.hitPct = 17;
     var m20 = agg(c20);
-    T.near(100 * m20.misses / m20.casts, 6.5, 0.8, 'with 12% gear hit the pet never misses — only the 6.5% dodge is left (measured ' + (100 * m20.misses / m20.casts).toFixed(2) + '%)');
+    T.near(100 * m20.misses / m20.casts, 7.5, 0.8, 'with 17% gear hit (8% melee hit for her) she misses 1% — plus the 6.5% dodge (round 158; measured ' + (100 * m20.misses / m20.casts).toFixed(2) + '%)');
     var one = WL.simulateOnce(succ, 'human', c0, { seed: 4, duration: 120 }).bySpell['pet:melee'];
     T.ok(one.glances > 0 && one.glances <= one.landed - one.crits, 'glancing blows are never crits (' + one.glances + ' glances, ' + one.crits + ' crits, ' + one.landed + ' landed)');
 

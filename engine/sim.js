@@ -818,7 +818,7 @@ window.WL = window.WL || {};
 
     // ---------- pet actor [A26][A45][A46] ----------
     // Pet spell power = cfg.petSpPct (default 10%, measured in Forever, round 31) of the Warlock's spell power (incl. Blood
-    // Fury and the potion) + Demonic Knowledge's bonus in full (it names the pet). Pet hit = Warlock hit; pet spell crit =
+    // Fury and the potion) + Demonic Knowledge's bonus in full (it names the pet). Pet spell hit = Warlock hit (melee: 8/17 of it, A99); pet spell crit =
     // the Warlock's crit (character sheet incl. Int, buffs, consumables, oil — "increased by 100% of master's crit",
     // round 31; was gear crit only), ×1.5. Not affected by ISB / Shadow and Flame / Spell Pierce.
     // Each pet gets a generation number; its scheduled events carry it, so a pet swapped out mid-fight (round 35) stops.
@@ -903,10 +903,11 @@ window.WL = window.WL || {};
     function petMeleeAttack(rk, roll) {                  // one swing; true if it landed
       var m = P.c.melee, r = row(rk), tb = cb.petMelee;
       r.casts++;
-      // One-roll attack table (round 42) [A46]: miss (8% − your hit above base, first 1% ignored) → dodge 6.5% →
+      // One-roll attack table (round 42) [A46]: miss (8% − pet melee hit, first 1% ignored; pet melee hit = 8/17 of your
+      // spell hit above the base, round 158 [A99]) → dodge 6.5% →
       // glancing 40% at 65% damage → crit (your spell crit − 4.8%; round 152, user: nothing of her own — rounds 75–151 her
       // own 7.52% + your melee crit from Agility) [A95] → hit.
-      var hitBonus = Math.max(0, stats.hitPct - cb.baseHitPct - tb.hitSuppressionPct);
+      var hitBonus = Math.max(0, WL.petMeleeHit(stats, cb) - tb.hitSuppressionPct);
       var miss = Math.max(0, tb.missPct - hitBonus);
       var critCh = Math.max(0, (m.critPct || 0) + (m.inheritSpellCrit ? stats.critPct : 0) - tb.critSuppressionPct);
       if (roll >= miss + tb.dodgePct) {
@@ -1383,6 +1384,8 @@ window.WL = window.WL || {};
 
   // Stat weights: DPS gained per 1 SP, per 1% hit, per 1% crit, per 1% haste, per 1 Int, per 1 Spell Pierce.
   // Common random numbers: baseline and every +stat run use the same seed, so noise largely cancels.
+  // Pet melee hit (round 158, user): 8/17 of your spell hit above the base, from the hit stat itself (not capped). [A99]
+  WL.petMeleeHit = function (stats, cb) { var t = cb.petMelee; return Math.max(0, stats.hitPctUncapped - cb.baseHitPct) * (t.hitFromSpell != null ? t.hitFromSpell : 1); };
   WL.STAT_WEIGHT_KEYS = ['sp', 'hitPct', 'critPct', 'hastePct', 'int', 'pierce'];
   WL.WEIGHT_STATS = ['sp', 'hitPct', 'critPct', 'hastePct', 'int', 'pierce', 'spellPen', 'spi', 'mp5'];   // round 157: the ones a weight can be computed for
   // One stat-weight run: the baseline DPS (k = null) or the DPS with +weightDeltas[k] of stat k (round 76: split out so

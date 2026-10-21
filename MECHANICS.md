@@ -453,7 +453,7 @@ Demons are simulated as their own actors: they cast, swing, miss, crit and run o
 - Attack power: your spell power ÷ 6. 14 attack power = 1 damage per second.
 - Both follow your spell power as it is at that moment, including the Spellblasting potion and Blood Fury. Shadow-only or
   Fire-only spell power does not count for these.
-- Spell hit = your hit chance. Crit, for spells and melee alike = your spell crit chance (without spell-specific talents
+- Spell hit = your hit chance. Melee hit = 8/17 of your spell hit (see the table below). Crit, for spells and melee alike = your spell crit chance (without spell-specific talents
   such as Malevolence); a demon has no crit of its own. A demon's spell crit deals × 1.5.
 
 **Damage multipliers of a demon:** Unholy Power × Soul Link × Master Demonologist (only the school it names: the
@@ -482,7 +482,7 @@ Each swing is one roll on this table, in this order:
 
 | Outcome | Chance |
 |---|---|
-| Miss | 8% − (your hit chance − 83% − 1%), not below 0. The first 1% of hit above the base does not count. |
+| Miss | 8% − (her melee hit − 1%), not below 0. Her melee hit = 8/17 of your spell hit above the 83% base (17% spell hit → 8%). The first 1% of it does not count. |
 | Dodge | 6.5% |
 | Glancing blow | 40%, deals 65% damage, cannot crit |
 | Crit | your **spell** crit − 4.8%; deals × 2 |

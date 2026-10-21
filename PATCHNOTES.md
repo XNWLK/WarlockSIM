@@ -3,6 +3,11 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v145
+- **Demon hit (Forever):** your demon's spells still hit as often as yours, but its melee now gets 8/17 of your spell hit
+  (17% spell hit → 8% melee hit). So the Succubus' melee misses a little more than before: with 17% hit she still misses 1%
+  (the first 1% does not count against a level-63 boss). Succubus builds lose about 0.5–0.9% DPS; Imp builds are unchanged.
+
 ## v144
 - Gear builder: clicking the Main Hand slot while another slot was open did nothing (the other slot stayed open). Fixed.
 - **Your own rules in the priority list** (build editor → "Your own rules, groups and variables"): a rule casts a spell when
