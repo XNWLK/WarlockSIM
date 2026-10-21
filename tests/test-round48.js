@@ -20,7 +20,7 @@
     T.near(WL.computeStats(b, 'human', cfg(20)).hitPctUncapped, 103, 1e-9, 'uncapped hit still reported (83 + 20)');
 
     // At 100% nothing misses: your spells and your pet's spells (they use your hit chance). Pet melee has its own
-    // table (A46): 8% miss − your hit above the base, first 1% ignored → 0% from 9% hit on, unchanged by the cap; its
+    // table (A46): 8% miss − your hit above the base, first 1% ignored → 0% from 9% hit on, unchanged by the cap (round 158: 8/17 of your hit; round 159: nothing ignored → 0% at 17%); its
     // row counts DODGES as misses too (6.5%, hit cannot remove them) — the first version of this test forgot that (B15).
     var bi = tb(['shadowBolt'], {}, 'imp'), bs = tb(['shadowBolt'], {}, 'succubus');
     var n = 0, m = 0, pm = 0, n99 = 0, m99 = 0, sw = 0, mm = 0;
@@ -35,7 +35,7 @@
     }
     T.eq(m, 0, 'at 100% hit no Shadow Bolt misses (' + n + ' casts over 20 fights)');
     T.eq(pm, 0, 'at 100% hit no Firebolt / Lash of Pain misses');
-    var pmT = WL.DEFAULT_CONFIG.combat.petMelee, left = Math.max(0, pmT.missPct - (17 * pmT.hitFromSpell - pmT.hitSuppressionPct));   // round 158: 8/17 → 1% miss left
+    var pmT = WL.DEFAULT_CONFIG.combat.petMelee, left = Math.max(0, pmT.missPct - 17 * pmT.hitFromSpell);   // round 159: 17% → 8% → no miss left
     T.near(100 * mm / sw, pmT.dodgePct + left, 1.5, 'Succubus melee: dodges + ' + left + '% miss left (' + mm + ' / ' + sw + ' swings = ' + (100 * mm / sw).toFixed(2) + '%)');
     T.ok(m99 > 0, 'at 99% hit some casts still miss (the 17th % of hit has value)', m99 + ' misses / ' + n99 + ' Shadow Bolts');
   });

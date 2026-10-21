@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v146
+- **Demon melee can reach full hit:** the first 1% of your demon's melee hit no longer goes to waste, so with 17% spell hit
+  (8% melee hit for her) the Succubus never misses. Succubus builds gain back about 0.1–0.4% DPS.
+
 ## v145
 - **Demon hit (Forever):** your demon's spells still hit as often as yours, but its melee now gets 8/17 of your spell hit
   (17% spell hit → 8% melee hit). So the Succubus' melee misses a little more than before: with 17% hit she still misses 1%

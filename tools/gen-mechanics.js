@@ -351,14 +351,14 @@ B.examples = (function () {
   // Succubus
   const pc = cfg.pets.succubus, m = pc.melee, pm = cb.petMelee, lash = pc.spell;
   const up = 1 + tv(build, 'unholyPower', 'petDmgPct') / 100, md = 1 + tv(build, 'masterDemonologist', 'schoolPct') / 100, all = st.mult.all;
-  const hitBonus = Math.max(0, st.hitPct - cb.baseHitPct - pm.hitSuppressionPct), miss = Math.max(0, pm.missPct - hitBonus);
+  const spellHit = Math.max(0, st.hitPctUncapped - cb.baseHitPct), petHit = WL.petMeleeHit(st, cb), miss = Math.max(0, pm.missPct - petHit);
   const critCh = Math.max(0, st.critPct - pm.critSuppressionPct), plain = 100 - miss - pm.dodgePct - pm.glancePct - critCh;
   const ap = m.apPerSp * st.sp, dps = m.baseDps + ap / m.apPerDps, armor = WL.bossArmor(cfg), red = WL.armorReduction(cfg), swing = dps * m.swing * (1 - red) * up * all;
   const petSp = st.sp * cfg.petSpPct / 100 + st.dkSp, lashBase = lash.base * (1 + tv(build, 'improvedSayaad', 'lashPct') / 100);
   const petShadow = up * all * md * coe, lashHit = (lashBase + lash.coef * petSp) * petShadow;
   const db = cfg.demonicBrand, brandBase = (db.baseMin + db.baseMax) / 2, brand = (brandBase + db.shadowSpCoef * (st.sp + st.schoolSp.shadow)) * petShadow;
   P('#### 6. The Succubus');
-  P('- Attack table of one swing: miss ' + pm.missPct + '% − (' + n(st.hitPct) + ' − ' + cb.baseHitPct + ' − ' + pm.hitSuppressionPct + ')% = **' + n(miss) + '%**, dodge **' + pm.dodgePct + '%**, glancing blow **' + pm.glancePct + '%** (at ' + pm.glanceDmgPct + '% damage), crit ' +
+  P('- Attack table of one swing: her melee hit = 8/17 × your spell hit ' + n(spellHit) + '% = ' + n(petHit, 2) + '%; miss ' + pm.missPct + '% − ' + n(petHit, 2) + '% = **' + n(miss, 2) + '%**, dodge **' + pm.dodgePct + '%**, glancing blow **' + pm.glancePct + '%** (at ' + pm.glanceDmgPct + '% damage), crit ' +
     'your spell crit ' + n(st.critPct, 2) + ' − ' + pm.critSuppressionPct + ' = **' + n(critCh, 2) + '%** (× 2), normal hit the remaining **' + n(plain, 2) + '%**.');
   P('- Attack power from you: ' + n(st.sp) + ' spell power ÷ 6 = ' + n(ap) + '. Damage per second: ' + m.baseDps + ' + ' + n(ap) + ' ÷ ' + m.apPerDps + ' = ' + n(dps, 2) + '.');
   P('- Boss armor: ' + n(cb.bossArmor, 0) + ' − armor debuffs = ' + n(armor, 0) + ' → ' + n(armor, 0) + ' ÷ (' + n(armor, 0) + ' + 5,500) = ' + n(red * 100, 2) + '% less physical damage.');

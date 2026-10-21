@@ -257,7 +257,7 @@ The examples use the build **Demo Pact Shadow Bolt Succubus** as an Undead with 
 4,666 health × 5% = **233.3**. Nothing multiplies it: no aura, no curse, no Improved Shadow Bolt, no Power Infusion. No spell power, no crit, no resist roll. 30% chance per landed damaging cast, then nothing for 25 s.
 
 #### 6. The Succubus
-- Attack table of one swing: miss 8% − (89 − 83 − 1)% = **3%**, dodge **6.5%**, glancing blow **40%** (at 65% damage), crit your spell crit 14.29 − 4.8 = **9.49%** (× 2), normal hit the remaining **41.01%**.
+- Attack table of one swing: her melee hit = 8/17 × your spell hit 6% = 2.82%; miss 8% − 2.82% = **5.18%**, dodge **6.5%**, glancing blow **40%** (at 65% damage), crit your spell crit 14.29 − 4.8 = **9.49%** (× 2), normal hit the remaining **38.84%**.
 - Attack power from you: 560 spell power ÷ 6 = 93.4. Damage per second: 73.5 + 93.4 ÷ 14 = 80.17.
 - Boss armor: 3,731 − armor debuffs = 976 → 976 ÷ (976 + 5,500) = 15.07% less physical damage.
 - One normal swing: 80.17 × 2 s × (1 − 0.1507) × 1.10 Unholy Power × 1.03 Soul Link = **154.3**. Master Demonologist and Curse of the Elements do not apply to melee.
@@ -482,7 +482,7 @@ Each swing is one roll on this table, in this order:
 
 | Outcome | Chance |
 |---|---|
-| Miss | 8% − (her melee hit − 1%), not below 0. Her melee hit = 8/17 of your spell hit above the 83% base (17% spell hit → 8%). The first 1% of it does not count. |
+| Miss | 8% − her melee hit, not below 0. Her melee hit = 8/17 of your spell hit above the 83% base, so 17% spell hit → 8% → she never misses. |
 | Dodge | 6.5% |
 | Glancing blow | 40%, deals 65% damage, cannot crit |
 | Crit | your **spell** crit − 4.8%; deals × 2 |

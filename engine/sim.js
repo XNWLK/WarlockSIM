@@ -903,11 +903,11 @@ window.WL = window.WL || {};
     function petMeleeAttack(rk, roll) {                  // one swing; true if it landed
       var m = P.c.melee, r = row(rk), tb = cb.petMelee;
       r.casts++;
-      // One-roll attack table (round 42) [A46]: miss (8% − pet melee hit, first 1% ignored; pet melee hit = 8/17 of your
-      // spell hit above the base, round 158 [A99]) → dodge 6.5% →
+      // One-roll attack table (round 42) [A46]: miss (8% − pet melee hit; pet melee hit = 8/17 of your spell hit above the
+      // base, round 158; nothing ignored since round 159 [A99]) → dodge 6.5% →
       // glancing 40% at 65% damage → crit (your spell crit − 4.8%; round 152, user: nothing of her own — rounds 75–151 her
       // own 7.52% + your melee crit from Agility) [A95] → hit.
-      var hitBonus = Math.max(0, WL.petMeleeHit(stats, cb) - tb.hitSuppressionPct);
+      var hitBonus = WL.petMeleeHit(stats, cb);
       var miss = Math.max(0, tb.missPct - hitBonus);
       var critCh = Math.max(0, (m.critPct || 0) + (m.inheritSpellCrit ? stats.critPct : 0) - tb.critSuppressionPct);
       if (roll >= miss + tb.dodgePct) {
