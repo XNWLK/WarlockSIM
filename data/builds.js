@@ -16,6 +16,8 @@
 // Succubus, Aff Shadow Bolt Succubus and DS Ruin (classic). Eight builds remain. The five live on as test fixtures in
 // tests/retired-builds.js (several tests use them); their history is in docs/03_BUILD_LOG.md.
 // Round 122 (user): Demo Pact Shadow Bolt Imp taken off the sheet as well — seven builds remain; it joined the fixtures.
+// Round 160 (user): Aff Pact Shadow Bolt Succubus taken off too (Demo Pact Shadow Bolt Succubus does the same job) — six builds
+// remain; it joined the fixtures. "SM Ruin (classic)" is now "SM Ruin" (key unchanged).
 //
 // Round 16 (2026-09-24): list re-derived after pet spell power 100% → 15% (A26/A49) and Succubus melee 40 → 100 DPS
 // (A46). Full search + point-shift hill-climb + rotation search at the new defaults: docs/04_EXPLORATION.md section 8.
