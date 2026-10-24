@@ -1,5 +1,6 @@
 // Builds that were on the sheet until round 110 (user: taken off the sheet) — and, last in the list, Demo Pact Shadow Bolt
-// Imp, taken off in round 122. Kept here, exactly as they were, because
+// Imp, taken off in round 122, and Aff Pact Shadow Bolt Succubus, taken off in round 160 (user: nothing Demo Pact Shadow Bolt
+// does not already give). Kept here, exactly as they were, because
 // tests of earlier rounds use them (drain filler, Demonic Brand upkeep, filler talents, Life Tap settings …).
 // WL.findBuild(key): a build of the sheet, else one of these.
 window.WL = window.WL || {};
@@ -86,6 +87,20 @@ WL.RETIRED_BUILDS = [
     pet: 'imp', sacrifice: 'succubus', oil: 'spellstone',
     rotation: ['deathCoilFinisher', 'searingPainBrand', 'lifeTapPet', 'bane', 'curseOfElements', 'immolate', 'corruption', 'soulFire', 'searingPainExecute', 'lifeTapBelow', 'shadowBolt'],   // round 82: + Searing Pain at execute
     params: { lifeTapBelow: { pct: 60, sec: 10 } },   // round 105 (user): Life Tap below 60% mana with more than 10 s left, +1.43% (10,000 fights)
+  },
+  {
+    key: 'aff_pact_succ_sb', short: 'Aff Pact Shadow Bolt Succubus',
+    name: 'Affliction/Demonology – Pact, Succubus out, Shadow Bolt',
+    notes: '8/31/12. The same Succubus Pact tree with a small Affliction side: Suppression 5/5, Improved Corruption and Improved Life Tap, then Bane, Improved Shadow Bolt and Ruin. Imp sacrificed (+15% Shadow), Succubus out, Shadow Bolt filler, Searing Pain to keep Demonic Brand up.',
+    talents: {
+      suppression: 5, improvedCorruption: 1, improvedLifeTap: 2,   // round 149 (user; patch 2026-10-16: Malediction gone): −1 Malediction +1 Improved Corruption; then (user: "adopt both", search +0.90%): −3 Pandemic +3 Improved Shadow Bolt, −2 Improved Corruption +2 Ruin
+      unholyPower: 5, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, improvedSayaad: 3, masterSummoner: 2,
+      decimation: 2, demonicBrand: 3, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
+      improvedShadowBolt: 5, bane: 5, ruin: 2,
+    },
+    pet: 'succubus', sacrifice: 'imp', oil: 'spellstone',
+    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'searingPainBrand', 'corruption', 'immolate', 'lifeTapBelow', 'shadowBolt'],
+    params: { lifeTapBelow: { pct: 80, sec: 45 } },   // round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.43% (10,000 fights)
   },
 ];
 

@@ -43,20 +43,6 @@ WL.BUILDS = [
     params: { lifeTapBelow: { pct: 80, sec: 45 } },   // round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.59% (10,000 fights)
   },
   {
-    key: 'aff_pact_succ_sb', short: 'Aff Pact Shadow Bolt Succubus',
-    name: 'Affliction/Demonology – Pact, Succubus out, Shadow Bolt',
-    notes: '8/31/12. The same Succubus Pact tree with a small Affliction side: Suppression 5/5, Improved Corruption and Improved Life Tap, then Bane, Improved Shadow Bolt and Ruin. Imp sacrificed (+15% Shadow), Succubus out, Shadow Bolt filler, Searing Pain to keep Demonic Brand up.',
-    talents: {
-      suppression: 5, improvedCorruption: 1, improvedLifeTap: 2,   // round 149 (user; patch 2026-10-16: Malediction gone): −1 Malediction +1 Improved Corruption; then (user: "adopt both", search +0.90%): −3 Pandemic +3 Improved Shadow Bolt, −2 Improved Corruption +2 Ruin
-      unholyPower: 5, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, improvedSayaad: 3, masterSummoner: 2,
-      decimation: 2, demonicBrand: 3, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
-      improvedShadowBolt: 5, bane: 5, ruin: 2,
-    },
-    pet: 'succubus', sacrifice: 'imp', oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'searingPainBrand', 'corruption', 'immolate', 'lifeTapBelow', 'shadowBolt'],
-    params: { lifeTapBelow: { pct: 80, sec: 45 } },   // round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.43% (10,000 fights)
-  },
-  {
     key: 'demo_pact_fire', short: 'Demo Pact Fire Imp',
     name: 'Demonology – Pact, Imp out, Fire',
     notes: '2/31/18. Succubus sacrificed (+15% Fire, kept by Demonic Pact) with the Imp out: Master Demonologist gives +10% Fire to you and to the Imp. Searing Pain is the filler and keeps Demonic Brand up by itself; Soul Fire is cast in the execute phase (Decimation). Aftermath and Agonizing Flames strengthen Immolate and Searing Pain, and Life Tap also refills the Imp (Demonic Energies).',
@@ -102,8 +88,8 @@ WL.BUILDS = [
   // ---- Reference builds (round 65, user): classic layouts. Round 66: every build is shown by default (no cut-off), so they
   //      need no special flag; anyone can pin any build (📌) to keep it shown when a cut-off is set. ----
   {
-    key: 'sm_ruin_classic', short: 'SM Ruin (classic)',
-    name: 'SM Ruin (classic) – Affliction / Destruction, Succubus out, Shadow Bolt',
+    key: 'sm_ruin_classic', short: 'SM Ruin',   // round 160 (user): was 'SM Ruin (classic)'; the key stays
+    name: 'SM Ruin – Affliction / Destruction, Succubus out, Shadow Bolt',
     notes: '30/0/21. The classic Shadow Mastery / Ruin layout: Suppression, Improved Corruption, Improved Life Tap, Pandemic, Amplify Curse, Improved Bane of Agony, Malevolence, Nightfall, Siphon Life and Shadow Mastery with Bane, Improved Shadow Bolt, Cataclysm, Ruin and Agonizing Flames. No Demonology, so nothing is sacrificed: the Succubus is out. Shadow Bolt filler, instant Shadow Bolts on Shadow Trance.',
     talents: {
       suppression: 5, improvedCorruption: 4, improvedLifeTap: 2, pandemic: 3, amplifyCurse: 1, improvedBaneOfAgony: 2, malevolence: 5, nightfall: 2,

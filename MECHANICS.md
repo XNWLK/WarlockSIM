@@ -827,13 +827,6 @@ Eureka!), the Major Spellblasting Potion and Power Infusion. After the first use
 - Destruction: Improved Shadow Bolt 5/5, Bane 5/5, Ruin 5/5, Agonizing Flames 3/3.
 - Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Curse of the Elements if missing · 4. Searing Pain to (re)apply Demonic Brand when it is down · 5. Immolate if missing/expiring · 6. Corruption if missing/expiring · 7. Life Tap when mana is below 80% and more than 45 s remain · 8. Shadow Bolt (filler).
 
-### Aff Pact Shadow Bolt Succubus (8/31/12)
-- Succubus out, Imp sacrificed, Major Spellstone.
-- Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 1/5.
-- Demonology: Unholy Power 5/5, Fel Vitality 3/3, Demonic Energies 2/2, Improved Sayaad 3/3, Demonic Sacrifice 1/1, Master Summoner 2/2, Decimation 2/2, Demonic Brand 3/3, Soul Link 1/1, Demonic Knowledge 3/3, Master Demonologist 5/5, Demonic Pact 1/1.
-- Destruction: Improved Shadow Bolt 5/5, Bane 5/5, Ruin 2/5.
-- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Curse of the Elements if missing · 4. Searing Pain to (re)apply Demonic Brand when it is down · 5. Corruption if missing/expiring · 6. Immolate if missing/expiring · 7. Life Tap when mana is below 80% and more than 45 s remain · 8. Shadow Bolt (filler).
-
 ### Demo Pact Fire Imp (2/31/18)
 - Imp out, Succubus sacrificed, Major Firestone.
 - Affliction: Suppression 1/5, Improved Corruption 1/5.
@@ -855,7 +848,7 @@ Eureka!), the Major Spellblasting Potion and Power Infusion. After the first use
 - Destruction: Bane 5/5, Cataclysm 3/3, Aftermath 3/5, Ruin 5/5, Shadowburn 1/1, Agonizing Flames 3/3, Conflagrate 1/1, Bane of Havoc 1/1, Fire and Brimstone 3/3, Shadow and Flame 5/5, Incinerate 1/1.
 - Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Corruption if missing/expiring · 4. Immolate if missing/expiring · 5. Curse of the Elements if missing · 6. Life Tap to feed the pet (Demonic Energies) when it is nearly out of mana · 7. Conflagrate on cooldown while Immolate is up · 8. Shadowburn on cooldown (needs a Soul Shard) · 9. Life Tap when mana is below 40% and more than 60 s remain · 10. Incinerate (filler).
 
-### SM Ruin (classic) (30/0/21)
+### SM Ruin (30/0/21)
 - Succubus out, nothing sacrificed, Major Spellstone.
 - Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 4/5, Improved Bane of Agony 2/2, Amplify Curse 1/1, Pandemic 3/3, Malevolence 5/5, Nightfall 2/2, Siphon Life 1/1, Shadow Mastery 5/5.
 - Destruction: Improved Shadow Bolt 5/5, Bane 5/5, Cataclysm 3/3, Ruin 5/5, Agonizing Flames 3/3.

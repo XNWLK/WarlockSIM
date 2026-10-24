@@ -3,13 +3,13 @@
 (function () {
   T.run('round 122: Demo Pact Shadow Bolt Imp off the sheet', function () {
     var own = WL.BUILDS.filter(function (b) { return !b.custom; });
-    T.eq(own.length, 7, 'seven builds on the sheet');
+    T.eq(own.length, 6, 'six builds on the sheet (round 160: Aff Pact Shadow Bolt Succubus went too)');
     T.ok(own.every(function (b) { return b.key !== 'demo_pact_imp_sb'; }), 'Demo Pact Shadow Bolt Imp is not one of them');
     var b = WL.findBuild('demo_pact_imp_sb');
     T.ok(!!b && WL.RETIRED_BUILDS.indexOf(b) >= 0, 'it is kept as a test fixture');
     T.eq(WL.validateBuild(b).join(' | '), '', 'the fixture is a legal build');
     T.ok(b.pet === 'imp' && b.sacrifice === 'succubus' && b.rotation[b.rotation.length - 1] === 'shadowBolt', 'unchanged: Imp out, Succubus sacrificed, Shadow Bolt filler');
-    T.eq(WL.RETIRED_BUILDS.length, 6, 'six fixtures: five from round 110 and this one');
+    T.eq(WL.RETIRED_BUILDS.length, 7, 'seven fixtures: five from round 110, this one and the one of round 160');
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     T.ok(WL.simulate(b, 'undead', c, { iterations: 20, log: false }).dps > 0, 'it still simulates');
     T.ok(WL.decodeBuild(WL.encodeBuild(b)).rotation.join(',') === b.rotation.join(','), 'and still travels in a build code (a code made from it earlier keeps loading)');
@@ -17,7 +17,7 @@
       'the two other Imp builds stay: Demo Pact Fire Imp and Destro Incinerate Imp');
     if (WL.DEFAULT_RESULTS) {
       T.eq(WL.DEFAULT_RESULTS.keys.indexOf('demo_pact_imp_sb'), -1, 'the shipped default results hold no row of it');
-      T.eq(WL.DEFAULT_RESULTS.results.length, 7 * WL.SIM_RACE_KEYS.length, 'shipped default results: 7 builds × ' + WL.SIM_RACE_KEYS.length + ' race rows');
+      T.eq(WL.DEFAULT_RESULTS.results.length, 6 * WL.SIM_RACE_KEYS.length, 'shipped default results: 6 builds × ' + WL.SIM_RACE_KEYS.length + ' race rows');
     }
   });
 })();

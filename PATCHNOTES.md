@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v147
+- **Aff Pact Shadow Bolt Succubus** was taken off the build list: Demo Pact Shadow Bolt Succubus does the same job. Six builds remain.
+- **SM Ruin (classic)** is now called **SM Ruin**. Its build codes still work.
+
 ## v146
 - **Demon melee can reach full hit:** the first 1% of your demon's melee hit no longer goes to waste, so with 17% spell hit
   (8% melee hit for her) the Succubus never misses. Succubus builds gain back about 0.1–0.4% DPS.
