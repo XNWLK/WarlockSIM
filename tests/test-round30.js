@@ -38,7 +38,8 @@
     T.ok(foundChan, 'procs when a channel (Drain Life) lands');
     T.ok(!badTick, 'never right after a periodic tick');
     T.ok(!badUtil, 'never from a curse or Life Tap');
-    var agg = WL.simulate(top, 'undead', cfg, { iterations: 300, log: false }), landed = 0;
+    var c120 = JSON.parse(JSON.stringify(cfg)); c120.fight.duration = 120;   // round 162: the rate is ICD-bound, so it depends on the fight length; measured for 120 s
+    var agg = WL.simulate(top, 'undead', c120, { iterations: 300, log: false }), landed = 0;
     Object.keys(agg.bySpell).forEach(function (k) { var s = WL.SPELLS[k]; if (s && s.kind !== 'utility') landed += agg.bySpell[k].landed; });
     var rate = agg.bySpell.touchOfTheGrave.casts / landed;
     T.near(rate, 0.10, 0.012, 'proc rate per landed damaging cast ≈ 10% (' + (100 * rate).toFixed(2) + '% of ' + landed.toFixed(1) + ' casts per fight)');

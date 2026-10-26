@@ -30,7 +30,7 @@ the fights.
 
 <!-- gen:gear -->
 - **Gear (character sheet, before talents, racials and weapon stone):** 500 spell power, 5% hit, 10% crit, 0% haste, Intellect 148, Spirit 54, Stamina 160, MP5 0, Spell Pierce 0, Spell Penetration 0.
-- **Fight:** 120 s ± 10%, 1,000 fights per build and race, 1 target, execute phase below 35% boss health, healing on you 1,000 every 10 s.
+- **Fight:** 180 s ± 10%, 1,000 fights per build and race, 1 target, execute phase below 35% boss health, healing on you 1,000 every 10 s.
 - **Hit-capped preset:** 1,000 spell power, 17% hit, 20% crit, Intellect 250, Spirit 100, Stamina 300.
 <!-- /gen:gear -->
 

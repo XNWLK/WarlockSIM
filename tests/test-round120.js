@@ -26,7 +26,7 @@
 
   T.run('round 120: cooldown timeline — follow execute / Doom, Amplify Curse and pet swap rows', function () {
     T.group('the entries');
-    var c0 = det({ racial: [90, 'exec', 10, 'doom', 'exec'], pi: ['doom'], bogus: ['later', -3] });
+    var c0 = det({ racial: [90, 'exec', 10, 'doom', 'exec'], pi: ['doom'], bogus: ['later', -3] }); c0.fight.duration = 120;   // round 162: default is 180 s again
     var tl = WL.activesTimelineOf(c0);
     T.eq(JSON.stringify(tl.racial), '[10,"doom","exec",90]', 'sorted by where they fall (Doom ≈ 60 s, execute = 65% of 120 s = 78 s), doubles removed');
     T.eq(JSON.stringify(tl.pi), '["doom"]', 'a row with only an event entry is kept');

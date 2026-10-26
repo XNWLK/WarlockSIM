@@ -4,7 +4,7 @@ window.WL = window.WL || {};
 
 WL.DEFAULT_CONFIG = {
   fight: {
-    duration: 120,          // seconds (180 until round 82, user)
+    duration: 180,          // seconds (round 162, user: "i'm told fights will be longer than 2 minutes"; 180 until round 82, 120 in rounds 82–161)
     durationVarPct: 10,     // each fight lasts duration ± up to 10% (uniform, seeded) - removes exact-length artifacts [A56]
     iterations: 1000,       // fights per build/race (user: 1000)
     weightIterations: 1000, // fights per stat-weight run
