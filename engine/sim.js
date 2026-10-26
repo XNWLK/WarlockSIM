@@ -840,6 +840,7 @@ window.WL = window.WL || {};
     function petRegen() { P.mana = Math.min(P.maxMana, P.mana + P.c.manaRegen * (S.t - P.lastRegen)); P.lastRegen = S.t; }
     function petMult(school) {
       var m = (1 + tv('unholyPower', 'petDmgPct') / 100) * stats.mult.all;                             // Soul Link lives in mult.all
+      var cmd = racialOf('petDmgPct'); if (cmd) m *= 1 + cmd.value / 100;                              // Command (Orc), patch notes of 2026-10-26 [A100]
       if ((build.pet === 'succubus' && school === 'shadow') || (build.pet === 'imp' && school === 'fire'))
         m *= 1 + tv('masterDemonologist', 'schoolPct') / 100;
       if (school !== 'physical' && S.buff('coe')) m *= 1 + SPELLS.curseOfElements.dmgTakenPct / 100;

@@ -13,7 +13,7 @@
     // Wrack 36, BoA 46, Incinerate 217, Immolate R7 146 / 52, Shadowburn 266.
     T.near(sb.cost, 370, 1e-9, 'SB cost 370 (R9)');
     T.near(sb.sp, 721, 1e-9, 'SB uses SP 700 + 21 Spellstone');
-    T.near(sb.critPct, 22 + 5, 1e-9, 'SB crit = 22 + Malevolence 5');
+    T.near(sb.critPct, 21 + 5, 1e-9, 'SB crit = 21 (Ruthless 1, round 161) + Malevolence 5');
     T.near(sb.critMult, 1.5, 1e-12, 'SB crit mult 1.5 (no Ruin)');
     T.near(sb.directDmg, (251 + 0.857 * 721) * 1.10 * 1.15, 1e-9, 'SB = (251 + 0.857×721) × (1 + Shadow Mastery 10%) × DS 1.15 = 1099.15');
     var co = t.corruption;
@@ -41,7 +41,7 @@
     T.near(inc.directDmg, (217 + 0.714 * 721) * 1.15 * 1.10, 1e-9, 'Incinerate × DS Succ 1.15 × AgF 1.10');
     T.near(t.immolate.directDmg, (146 + 0.2 * 721) * 1.15 * (1 + 0.10 + 0.50), 1e-9, 'Immolate direct = DS × (1 + AgF 10% + Aftermath 50%) (round 43: same modifier group adds)');
     T.near(t.immolate.tickDmg, (52 + 0.13 * 721) * 1.15 * 1.10, 1e-9, 'Immolate tick: no Aftermath');
-    T.near(t.conflagrate.critPct, 23 + 25, 1e-9, 'Conflagrate crit 23 (incl. Firestone and Savage) + Fire and Brimstone 25');
+    T.near(t.conflagrate.critPct, 22 + 25, 1e-9, 'Conflagrate crit 22 (incl. Firestone; no Savage since round 161) + Fire and Brimstone 25');
     T.near(t.soulFire.cast, 4.0, 1e-9, 'Soul Fire cast 6 − 2 (Bane)');
     T.near(t.shadowburn.directDmg, (266 + 0.429 * 700) * 1.10, 1e-9, 'Shadowburn: no Spellstone SP, AgF only');
     T.near(t.corruption.cast, 1.2, 1e-9, 'Corruption cast 2.0 − 0.8 (Improved Corruption 2/5)');

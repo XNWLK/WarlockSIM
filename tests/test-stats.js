@@ -9,14 +9,14 @@
     T.group('stats: Human / aff_wrack_ds');
     var s = WL.computeStats(B.aff_wrack_ds, 'human', cfg);
     T.near(s.int, 310, 1e-9, 'Int = 110 + 0 + 200');
-    T.near(s.spi, 204.75, 1e-9, 'Spi = (115 + 80) × 1.05');
+    T.near(s.spi, 214.5, 1e-9, 'Spi = (115 + 80) × 1.10 (The Human Spirit +10% since round 161)');
     T.near(s.sta, 304.75, 1e-9, 'Sta = (65 + 200) × 1.15 (Demonic Embrace 5/5)');
     T.near(s.maxMana, 6604.45, 1e-6, 'Mana = (1373 + 20 + 15×290) × 1.15 (Fel Vitality 3/3)');
     T.near(s.maxHealth, 4281.5, 1e-6, 'Health = 1414 + 20 + 10×(304.75 − 20)');
     T.near(s.sp, 700, 1e-9, 'SP = 700 (no pet → no Demonic Knowledge)');
     T.near(s.schoolSp.shadow, 21, 1e-9, 'Shadow SP = 21 (Spellstone)');
     T.near(s.hitPct, 93, 1e-9, 'Hit = 83 + Suppression 5 + gear 5');
-    T.near(s.critPct, 22, 1e-9, 'Crit = sheet 20 + Ruthless 2 (Malevolence added per spell)');
+    T.near(s.critPct, 21, 1e-9, 'Crit = sheet 20 + Ruthless 1 (round 161; Malevolence added per spell)');
     T.near(s.hastePct, 2, 1e-9, 'Haste = 2 (Spellstone)');
     T.near(s.pierce, 0, 1e-9, 'Spell Pierce 0');
     // Round 43: stats.mult holds only auras; Shadow Mastery is a spell modifier that adds up in the spell table (A68).
@@ -39,7 +39,7 @@
   T.run('stats orc destro', function () {
     T.group('stats: Orc / destro_incin_ds');
     var s = WL.computeStats(B.destro_incin_ds, 'orc', cfg);
-    T.near(s.critPct, 23, 1e-9, 'Crit = sheet 20 + Firestone 2 + Savage 1');
+    T.near(s.critPct, 22, 1e-9, 'Crit = sheet 20 + Firestone 2 (Savage removed in round 161)');
     T.near(s.schoolSp.fire, 21, 1e-9, 'Fire SP = 21 (Firestone)');
     T.near(s.hastePct, 0, 1e-9, 'Haste = 0');
     T.near(s.mult.fire, 1.15, 1e-12, 'Fire mult = DS Succubus 15%');
@@ -51,11 +51,11 @@
     var s = WL.computeStats(B.aff_wrack_ds, 'troll', c2);
     T.near(s.hitPct, 100, 1e-9, 'Hit capped at 100% (round 48: Forever has no permanent 1% miss)');
     T.near(s.hitPctUncapped, 108, 1e-9, 'Uncapped hit reported (83+5+20)');
-    T.near(WL.computeStats(B.aff_wrack_ds, 'human', cfg).critPct - WL.computeStats(B.aff_wrack_ds, 'none', cfg).critPct, 2, 1e-9, 'Human: Ruthless +2% with any weapon (round 149)');
+    T.near(WL.computeStats(B.aff_wrack_ds, 'human', cfg).critPct - WL.computeStats(B.aff_wrack_ds, 'none', cfg).critPct, 1, 1e-9, 'Human: Ruthless +1% with any weapon (round 149; 1% since round 161)');
     var c4 = JSON.parse(JSON.stringify(cfg)); c4.buffs.arcaneIntellect.on = true;
     var s4 = WL.computeStats(B.aff_wrack_ds, 'human', c4);
     T.near(s4.int, 341, 1e-9, 'Arcane Intellect +31 Int');
-    T.near(s4.critPct, 22 + 31 / 60, 1e-9, 'extra Int adds crit on top of the sheet total (60 Int = 1%)');
+    T.near(s4.critPct, 21 + 31 / 60, 1e-9, 'extra Int adds crit on top of the sheet total (60 Int = 1%)');
     var c6 = JSON.parse(JSON.stringify(cfg)); c6.gear.critIncludesAll = true;
     T.near(WL.computeStats(B.aff_wrack_ds, 'human', c6).critPct, 20, 1e-9, 'critIncludesAll on → 20 flat (Ruthless not added)');
     T.near(WL.computeStats(B.destro_incin_ds, 'orc', c6).critPct, 20, 1e-9, 'critIncludesAll on → 20 flat (Firestone not added)');
@@ -64,7 +64,7 @@
     var s5 = WL.computeStats(B.aff_wrack_ds, 'human', c5);
     T.near(s5.sp, 750, 1e-9, 'extra SP +50');
     T.near(s5.hitPct, 94, 1e-9, 'extra +1% hit');
-    T.near(s5.critPct, 22 + 1 + 1, 1e-9, 'extra +1% crit and 60 Int +1%');
+    T.near(s5.critPct, 21 + 1 + 1, 1e-9, 'extra +1% crit and 60 Int +1%');
     T.near(s5.hastePct, 3, 1e-9, 'extra +1% haste');
     T.near(s5.maxMana, (1373 + 20 + 15 * 350) * 1.15, 1e-6, 'extra Int also adds mana');
     ['int', 'critPct', 'hitPct'].forEach(function (k) {

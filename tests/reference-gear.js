@@ -50,11 +50,11 @@ T.run('shipped default gear (round 13)', function () {
   cs.gear = JSON.parse(JSON.stringify(WL.SHIPPED_GEAR));
   ['buffs', 'debuffs'].forEach(function (g) { Object.keys(cs[g]).forEach(function (k) { cs[g][k].on = WL.SHIPPED_ON[g][k]; }); });
   var st = WL.computeStats({ key: 'x', talents: {}, pet: null, sacrifice: null, oil: 'none', rotation: ['shadowBolt'] }, 'human', cs);
-  var int = (110 + 148 + 31 + 16) * 1.10, spi = (115 + 54 + 16 + 40) * 1.05 * 1.10, sta = (65 + 160 + 16 + 70) * 1.10;
+  var int = (110 + 148 + 31 + 16) * 1.10, spi = (115 + 54 + 16 + 40) * 1.10 * 1.10, sta = (65 + 160 + 16 + 70) * 1.10;
   T.near(st.int, int, 1e-9, 'Int = (110 + 148 + 31 Arcane Intellect + 16 Mark) × 1.10 Kings = ' + int.toFixed(1));
-  T.near(st.spi, spi, 1e-9, 'Spirit = (115 + 54 + 16 Mark + 40 Divine Spirit) × 1.05 Human Spirit × 1.10 Kings = ' + spi.toFixed(3));
+  T.near(st.spi, spi, 1e-9, 'Spirit = (115 + 54 + 16 Mark + 40 Divine Spirit) × 1.10 Human Spirit (round 161) × 1.10 Kings = ' + spi.toFixed(3));
   T.near(st.sta, sta, 1e-9, 'Stamina = (65 + 160 + 16 Mark + 70 Fortitude) × 1.10 Kings = ' + sta.toFixed(1));
-  T.near(st.critPct, 10 + 2 + 3 + (int - 258) / 60, 1e-9, 'crit = 10 sheet + 2 Sword + 3 Moonkin + (Int above the sheet ' + (int - 258).toFixed(1) + ') / 60');
+  T.near(st.critPct, 10 + 1 + 3 + (int - 258) / 60, 1e-9, 'crit = 10 sheet + 1 Ruthless (round 161) + 3 Moonkin + (Int above the sheet ' + (int - 258).toFixed(1) + ') / 60');
   T.near(st.maxMana, 1373 + 20 + 15 * (int - 20), 1e-9, 'max mana = 1373 + 20 + 15 × (Int − 20)');
   T.eq(st.mp5, 40, 'MP5 40 (Blessing of Wisdom)');
   T.eq(WL.bossArmor(cs), 3731 - 2250 - 505, 'boss armor 976 = 3731 − Sunder 2250 − Faerie Fire 505 (round 68; was 471 with Curse of Recklessness stacking)');

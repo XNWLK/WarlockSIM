@@ -37,6 +37,7 @@ window.WL = window.WL || {};
       var p = [];
       if (tv('unholyPower')) p.push([1 + tv('unholyPower', 'petDmgPct') / 100, 'Unholy Power']);
       if (stats.mult.all !== 1) p.push([stats.mult.all, 'Soul Link']);
+      var cmd = race.racials.filter(function (r) { return r.effect === 'petDmgPct'; })[0]; if (cmd) p.push([1 + cmd.value / 100, cmd.name]);   // Orc [A100]
       if (((build.pet === 'succubus' && school === 'shadow') || (build.pet === 'imp' && school === 'fire')) && tv('masterDemonologist')) p.push([1 + tv('masterDemonologist', 'schoolPct') / 100, 'Master Demonologist']);
       if (withCoe && school !== 'physical' && hasCoe) p.push([coe, 'Curse of the Elements']);
       return p;

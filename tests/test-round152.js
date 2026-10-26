@@ -36,7 +36,7 @@
     var cM = shipped(function (c) { c.gear.critPct += 5; }), mM = meleeCrit('human', cM);
     T.near(mM - m0, 5, 1.2, '+5% spell crit on gear → about +5 points of her swings crit (' + m0.toFixed(2) + ' → ' + mM.toFixed(2) + '%)');
     var cN = shipped(), mN = meleeCrit('none', cN), sN = WL.computeStats(succ, 'none', cN);
-    T.near(s0.critPct - sN.critPct, 2, 1e-9, 'Ruthless: +2% spell crit for a Human …');
+    T.near(s0.critPct - sN.critPct, 1, 1e-9, 'Ruthless: +1% spell crit for a Human (round 161) …');
     T.near(m0 - mN, 2, 1.2, '… and so +2 points of her swings crit (' + mN.toFixed(2) + ' → ' + m0.toFixed(2) + '%)');
     var ex = WL.explainSpell(succ, 'human', c0, 'pet:melee');
     var crit = ex && ex.steps.filter(function (s) { return s.label === 'Crit'; })[0];

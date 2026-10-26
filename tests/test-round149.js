@@ -41,10 +41,10 @@
     T.ok(/range of your Destruction spells by 20%/.test(WL.TALENT_TEXT.destructiveReach[1]), 'Destructive Reach tooltip: Destruction spells', WL.TALENT_TEXT.destructiveReach[1]);
     T.ok(/by 10%\./.test(WL.TALENT_TEXT.shadowMastery[4]), 'Shadow Mastery tooltip says 10% at 5/5', WL.TALENT_TEXT.shadowMastery[4]);
 
-    T.group('Ruthless (Human) +2% and Savage (Orc) +1% spell crit (your demon crits with it too, round 152)');
+    T.group('Ruthless (Human) spell crit (your demon crits with it too, round 152); round 161: +1% (was 2%), Savage (Orc) removed');
     var b = tb(['shadowBolt']), cs = function (r, cc) { return WL.computeStats(b, r, cc || c); };
     var sH = cs('human'), sO = cs('orc'), sN = cs('none'), sT = cs('troll');
-    T.ok(near(sH.critPct - sN.critPct, 2) && near(sO.critPct - sN.critPct, 1) && near(sT.critPct - sN.critPct, 0), 'spell crit vs no race: Human +' + (sH.critPct - sN.critPct) + ', Orc +' + (sO.critPct - sN.critPct) + ', Troll +' + (sT.critPct - sN.critPct));
+    T.ok(near(sH.critPct - sN.critPct, 1) && near(sO.critPct - sN.critPct, 0) && near(sT.critPct - sN.critPct, 0), 'spell crit vs no race: Human +' + (sH.critPct - sN.critPct) + ', Orc +' + (sO.critPct - sN.critPct) + ', Troll +' + (sT.critPct - sN.critPct));
     var cA = det(function (x) { x.gear.critIncludesAll = true; });
     T.ok(near(cs('human', cA).critPct, cs('none', cA).critPct), '"Sheet crit % already includes … racials": Ruthless is not added again');
     T.ok(!('weaponIsSword' in WL.DEFAULT_CONFIG.gear), 'the Sword setting is gone');

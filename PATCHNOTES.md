@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v148
+- **Racials (Forever patch notes):**
+  - Human: Ruthless gives +1% crit (was 2%); The Human Spirit gives +10% Spirit (was 5%).
+  - Orc: Savage (+1% crit) is gone; **Command** is back: your demon deals 5% more damage (spells, melee and the Demonic Brand bonus).
+  - Humans lose about 0.6–1.1% DPS. Orcs gain a little with the Demonology Pact builds and lose a little with the others.
+
 ## v147
 - **Aff Pact Shadow Bolt Succubus** was taken off the build list: Demo Pact Shadow Bolt Succubus does the same job. Six builds remain.
 - **SM Ruin (classic)** is now called **SM Ruin**. Its build codes still work.

@@ -14,8 +14,8 @@
     T.eq(WL.SIM_RACE_KEYS.join(','), WL.RACE_KEYS.concat([base]).join(','), 'results page simulates the 5 races + baseline');
     var sN = WL.computeStats(top, base, cfg), sH = WL.computeStats(top, 'human', cfg);
     T.near(sN.int, sH.int, 1e-9, 'baseline Int = Human Int (Human has no stat offset)');
-    T.near(sN.spi * 1.05, sH.spi, 1e-9, 'baseline Spirit = Human Spirit without The Human Spirit (+5%)');
-    T.near(sN.critPct + 2, sH.critPct, 1e-9, 'baseline crit = Human crit without Sword Specialization (+2%)');
+    T.near(sN.spi * 1.10, sH.spi, 1e-9, 'baseline Spirit = Human Spirit without The Human Spirit (+10% since round 161)');
+    T.near(sN.critPct + 1, sH.critPct, 1e-9, 'baseline crit = Human crit without Ruthless (+1% since round 161)');
     T.near(sN.maxMana, sH.maxMana, 1e-9, 'baseline mana = Human mana (no Expansive Mind)');
 
     // Exactly "Human minus racials": a temporary race with Human's offsets and no racials gives the same fights.

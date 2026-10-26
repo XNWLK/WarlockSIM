@@ -50,7 +50,7 @@
     var spent = r.bySpell.shadowBolt.casts * 370;                       // Shadow Bolt R9 (round 42)
     T.near(st.maxMana + r.manaFromTaps - spent, r.endMana, 1e-6, 'start + tapped − spent = end mana');
     var tapGain = r.log.filter(function (e) { return e.spell === 'lifeTap'; })[0].gain;
-    T.eq(tapGain, 635, 'one tap = 430 + Spirit 204.75 ((115+80) × 1.05 Human Spirit), rounded in log');
+    T.eq(tapGain, 645, 'one tap = 430 + Spirit 214.5 ((115+80) × 1.10 Human Spirit, round 161), rounded in log');
   });
 
   T.run('sim rates', function () {

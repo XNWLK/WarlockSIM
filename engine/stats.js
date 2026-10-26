@@ -177,7 +177,7 @@ WL.computeStats = function (build, raceKey, cfg) {
   critPct += buffStat('critPct') + conCrit();                            // e.g. Moonkin Form aura, Elixir of the Owl
   if (!gear.critIncludesAll) {
     critPct += oilStat('critPct');
-    var rc = racial('critPct');                                         // Ruthless (Human), Savage (Orc) [A93]
+    var rc = racial('critPct');                                         // Ruthless (Human) [A93]; Savage (Orc) removed 2026-10-26 [A100]
     if (rc) critPct += add('critPct', rc.name + ' [A93]', rc.value);
   }
 

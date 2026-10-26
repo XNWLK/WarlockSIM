@@ -27,15 +27,18 @@
     T.ok(hits.length === 3 && hits.every(function (e) { return e.dmg === Math.round(454 + 0.214 * sp); }), 'each hit = 454 + 0.214 × ' + sp + ' SP = ' + Math.round(454 + 0.214 * sp));
 
     T.group('Death Coil as the finisher');
-    var rf = WL.simulateOnce(tb(['deathCoilFinisher', 'shadowBolt']), 'human', c, { duration: 60, log: true, seed: 2 });
+    // Round 161: plenty of mana and a 61 s fight — 20 Shadow Bolts end at 60 s, leaving 1 s for the finisher. Before, it
+    // relied on Life Tap pauses (60 s, low mana), which moved when The Human Spirit went to +10%.
+    var cm = det(function (x) { x.gear.int = 600; }), D = 61;
+    var rf = WL.simulateOnce(tb(['deathCoilFinisher', 'shadowBolt']), 'human', cm, { duration: D, log: true, seed: 2 });
     var dc = casts(rf, 'deathCoil'), sbCast = WL.buildSpellTable(b, WL.computeStats(b, 'human', c), c).shadowBolt.cast;
     T.eq(dc.length, 1, 'exactly one Death Coil in the fight');
-    T.ok(dc[0] && dc[0].t > 60 - sbCast - 1e-6, 'cast when less than one Shadow Bolt cast (' + sbCast.toFixed(2) + ' s) is left (at ' + (dc[0] && dc[0].t.toFixed(2)) + ' s)');
+    T.ok(dc[0] && dc[0].t > D - sbCast - 1e-6, 'cast when less than one Shadow Bolt cast (' + sbCast.toFixed(2) + ' s) is left (at ' + (dc[0] && dc[0].t.toFixed(2)) + ' s)');
     T.ok(rf.log.some(function (e) { return e.type === 'hit' && e.spell === 'deathCoil'; }), 'and it lands before the boss dies');
-    var ct = det(function (x) { x.fight.travelMs = 800; });
-    var rt = WL.simulateOnce(tb(['deathCoilFinisher', 'shadowBolt']), 'human', ct, { duration: 60, log: true, seed: 2 });
+    var ct = det(function (x) { x.fight.travelMs = 800; x.gear.int = 600; });
+    var rt = WL.simulateOnce(tb(['deathCoilFinisher', 'shadowBolt']), 'human', ct, { duration: D, log: true, seed: 2 });
     var dct = casts(rt, 'deathCoil');
-    T.ok(dct.length === 0 || dct[0].t < 60 - 0.8 + 1e-6, 'with 800 ms travel time it is only cast while it can still land');
+    T.ok(dct.length === 0 || dct[0].t < D - 0.8 + 1e-6, 'with 800 ms travel time it is only cast while it can still land');
     var rb = WL.simulateOnce(tb(['deathCoilFinisher', 'deathCoil', 'shadowBolt']), 'human', c, { duration: 180, log: true, seed: 3 });
     T.eq(casts(rb, 'deathCoil').length, 2, 'with "on cooldown" too: 0 and 120 s, nothing left for the end (ready at 240 s)');
 

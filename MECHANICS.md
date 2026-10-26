@@ -98,7 +98,7 @@ Level-60 Warlock before the race: Intellect 110, Spirit 115, Stamina 65, base ma
 |---|---|---|---|---|
 | Human | 0 | 0 | 0 | The Human Spirit, Ruthless |
 | Gnome | +3 | 0 | −1 | Expansive Mind, Eureka! |
-| Orc | −3 | +3 | +2 | Savage, Blood Fury |
+| Orc | −3 | +3 | +2 | Command, Blood Fury |
 | Undead | −2 | +5 | +1 | Touch of the Grave |
 | Troll | −4 | +1 | +1 | Berserking |
 <!-- /gen:races -->
@@ -456,7 +456,7 @@ Demons are simulated as their own actors: they cast, swing, miss, crit and run o
 - Spell hit = your hit chance. Melee hit = 8/17 of your spell hit (see the table below). Crit, for spells and melee alike = your spell crit chance (without spell-specific talents
   such as Malevolence); a demon has no crit of its own. A demon's spell crit deals × 1.5.
 
-**Damage multipliers of a demon:** Unholy Power × Soul Link × Master Demonologist (only the school it names: the
+**Damage multipliers of a demon:** Unholy Power × Soul Link × Command (Orc) × Master Demonologist (only the school it names: the
 Succubus' Shadow, the Imp's Fire) × Curse of the Elements (spells only, not melee). Demons get nothing from Improved
 Shadow Bolt, Shadow and Flame, Demonic Sacrifice or Spell Pierce, and their damage is never resisted.
 
@@ -535,11 +535,11 @@ racials, so you can read off what each race adds.
 
 | Racial | In the sim |
 |---|---|
-| The Human Spirit (Human) | Spirit × 1.05. |
-| Ruthless (Human) | +2% spell crit (your demon crits with it too). |
+| The Human Spirit (Human) | Spirit × 1.10. |
+| Ruthless (Human) | +1% spell crit (your demon crits with it too). |
 | Expansive Mind (Gnome) | Maximum mana +5% (adds with Fel Vitality). |
 | Eureka! (Gnome) | 2 min cooldown, 8 s. Every damaging spell that finishes while it is up costs 10% less mana and deals +10%, added to its talent group (section 3): a spell with a cast time when the cast is complete, an instant when it is cast. A cast that is still going when the 8 s end gets nothing. A channel costs 10% less when it starts inside the 8 s, and each of its ticks that comes while Eureka! is up gets +10%. DoT ticks get nothing. The sim starts Eureka! right before a direct spell or channel of at least 1.4 s. |
-| Savage (Orc) | +1% spell crit (your demon crits with it too). |
+| Command (Orc) | Your demon deals 5% more damage: its spells, its melee and the Demonic Brand bonus. |
 | Blood Fury (Orc) | 3 min cooldown, 15 s: your spell power × 1.10. That also raises what your demon gets from you, and a Bane of Doom that explodes while it is up. |
 | Berserking (Troll) | 3 min cooldown, 10 s: 10% haste. Shortens casts and the global cooldown. |
 | Touch of the Grave (Undead) | Each landed cast of a damaging spell (a direct spell, a DoT when it is applied, a channel when it starts - never a tick, a curse or Life Tap) has a 30% chance to deal 5% of your maximum health as Shadow damage and heal you for the same amount. After it happens it cannot happen again for 25 s. |

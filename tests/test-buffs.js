@@ -13,19 +13,19 @@
   function tb(rot) { return { key: 't', name: 't', talents: {}, pet: null, sacrifice: null, oil: 'none', rotation: rot }; }
 
   T.run('buff stats', function () {
-    T.group('raid buffs → stats (Human, no talents: Int 310, Spi (115+80)×1.05, Sta 265)');
+    T.group('raid buffs → stats (Human, no talents: Int 310, Spi (115+80)×1.10, Sta 265)');
     var c = base(), b = tb(['shadowBolt']);
     var s0 = WL.computeStats(b, 'human', c);
     c.buffs.markOfTheWild.on = true;
     var s1 = WL.computeStats(b, 'human', c);
     T.near(s1.int - s0.int, 16, 1e-9, 'Mark of the Wild +16 Int');
     T.near(s1.sta - s0.sta, 16, 1e-9, 'Mark of the Wild +16 Sta');
-    T.near(s1.spi - s0.spi, 16 * 1.05, 1e-9, 'Mark of the Wild +16 Spi (× Human Spirit 1.05)');
+    T.near(s1.spi - s0.spi, 16 * 1.10, 1e-9, 'Mark of the Wild +16 Spi (× Human Spirit 1.10, round 161)');
     T.near(s1.critPct - s0.critPct, 16 / 60, 1e-9, '+16 Int above the sheet → +0.267% crit');
     var c2 = base(); c2.buffs.blessingOfKings.on = true;
     var s2 = WL.computeStats(b, 'human', c2);
     T.near(s2.int, 310 * 1.1, 1e-9, 'Kings: Int × 1.10');
-    T.near(s2.spi, 195 * 1.05 * 1.1, 1e-9, 'Kings: Spi × 1.05 × 1.10');
+    T.near(s2.spi, 195 * 1.10 * 1.1, 1e-9, 'Kings: Spi × 1.10 Human Spirit × 1.10');
     T.near(s2.sta, 265 * 1.1, 1e-9, 'Kings: Sta × 1.10');
     T.near(s2.critPct - s0.critPct, 31 / 60, 1e-9, 'Kings: extra 31 Int → +0.517% crit');
     var c3 = base(); c3.buffs.moonkinAura.on = true;

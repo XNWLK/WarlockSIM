@@ -12,10 +12,11 @@ WL.RACES = {
   human: {
     name: 'Human', faction: 'Alliance', offset: { int: 0, spi: 0, sta: 0 },
     racials: [
-      { id: 20598,   name: 'The Human Spirit',     effect: 'spiritPct', value: 5 },
+      // Patch notes of 2026-10-26: Spirit +10% (was 5%). [A100]
+      { id: 20598,   name: 'The Human Spirit',     effect: 'spiritPct', value: 10 },
       // Patch 2026-10-16: Sword Specialization (+2% crit with a sword) was replaced by Ruthless, +2% crit always. Spell crit,
-      // which your demon also crits with (round 152). [A93][A95]
-      { id: 20597,   name: 'Ruthless',             effect: 'critPct', value: 2, patch: '2026-10-16' },   // the old Sword Specialization id
+      // which your demon also crits with (round 152). [A93][A95] Patch notes of 2026-10-26: +1% (was 2%). [A100]
+      { id: 20597,   name: 'Ruthless',             effect: 'critPct', value: 1, patch: '2026-10-16' },   // the old Sword Specialization id
     ],
   },
   gnome: {
@@ -31,9 +32,10 @@ WL.RACES = {
   orc: {
     name: 'Orc', faction: 'Horde', offset: { int: -3, spi: 3, sta: 2 },
     racials: [
-      // Patch 2026-10-16: Axe Specialization was replaced by Savage, +1% spell crit (your demon crits with it too), and
-      // Blood Fury's cooldown went from 2 to 3 minutes. [A93]
-      { id: 20574,   name: 'Savage',     effect: 'critPct', value: 1, patch: '2026-10-16' },   // the old Axe Specialization id
+      // Patch 2026-10-16: Axe Specialization was replaced by Savage, +1% spell crit, and Blood Fury's cooldown went from 2 to
+      // 3 minutes. [A93] Patch notes of 2026-10-26: Savage removed; Command re-added: your demon deals 5% more damage (all of
+      // it: spells, melee, the Demonic Brand bonus). [A100]
+      { id: 20575,   name: 'Command',    effect: 'petDmgPct', value: 5, patch: '2026-10-26' },
       { id: 20572,   name: 'Blood Fury', effect: 'cooldown', cd: 180, duration: 15, spPct: 10, patch: '2026-10-16' },      // [A32]
     ],
   },
