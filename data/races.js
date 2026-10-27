@@ -52,7 +52,8 @@ WL.RACES = {
   troll: {
     name: 'Troll', faction: 'Horde', offset: { int: -4, spi: 1, sta: 1 },
     racials: [
-      { id: 20554,   name: 'Berserking', effect: 'cooldown', cd: 180, duration: 10, hastePct: 10 },  // [A32]
+      // Patch notes (round 165): 15 s (was 10 s). [A103]
+      { id: 20554,   name: 'Berserking', effect: 'cooldown', cd: 180, duration: 15, hastePct: 10 },  // [A32]
     ],
   },
 };

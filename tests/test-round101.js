@@ -16,14 +16,14 @@
 
   T.run('round 101: Berserking shortens the global cooldown', function () {
     var hp = WL.RACES.troll.racials.filter(function (r) { return r.effect === 'cooldown'; })[0];
-    T.eq([hp.name, hp.hastePct, hp.duration].join('/'), 'Berserking/10/10', 'Berserking: +10% haste for 10 s');
+    T.eq([hp.name, hp.hastePct, hp.duration].join('/'), 'Berserking/10/15', 'Berserking: +10% haste for 15 s (10 s until round 165)');
     var want = 1.5 / 1.1;
 
     T.group('Searing Pain (1.5 s cast)');
     var r = WL.simulateOnce(tb(['searingPain']), 'troll', det(), { seed: 1, duration: 40, log: true }), sp = casts(r, 'searingPain');
     var pop = r.log.filter(function (e) { return e.type === 'racial'; })[0];
     T.ok(pop && pop.t === 0, 'popped on the pull');
-    var inn = sp.filter(function (e) { return e.t < 10 - 1e-6; }), out = sp.filter(function (e) { return e.t >= 10 + 1.5; });
+    var inn = sp.filter(function (e) { return e.t < 10 - 1e-6; }), out = sp.filter(function (e) { return e.t >= hp.duration + 1.5; });   // round 165: after the buff (15 s)
     T.ok(inn.length >= 7 && inn.every(function (e) { return near(e.castTime, want) && near(e.gcd, want); }), 'during Berserking: cast ' + want.toFixed(3) + ' s and GCD ' + want.toFixed(3) + ' s (' + inn.length + ' casts)');
     T.ok(inn.slice(1).every(function (e, i) { return near(e.t - inn[i].t, want); }), 'one Searing Pain every ' + want.toFixed(3) + ' s — the GCD does not hold it back');
     T.ok(out.length >= 5 && out.every(function (e) { return near(e.castTime, 1.5) && near(e.gcd, 1.5); }), 'afterwards: 1.5 s cast, 1.5 s GCD');

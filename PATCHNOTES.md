@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v152
+- **Berserking (Troll)** lasts 15 s (was 10 s). Trolls gain about 0.2–0.3% DPS; the best race of each build does not change.
+
 ## v151
 - **Racials (Forever patch notes):** Blood Fury (Orc) has a 2 minute cooldown again (was 3); Touch of the Grave (Undead) can happen
   again after 15 s (was 25 s). Orcs gain about 0.2–0.3% DPS, Undead about 0.5–0.6%. Undead is now the best race for four of the six

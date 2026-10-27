@@ -541,7 +541,7 @@ racials, so you can read off what each race adds.
 | Eureka! (Gnome) | 2 min cooldown, 8 s. Every damaging spell that finishes while it is up costs 10% less mana and deals +10%, added to its talent group (section 3): a spell with a cast time when the cast is complete, an instant when it is cast. A cast that is still going when the 8 s end gets nothing. A channel costs 10% less when it starts inside the 8 s, and each of its ticks that comes while Eureka! is up gets +10%. DoT ticks get nothing. The sim starts Eureka! right before a direct spell or channel of at least 1.4 s. |
 | Command (Orc) | Your demon deals 5% more damage: its spells, its melee and the Demonic Brand bonus. |
 | Blood Fury (Orc) | 2 min cooldown, 15 s: your spell power × 1.10. That also raises what your demon gets from you, and a Bane of Doom that explodes while it is up. |
-| Berserking (Troll) | 3 min cooldown, 10 s: 10% haste. Shortens casts and the global cooldown. |
+| Berserking (Troll) | 3 min cooldown, 15 s: 10% haste. Shortens casts and the global cooldown. |
 | Touch of the Grave (Undead) | Each landed cast of a damaging spell (a direct spell, a DoT when it is applied, a channel when it starts - never a tick, a curse or Life Tap) has a 30% chance to deal 5% of your maximum health as Shadow damage and heal you for the same amount. After it happens it cannot happen again for 15 s. |
 
 **Touch of the Grave in full.**
