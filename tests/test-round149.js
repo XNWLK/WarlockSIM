@@ -50,12 +50,12 @@
     T.ok(!('weaponIsSword' in WL.DEFAULT_CONFIG.gear), 'the Sword setting is gone');
     T.ok(WL.RACES.human.racials.some(function (r) { return r.name === 'Ruthless'; }) && !WL.RACES.human.racials.some(function (r) { return /Sword/.test(r.name); }), 'Human racials: The Human Spirit, Ruthless');
 
-    T.group('Blood Fury: 3 minute cooldown');
+    T.group('Blood Fury: 3 minute cooldown (2 minutes again since round 164)');
     var bf = WL.RACES.orc.racials.filter(function (r) { return r.name === 'Blood Fury'; })[0];
-    T.eq(bf.cd, 180, 'Blood Fury cooldown 180 s');
+    T.eq(bf.cd, 120, 'Blood Fury cooldown 120 s (round 164; 180 s from the patch of 2026-10-16)');
     var rO = WL.simulateOnce(b, 'orc', c, { seed: 1, duration: 300, log: true });
     var pops = rO.log.filter(function (e) { return e.type === 'racial'; }).map(function (e) { return e.t; });
-    T.ok(pops.length === 2 && pops[1] - pops[0] >= 180 - 1e-6 && pops[1] - pops[0] < 184, 'in a 300 s fight it is used at ' + pops.join(' and ') + ' s');
+    T.ok(pops.length === 3 && (pops.length >= 2 && pops.every(function (x, i) { return i === 0 || (x - pops[i - 1] >= WL.RACES.orc.racials.filter(function (q) { return q.name === 'Blood Fury'; })[0].cd - 1e-6 && x - pops[i - 1] < WL.RACES.orc.racials.filter(function (q) { return q.name === 'Blood Fury'; })[0].cd + 4); })), 'in a 300 s fight it is used at ' + pops.join(' and ') + ' s (round 164: three times)');
 
     T.group('Eureka!: an 8 s buff, no charges; a cast counts when it finishes while the buff is up');
     var eu = WL.RACES.gnome.racials.filter(function (r) { return r.effect === 'cooldown'; })[0];
@@ -84,15 +84,15 @@
     var cT = rC.log.filter(function (e) { return e.type === 'tick' && e.spell === 'corruption'; });
     T.ok(cT.length > 5 && cT.every(function (e) { return Math.abs(e.dmg - cT[cT.length - 1].dmg) <= 1; }), 'Corruption ticks are the same inside and outside the buff');
 
-    T.group('Touch of the Grave: 30% chance, then 25 s cooldown; nothing multiplies it');
+    T.group('Touch of the Grave: 30% chance, then 15 s cooldown (25 s until round 164); nothing multiplies it');
     var tg = WL.RACES.undead.racials.filter(function (r) { return r.effect === 'proc'; })[0];
-    T.ok(tg.chancePct === 30 && tg.icd === 25 && tg.maxHealthPct === 5, 'Touch of the Grave: 30%, 25 s, 5% of your maximum health', JSON.stringify(tg));
+    T.ok(tg.chancePct === 30 && tg.icd === 15 && tg.maxHealthPct === 5, 'Touch of the Grave: 30%, 15 s, 5% of your maximum health', JSON.stringify(tg));
     var demo = WL.BUILDS.filter(function (x) { return x.key === 'demo_pact_succ_sb'; })[0];
     var cU = det(function (x) { x.options.useCurseOfElements = true; x.buffs.powerInfusion.on = true; });
     var rU = WL.simulateOnce(demo, 'undead', cU, { seed: 3, duration: 600, log: true });
     var th = rU.log.filter(function (e) { return e.type === 'hit' && e.spell === 'touchOfTheGrave'; }), hpU = WL.computeStats(demo, 'undead', cU).maxHealth;
-    T.ok(th.length >= 12 && th.length <= 24, th.length + ' hits in 600 s (at most 24 with the 25 s cooldown)');
-    T.ok(th.every(function (e, i) { return i === 0 || e.t - th[i - 1].t >= 25 - 1e-6; }), 'at least 25 s between two hits');
+    T.ok(th.length >= 12 && th.length <= 600 / tg.icd, th.length + ' hits in 600 s (at most ' + (600 / tg.icd) + ' with the ' + tg.icd + ' s cooldown)');
+    T.ok(th.every(function (e, i) { return i === 0 || e.t - th[i - 1].t >= tg.icd - 1e-6; }), 'at least ' + tg.icd + ' s between two hits');
     T.ok(th.every(function (e) { return e.dmg === Math.round(hpU * 0.05); }), 'every hit = 5% of ' + hpU.toFixed(0) + ' health = ' + Math.round(hpU * 0.05) + ', with Curse of the Elements, Improved Shadow Bolt, Master Demonologist and Power Infusion all in play');
     T.ok(/30% chance/.test(WL.SPELL_TEXT[1260201]) && /25 sec/.test(WL.SPELL_TEXT[1260201]), 'tooltip text', WL.SPELL_TEXT[1260201]);
 

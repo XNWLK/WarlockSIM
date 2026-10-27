@@ -3,6 +3,11 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v151
+- **Racials (Forever patch notes):** Blood Fury (Orc) has a 2 minute cooldown again (was 3); Touch of the Grave (Undead) can happen
+  again after 15 s (was 25 s). Orcs gain about 0.2–0.3% DPS, Undead about 0.5–0.6%. Undead is now the best race for four of the six
+  builds, Orc for the two Demonology Pact builds.
+
 ## v150
 - A **Twitch** button at the top of the page links to Xn's live stream (twitch.tv/ascalontv): come by with questions, or just to say hi.
 

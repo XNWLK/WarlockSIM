@@ -34,12 +34,12 @@
     T.ok(near(pi[0], 10, 3.1) && near(pi[1], 200, 3.1) && pi.length === 2, 'Power Infusion placed at 10 and 200 s → ' + pi.join(', ') + ' s (held in between although ready at ' + (pi[0] + 180).toFixed(1) + ' s)');
 
     T.group('after its last placed use a cooldown is automatic again');
-    T.ok(rac.length === 2 && rac[1] - rac[0] >= 180 - 1e-6 && rac[1] - rac[0] < 184, 'Blood Fury again as soon as it is ready, 3 min later (' + rac.join(', ') + ' s)');
+    T.ok((rac.length >= 2 && rac.every(function (x, i) { return i === 0 || (x - rac[i - 1] >= WL.RACES.orc.racials.filter(function (q) { return q.name === 'Blood Fury'; })[0].cd - 1e-6 && x - rac[i - 1] < WL.RACES.orc.racials.filter(function (q) { return q.name === 'Blood Fury'; })[0].cd + 4); })), 'Blood Fury again as soon as it is ready, one cooldown later (' + rac.join(', ') + ' s)');
     T.ok(pot.length === 2 && pot[1] - pot[0] >= 120 - 1e-6 && pot[1] - pot[0] < 124, 'potion again as soon as it is ready (' + pot.join(', ') + ' s)');
 
     T.group('a use placed inside the cooldown waits for it');
     var b = WL.simulateOnce(tb(DOOM), 'orc', det({ racial: [30, 60] }), { seed: 1, duration: 300, log: true }), br = times(b, 'racial');
-    T.ok(near(br[0], 30, 3.1) && br[1] - br[0] >= 180 - 1e-6 && br[1] - br[0] < 184, 'second Blood Fury placed at 60 s fires when ready (' + br.join(', ') + ' s)');
+    T.ok(near(br[0], 30, 3.1) && br[1] - br[0] >= WL.RACES.orc.racials.filter(function (q) { return q.name === 'Blood Fury'; })[0].cd - 1e-6 && br[1] - br[0] < WL.RACES.orc.racials.filter(function (q) { return q.name === 'Blood Fury'; })[0].cd + 4, 'second Blood Fury placed at 60 s fires when ready (' + br.join(', ') + ' s)');
 
     T.group('cooldowns without a placed use: as usual');
     var u = WL.simulateOnce(tb(DOOM), 'orc', det({ racial: [30] }), { seed: 1, duration: 300, log: true });

@@ -21,7 +21,7 @@
 
   T.run('round 108: Touch of the Grave scales with Stamina, nothing else', function () {
     var rc = WL.RACES.undead.racials.filter(function (r) { return r.effect === 'proc'; })[0], keep = rc.chancePct, keepCd = rc.icd;
-    T.eq([rc.name, keep, rc.icd, rc.maxHealthPct].join('/'), 'Touch of the Grave/30/25/5', 'Touch of the Grave: 30% chance, 25 s cooldown, 5% of maximum health');
+    T.eq([rc.name, keep, rc.icd, rc.maxHealthPct].join('/'), 'Touch of the Grave/30/15/5', 'Touch of the Grave: 30% chance, 15 s cooldown (round 164), 5% of maximum health');
     rc.chancePct = 100; rc.icd = 0;                      // every landed cast procs, so each hit can be checked (restored below)
     try {
       T.group('base, Stamina, spell power, crit');
@@ -54,6 +54,6 @@
       var rX = run(tb(['corruption', 'searingPain']), cX, 60), tx = tog(rX);
       T.ok(tx.length > 5 && tx.every(function (e) { return e.dmg === base; }), 'two targets, the boss cursed: ' + base + ' on both');
     } finally { rc.chancePct = keep; rc.icd = keepCd; }
-    T.eq([rc.chancePct, rc.icd].join('/'), '30/25', 'proc chance and cooldown restored');
+    T.eq([rc.chancePct, rc.icd].join('/'), '30/15', 'proc chance and cooldown restored (15 s since round 164)');
   });
 })();

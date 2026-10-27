@@ -36,7 +36,8 @@ WL.RACES = {
       // 3 minutes. [A93] Patch notes of 2026-10-26: Savage removed; Command re-added: your demon deals 5% more damage (all of
       // it: spells, melee, the Demonic Brand bonus). [A100]
       { id: 20575,   name: 'Command',    effect: 'petDmgPct', value: 5, patch: '2026-10-26' },
-      { id: 20572,   name: 'Blood Fury', effect: 'cooldown', cd: 180, duration: 15, spPct: 10, patch: '2026-10-16' },      // [A32]
+      // Additional patch notes (round 164): cooldown 2 min again (3 min from 2026-10-16). [A102]
+      { id: 20572,   name: 'Blood Fury', effect: 'cooldown', cd: 120, duration: 15, spPct: 10, patch: '2026-10-16' },      // [A32]
     ],
   },
   undead: {
@@ -44,7 +45,8 @@ WL.RACES = {
     racials: [
       // Patch 2026-10-16: 30% chance for casters (was 10%) with a 25 s internal cooldown, and it no longer scales with Shadow
       // damage increases on you or the target — nothing multiplies it, Power Infusion neither (user). [A29][A93]
-      { id: 1260201, name: 'Touch of the Grave', effect: 'proc', chancePct: 30, icd: 25, maxHealthPct: 5, patch: '2026-10-16' },
+      // Additional patch notes (round 164): internal cooldown 15 s (was 25 s). [A102]
+      { id: 1260201, name: 'Touch of the Grave', effect: 'proc', chancePct: 30, icd: 15, maxHealthPct: 5, patch: '2026-10-16' },
     ],
   },
   troll: {

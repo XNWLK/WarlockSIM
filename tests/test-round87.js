@@ -57,7 +57,7 @@
     var l = WL.simulateOnce(tb(DOOM), 'orc', det('doom'), { seed: 1, duration: 300, log: true });
     var rac = l.log.filter(function (e) { return e.type === 'racial'; }).map(function (e) { return e.t; });
     var pot = l.log.filter(function (e) { return e.type === 'consumable'; }).map(function (e) { return e.t; });
-    T.ok(rac.length === 2 && rac[1] - rac[0] >= 180 - 1e-6 && rac[1] - rac[0] < 184, 'Blood Fury again 3 min after the first use (' + rac.join(', ') + '; 2 min until the patch of 2026-10-16)');
+    T.ok((rac.length >= 2 && rac.every(function (x, i) { return i === 0 || (x - rac[i - 1] >= WL.RACES.orc.racials.filter(function (q) { return q.name === 'Blood Fury'; })[0].cd - 1e-6 && x - rac[i - 1] < WL.RACES.orc.racials.filter(function (q) { return q.name === 'Blood Fury'; })[0].cd + 4); })), 'Blood Fury again one cooldown after each use (' + rac.join(', ') + '; 2 min — 3 min from the patch of 2026-10-16 until round 164)');
     T.ok(pot.length === 2 && pot[1] - pot[0] >= 120 - 1e-6 && pot[1] - pot[0] < 124, 'potion again 2 min after the first use (' + pot.join(', ') + ')');
     T.near(l.uptime.powerInfusion, 30, 1e-6, 'Power Infusion at ~60 s and again 3 min later (2 × 15 s)');
 

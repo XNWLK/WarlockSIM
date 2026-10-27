@@ -42,7 +42,7 @@
     var agg = WL.simulate(top, 'undead', c120, { iterations: 300, log: false }), landed = 0;
     Object.keys(agg.bySpell).forEach(function (k) { var s = WL.SPELLS[k]; if (s && s.kind !== 'utility') landed += agg.bySpell[k].landed; });
     var rate = agg.bySpell.touchOfTheGrave.casts / landed;
-    T.near(rate, 0.10, 0.012, 'proc rate per landed damaging cast ≈ 10% (' + (100 * rate).toFixed(2) + '% of ' + landed.toFixed(1) + ' casts per fight)');
+    T.near(rate, 0.124, 0.012, 'proc rate per landed damaging cast ≈ 12.4% (30% chance, 15 s cooldown since round 164; ' + (100 * rate).toFixed(2) + '% of ' + landed.toFixed(1) + ' casts per fight)');
 
     T.group('Wizard Oil');
     T.ok(!WL.CONSUMABLES.wizardOil, 'Wizard Oil (24 SP since this beta build) removed in round 87: only Brilliant Wizard Oil is kept');

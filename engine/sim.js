@@ -693,7 +693,7 @@ window.WL = window.WL || {};
     // Damage: 5% of your maximum health — so it scales with Stamina. Patch 2026-10-16: nothing multiplies it any more (it
     // "no longer scales with Shadow increases on the target or the caster"; Power Infusion neither, user) — rounds 108–148
     // your Shadow auras, Improved Shadow Bolt, Curse of the Elements, Shadow and Flame and Power Infusion did. 30% chance
-    // (was 10%), then 25 s internal cooldown (no roll while it runs). No spell power, no crit, no resist / Spell Pierce
+    // (was 10%), then an internal cooldown (race data: 15 s since round 164, 25 s before; no roll while it runs). No spell power, no crit, no resist / Spell Pierce
     // roll. `ti` > 1 = an extra target. [A29][A93]
     function touchOfTheGrave(ti) {
       if (TOG && !(S.togReady > S.t + EPS) && R.proc() * 100 < TOG.chancePct) {
