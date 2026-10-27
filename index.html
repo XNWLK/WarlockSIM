@@ -46,6 +46,11 @@
               color: var(--muted); border-radius: 999px; line-height: 18px; }
   .themebtn:hover { color: var(--ink); border-color: var(--accent); }
   .themebtn svg { width: 14px; height: 14px; flex: none; }
+  /* Xn's live stream (round 163, user) */
+  .twitchbtn { display: inline-flex; align-items: center; gap: 6px; padding: 2px 11px 2px 9px; border-radius: 999px; line-height: 18px;
+               font: 600 11.5px var(--sans); color: #fff; background: #772ce8; text-decoration: none; white-space: nowrap; }
+  .twitchbtn:hover, .twitchbtn:focus-visible { background: #6420c9; color: #fff; }
+  .twitchbtn svg { width: 13px; height: 13px; flex: none; fill: currentColor; }
   /* project links next to the title (round 103, user) */
   .toplinks { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; font-size: 12px; color: var(--muted); }
   .toplinks a { color: var(--accent); font-weight: 600; text-decoration: none; }
@@ -860,6 +865,7 @@
       <img class="sitelogo" src="art/logo-64.png" width="32" height="32" alt="">
       <h1>Xn's Forever Warlock Sim</h1>
       <button type="button" id="themeBtn" class="themebtn">Auto</button>
+      <a class="twitchbtn" href="https://www.twitch.tv/ascalontv" target="_blank" rel="noopener" title="Xn's live stream: come by with questions, or just to say hi"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 1 1.5 3.5v10h3V15h1.7l1.6-1.5h2.5L13.5 10V1h-11zm9.8 8.4-2 1.9H7.8L6.2 12.8v-1.5H4.1V2.2h8.2v7.2zM10.6 4.5h-1.2v3.4h1.2V4.5zm-3.2 0H6.2v3.4h1.2V4.5z"/></svg>Twitch</a>
       <nav class="toplinks" aria-label="Project links">
         <a href="https://github.com/XNWLK/WarlockSIM" target="_blank" rel="noopener">GitHub</a>
         <span class="sep" aria-hidden="true">·</span>

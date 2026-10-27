@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v150
+- A **Twitch** button at the top of the page links to Xn's live stream (twitch.tv/ascalontv): come by with questions, or just to say hi.
+
 ## v149
 - The default fight is **3 minutes** again (180 s ± 10%; was 2 minutes): fights will be longer than 2 minutes. Every build does
   about 1% less DPS in a longer fight, because the opening cooldowns and the first Bane of Doom count for less.
