@@ -56,13 +56,13 @@
   .gbtrk .trk { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
   .gbtrk .trk b { font-weight: 600; }
   /* by fight length (round 166, user) */
-  .lentable { border-collapse: collapse; font-size: 12px; }
-  .lentable th, .lentable td { padding: 3px 9px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
+  .lentable { border-collapse: collapse; font-size: 11.5px; font-variant-numeric: tabular-nums; width: auto; }
+  .lentable th, .lentable td { padding: 1px 7px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); line-height: 1.35; }
   .lentable th:first-child, .lentable td:first-child { text-align: left; }
-  .lentable tr.lb td { font-weight: 600; padding-top: 9px; color: var(--ink); border-bottom-color: transparent; text-align: left; }
+  .lentable tr.lb td { font-weight: 600; padding-top: 6px; color: var(--ink); border-bottom-color: transparent; text-align: left; }
   .lentable td.best { font-weight: 700; color: var(--accent); }
   .lentable tr.base td { color: var(--muted); }
-  .lentable .lpct { display: block; font-size: 10.5px; color: var(--muted); font-weight: 400; }
+  .lentable .lpct { display: inline-block; min-width: 4.6em; margin-left: 5px; font-size: 10.5px; color: var(--muted); font-weight: 400; text-align: right; }
   .lentable td.best .lpct { color: var(--accent); }
   /* cheat mode (round 166, user): a two-column list of spells */
   .cheatlist { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 2px 12px; align-items: center; font-size: 12px; margin: 6px 0; }
