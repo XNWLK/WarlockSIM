@@ -3,6 +3,23 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v153
+- **Trinkets** work in the fight: put them in the gear builder's trinket slots. Talisman of Ephemeral Power, Zandalarian Hero
+  Charm, Talisman of Ascendance, The Black Book, Eye of Moam, Hazza'rah's Charm, Weakness Analyzer, the mana and damage trinkets
+  and more (the full list is in "How it's calculated"). For each worn trinket you choose when it is used: with your other
+  cooldowns, whenever it is ready, in the execute phase, or never; the custom cooldown timeline has a row for each.
+- **Cheat mode** (Fight & pets): make any spell always hit or always crit, your demon's attacks too, to try streaks of luck.
+- **By fight length** (under the results): every build and race at 60, 120, 180, 240 and 300 s.
+- **APL** (the build editor's rules, groups and variables) is open by default, and any built-in action of a priority list
+  can get a condition of its own ("only when …").
+- **Wowhead talent links**: load a build's talents from a Wowhead Forever talent calculator link, or open a build there.
+- **Gear builder**: finished — it now sits at the top. Its enchant list only has what a Warlock can use and the sim counts
+  (other classes' Zul'Gurub enchants, resistances, movement and melee enchants are gone); trinkets that only have a use
+  effect are in the list now. The item list was checked against the Wowhead Forever database again.
+- **Dark Inspiration** (Shadow Priest, +15% Spirit) is in the raid buffs.
+- **Destro Incinerate Imp** was taken off the build list (the Succubus version does more). Five builds remain.
+- A **Discord** button at the top.
+
 ## v152
 - **Berserking (Troll)** lasts 15 s (was 10 s). Trolls gain about 0.2–0.3% DPS; the best race of each build does not change.
 

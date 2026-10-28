@@ -800,6 +800,12 @@ The last entry is a filler that is always possible.
   filler.
 - **groups**: a named list of actions, put in the list where you place the group.
 - **variables**: a number or a condition with a name, used in your rules (for example "Doom tick = 60").
+- **conditions on built-in actions**: any action of the list above can get one more condition of the same kind. It then
+  fires only when its own check and your condition both hold (for example "Immolate if missing/expiring — only when fight
+  time left > 20 s").
+
+Talents can also be read from a Wowhead Forever talent calculator link (build editor → Load build code), and every build
+can be opened there (Wowhead talent link).
 
 
 **DoTs at the end of the fight.** A DoT that can still run its full duration is always recast. When it cannot, the sim
@@ -817,6 +823,38 @@ Eureka!), the Major Spellblasting Potion and Power Infusion. After the first use
 | When the first Bane of Doom explodes (default) | Right before the cast during which the first Bane of Doom explodes, so the explosion is covered. At the pull instead if the build never casts Bane of Doom, if a Bane of Agony went up first, or if Doom cannot explode before the fight ends. |
 | In the execute phase | Once the boss is below 35% health. |
 | Custom timeline | You place every use yourself, also mana potions, runes, explosives, Amplify Curse and the pet swap. What you do not place is used automatically. |
+
+**Trinkets.** With the gear builder on, the two trinket slots count in the fight. A trinket's plain stats (spell power, hit,
+crit, MP5 …) are always on, like any item. Its "Use:" effect is used, by your choice per trinket, with your other cooldowns
+(the setting above, and its custom timeline has a row for each trinket), whenever it is ready, only in the execute phase,
+or never. Trinkets are off the global cooldown. A mana trinket is used when its amount of mana is missing.
+
+| Trinket | In the sim |
+|---|---|
+| Talisman of Ephemeral Power | +175 spell power for 15 s, 90 s cooldown. |
+| The Restrained Essence of Sapphiron | +130 spell power for 20 s, 2 min cooldown. |
+| Eye of Moam | +50 spell power and the boss's resistances −100 (like Spell Penetration) for 30 s, 3 min cooldown. |
+| Frozen Heart of the Mountain | +29 Shadow spell power for 15 s, 5 min cooldown ("doubled in Snowy areas" not counted). |
+| Zandalarian Hero Charm | +204 spell power for 20 s, 17 less after each of your damaging casts, 2 min cooldown. |
+| Talisman of Ascendance | +40 spell power for each damaging cast since it was used (up to 5), for 6 casts or 20 s, 1 min cooldown. |
+| Hazza'rah's Charm of Destruction | +10% crit for your Destruction spells for 20 s, 3 min cooldown. |
+| Weakness Analyzer | +5% crit for 20 s or until your next direct crit, 90 s cooldown. |
+| The Black Book | Your demon deals twice its damage for 30 s, 5 min cooldown. |
+| Serenity Field | +72 Spirit for 15 s (more mana from Life Tap), 90 s cooldown. |
+| Darkmoon Card: Blue Dragon | 2% chance per damaging cast: +150 Spirit for 15 s. |
+| Warmth of Forgiveness / Earthen Sigil | 500 / 400 mana (the Sigil's "over 10 sec" counted at once), 3 min cooldown. |
+| Shard of the Fallen Star, Smokey's Lighter, Thunderbrew's Boot Flask, Goblin Bomb Dispenser, Infernal Lasso | Their Fire damage as one hit: no spell power, your spell hit and crit (× 1.5), Curse of the Elements. |
+| Everlook Delivery Bot | 467 Fire damage after 7 of your damaging casts (the tooltip says 6 to 8). |
+
+Other trinkets (threat, defence, resistance, movement, summoned helpers, Mark of the Champion's bonus against Demons and
+Undead) only bring their stats.
+
+**Cheat mode** (Fight & pets): ticked spells always hit and / or always crit, your demon's attacks too (its melee: no miss
+and no dodge; every swing that is not a glancing blow crits), to try streaks of luck. The results say "cheat mode" while it
+is on; these are not real numbers.
+
+**By fight length** (under the results): every built-in build and race at 60, 120, 180, 240 and 300 s, made with the
+default settings and shipped with the page, or redone with your own settings.
 
 **The builds on the sheet**
 
@@ -878,6 +916,7 @@ Eureka!), the Major Spellblasting Potion and Power Infusion. After the first use
 - Which consumables exclude each other.
 - Values taken from Classic because Forever's are not known: base stats of a level-60 Warlock, boss armor (3,731),
   Salvation (30%), Concentration Aura (35%), the Atiesh auras (+33 spell power, +2% spell crit, 11 MP5), Blood Pact (+42 Stamina).
+- Dark Inspiration (+15% Spirit from a Shadow Priest) is taken as up the whole fight.
 
 **Simplified**
 
@@ -888,7 +927,7 @@ Eureka!), the Major Spellblasting Potion and Power Infusion. After the first use
 
 **Not simulated**
 
-- Items, trinkets and set bonuses: you enter your stat totals.
+- Set bonuses. (Items and trinkets: with the gear builder; or you enter your stat totals.)
 - Damage the boss does to you, and dying.
 - Range and positioning: the boss is always in range.
 - Soul shard limits (they never run out) and potions used before the pull.
