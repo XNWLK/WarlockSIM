@@ -51,6 +51,11 @@
                font: 600 11.5px var(--sans); color: #fff; background: #772ce8; text-decoration: none; white-space: nowrap; }
   .twitchbtn:hover, .twitchbtn:focus-visible { background: #6420c9; color: #fff; }
   .twitchbtn svg { width: 13px; height: 13px; flex: none; fill: currentColor; }
+  /* Discord server (round 166, user) */
+  .discordbtn { display: inline-flex; align-items: center; gap: 6px; padding: 2px 11px 2px 9px; border-radius: 999px; line-height: 18px;
+                font: 600 11.5px var(--sans); color: #fff; background: #4f5bd5; text-decoration: none; white-space: nowrap; }
+  .discordbtn:hover, .discordbtn:focus-visible { background: #3f49b8; color: #fff; }
+  .discordbtn svg { width: 14px; height: 14px; flex: none; fill: currentColor; }
   /* project links next to the title (round 103, user) */
   .toplinks { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; font-size: 12px; color: var(--muted); }
   .toplinks a { color: var(--accent); font-weight: 600; text-decoration: none; }
@@ -866,6 +871,7 @@
       <h1>Xn's Forever Warlock Sim</h1>
       <button type="button" id="themeBtn" class="themebtn">Auto</button>
       <a class="twitchbtn" href="https://www.twitch.tv/ascalontv" target="_blank" rel="noopener" title="Xn's live stream: come by with questions, or just to say hi"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 1 1.5 3.5v10h3V15h1.7l1.6-1.5h2.5L13.5 10V1h-11zm9.8 8.4-2 1.9H7.8L6.2 12.8v-1.5H4.1V2.2h8.2v7.2zM10.6 4.5h-1.2v3.4h1.2V4.5zm-3.2 0H6.2v3.4h1.2V4.5z"/></svg>Twitch</a>
+      <a class="discordbtn" href="https://discord.gg/uepKAsY" target="_blank" rel="noopener" title="Xn's Discord server: questions, ideas and bug reports"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 3.2A12.3 12.3 0 0 0 10.4 2.3l-.4.8a11.4 11.4 0 0 0-4 0l-.4-.8a12.3 12.3 0 0 0-3.1.9C.6 6.1.1 8.9.3 11.7a12.4 12.4 0 0 0 3.8 1.9l.8-1.3a8 8 0 0 1-1.3-.6l.3-.2a8.8 8.8 0 0 0 7.6 0l.3.2a8 8 0 0 1-1.3.6l.8 1.3a12.4 12.4 0 0 0 3.8-1.9c.3-3.3-.5-6-2.3-8.5zM5.6 10.1c-.7 0-1.3-.7-1.3-1.5s.6-1.5 1.3-1.5 1.3.7 1.3 1.5-.6 1.5-1.3 1.5zm4.8 0c-.7 0-1.3-.7-1.3-1.5s.6-1.5 1.3-1.5 1.3.7 1.3 1.5-.6 1.5-1.3 1.5z"/></svg>Discord</a>
       <nav class="toplinks" aria-label="Project links">
         <a href="https://github.com/XNWLK/WarlockSIM" target="_blank" rel="noopener">GitHub</a>
         <span class="sep" aria-hidden="true">·</span>
@@ -912,8 +918,8 @@
     <span class="meta" id="quickMsg" role="status"></span>
   </div>
 
-  <!-- The gear builder's final place (round 147, user: "in the final version the gear builder will be at the top"). Empty
-       while it is under construction: app/app.js moves the #gear card in here when GEAR_PLACE is 'top'. -->
+  <!-- The gear builder's place (round 147, user: "in the final version the gear builder will be at the top"): app/app.js moves
+       the #gear card in here (GEAR_PLACE = 'top' since round 166, user: "remove the under construction"). -->
   <div class="gearanchor" id="gearTop"></div>
 
   <section class="setup" id="settings" aria-label="Stats and fight settings">
@@ -1101,7 +1107,7 @@
             <h2>Priority (top = checked first)</h2>
             <ol id="edRot" class="edrot"></ol>
             <div class="btnrow"><select id="edAddAct" aria-label="Action to add"></select><button type="button" id="edAdd">Add to the priority</button></div>
-            <details class="edrules" id="edRulesBox"><summary>Your own rules, groups and variables</summary>
+            <details class="edrules" id="edRulesBox" open><summary>APL</summary>
               <p class="meta">A rule casts a spell when your conditions hold: DoT or buff time left, cooldowns, fight time, boss health, mana, Soul Shards, Demonic Brand charges — combined with "all of", "any of" and "not". A group is a list of actions you can put in the priority as one; a variable is a number or a condition with a name, used in your rules. A rule without a condition is a filler.</p>
               <div id="edRules"></div></details>
           </div>
@@ -1204,14 +1210,13 @@
     computed on each build's best race with common random numbers (hit/haste carry some noise). Spell Pierce weight: in the details.
     Data: Wowhead Forever (beta 1.60.1).</p>
 
-  <section class="card gearcard building" id="gear" aria-labelledby="gearTitle">
+  <section class="card gearcard" id="gear" aria-labelledby="gearTitle">
     <div class="cardhead gbhead">
-      <h2 id="gearTitle">Gear builder <span class="ctag">under construction</span></h2>
+      <h2 id="gearTitle">Gear builder</h2>
       <label class="switch" for="gbOn" title="On: your stats in the Stats panel are a naked character plus the items and enchants here, and what you type there is added on top. Off: the Stats panel keeps its numbers and works as before."><input id="gbOn" type="checkbox"> Use this gear for my stats</label>
       <label class="c" for="gbValFor" title="Each item's worth in spell power is worked out from this build's stat weights (the SP / Hit / Crit / Haste / Int columns of the results). Builds get stat weights with a Sim!">Value for <select id="gbValFor"></select></label>
       <button type="button" id="gbClear" class="resetbtn gbclear" data-label="Take everything off" data-armed="Click again to empty every slot">Take everything off</button>
     </div>
-    <div class="tape" aria-hidden="true"><div><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span><span>UNDER CONSTRUCTION</span></div></div>
     <p class="meta">Click a slot to put an item and its enchant in. <span id="gbDbInfo">The items come from the Wowhead Forever database</span>, best first for the build chosen under "Value for". Each slot that takes an enchant lists every enchant for it under the items. Something that is not listed yet: type it in yourself, or load a gear code made by the in-game addon. Your items are kept in this browser.</p>
     <div class="btnrow gbcode">
       <input id="gbCode" type="text" spellcheck="false" placeholder="WFG1:… gear code from the in-game addon" aria-label="Gear code">

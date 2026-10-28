@@ -3071,7 +3071,8 @@
   // Stats panel — set GEAR_PLACE to 'top' (and drop the tape: GEAR_BUILDING = false) when it is finished.
   // Round 148 (user): each item's worth in spell power for a build (from its stat weights), "compare with what I wear"
   // (real fights for the best builds), an enchant per enchantable slot, and gear codes (WFG1:) from the in-game addon.
-  var GEAR_PLACE = 'bottom', GEAR_BUILDING = true;
+  // Round 166 (user: "remove the under construction in the gear planner, since it should work now"): at the top, no tape.
+  var GEAR_PLACE = 'top', GEAR_BUILDING = false;
   var gbSel = null, gbFind = '', gbEnFind = '', gbMsgText = '', gbValKey = '', gbCmp = null, gbCmpRunning = false;
   var GB_STORE = 'wfs.gearBuilder';                       // your items and enchants, kept in this browser (not on / off: the builder starts off)
   var GB_WEAPONS = [['dagger', 'Dagger (one hand)', 'oneHand'], ['sword', 'Sword (one hand)', 'oneHand'], ['staff', 'Staff (two hands)', 'twoHand'],

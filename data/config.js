@@ -107,6 +107,9 @@ WL.DEFAULT_CONFIG = {
     atieshWarlock:    { on: false, id: 28143, name: 'Atiesh aura (Warlock)',          cls: 'Warlock', desc: '+33 spell damage and healing (another Warlock in your party holds Atiesh)', sp: 33 },
     atieshMage:       { on: false, id: 28142, name: 'Atiesh aura (Mage)',             cls: 'Mage',    desc: '+2% spell crit (a Mage in your party holds Atiesh)', critPct: 2 },
     atieshDruid:      { on: false, id: 28145, name: 'Atiesh aura (Druid)',            cls: 'Druid',   desc: '11 mana every 5 s (a Druid in your party holds Atiesh)', mp5: 11 },
+    // Round 166 (user): Dark Inspiration — a Shadow Priest's Mind Blast and full Mind Flays give the party +15% Spirit for 10 s
+    // (Wowhead Forever 1326168: tooltip 15%, Effect Value 16 → 15, A39). Assumed up all fight; multiplies like Kings. [A104]
+    darkInspiration:  { on: false, id: 1326168, name: 'Dark Inspiration',            cls: 'Priest',  desc: '+15% Spirit (a Shadow Priest in your party; assumed up the whole fight)', spiPct: 15 },
     bloodPact:        { on: false, id: 11767, name: 'Blood Pact (another Warlock)',   cls: 'Warlock', desc: '+42 Stamina (another Warlock\'s Imp in your party)', sta: 42 },
     // Threat reduction (round 119, user). Classic value — the tooltip is not in the archived Forever data [A84]. Patch
     // 2026-10-16: Blessing of Salvation is now "Salvation", which no longer takes up a blessing (same key, old codes still load).

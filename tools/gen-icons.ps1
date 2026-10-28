@@ -48,6 +48,7 @@ foreach ($line in $cfg -split "`n") {
     $bk = $Matches[1]                                      # (-match below would overwrite $Matches)
     if (-not $ic -and $bk.StartsWith('atiesh')) { $ic = 'inv_staff_medivh' }
     if (-not $ic -and $bk -eq 'bloodPact') { $ic = 'spell_shadow_bloodboil' }
+    if (-not $ic -and $bk -eq 'darkInspiration') { $ic = 'spell_warlock_demonsoul' }   # round 166: live Wowhead Forever 1326168
     if ($ic) { $map["$($section)_$bk"] = $ic }
   }
 }

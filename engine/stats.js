@@ -120,9 +120,11 @@ WL.computeStats = function (build, raceKey, cfg) {
   var spiFlat = add('spi', 'Base (L60 Warlock) [A09]', base.spi) + add('spi', race.name + ' offset', race.offset.spi)
           + add('spi', 'Gear', gear.spi) + buffStat('spi') + conStat('spi') + add('spi', 'Stat-weight test', ex.spi || 0);
   var spiPct = racial('spiritPct') ? racial('spiritPct').value : 0;
-  var spi = spiFlat * (1 + spiPct / 100) * (1 + kingsPct / 100);       // percentage bonuses multiply [A16]
+  var diPct = WL.activeBuffs(cfg).reduce(function (a, b) { return a + (b.spiPct || 0); }, 0);   // Dark Inspiration (round 166) [A104]
+  var spi = spiFlat * (1 + spiPct / 100) * (1 + kingsPct / 100) * (1 + diPct / 100);       // percentage bonuses multiply [A16]
   if (spiPct) add('spi', 'The Human Spirit +' + spiPct + '%', spiFlat * spiPct / 100);
-  if (kingsPct) add('spi', 'Blessing of Kings +' + kingsPct + '%', spi - spiFlat * (1 + spiPct / 100));
+  if (kingsPct) add('spi', 'Blessing of Kings +' + kingsPct + '%', spiFlat * (1 + spiPct / 100) * kingsPct / 100);
+  if (diPct) add('spi', 'Dark Inspiration +' + diPct + '%', spi - spiFlat * (1 + spiPct / 100) * (1 + kingsPct / 100));
   var staFlat = add('sta', 'Base (L60 Warlock) [A09]', base.sta) + add('sta', race.name + ' offset', race.offset.sta)
           + add('sta', 'Gear', gear.sta) + buffStat('sta') + conStat('sta');
   var staPct = tv('demonicEmbrace', 'staPct');

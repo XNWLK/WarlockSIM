@@ -679,6 +679,7 @@ threat = damage × (1 − Suppression 4% per point) × (1 − Salvation 30%) × 
 | Atiesh aura (Warlock) | Warlock | off | +33 spell damage and healing (another Warlock in your party holds Atiesh) |
 | Atiesh aura (Mage) | Mage | off | +2% spell crit (a Mage in your party holds Atiesh) |
 | Atiesh aura (Druid) | Druid | off | 11 mana every 5 s (a Druid in your party holds Atiesh) |
+| Dark Inspiration | Priest | off | +15% Spirit (a Shadow Priest in your party; assumed up the whole fight) |
 | Blood Pact (another Warlock) | Warlock | off | +42 Stamina (another Warlock's Imp in your party) |
 | Salvation | Paladin | off | −30% threat |
 | Power Infusion | Priest | off | +20% spell damage for 15 s (3 min cooldown per Priest); cast on you when you pop your cooldowns |
@@ -790,7 +791,7 @@ The last entry is a filler that is always possible.
 | Searing Pain (filler) | Always (filler). |
 <!-- /gen:actions -->
 
-**Your own rules, groups and variables** (build editor). Besides the actions above, a priority list can hold
+**APL** (build editor; "action priority list": your own rules, groups and variables). Besides the actions above, a priority list can hold
 
 - **rules**: cast a spell when your conditions hold. A condition is a DoT's or a buff's time left, a cooldown's time
   left, the fight time left or gone, the boss's health %, your mana %, your Soul Shards or Demonic Brand's charges, compared
