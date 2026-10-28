@@ -487,21 +487,33 @@
   // ---------- by fight length (round 166, user: "a table breaking down the builds by race and time frame") ----------
   // Shipped: data/length-table.js (default settings, tools/gen-length-table.js). "Redo with my settings" runs the same
   // jobs on the worker pool: every built-in build × race × 60 / 120 / 180 / 240 / 300 s.
-  var lenData = null, lenRunning = false;
+  var lenData = null, lenRunning = false, lenCmp = 'best';   // lenCmp: what the % compare with — 'best' race, 'base' (no race), '180' (s)
+  $('lenCmp').addEventListener('change', function () { lenCmp = $('lenCmp').value; renderLen(); });
   function renderLen() {
     var T = lenData || WL.LENGTH_TABLE; if (!T) { $('lenMsg').textContent = 'No table yet: press Redo with my settings.'; $('lenTable').innerHTML = ''; return; }
     var D = T.durations, keys = WL.BUILDS.filter(function (b) { return !b.custom; }).map(function (b) { return b.key; });
-    $('lenMsg').textContent = (lenData ? 'Your settings' : 'Default settings') + ', ' + fmt(T.iterations) + ' fights per cell (each ± ' + T.varPct + '% long), seed ' + T.seed + '. The best race of each build at each length is marked.' + (lenData ? '' : ' Your own settings: Redo with my settings.');
+    $('lenMsg').textContent = (lenData ? 'Your settings' : 'Default settings') + ', ' + fmt(T.iterations) + ' fights per cell (each ± ' + T.varPct + '% long), seed ' + T.seed + '. The best race of each build at each length is marked; under each DPS its difference in % (choose against what above).' + (lenData ? '' : ' Your own settings: Redo with my settings.');
     var h = '<thead><tr><th>Build / race</th>' + D.map(function (d) { return '<th>' + d + ' s</th>'; }).join('') + '</tr></thead><tbody>';
     keys.forEach(function (bk) {
       // not WL.findBuild: that one is the test page's (the round 157 mistake again)
       var b = WL.BUILDS.filter(function (x) { return x.key === bk; })[0], rows = T.rows.filter(function (r) { return r.build === bk; }); if (!b || !rows.length) return;
-      var best = D.map(function (d, i) { var m = -1; rows.forEach(function (r) { if (r.race !== WL.BASELINE_RACE && r.dps[i] > m) m = r.dps[i]; }); return m; });
+      var real = rows.filter(function (r) { return r.race !== WL.BASELINE_RACE; });
+      var best = D.map(function (d, i) { return Math.max.apply(null, real.map(function (r) { return r.dps[i]; })); });
+      var second = D.map(function (d, i) { var s = real.map(function (r) { return r.dps[i]; }).sort(function (x, y) { return y - x; }); return s[1] != null ? s[1] : s[0]; });
+      var none = rows.filter(function (r) { return r.race === WL.BASELINE_RACE; })[0], i180 = D.indexOf(180);
+      // Round 166 (user: "add percentage differences"): each cell's % against the chosen reference (lenCmp).
+      var pct = function (v, ref) { if (!(ref > 0)) return ''; var p = 100 * (v / ref - 1); return (p > 0 ? '+' : p < 0 ? '−' : '±') + fmt(Math.abs(p), 2) + '%'; };
       h += '<tr class="lb"><td colspan="' + (D.length + 1) + '">' + esc(b.short) + '</td></tr>';
       rows.forEach(function (r) {
         var base = r.race === WL.BASELINE_RACE;
         h += '<tr' + (base ? ' class="base"' : '') + '><td>' + esc(WL.RACES[r.race].name) + (base ? ' (baseline)' : '') + '</td>' +
-          r.dps.map(function (v, i) { return '<td' + (!base && v === best[i] ? ' class="best" title="Best race at ' + D[i] + ' s"' : '') + '>' + fmt(v, 1) + '</td>'; }).join('') + '</tr>';
+          r.dps.map(function (v, i) {
+            var isBest = !base && v === best[i], p;
+            if (lenCmp === 'best') p = base ? pct(v, best[i]) : isBest ? (second[i] < v ? pct(v, second[i]) + ' ahead' : 'tied') : pct(v, best[i]);
+            else if (lenCmp === 'base') p = base ? '' : pct(v, none && none.dps[i]);
+            else p = i === i180 ? '' : pct(v, r.dps[i180]);
+            return '<td' + (isBest ? ' class="best" title="Best race at ' + D[i] + ' s"' : '') + '>' + fmt(v, 1) + (p ? '<span class="lpct">' + p + '</span>' : '') + '</td>';
+          }).join('') + '</tr>';
       });
     });
     $('lenTable').innerHTML = h + '</tbody>';

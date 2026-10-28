@@ -62,6 +62,8 @@
   .lentable tr.lb td { font-weight: 600; padding-top: 9px; color: var(--ink); border-bottom-color: transparent; text-align: left; }
   .lentable td.best { font-weight: 700; color: var(--accent); }
   .lentable tr.base td { color: var(--muted); }
+  .lentable .lpct { display: block; font-size: 10.5px; color: var(--muted); font-weight: 400; }
+  .lentable td.best .lpct { color: var(--accent); }
   /* cheat mode (round 166, user): a two-column list of spells */
   .cheatlist { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 2px 12px; align-items: center; font-size: 12px; margin: 6px 0; }
   .cheatlist .ch { font-weight: 600; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
@@ -1200,7 +1202,7 @@
   <details class="card toolcard" id="lenSheet">
     <summary>By fight length <span class="meta">— every build and race at 60, 120, 180, 240 and 300 s</span></summary>
     <p class="meta" id="lenMsg"></p>
-    <div class="btnrow"><button type="button" id="lenRun" class="primary" title="Simulates every build and race at the five fight lengths with the settings you have now (1,000 fights each, your fight length's ± % per fight)">Redo with my settings</button></div>
+    <div class="btnrow"><label class="c" for="lenCmp">% against <select id="lenCmp"><option value="best">the best race at that length</option><option value="base">no race (what the race adds)</option><option value="180">the same race at 180 s</option></select></label><button type="button" id="lenRun" class="primary" title="Simulates every build and race at the five fight lengths with the settings you have now (1,000 fights each, your fight length's ± % per fight)">Redo with my settings</button></div>
     <div class="scroll"><table id="lenTable" class="lentable"></table></div>
   </details>
 
