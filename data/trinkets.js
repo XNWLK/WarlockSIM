@@ -42,6 +42,29 @@ WL.TRINKET_FX = {
 // Not here (no effect on a Warlock's damage in the sim): Mark of the Champion (only against Demons / Undead), threat,
 // defence, resistance, movement and utility trinkets, pets of their own (dragonlings, Vanquished Tentacle).
 
+// Weapon enchants with an effect of their own (round 166, user: "start implementing enchants as well (like revelation)"). [A106]
+// Keyed by enchant id (WL.ENCHANTS); Wowhead Forever spell data, 2026-10-28. proc kinds:
+//   'sp'     + sp spell power (and + mana) for duration — chancePct per landed damaging cast ('Aura proc chance')
+//   'spiPct' Spirit × (1 + pct %) for duration — chancePct per landed damaging cast
+//   'crit'   Revelation: a non-periodic spell that does not crit triggers it at chancePct × (1 − your crit %), the next
+//            non-periodic spell gets + pct % crit (within duration). The real chance is a server-side script (unknown):
+//            combat.revelationChancePct is a guess.
+WL.ENCHANT_FX = {
+  // about: its rough worth in spell power for sorting the list (measured on Demo Pact Shadow Bolt Succubus, default settings).
+  7942: { name: 'Grand Sorcerer', about: 44, proc: { kind: 'sp', chancePct: 7, sp: 70, mana: 400, duration: 20 } },          // 1231163 → 1231162 Righteous Blasting
+  7941: { name: 'Grand Arcanist', about: 73, proc: { kind: 'sp', chancePct: 7, sp: 140, mana: 400, duration: 20 } },         // 1231152 → 1231138 Righteous Fire (two-handed)
+  8216: { name: 'Insight',        about: 30, proc: { kind: 'spiPct', chancePct: 35, pct: 100, duration: 10 } },              // 1248758 → 1299796
+  8217: { name: 'Revelation',     about: 33, proc: { kind: 'crit', pct: 100, duration: 15 } },                               // 1248806 → 1248808 (+100% crit, 15 s)
+};
+// The weapon enchant of the gear builder with an effect here: [{ slot, id, fx }] (main hand; only while the builder is on).
+WL.equippedEnchantFx = function (cfg) {
+  var gb = cfg && cfg.gearBuilder; if (!gb || !gb.on || !gb.enchants) return [];
+  return ['mainHand'].map(function (slot) {
+    var e = gb.enchants[slot], id = e && e.id;
+    return id != null && WL.ENCHANT_FX[id] && gb.slots && gb.slots[slot] ? { slot: slot, id: +id, fx: WL.ENCHANT_FX[id] } : null;
+  }).filter(Boolean);
+};
+
 // The trinkets in the gear builder's trinket slots that have an effect here: [{ slot, id, fx }].
 WL.equippedTrinkets = function (cfg) {
   var gb = cfg && cfg.gearBuilder; if (!gb || !gb.on || !gb.slots) return [];

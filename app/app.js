@@ -3369,6 +3369,7 @@
     var hits = list.filter(function (x) { return (!q || x.it.name.toLowerCase().indexOf(q) >= 0) && (!isItem || gbPasses(x.id, x.it)); }).map(function (x) {
       var v = ctx ? WL.gearValue(x.it.stats, ctx.w, ctx.share) : null;
       if (v && isItem && WL.TRINKET_FX && WL.TRINKET_FX[x.id] && ctx.w.sp > 0) { var tw = WL.trinketSpWorth(WL.TRINKET_FX[x.id]); v.dps += tw * ctx.w.sp; v.sp = (v.sp || 0) + tw; }   // round 166: a use effect, roughly
+      if (v && !isItem && WL.ENCHANT_FX && WL.ENCHANT_FX[x.id] && ctx.w.sp > 0) { var ew = WL.ENCHANT_FX[x.id].about || 0; v.dps += ew * ctx.w.sp; v.sp = (v.sp || 0) + ew; }   // round 167: a weapon enchant's effect, roughly
       return { x: x, v: v };
     }).sort(function (a, b) {
       return ((b.v ? b.v.dps : 0) - (a.v ? a.v.dps : 0)) || ((b.x.it.ilvl || 0) - (a.x.it.ilvl || 0)) || (a.x.it.name < b.x.it.name ? -1 : a.x.it.name > b.x.it.name ? 1 : 0);
@@ -3488,8 +3489,14 @@
       var sel = fx.use && fx.use.kind !== 'mana' ? '<label class="c">Use <select data-trkuse="' + slot + '" aria-label="When to use ' + esc(it.name) + '">' + TRK_WHEN.map(function (w) { return '<option value="' + w[0] + '"' + ((use[slot] || 'cds') === w[0] ? ' selected' : '') + '>' + w[1] + '</option>'; }).join('') + '</select></label>'
         : fx.use ? '<label class="c"><input type="checkbox" data-trkuse="' + slot + '"' + ((use[slot] || 'cds') !== 'never' ? ' checked' : '') + '> use it</label>' : '';
       return '<div class="trk"><b>' + esc(it.name) + '</b><span>' + esc(trkText(fx)) + '</span>' + sel + '</div>';
+    }).join('') + ['mainHand'].map(function (slot) {                // round 167: the weapon enchant's effect
+      var en = G.enchants && G.enchants[slot], fx = en && en.id != null && WL.ENCHANT_FX[en.id]; if (!fx || !(G.slots && G.slots[slot])) return '';
+      var p = fx.proc, t = p.kind === 'sp' ? p.chancePct + '% chance per landed spell: +' + p.sp + ' spell power and ' + p.mana + ' mana for ' + p.duration + ' s'
+        : p.kind === 'spiPct' ? p.chancePct + '% chance per landed spell: Spirit +' + p.pct + '% for ' + p.duration + ' s'
+        : 'a direct hit that does not crit: ' + (cfg.combat.revelationChancePct || 0) + '% × (1 − your crit) chance (a guess) that the next direct hit gets +' + p.pct + '% crit';
+      return '<div class="trk"><b>' + esc(fx.name) + '</b> <span class="meta">(weapon enchant)</span><span>' + esc(t) + '</span></div>';
     }).join('');
-    box.innerHTML = rows ? '<h3 class="meta">Trinkets in the fight' + (G.on ? '' : ' (switch the gear builder on to use them)') + '</h3>' + rows + '<p class="meta">"With your other cooldowns" follows Pop cooldowns (Fight &amp; pets), and its custom timeline has a row for each trinket.</p>' : '';
+    box.innerHTML = rows ? '<h3 class="meta">Trinkets and enchants in the fight' + (G.on ? '' : ' (switch the gear builder on to use them)') + '</h3>' + rows + '<p class="meta">"With your other cooldowns" follows Pop cooldowns (Fight &amp; pets), and its custom timeline has a row for each trinket.</p>' : '';
   }
   document.addEventListener('change', function (e) {
     var s = e.target.getAttribute && e.target.getAttribute('data-trkuse'); if (!s) return;

@@ -849,6 +849,15 @@ or never. Trinkets are off the global cooldown. A mana trinket is used when its 
 Other trinkets (threat, defence, resistance, movement, summoned helpers, Mark of the Champion's bonus against Demons and
 Undead) only bring their stats.
 
+**Weapon enchants with an effect** (the gear builder's weapon enchant, while the builder is on):
+
+| Enchant | In the sim |
+|---|---|
+| Grand Sorcerer | 7% chance per landed damaging spell: +70 spell power and 400 mana for 20 s. |
+| Grand Arcanist (two-handed) | The same with +140 spell power. |
+| Insight | 35% chance per landed damaging spell: Spirit +100% for 10 s (more mana from Life Tap). |
+| Revelation | A direct hit that does not crit has a chance to trigger it; the next direct hit within 15 s gets +100% crit chance. The chance is set to 10% × (1 − your crit chance), a guess: the game's rule is not in the spell data. |
+
 **Cheat mode** (Fight & pets): ticked spells always hit and / or always crit, your demon's attacks too (its melee: no miss
 and no dodge; every swing that is not a glancing blow crits), to try streaks of luck. The results say "cheat mode" while it
 is on; these are not real numbers.

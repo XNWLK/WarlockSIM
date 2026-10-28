@@ -98,7 +98,7 @@ window.WL = window.WL || {};
     // roll stays where it was. Keys: spell keys, 'pet:firebolt', 'pet:lashOfPain', 'pet:melee'.
     var CH = (cfg.options && cfg.options.cheat) || {}, CHH = CH.hit || {}, CHC = CH.crit || {};
     function missRoll(k) { var x = R.hit() * 100; return !CHH[k] && x >= stats.hitPct; }
-    function critRoll(k, pct) { var x = R.crit() * 100; return !!CHC[k] || x < pct + (TRK.length ? trCrit(k) : 0); }   // + trinket crit (round 166)
+    function critRoll(k, pct) { var x = R.crit() * 100; return !!CHC[k] || x < pct + (TRX ? trCrit(k) : 0); }   // + trinket crit (round 166)
     function L(type, spell, extra) {
       if (!logOn) return;
       var e = { t: +S.t.toFixed(3), type: type, spell: spell, mana: Math.round(S.mana) };
@@ -411,6 +411,12 @@ window.WL = window.WL || {};
     // hit and crit (×1.5) and takes Curse of the Elements.
     var TRK = WL.equippedTrinkets ? WL.equippedTrinkets(cfg) : [], TRU = (cfg.options && cfg.options.trinketUse) || {}, trs = {};
     TRK.forEach(function (x) { trs[x.slot] = { until: -1, n: 0, pending: 0, procUntil: -1 }; });
+    // Weapon enchant effects (round 167) [A106]: procs on your landed damaging casts; Revelation on direct hits that do not crit.
+    var EPR = WL.equippedEnchantFx ? WL.equippedEnchantFx(cfg) : [], eps = {};
+    EPR.forEach(function (x) { eps[x.id] = { until: -1 }; });
+    var REV = EPR.filter(function (x) { return x.fx.proc.kind === 'crit'; })[0] || null;
+    var TRX = TRK.length > 0 || EPR.length > 0;
+    function epUp(x) { return eps[x.id].until > S.t + EPS; }
     function trUp(x) { return trs[x.slot].until > S.t + EPS; }
     function trSp(e) {
       var s = 0;
@@ -420,6 +426,7 @@ window.WL = window.WL || {};
         else if (u.kind === 'spDecay') s += Math.max(0, u.sp - u.per * trs[x.slot].n);
         else if (u.kind === 'spStack') s += u.per * Math.min(u.max, trs[x.slot].n);
       });
+      EPR.forEach(function (x) { var p = x.fx.proc; if (p.kind === 'sp' && epUp(x)) s += p.sp; });   // Grand Sorcerer / Arcanist (round 167)
       return s;
     }
     function trPierce() { var p = 0; TRK.forEach(function (x) { var u = x.fx.use; if (u && u.pierce && trUp(x)) p += u.pierce; }); return p; }
@@ -428,6 +435,7 @@ window.WL = window.WL || {};
     function trSpi() {
       var s = 0;
       TRK.forEach(function (x) { var u = x.fx.use, p = x.fx.proc; if (u && u.kind === 'spi' && trUp(x)) s += u.spi; if (p && p.kind === 'spi' && trs[x.slot].procUntil > S.t + EPS) s += p.spi; });
+      EPR.forEach(function (x) { var p = x.fx.proc; if (p.kind === 'spiPct' && epUp(x)) s += stats.spi * p.pct / 100; });   // Insight (round 167)
       return s;
     }
     function trHit(x, u) {                                           // a trinket's own hit
@@ -447,6 +455,19 @@ window.WL = window.WL || {};
         if (u && u.kind === 'dmgAfter' && st.pending > 0 && --st.pending === 0) trHit(x, u);
         if (p && R.proc() * 100 < p.chancePct) { st.procUntil = S.t + p.duration; L('buff', x.fx.name); }
       });
+      EPR.forEach(function (x) {                                     // weapon enchants (round 167)
+        var p = x.fx.proc; if (p.kind !== 'sp' && p.kind !== 'spiPct') return;
+        if (R.proc() * 100 < p.chancePct) {
+          eps[x.id].until = S.t + p.duration; L('buff', x.fx.name);
+          if (p.mana) { var g = Math.min(p.mana, stats.maxMana - S.mana); S.mana += g; res.manaFromConsumables = (res.manaFromConsumables || 0) + g; }
+        }
+      });
+    }
+    // Revelation (round 167): the next non-periodic spell + pct % crit; a non-periodic spell that does not crit may trigger it.
+    function revCritBonus() { return REV && eps[REV.id].until > S.t + EPS ? REV.fx.proc.pct : 0; }
+    function revAfter(crit, had) {
+      if (had) { eps[REV.id].until = -1; return; }                    // used up by this spell
+      if (!crit && R.proc() * 100 < (cb.revelationChancePct || 0) * Math.max(0, 1 - stats.critPct / 100)) { eps[REV.id].until = S.t + REV.fx.proc.duration; L('buff', REV.fx.name); }
     }
     function trCritDone() { TRK.forEach(function (x) { var u = x.fx.use; if (u && u.endsOnCrit && trUp(x)) trs[x.slot].until = -1; }); }   // Weakness Analyzer
     function trUse(x) {
@@ -479,7 +500,7 @@ window.WL = window.WL || {};
     // Your spell power right now for this spell: sheet + school + Spellblasting potion, × Blood Fury. [A32]
     // Round 96 (user: in Forever every DoT is dynamic, unlike Classic): periodic ticks — DoTs incl. the Bane of Doom explosion,
     // and channels — read it when the tick lands, like a direct hit does when it is cast; nothing is kept from the cast. [A13]
-    function spNow(e) { return (e.sp + potSp() + (TRK.length ? trSp(e) : 0)) * (S.buff('bloodFury') ? 1 + racialOf('cooldown').spPct / 100 : 1); }   // + trinkets (round 166)
+    function spNow(e) { return (e.sp + potSp() + (TRX ? trSp(e) : 0)) * (S.buff('bloodFury') ? 1 + racialOf('cooldown').spPct / 100 : 1); }   // + trinkets (round 166)
 
     // Resistance / Spell Pierce roll for one Warlock damage event. [A43][A44]
     var resCache = {}, lastVulnPct = 0;                 // vulnerable (+) / partially resisted (−) step of the last roll (log marker)
@@ -736,7 +757,9 @@ window.WL = window.WL || {};
         S.buffs.decimation = S.t + 10;
       }
       amt *= vulnMult(s.school);
-      var crit = critRoll(key, e.critPct);
+      var revHad = REV ? revCritBonus() : 0;                                // Revelation (round 167)
+      var crit = critRoll(key, e.critPct + revHad);
+      if (REV) revAfter(crit, revHad > 0);
       if (crit) amt *= e.critMult;
       deal(key, amt, crit, false);
       if (crit && TRK.length) trCritDone();                                  // Weakness Analyzer ends on a direct crit (round 166)
@@ -777,7 +800,7 @@ window.WL = window.WL || {};
     // (was 10%), then an internal cooldown (race data: 15 s since round 164, 25 s before; no roll while it runs). No spell power, no crit, no resist / Spell Pierce
     // roll. `ti` > 1 = an extra target. [A29][A93]
     function touchOfTheGrave(ti) {
-      if (TRK.length && !(ti > 1)) trOnCast();                       // trinkets count your landed damaging casts (round 166)
+      if (TRX && !(ti > 1)) trOnCast();                       // trinkets count your landed damaging casts (round 166)
       if (TOG && !(S.togReady > S.t + EPS) && R.proc() * 100 < TOG.chancePct) {
         S.togReady = S.t + (TOG.icd || 0);
         var td = stats.maxHealth * TOG.maxHealthPct / 100;
@@ -863,7 +886,7 @@ window.WL = window.WL || {};
     function lifeTap(moving) {
       if (!canTap()) { res.health.blocked += 0.1; res.idle += 0.1; scheduleDecide(S.t + 0.1); return; }   // not enough health: wait for a heal (round 119)
       loseHealth(TAP_HP, 'tap');
-      var gain = (SPELLS.lifeTap.manaBase + stats.spi + (TRK.length ? trSpi() : 0)) * (1 + tv('improvedLifeTap', 'manaPct') / 100); // [A12]; + trinket Spirit (round 166)
+      var gain = (SPELLS.lifeTap.manaBase + stats.spi + (TRX ? trSpi() : 0)) * (1 + tv('improvedLifeTap', 'manaPct') / 100); // [A12]; + trinket Spirit (round 166)
       var before = S.mana;
       S.mana = Math.min(stats.maxMana, S.mana + gain);
       res.lifeTaps++; res.manaFromTaps += S.mana - before; row('lifeTap').casts++;
@@ -917,7 +940,7 @@ window.WL = window.WL || {};
     S.petManaPct = function () { if (!P) return 100; petRegen(); return 100 * P.mana / P.maxMana; };
     S.petSpellCost = function () { return P && P.c.spell ? P.c.spell.cost : Infinity; };
     S.petMana = function () { if (!P) return Infinity; petRegen(); return P.mana; };
-    S.tapGain = function () { return (SPELLS.lifeTap.manaBase + stats.spi + (TRK.length ? trSpi() : 0)) * (1 + tv('improvedLifeTap', 'manaPct') / 100); };
+    S.tapGain = function () { return (SPELLS.lifeTap.manaBase + stats.spi + (TRX ? trSpi() : 0)) * (1 + tv('improvedLifeTap', 'manaPct') / 100); };
     S.maxMana = stats.maxMana;
     function petRegen() { P.mana = Math.min(P.maxMana, P.mana + P.c.manaRegen * (S.t - P.lastRegen)); P.lastRegen = S.t; }
     function petMult(school) {
@@ -929,7 +952,7 @@ window.WL = window.WL || {};
       if (school !== 'physical' && S.buff('coe')) m *= 1 + SPELLS.curseOfElements.dmgTakenPct / 100;
       return m;
     }
-    function warlockSpNow() { return (stats.sp + potSp() + (TRK.length ? trSp(null) : 0)) * (S.buff('bloodFury') ? 1 + racialOf('cooldown').spPct / 100 : 1); }
+    function warlockSpNow() { return (stats.sp + potSp() + (TRX ? trSp(null) : 0)) * (S.buff('bloodFury') ? 1 + racialOf('cooldown').spPct / 100 : 1); }
     function petSp() { return warlockSpNow() * (cfg.petSpPct != null ? cfg.petSpPct : 100) / 100 + (stats.dkSp || 0); }   // [A26][A27] pet spells
     function petSpellHit(sp) {
       var key = 'pet:' + sp.key, r = row(key);

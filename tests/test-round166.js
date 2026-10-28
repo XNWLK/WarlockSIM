@@ -25,7 +25,7 @@
       T.ok(names.indexOf(n) < 0, n + ' is out');
     });
     T.ok(/Hoodoo Hex/.test(names) && /Power of the Scourge/.test(names) && /Zandalar Signet of Mojo/.test(names), "the Warlock's Zul'Gurub enchant and the caster shoulder enchants stay");
-    T.ok(Object.keys(E).every(function (k) { var s = E[k].stats; return ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'spellPen', 'int', 'spi', 'mp5', 'sta'].some(function (x) { return s[x]; }); }), 'every enchant gives a stat the sim uses');
+    T.ok(Object.keys(E).every(function (k) { var s = E[k].stats; return (WL.ENCHANT_FX && WL.ENCHANT_FX[k]) || ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'spellPen', 'int', 'spi', 'mp5', 'sta'].some(function (x) { return s[x]; }); }), 'every enchant gives a stat the sim uses (or has an effect of its own, round 167)');
 
     T.group('Destro Incinerate Imp off the sheet (user)');
     var own = WL.BUILDS.filter(function (x) { return !x.custom; }).map(function (x) { return x.key; });

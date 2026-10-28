@@ -8,6 +8,8 @@ What each version added or changed, newest first. Version = the version of the
   Charm, Talisman of Ascendance, The Black Book, Eye of Moam, Hazza'rah's Charm, Weakness Analyzer, the mana and damage trinkets
   and more (the full list is in "How it's calculated"). For each worn trinket you choose when it is used: with your other
   cooldowns, whenever it is ready, in the execute phase, or never; the custom cooldown timeline has a row for each.
+- **Weapon enchants with an effect**: Revelation, Grand Sorcerer, Grand Arcanist and Insight work in the fight (gear builder
+  → main hand → enchant). Revelation's trigger chance is a guess for now.
 - **Cheat mode** (Fight & pets): make any spell always hit or always crit, your demon's attacks too, to try streaks of luck.
 - **By fight length** (under the results): every build and race at 60, 120, 180, 240 and 300 s.
 - **APL** (the build editor's rules, groups and variables) is open by default, and any built-in action of a priority list

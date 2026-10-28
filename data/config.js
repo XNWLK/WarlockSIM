@@ -33,6 +33,9 @@ WL.DEFAULT_CONFIG = {
     ratingPerCritPct: 14,   // [A04]
     ratingPerHastePct: 10,  // [A05]
     critMultiplier: 1.5,    // 150% unless a talent says otherwise (user-confirmed) [A06]
+    // Round 167: Revelation (weapon enchant) triggers on a non-periodic spell that does not crit at this % × (1 − your crit %).
+    // GUESS: the game's chance is a server-side script ("diminished as your critical strike chance increases"). [A106]
+    revelationChancePct: 10,
     gcd: 1.5,
     minGcd: 1.0,            // [A08]
     manaPerInt: 15,         // [A10]

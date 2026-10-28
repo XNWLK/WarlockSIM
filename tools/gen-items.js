@@ -182,7 +182,7 @@ const enchants = {}, enchDropped = { noSlot: 0, otherClass: 0, noStat: 0 };
   const en = { name, slots, stats: enchStats(name, text), text, from: [src], icon: iconOf(e.ic), mh: slots.indexOf('mainHand') >= 0 ? [twoHandOnly(text)] : [] };
   enchants[e.id] = en;
 });
-Object.keys(enchants).forEach(id => { if (!ENCH_USEFUL.some(k => enchants[id].stats[k])) { delete enchants[id]; enchDropped.noStat++; } });   // round 166
+Object.keys(enchants).forEach(id => { if (!ENCH_USEFUL.some(k => enchants[id].stats[k]) && !(WL.ENCHANT_FX && WL.ENCHANT_FX[id])) { delete enchants[id]; enchDropped.noStat++; } });   // round 166; round 167: an enchant with an effect in data/trinkets.js stays
 Object.keys(enchants).forEach(id => { const e = enchants[id]; e.slots.sort((a, b) => WL.GEAR_SLOTS.findIndex(s => s.key === a) - WL.GEAR_SLOTS.findIndex(s => s.key === b)); e.from = e.from.join(', '); if (e.mh.length && e.mh.every(Boolean)) e.twoHand = true; delete e.mh; });   // twoHand: only on a two-handed weapon
 
 // What changed since the last file
