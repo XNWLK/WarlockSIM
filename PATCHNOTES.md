@@ -6,7 +6,8 @@ What each version added or changed, newest first. Version = the version of the
 ## v153
 - **A tidier page**: the build list is now the first thing on the page, with Sim! and the stats used in its top row and quick
   setup and the table tools in one row above the table. Your stats, buffs and fight settings follow under "Your character and the
-  fight", with your saved presets next to that heading; the gear builder, the build editor and import / export come after them.
+  fight", with your saved presets next to that heading; the gear builder, the build editor, import / export and By fight length
+  come after them.
   The numbered steps strip at the top is gone. On a phone the build list fits the screen and its table scrolls sideways.
 - **Trinkets** work in the fight: put them in the gear builder's trinket slots. Talisman of Ephemeral Power, Zandalarian Hero
   Charm, Talisman of Ascendance, The Black Book, Eye of Moam, Hazza'rah's Charm, Weakness Analyzer, the mana and damage trinkets
@@ -15,7 +16,8 @@ What each version added or changed, newest first. Version = the version of the
 - **Weapon enchants with an effect**: Revelation, Grand Sorcerer, Grand Arcanist and Insight work in the fight (gear builder
   → main hand → enchant). Revelation's trigger chance is a guess for now.
 - **Cheat mode** (Fight & pets): make any spell always hit or always crit, your demon's attacks too, to try streaks of luck.
-- **By fight length** (under the results): every build and race at 60, 120, 180, 240 and 300 s.
+- **By fight length** (the last box on the page): every build and race at 60, 120, 180, 240 and 300 s, each with its % difference
+  to the best race, to no race or to the same race at 180 s; the reference itself shows --.
 - **APL** (the build editor's rules, groups and variables) is open by default, and any built-in action of a priority list
   can get a condition of its own ("only when …").
 - **Wowhead talent links**: load a build's talents from a Wowhead Forever talent calculator link, or open a build there.

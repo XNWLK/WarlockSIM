@@ -493,7 +493,7 @@
   function renderLen() {
     var T = lenData || WL.LENGTH_TABLE; if (!T) { $('lenMsg').textContent = 'No table yet: press Redo with my settings.'; $('lenTable').innerHTML = ''; return; }
     var D = T.durations, keys = WL.BUILDS.filter(function (b) { return !b.custom; }).map(function (b) { return b.key; });
-    $('lenMsg').textContent = (lenData ? 'Your settings' : 'Default settings') + ', ' + fmt(T.iterations) + ' fights per cell (each ± ' + T.varPct + '% long), seed ' + T.seed + '. The best race of each build at each length is marked; next to each DPS its difference in % (choose against what above; the best race: its lead over the second).' + (lenData ? '' : ' Your own settings: Redo with my settings.');
+    $('lenMsg').textContent = (lenData ? 'Your settings' : 'Default settings') + ', ' + fmt(T.iterations) + ' fights per cell (each ± ' + T.varPct + '% long), seed ' + T.seed + '. The best race of each build at each length is marked; next to each DPS its difference in % (choose against what above); -- marks the reference itself.' + (lenData ? '' : ' Your own settings: Redo with my settings.');
     var h = '<thead><tr><th>Build / race</th>' + D.map(function (d) { return '<th>' + d + ' s</th>'; }).join('') + '</tr></thead><tbody>';
     keys.forEach(function (bk) {
       // not WL.findBuild: that one is the test page's (the round 157 mistake again)
@@ -510,9 +510,10 @@
         h += '<tr' + (base ? ' class="base"' : '') + '><td>' + esc(WL.RACES[r.race].name) + (base ? ' (baseline)' : '') + '</td>' +
           r.dps.map(function (v, i) {
             var isBest = !base && v === best[i], p;
-            if (lenCmp === 'best') p = base ? pct(v, best[i]) : isBest ? (second[i] < v ? pct(v, second[i]) : 'tied') : pct(v, best[i]);
-            else if (lenCmp === 'base') p = base ? '' : pct(v, none && none.dps[i]);
-            else p = i === i180 ? '' : pct(v, r.dps[i180]);
+            // Round 170 (user: "have the best race just be -- … since it represents the baseline"): the reference shows --.
+            if (lenCmp === 'best') p = isBest ? '--' : pct(v, best[i]);
+            else if (lenCmp === 'base') p = base ? '--' : pct(v, none && none.dps[i]);
+            else p = i === i180 ? '--' : pct(v, r.dps[i180]);
             return '<td' + (isBest ? ' class="best" title="Best race at ' + D[i] + ' s"' : '') + '>' + fmt(v, 1) + (p ? '<span class="lpct">' + p + '</span>' : '') + '</td>';
           }).join('') + '</tr>';
       });

@@ -971,13 +971,6 @@
     </tr></thead><tbody></tbody></table></div>
   </section>
 
-  <details class="card toolcard" id="lenSheet">
-    <summary>By fight length <span class="meta">— every build and race at 60, 120, 180, 240 and 300 s</span></summary>
-    <p class="meta" id="lenMsg"></p>
-    <div class="btnrow"><label class="c" for="lenCmp">% against <select id="lenCmp"><option value="best">the best race at that length</option><option value="base">no race (what the race adds)</option><option value="180">the same race at 180 s</option></select></label><button type="button" id="lenRun" class="primary" title="Simulates every build and race at the five fight lengths with the settings you have now (1,000 fights each, your fight length's ± % per fight)">Redo with my settings</button></div>
-    <div class="scroll"><table id="lenTable" class="lentable"></table></div>
-  </details>
-
   <details class="card toolcard" id="compare">
     <summary>Compare two builds</summary>
     <div class="cmpbar">
@@ -1260,6 +1253,13 @@
       </div>
     </div>
     <div class="scroll"><table id="batchOut" class="batchout"></table></div>
+  </details>
+
+  <details class="card toolcard" id="lenSheet">
+    <summary>By fight length <span class="meta">— every build and race at 60, 120, 180, 240 and 300 s</span></summary>
+    <p class="meta" id="lenMsg"></p>
+    <div class="btnrow"><label class="c" for="lenCmp">% against <select id="lenCmp"><option value="best">the best race at that length</option><option value="base">no race (what the race adds)</option><option value="180">the same race at 180 s</option></select></label><button type="button" id="lenRun" class="primary" title="Simulates every build and race at the five fight lengths with the settings you have now (1,000 fights each, your fight length's ± % per fight)">Redo with my settings</button></div>
+    <div class="scroll"><table id="lenTable" class="lentable"></table></div>
   </details>
 
   <p class="foot">Click a row for talents, stats, the DoT chart, per-spell numbers, race comparison and the full rotation log; the "+4 races" pill next to the race
