@@ -249,6 +249,22 @@ WL.ACTIONS = {
       return S.mana < S.maxMana * pct / 100 && S.remaining > sec ? 'lifeTap' : null;
     },
   },
+  // Round 168 (user): Life Tap only when the mana you have will not last the rest of the fight. The fight so far gives the
+  // rate your mana goes down (what you spent minus everything you got back except Life Tap, per second); that rate × the
+  // time left is what you still need. It taps while you have less than that, mana is below _% and more than _ s remain.
+  // Not while free mana is ready and would come by itself as your mana falls (Innervate / Mana Tide below 50%, a mana potion,
+  // rune or mana trinket once its amount is missing): that comes first. With plenty of mana it taps less; with little, the same.
+  lifeTapNeed: {
+    label: 'Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below _% mana, more than _ s left)',
+    params: [{ key: 'pct', def: 90, min: 1, max: 100, name: 'mana %' }, { key: 'sec', def: 10, min: 0, max: 3600, name: 'seconds left' }],
+    pick: function (S) {
+      var p = S.build.params && S.build.params.lifeTapNeed;
+      var pct = p && p.pct != null ? p.pct : 90, sec = p && p.sec != null ? p.sec : 10;
+      if (!(S.mana < S.maxMana * pct / 100) || !(S.remaining > sec)) return null;
+      if (S.freeManaLevel && S.mana >= S.freeManaLevel() && S.freeManaLevel() > 0) return null;   // free mana is ready: use it first
+      return S.mana < S.manaNeedLeft() ? 'lifeTap' : null;
+    },
+  },
   // Demonic Brand upkeep: Searing Pain when the brand is down (or out of charges) and a pet is out.
   searingPainBrand: {
     label: 'Searing Pain to (re)apply Demonic Brand when it is down',
@@ -343,6 +359,7 @@ WL.actionOf = function (key, build) {
     var base = WL.ACTIONS[key], w = build && build.actWhen && build.actWhen[key];
     if (!w) return base;
     var o = Object.create(base); o.when = w; o.baseLabel = base.label; o.label = base.label + ' — only when ' + WL.condText(w, build);
+    if (base.filler) { o.filler = false; o.preFiller = true; }        // a filler with a condition can pass: the next filler below it is cast then
     o.pick = function (S) { return WL.ruleCond(w, S, build) ? base.pick(S) : null; };
     return o;
   }

@@ -42,8 +42,8 @@ WL.BUILDS = [
       improvedShadowBolt: 5, bane: 5, ruin: 5, agonizingFlames: 3,   // round 61: -3 Cataclysm +3 Improved Shadow Bolt
     },
     pet: 'succubus', sacrifice: 'imp', oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'searingPainBrand', 'immolate', 'corruption', 'lifeTapBelow', 'shadowBolt'],
-    params: { lifeTapBelow: { pct: 80, sec: 45 } },   // round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.59% (10,000 fights)
+    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'searingPainBrand', 'immolate', 'corruption', 'lifeTapNeed', 'shadowBolt'],
+    params: { lifeTapNeed: { pct: 80, sec: 45 } },   // round 168 (user): Life Tap only when the rest of the fight needs it and no free mana is ready, same numbers (default settings ±0.00%, max buffs +0.1 … +5.9%). Round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.59% (10,000 fights)
   },
   {
     key: 'demo_pact_fire', short: 'Demo Pact Fire Imp',
@@ -56,8 +56,8 @@ WL.BUILDS = [
       bane: 5, aftermath: 5, ruin: 5, agonizingFlames: 3,
     },
     pet: 'imp', sacrifice: 'succubus', oil: 'firestone',
-    rotation: ['deathCoilFinisher', 'searingPainBrand', 'lifeTapPet', 'bane', 'curseOfElements', 'immolate', 'soulFire', 'corruption', 'lifeTapBelow', 'searingPain'],
-    params: { lifeTapBelow: { pct: 80, sec: 45 } },   // round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.95% (10,000 fights)
+    rotation: ['deathCoilFinisher', 'searingPainBrand', 'lifeTapPet', 'bane', 'curseOfElements', 'immolate', 'soulFire', 'corruption', 'lifeTapNeed', 'searingPain'],
+    params: { lifeTapNeed: { pct: 80, sec: 45 } },   // round 168 (user): Life Tap only when the rest of the fight needs it and no free mana is ready, same numbers (default settings ±0.00%, max buffs +0.1 … +5.9%). Round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.95% (10,000 fights)
   },
   {
     key: 'destro_incin_succ', short: 'Destro Incinerate Succubus',
@@ -69,8 +69,8 @@ WL.BUILDS = [
       baneOfHavoc: 1, fireAndBrimstone: 3, shadowAndFlame: 5, incinerate: 1,
     },
     pet: 'succubus', sacrifice: null, oil: 'firestone',
-    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'immolate', 'corruption', 'conflagrate', 'shadowburn', 'lifeTapBelow', 'incinerate'],
-    params: { lifeTapBelow: { pct: 50, sec: 25 } },   // round 105 (user): Life Tap below 50% mana with more than 25 s left, +0.36% (10,000 fights)
+    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'immolate', 'corruption', 'conflagrate', 'shadowburn', 'lifeTapNeed', 'incinerate'],
+    params: { lifeTapNeed: { pct: 50, sec: 25 } },   // round 168 (user): Life Tap only when the rest of the fight needs it and no free mana is ready, same numbers (default settings ±0.00%, max buffs +0.1 … +5.9%). Round 105 (user): Life Tap below 50% mana with more than 25 s left, +0.36% (10,000 fights)
   },
   // ---- Reference builds (round 65, user): classic layouts. Round 66: every build is shown by default (no cut-off), so they
   //      need no special flag; anyone can pin any build (📌) to keep it shown when a cut-off is set. ----
@@ -84,8 +84,8 @@ WL.BUILDS = [
       bane: 5, improvedShadowBolt: 5, cataclysm: 3, ruin: 5, agonizingFlames: 3,   // round 82/83: −3 Improved Corruption +3 Cataclysm
     },
     pet: 'succubus', sacrifice: null, oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'bane', 'corruption', 'shadowTrance', 'siphonLife', 'curseOfElements', 'immolate', 'lifeTapBelow', 'shadowBolt'],
-    params: { lifeTapBelow: { pct: 40, sec: 25 } },   // round 105 (user): Life Tap below 40% mana with more than 25 s left, +0.23% (10,000 fights)
+    rotation: ['deathCoilFinisher', 'bane', 'corruption', 'shadowTrance', 'siphonLife', 'curseOfElements', 'immolate', 'lifeTapNeed', 'shadowBolt'],
+    params: { lifeTapNeed: { pct: 40, sec: 25 } },   // round 168 (user): Life Tap only when the rest of the fight needs it and no free mana is ready, same numbers (default settings ±0.00%, max buffs +0.1 … +5.9%). Round 105 (user): Life Tap below 40% mana with more than 25 s left, +0.23% (10,000 fights)
   },
   {
     key: 'wrack_succubus', short: 'Wrack Succubus',
@@ -97,7 +97,9 @@ WL.BUILDS = [
       improvedShadowBolt: 5, bane: 5, ruin: 5, agonizingFlames: 3,   // round 149 follow-up (user: "adopt both", search +3.54%): −2 Improved Corruption +1 Amplify Curse +1 Ruin, −3 Improved Drains +3 Agonizing Flames.   // round 149 (user; patch 2026-10-16: Malediction gone): −5 Malediction +2 Improved Life Tap +3 Ruin
     },
     pet: 'succubus', sacrifice: null, oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'baneOfAgony', 'corruption', 'siphonLife', 'curseOfElements', 'immolate', 'isbUpkeep', 'shadowTrance', 'lifeTapBelow', 'wrack'],   // round 82/83: + ISB upkeep
-    params: { lifeTapBelow: { pct: 60, sec: 25 } },   // round 105 (user): Life Tap below 60% mana with more than 25 s left, +0.21% (10,000 fights)
+    rotation: ['deathCoilFinisher', 'baneOfAgony', 'corruption', 'siphonLife', 'curseOfElements', 'immolate', 'isbUpkeep', 'shadowTrance', 'lifeTapNeed', 'wrack', 'shadowBolt'],   // round 82/83: + ISB upkeep; round 168: Shadow Bolt when Wrack waits
+    // Round 168 (user: "2 yes"): Wrack only while Corruption, Bane of Agony and Siphon Life all have at least 4 s left (+2.0%, 10,000 fights).
+    actWhen: { wrack: { t: 'all', c: [{ t: 'dot', spell: 'corruption', op: '>=', v: 4 }, { t: 'dot', spell: 'baneOfAgony', op: '>=', v: 4 }, { t: 'dot', spell: 'siphonLife', op: '>=', v: 4 }] } },
+    params: { lifeTapNeed: { pct: 60, sec: 25 } },   // round 168 (user): Life Tap only when the rest of the fight needs it and no free mana is ready, same numbers (default settings ±0.00%, max buffs +0.1 … +5.9%). Round 105 (user): Life Tap below 60% mana with more than 25 s left, +0.21% (10,000 fights)
   },
 ];

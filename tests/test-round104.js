@@ -76,9 +76,11 @@
     var own = WL.BUILDS.filter(function (b) { return !b.custom; }).concat(WL.RETIRED_BUILDS);
     T.eq(own.length, Object.keys(WANT).length, own.length + ' builds: ' + (own.length - WL.RETIRED_BUILDS.length) + ' on the sheet + ' + WL.RETIRED_BUILDS.length + ' taken off it since');
     own.forEach(function (b) {
-      var p = WL.actionParams(b, 'lifeTapBelow'), n = b.rotation.length;
-      T.ok(b.rotation[n - 2] === 'lifeTapBelow' && WL.ACTIONS[b.rotation[n - 1]].filler && b.rotation.indexOf('lifeTapBelow') === n - 2, b.short + ': the action sits right above the filler, once');
-      T.eq(p.pct + '/' + p.sec, WANT[b.key], b.short + ': ' + WL.actionLabel(b, 'lifeTapBelow'));
+      // Round 168 (user): the builds on the sheet use lifeTapNeed with the same numbers (the hidden ones keep lifeTapBelow).
+      var k = WL.RETIRED_BUILDS.indexOf(b) >= 0 ? 'lifeTapBelow' : 'lifeTapNeed', p = WL.actionParams(b, k);
+      var fi = b.rotation.map(function (a) { var A = WL.actionOf(a, b); return !!(A && (A.filler || A.preFiller)); }).indexOf(true);
+      T.ok(fi > 0 && b.rotation[fi - 1] === k && b.rotation.indexOf(k) === b.rotation.lastIndexOf(k), b.short + ': the action sits right above the filler, once');
+      T.eq(p.pct + '/' + p.sec, WANT[b.key], b.short + ': ' + WL.actionLabel(b, k));
       T.eq(WL.validateBuild(b).join(' | '), '', b.short + ': still a legal build');
       T.eq(JSON.stringify(WL.decodeBuild(WL.encodeBuild(b)).params), JSON.stringify(b.params), b.short + ': its build code carries the numbers');
     });

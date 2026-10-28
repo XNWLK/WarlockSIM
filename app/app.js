@@ -19,7 +19,7 @@
   var ACTION_ICON = { curseOfElements: 'curseOfElements', shadowTrance: 'shadowTrance', bane: 'baneOfDoom', baneOfAgony: 'baneOfAgony', corruption: 'corruption',
     siphonLife: 'siphonLife', immolate: 'immolate', conflagrate: 'conflagrate', shadowburn: 'shadowburn', soulFire: 'soulFire',
     wrack: 'wrack', wrackDots: 'wrack', shadowBolt: 'shadowBolt', incinerate: 'incinerate', drainLife: 'drainLife', searingPain: 'searingPain', hellfire: 'hellfire', rainOfFire: 'rainOfFire',
-    lifeTapPet: 'lifeTap', lifeTapBelow: 'lifeTap', soulFireShards: 'soulFire', searingPainBrand: 'searingPain', shadowburnSnF: 'shadowburn', conflagrateSnF: 'conflagrate', conflagrateExpire: 'conflagrate', multiDot: 'corruption', shadowBoltSpread: 'talent_improvedShadowBolt', isbUpkeep: 'talent_improvedShadowBolt', shadowBoltR2LowMana: 'shadowBolt', deathCoil: 'deathCoil', deathCoilFinisher: 'deathCoil', havocAuto: 'baneOfHavoc',
+    lifeTapPet: 'lifeTap', lifeTapBelow: 'lifeTap', lifeTapNeed: 'lifeTap', soulFireShards: 'soulFire', searingPainBrand: 'searingPain', shadowburnSnF: 'shadowburn', conflagrateSnF: 'conflagrate', conflagrateExpire: 'conflagrate', multiDot: 'corruption', shadowBoltSpread: 'talent_improvedShadowBolt', isbUpkeep: 'talent_improvedShadowBolt', shadowBoltR2LowMana: 'shadowBolt', deathCoil: 'deathCoil', deathCoilFinisher: 'deathCoil', havocAuto: 'baneOfHavoc',
     swapToImp: 'pet_imp', swapToSuccubus: 'pet_succubus', searingPainExecute: 'searingPain', searingPainDecimation: 'searingPain' };
   // Stat weights (round 44): the table shows SP first (DPS per 1 SP), the others as spell-power equivalents
   // (weight ÷ SP weight: "1% hit is worth 12 SP"); Spell Pierce only in the details.
@@ -55,7 +55,7 @@
     firebolt: 'Deals (57.1% of Spell Power) Fire damage to a target.',
     lashOfPain: 'An instant attack that lashes the target, causing (42.9% of Spell Power) Shadow damage.',
   };
-  var ACTION_SPELLS = { bane: ['baneOfDoom', 'baneOfAgony'], shadowTrance: ['shadowBolt'], lifeTapPet: ['lifeTap'], lifeTapBelow: ['lifeTap'], wrackDots: ['wrack'],
+  var ACTION_SPELLS = { bane: ['baneOfDoom', 'baneOfAgony'], shadowTrance: ['shadowBolt'], lifeTapPet: ['lifeTap'], lifeTapBelow: ['lifeTap'], lifeTapNeed: ['lifeTap'], wrackDots: ['wrack'],
     multiDot: ['curseOfElements', 'corruption', 'baneOfAgony', 'immolate', 'siphonLife'], shadowburnSnF: ['shadowburn'], conflagrateSnF: ['conflagrate'], conflagrateExpire: ['conflagrate'], shadowBoltSpread: ['shadowBolt'], isbUpkeep: ['shadowBolt'], deathCoil: ['deathCoil'], deathCoilFinisher: ['deathCoil'],
     searingPainBrand: ['searingPain'], soulFireShards: ['soulFire'], searingPainExecute: ['searingPain'], searingPainDecimation: ['searingPain'] };
   function para(s) { return esc(s).replace(/\n/g, '<br>'); }
@@ -1148,12 +1148,12 @@
         esc(s.unit + ' = ' + v.toFixed(3) + ' DPS' + (eq != null ? ' = ' + eq.toFixed(2) + ' spell power' : '') + ' · computed on ' + WL.RACES[w.race].name) + '">' + shown + '</td>';
     }).join('');
   }
-  // Relative DPS bar under the DPS number (round 45, user): full = the best build, empty = 20% behind it (round 113, user:
-  // 10% made small gaps look big — a build 5% behind had half a bar). A display cut-off wider than 20% widens the scale to
-  // match, a narrower one no longer narrows it. Rows further behind get a stub.
+  // Relative DPS bar under the DPS number (round 45, user): full = the best build.
+  // Round 166 (user: "the percentage difference isn't proportional to the size difference in the bar"): the bar is the
+  // DPS itself, from 0 — 2% behind = a 2% shorter bar (rounds 45–165: from 10% / 20% behind the best to the best).
   function dpsBar(dps, top) {
-    var win = Math.max(20, cutPct()), floor = top * (1 - win / 100), f = Math.max(0.02, Math.min(1, (dps - floor) / (top - floor)));
-    return '<span class="dbar" title="Bar: from ' + win + '% behind the best (empty) to the best build (full)"><i style="width:' + (100 * f).toFixed(1) + '%"></i></span>';
+    var f = top > 0 ? Math.max(0, Math.min(1, dps / top)) : 0;
+    return '<span class="dbar" title="Bar: this DPS against the best build (full), from 0"><i style="width:' + (100 * f).toFixed(1) + '%"></i></span>';
   }
   var PIN_SVG = '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M10.5 1.5l4 4-2 1-2.5 2.5.5 3-1.5 1.5-3-3-3.5 3.5-.9-.9L5.1 9.6l-3-3L3.6 5.1l3 .5L9.1 3.1z" fill="currentColor"/></svg>';
   // Rank arrows (round 110, user): after a rerun with other settings, every build shows how many places it gained (▲) or
@@ -2036,7 +2036,7 @@
     ['Curses & DoTs', ['curseOfElements', 'bane', 'baneOfAgony', 'corruption', 'siphonLife', 'immolate']],
     ['Multi-target', ['multiDot', 'shadowBoltSpread']],
     ['Cooldowns & procs', ['shadowTrance', 'isbUpkeep', 'deathCoil', 'deathCoilFinisher', 'conflagrate', 'conflagrateExpire', 'conflagrateSnF', 'shadowburn', 'shadowburnSnF', 'soulFire', 'searingPainBrand', 'searingPainExecute', 'searingPainDecimation', 'wrackDots']],
-    ['Pet & mana', ['lifeTapPet', 'lifeTapBelow', 'swapToImp', 'swapToSuccubus']],
+    ['Pet & mana', ['lifeTapPet', 'lifeTapNeed', 'lifeTapBelow', 'swapToImp', 'swapToSuccubus']],
     ['Fillers (the last entry)', ['shadowBolt', 'incinerate', 'searingPain', 'drainLife', 'wrack', 'hellfire', 'rainOfFire']],
   ];
   var ACTION_SHORT = {
@@ -2046,7 +2046,7 @@
     shadowTrance: 'Shadow Bolt (max rank) on Shadow Trance (Nightfall)', isbUpkeep: 'Shadow Bolt (max rank) to keep ISB up',
     deathCoil: 'Death Coil on cooldown', deathCoilFinisher: 'Death Coil as the finisher', conflagrate: 'Conflagrate', shadowburn: 'Shadowburn on cooldown',
     shadowburnSnF: 'Shadowburn for Shadow and Flame', conflagrateSnF: 'Conflagrate for Shadow and Flame', conflagrateExpire: 'Conflagrate when Immolate is about to expire', soulFire: 'Soul Fire during Decimation', searingPainBrand: 'Searing Pain for Demonic Brand',
-    searingPainExecute: 'Searing Pain in the execute phase', searingPainDecimation: 'Searing Pain to trigger Decimation', lifeTapPet: 'Life Tap to feed the pet', lifeTapBelow: 'Life Tap below a mana % (you set it)', wrackDots: 'Wrack while the DoTs have time left (you set it)',
+    searingPainExecute: 'Searing Pain in the execute phase', searingPainDecimation: 'Searing Pain to trigger Decimation', lifeTapPet: 'Life Tap to feed the pet', lifeTapNeed: 'Life Tap when the rest of the fight needs it (you set the cap)', lifeTapBelow: 'Life Tap below a mana % (you set it)', wrackDots: 'Wrack while the DoTs have time left (you set it)',
     swapToImp: 'Pet swap at execute → Imp', swapToSuccubus: 'Pet swap at execute → Succubus',
     shadowBolt: 'Shadow Bolt (Rank 9)', incinerate: 'Incinerate', searingPain: 'Searing Pain',
     drainLife: 'Drain Life', wrack: 'Wrack', hellfire: 'Hellfire (hits every target)', rainOfFire: 'Rain of Fire (hits every target)',
@@ -2527,11 +2527,11 @@
         split(ref.b) + ' ' + esc(ref.b.short) + ' (' + esc(WL.RACES[ref.race].name) + '), on the same fights</span></span>'
         : q.sheet ? '<span class="meta">the best build on the sheet</span>' : '') +
       '</div></div>';
-    // one row per race: bar from the weakest race (short) to the best (full), so gaps of 1–2% are visible
+    // one row per race: bar = DPS against the best race (full), from 0 (round 166, user)
     h += '<div><h3>Races <span class="meta">— click one for its damage breakdown</span></h3><div class="qraces">' + rows.map(function (r) {
-      var d = (r.dps / hi - 1) * 100, w = hi > lo ? 30 + 70 * (r.dps - lo) / (hi - lo) : 100, R = WL.RACES[r.race];
+      var d = (r.dps / hi - 1) * 100, w = hi > 0 ? 100 * r.dps / hi : 100, R = WL.RACES[r.race];   // round 166: from 0, proportional to the %
       return '<button type="button" class="qrace" data-qrace="' + r.race + '" aria-pressed="' + (r === sel) + '" title="' +
-        esc(R.name + ': ' + R.racials.map(function (y) { return y.name; }).join(', ') + ' — ±' + fmt(r.err, 1) + ' DPS. Bar: from the weakest race to the best.') + '">' +
+        esc(R.name + ': ' + R.racials.map(function (y) { return y.name; }).join(', ') + ' — ±' + fmt(r.err, 1) + ' DPS. Bar: its DPS against the best race, from 0.') + '">' +
         (icon('race_' + r.race, R.name) || '<span></span>') + '<span>' + esc(R.name) + '</span><span class="qbar"><i style="width:' + w.toFixed(1) + '%"></i></span>' +
         '<span class="n"><b>' + fmt(r.dps, 1) + '</b></span><span class="d" style="color:var(' + (r === bestM ? '--good' : '--bad') + ')">' + (r === bestM ? 'best' : d.toFixed(2) + '%') + '</span></button>';
     }).join('') + '</div></div>';

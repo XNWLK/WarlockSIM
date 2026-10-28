@@ -148,6 +148,7 @@ const ACTION_NOTES = {
   searingPainDecimation: 'Below 35% health, with Decimation and a Soul Fire action in the list: one Searing Pain when Soul Fire comes off cooldown within one Searing Pain cast, the Decimation buff would not be up by then, and the Soul Fire still fits before the end.',
   soulFire: 'The Decimation buff is up and Soul Fire is off cooldown.',
   lifeTapPet: 'With Demonic Energies and a demon out: the demon has less mana than two of its spells cost, and you are missing at least one full Life Tap of mana.',
+  lifeTapNeed: 'At the rate your mana has gone down so far in the fight (what you spent minus all you got back except Life Tap), the rest of the fight needs more mana than you have; and your mana is below the first number (% of maximum) and more than the second number of seconds are left. With plenty of mana coming in it taps less often.',
   lifeTapBelow: 'Your mana is below the first number (% of maximum) and more than the second number of seconds are left. Each build sets its own two numbers.',
   searingPainBrand: 'With Demonic Brand and a demon out: the brand is not on the boss or has no charges left.',
   soulFireShards: 'Soul Fire is off cooldown, with or without the Decimation buff.',

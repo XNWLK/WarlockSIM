@@ -889,7 +889,7 @@ window.WL = window.WL || {};
       var gain = (SPELLS.lifeTap.manaBase + stats.spi + (TRX ? trSpi() : 0)) * (1 + tv('improvedLifeTap', 'manaPct') / 100); // [A12]; + trinket Spirit (round 166)
       var before = S.mana;
       S.mana = Math.min(stats.maxMana, S.mana + gain);
-      res.lifeTaps++; res.manaFromTaps += S.mana - before; row('lifeTap').casts++;
+      res.lifeTaps++; res.manaFromTaps += S.mana - before; row('lifeTap').casts++; S.tapMana += S.mana - before;
       S.busyUntil = S.t; S.gcdReady = S.t + S.gcd();
       res.tapTime = (res.tapTime || 0) + S.gcd();                           // GCD time spent on Life Tap (W3)
       if (moving) res.movingTaps = (res.movingTaps || 0) + 1;
@@ -940,6 +940,19 @@ window.WL = window.WL || {};
     S.petManaPct = function () { if (!P) return 100; petRegen(); return 100 * P.mana / P.maxMana; };
     S.petSpellCost = function () { return P && P.c.spell ? P.c.spell.cost : Infinity; };
     S.petMana = function () { if (!P) return Infinity; petRegen(); return P.mana; };
+    // Round 168: the mana the rest of the fight needs at the rate it has gone down so far (Life Tap's own mana left out);
+    // the first 6 s have no rate yet (the opening DoTs): everything counts as needed.
+    S.manaStart = stats.maxMana; S.tapMana = 0;
+    S.manaNeedLeft = function () { if (S.t < 6) return Infinity; return Math.max(0, (S.manaStart - S.mana + S.tapMana) / S.t) * S.remaining; };
+    // Free mana that is ready and would come by itself as your mana falls (round 168): Innervate / Mana Tide (below 50%),
+    // a mana potion or rune and a mana trinket (once their amount is missing). The mana level it comes at, or 0.
+    S.freeManaLevel = function () {
+      var lv = 0, mx = stats.maxMana;
+      manaBuffs.forEach(function (mb) { if (mb.left > 0 && S.t >= mb.until - EPS) lv = Math.max(lv, 0.5 * mx); });
+      manaItems.forEach(function (c) { if (S.ready('cd:' + c.cdGroup)) lv = Math.max(lv, mx - (c.manaRestore.amount || mx * c.manaRestore.pct / 100)); });
+      TRK.forEach(function (x) { var u = x.fx.use; if (u && u.kind === 'mana' && (TRU[x.slot] || 'cds') !== 'never' && S.ready('tr:' + x.slot)) lv = Math.max(lv, mx - u.amount); });
+      return lv;
+    };
     S.tapGain = function () { return (SPELLS.lifeTap.manaBase + stats.spi + (TRX ? trSpi() : 0)) * (1 + tv('improvedLifeTap', 'manaPct') / 100); };
     S.maxMana = stats.maxMana;
     function petRegen() { P.mana = Math.min(P.maxMana, P.mana + P.c.manaRegen * (S.t - P.lastRegen)); P.lastRegen = S.t; }
@@ -1121,7 +1134,7 @@ window.WL = window.WL || {};
     // What the rotation would cast instead of the DoT: the first action below it that picks a damaging direct spell or
     // channel right now (Soul Fire under Decimation, Conflagrate, a Shadow Trance bolt, the filler, …). Actions that
     // apply DoTs / curses / Life Tap / pet swaps are passed over (they are not the damage the DoT's time is taken from).
-    var NOT_ALT = { bane: 1, baneOfAgony: 1, corruption: 1, siphonLife: 1, immolate: 1, multiDot: 1, curseOfElements: 1, lifeTapPet: 1, lifeTapBelow: 1,
+    var NOT_ALT = { bane: 1, baneOfAgony: 1, corruption: 1, siphonLife: 1, immolate: 1, multiDot: 1, curseOfElements: 1, lifeTapPet: 1, lifeTapBelow: 1, lifeTapNeed: 1,
                     swapToImp: 1, swapToSuccubus: 1, shadowBoltSpread: 1, isbUpkeep: 1, deathCoilFinisher: 1 };
     function altBelow(idx) {
       for (var i = (idx == null ? -1 : idx) + 1; i < ROT.length; i++) {

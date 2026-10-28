@@ -19,6 +19,14 @@ What each version added or changed, newest first. Version = the version of the
   (other classes' Zul'Gurub enchants, resistances, movement and melee enchants are gone); trinkets that only have a use
   effect are in the list now. The item list was checked against the Wowhead Forever database again.
 - **Dark Inspiration** (Shadow Priest, +15% Spirit) is in the raid buffs.
+- **A smarter Life Tap** in every build: it taps only when the rest of the fight needs more mana than you have, and not
+  while free mana is ready (Innervate, Mana Tide, a rune or mana potion, a mana trinket). The same as before with the
+  default settings; with lots of mana coming in up to 5.9% more DPS (Demo Pact Shadow Bolt with max buffs).
+- **Wrack Succubus** only channels Wrack while Corruption, Bane of Agony and Siphon Life all have at least 4 s left, and casts
+  Shadow Bolt otherwise: +2.0%.
+- **DPS bars** (the build list, the races in a build) now start at 0: a build 2% behind has a 2% shorter bar.
+- A Soul Fire cast before the pull is worth about +0.6 to +0.9% for every build; choose it under Fight & pets → Pre-pull cast
+  (it stays off by default).
 - **Destro Incinerate Imp** was taken off the build list (the Succubus version does more). Five builds remain.
 - A **Discord** button at the top.
 
