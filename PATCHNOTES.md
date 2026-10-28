@@ -4,6 +4,10 @@ What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
 ## v153
+- **A tidier page**: the build list is now the first thing on the page, with Sim! and the stats used in its top row and quick
+  setup and the table tools in one row above the table. Your stats, buffs and fight settings follow under "Your character and the
+  fight", with your saved presets next to that heading; the gear builder, the build editor and import / export come after them.
+  The numbered steps strip at the top is gone. On a phone the build list fits the screen and its table scrolls sideways.
 - **Trinkets** work in the fight: put them in the gear builder's trinket slots. Talisman of Ephemeral Power, Zandalarian Hero
   Charm, Talisman of Ascendance, The Black Book, Eye of Moam, Hazza'rah's Charm, Weakness Analyzer, the mana and damage trinkets
   and more (the full list is in "How it's calculated"). For each worn trinket you choose when it is used: with your other
@@ -15,7 +19,7 @@ What each version added or changed, newest first. Version = the version of the
 - **APL** (the build editor's rules, groups and variables) is open by default, and any built-in action of a priority list
   can get a condition of its own ("only when …").
 - **Wowhead talent links**: load a build's talents from a Wowhead Forever talent calculator link, or open a build there.
-- **Gear builder**: finished — it now sits at the top. Its enchant list only has what a Warlock can use and the sim counts
+- **Gear builder**: finished — it sits under your stats and settings, folded until you switch it on. Its enchant list only has what a Warlock can use and the sim counts
   (other classes' Zul'Gurub enchants, resistances, movement and melee enchants are gone); trinkets that only have a use
   effect are in the list now. The item list was checked against the Wowhead Forever database again.
 - **Dark Inspiration** (Shadow Priest, +15% Spirit) is in the raid buffs.

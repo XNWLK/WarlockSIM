@@ -468,7 +468,8 @@
       : which === 'max' ? 'Max buffs & consumables: ' + WL.activeBuffs(cfg).length + ' raid buffs, ' + WL.activeConsumables(cfg).length + ' consumables'
       : 'Default buffs & consumables') + ' — press Sim!';
   }
-  function stepsDone() { $('steps').hidden = true; try { localStorage.setItem('wfs.simmed', '1'); } catch (e) { /* page only */ } }
+  // round 169: the steps strip is gone (null-safe)
+  function stepsDone() { if ($('steps')) $('steps').hidden = true; try { localStorage.setItem('wfs.simmed', '1'); } catch (e) { /* page only */ } }
   // "changed" tag on the folded Advanced block of Fight & pets: one of its settings is not at its default.
   function advNote() {
     var D = WL.DEFAULT_CONFIG, m = function (c) { return c.pets.succubus.melee; };
@@ -773,9 +774,10 @@
   function renderStatbar() {
     var g = runCfg.gear, f = runCfg.fight;
     $('statbar').innerHTML =
+      '<span class="runbtn"><button class="primary" id="runBtn" type="button"' + (running ? ' disabled' : '') + '>' + (running ? 'Simming…' : 'Sim!') + '</button></span>' +   // round 169: Sim! first, on the build list
       chip('--c-sp', fmt(g.sp), 'spell power') + chip('--c-hit', fmt(g.hitPct, 1) + '%', 'hit') + chip('--c-crit', fmt(g.critPct, 1) + '%', 'crit') +
       chip('--c-fight', f.duration + ' s' + (f.durationVarPct ? ' ±' + f.durationVarPct + '%' : ''), (f.targets > 1 ? f.targets + ' targets · ' : '') + 'fight' + (WL.PRECAST_SPELLS.indexOf(f.precast) >= 0 ? ' · ' + esc(precastName(f.precast)) + ' precast' : '')) +
-      '<span class="end"><button class="primary" id="runBtn" type="button"' + (running ? ' disabled' : '') + '>' + (running ? 'Simming…' : 'Sim!') + '</button></span>';
+      '';
     $('addRunBtn').disabled = running || !results.length;
   }
 
@@ -2771,7 +2773,7 @@
       (userGear.length ? '<optgroup label="Your gear sets (gear only)">' + opts(userGear, 'g') + '</optgroup>' : '');
     if (sel) $('presetSel').value = sel;
   }
-  function presetMsg(s, bad) { $('quickMsg').textContent = s; $('quickMsg').style.color = bad ? 'var(--bad)' : ''; }
+  function presetMsg(s, bad) { $('presetMsg').textContent = s; $('presetMsg').style.color = bad ? 'var(--bad)' : ''; }   // round 169: the presets sit by the settings
   function selectedPreset() { var v = $('presetSel').value, i = +v.slice(1); return v[0] === 'b' ? builtinPresets()[i] : v[0] === 'g' ? userGear[i] : userPresets[i]; }
   function loadPreset() {
     var p = selectedPreset(); if (!p) return;
@@ -3797,7 +3799,15 @@
     e.preventDefault();
     if (e.target.closest('.gbench')) gbEnchant(); else gbEquip();
   });
-  $('gbOn').addEventListener('change', function () { gbSwitch(this.checked); });
+  $('gbOn').addEventListener('change', function () { gbSwitch(this.checked); if (this.checked) gbFoldSet(false); });
+  // Round 169 (user: less clutter): the gear builder folds to its head. Folded at first while it is off; your choice is kept in
+  // this browser (a convenience only: without storage it simply starts folded while off).
+  function gbFoldSet(f, keep) {
+    $('gear').classList.toggle('folded', f); $('gbFold').textContent = f ? 'Show' : 'Hide'; $('gbFold').setAttribute('aria-expanded', String(!f));
+    if (keep) try { localStorage.setItem('wfs.gbFold', f ? '1' : '0'); } catch (e) { /* page only */ }
+  }
+  $('gbFold').addEventListener('click', function () { gbFoldSet(!$('gear').classList.contains('folded'), true); });
+  (function () { var v = null; try { v = localStorage.getItem('wfs.gbFold'); } catch (e) { /* page only */ } gbFoldSet(v != null ? v === '1' : !gb().on); })();
   $('gbOpt').addEventListener('toggle', renderGbOpt);      // round 157: best combination
   $('gbOpt').addEventListener('click', function (e) {
     if (e.target.closest('#gbOptGo')) return gbOptRun();
@@ -3906,7 +3916,7 @@
   // Three steps under the title (round 116): shown until you press Sim! yourself for the first time.
   var simmed = false;
   try { simmed = localStorage.getItem('wfs.simmed') === '1'; } catch (e) { simmed = false; }
-  $('steps').hidden = simmed;
+  if ($('steps')) $('steps').hidden = simmed;
   // Advanced fold of Fight & pets (round 116): open / closed is remembered.
   try { $('advFight').open = localStorage.getItem('wfs.adv') === '1'; } catch (e) { /* closed */ }
   $('advFight').addEventListener('toggle', function () { try { localStorage.setItem('wfs.adv', this.open ? '1' : '0'); } catch (e) { /* page only */ } });

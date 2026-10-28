@@ -88,6 +88,30 @@
   .chip span { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
   .statbar .sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 4px; }
   .statbar .end { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  /* round 169 (user: the build list up top, the first top bar pointless): the build list card carries Sim!, the numbers of the
+     run, the quick setup and the table; the old stat bar and the steps strip are gone as bars of their own */
+  .buildpanel { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .runbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+  .runbar h2 { margin: 0; font-size: 13px; color: var(--ink); letter-spacing: .06em; }
+  .buildpanel .statbar { background: none; border: 0; padding: 0; gap: 5px; }
+  .buildpanel .statbar .runbtn #runBtn { padding: 5px 20px; font-size: 13px; }
+  .buildpanel .chip { padding: 2px 7px; }
+  .runbar #runMeta { flex: 1 1 320px; font-size: 11.5px; min-width: 0; }
+  .buildpanel .quickbar { background: none; border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: 7px 0 0; margin: 0; }
+  /* round 169: the gear builder folds (only its head shows) */
+  .gearcard.folded > :not(.cardhead) { display: none; }
+  .gearcard.folded .gbhead > :not(h2):not(.switch):not(.gbfold) { display: none; }
+  .parth { margin: 22px 0 8px; font-size: 13px; color: var(--ink); letter-spacing: .06em; }
+  .charhead { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin: 22px 0 8px; }
+  .charhead .parth { margin: 0; }
+  .presetbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 12px; }
+  .presetbar .qgroup { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+  .presetbar button { padding: 3px 10px; font-size: 12px; }
+  .presetbar select { max-width: min(300px, 100%); }
+  .presetbar input[type=text] { width: 200px; max-width: 100%; }
+  .ctlrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; border-top: 1px solid var(--line); padding-top: 7px; }
+  .ctlrow .quickbar { border-top: 0; padding: 0; flex: 0 1 auto; }
+  .ctlrow .tabletools { flex: 1 1 420px; margin: 0; }
 
   button { font: 600 12.5px var(--sans); border-radius: 4px; padding: 6px 12px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
   button.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
@@ -901,18 +925,20 @@
           (<a href="https://github.com/XNWLK/WarlockSIMAddon" target="_blank" rel="noopener">GitHub</a>)</span>
       </nav>
     </div>
-    <div class="meta" id="runMeta">Starting…</div>
   </header>
 
-  <ol class="steps" id="steps" aria-label="How to use the sim" hidden>
-    <li><b>1</b> Set your gear and buffs — or pick a Quick setup</li>
-    <li><b>2</b> Press <em>Sim!</em></li>
-    <li><b>3</b> Click a build for its details</li>
-  </ol>
-
-  <div class="statbar" id="statbar" aria-label="Stats used for this simulation"></div>
-
-  <div class="quickbar" id="quickbar" aria-label="Quick setup and presets">
+  <section class="panel buildpanel" id="buildPanel" aria-labelledby="buildsTitle">
+    <div class="runbar">
+      <h2 id="buildsTitle">Builds</h2>
+      <div class="statbar" id="statbar" aria-label="Stats used for this simulation"></div>
+      <div class="meta" id="runMeta">Starting…</div>
+    </div>
+    <div class="stale" id="stale" role="status" hidden>
+      <span id="staleMsg"><b>Settings changed since this run.</b> The results below are from the previous settings.</span>
+      <button type="button" id="staleRun" class="primary">Sim!</button>
+    </div>
+    <div class="ctlrow">
+    <div class="quickbar" id="quickbar" aria-label="Quick setup">
     <span class="qlabel">Quick setup</span>
     <span class="qgroup"><span class="meta">Gear</span>
       <span class="seg" role="group" aria-label="Gear preset">
@@ -924,21 +950,77 @@
         <button type="button" data-qside="default" aria-pressed="false">Default</button>
         <button type="button" data-qside="max" aria-pressed="false">Max</button>
       </span></span>
-    <span class="qsep" aria-hidden="true"></span>
-    <span class="qgroup"><label class="meta" for="presetSel">Preset</label>
-      <select id="presetSel"></select>
-      <button type="button" id="presetLoad" title="Load the selected preset: a whole setup (stats, buffs, debuffs, consumables, fight and pet settings)">Load</button>
-      <button type="button" id="presetDel" title="Delete the selected preset (only your own)">Delete</button></span>
-    <span class="qgroup">
-      <input id="presetName" type="text" placeholder="Name for your current settings" aria-label="Name for a new preset" maxlength="40">
-      <button type="button" id="presetSave" title="Save everything you have set — stats, buffs, debuffs, consumables, fight and pet settings — under this name. Kept in this browser.">Save as preset</button></span>
     <span class="meta" id="quickMsg" role="status"></span>
   </div>
+    <div class="tabletools"><label class="c" for="myRace" title="Rank the builds for the race you play. Each build's best race: every build is listed with whichever race does the most damage with it.">Rank for <select id="myRace"></select></label><span class="meta" id="moveNote" hidden><span class="mv up">▲</span> <span class="mv down">▼</span> places gained / lost since the previous run (hover for the DPS change)</span><span class="refbar" id="refBar"></span><span class="sharebtns"><button type="button" id="shareBtn" class="resetbtn" title="Copies a link that opens the sim with these settings loaded">Share link</button><button type="button" id="copyResBtn" class="resetbtn" title="Copies the results table as text that reads well in a chat (Discord), with a link that opens these settings">Copy results</button></span><label class="switch" for="allRaces" title="Open every build's other races and its no-race baseline under its row. The pill next to each race still opens or closes one build."><input id="allRaces" type="checkbox"> Show all races</label></div>
+    </div>
+    <div class="shareout" id="shareOut" hidden>
+      <div class="cardhead"><span class="meta" id="shareMsg" role="status"></span><button type="button" id="shareClose" class="resetbtn">Close</button></div>
+      <textarea id="shareText" rows="2" readonly spellcheck="false" aria-label="Text to share" hidden></textarea>
+    </div>
+    <div class="scroll"><table id="results"><thead><tr>
+      <th>#</th><th>Build</th><th title="The race the build is listed with: its best race, or your race if you picked one in Rank for (above the table). The +4 races pill shows the other races and the no-race baseline; Show all races opens them for every build.">Race</th><th>Pets</th>
+      <th title="Your damaging spells in priority order (left = checked first) with their share of the total damage (bar length relative to the build's biggest source); Bane of Doom and Bane of Agony share one split icon (one Bane per target). Pet, Demonic Brand, Touch of the Grave and explosives after the divider. Curses, Life Tap and racial cooldowns are in the details' full priority list.">Spells &amp; damage</th>
+      <th class="n dpsh">DPS</th><th class="n wrap2">vs best</th>
+      <th class="n wrap2" title="What the race adds: DPS change vs the same build with no race (Human base stats, no racials).">vs no race</th>
+      <th class="w" style="--c:var(--c-sp)" title="DPS per 1 spell power">SP<span class="sub">DPS per 1</span></th>
+      <th class="w" style="--c:var(--c-hit)" title="1% hit is worth this much spell power (hit weight ÷ SP weight)">Hit<span class="sub">SP per 1%</span></th>
+      <th class="w" style="--c:var(--c-crit)" title="1% crit is worth this much spell power">Crit<span class="sub">SP per 1%</span></th>
+      <th class="w" style="--c:var(--c-haste)" title="1% haste is worth this much spell power">Haste<span class="sub">SP per 1%</span></th>
+      <th class="w" style="--c:var(--c-int)" title="1 Intellect is worth this much spell power (mana + 60 Int = 1% crit)">Int<span class="sub">SP per 1</span></th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
 
-  <!-- The gear builder's place (round 147, user: "in the final version the gear builder will be at the top"): app/app.js moves
-       the #gear card in here (GEAR_PLACE = 'top' since round 166, user: "remove the under construction"). -->
-  <div class="gearanchor" id="gearTop"></div>
+  <details class="card toolcard" id="lenSheet">
+    <summary>By fight length <span class="meta">— every build and race at 60, 120, 180, 240 and 300 s</span></summary>
+    <p class="meta" id="lenMsg"></p>
+    <div class="btnrow"><label class="c" for="lenCmp">% against <select id="lenCmp"><option value="best">the best race at that length</option><option value="base">no race (what the race adds)</option><option value="180">the same race at 180 s</option></select></label><button type="button" id="lenRun" class="primary" title="Simulates every build and race at the five fight lengths with the settings you have now (1,000 fights each, your fight length's ± % per fight)">Redo with my settings</button></div>
+    <div class="scroll"><table id="lenTable" class="lentable"></table></div>
+  </details>
 
+  <details class="card toolcard" id="compare">
+    <summary>Compare two builds</summary>
+    <div class="cmpbar">
+      <div class="cmpside"><b class="cmptag a">A</b>
+        <select id="cmpA" aria-label="Build A"></select>
+        <select id="cmpAR" class="cmprace" aria-label="Race of build A"></select></div>
+      <button type="button" id="cmpSwap" title="Swap A and B" aria-label="Swap A and B">⇄</button>
+      <div class="cmpside"><b class="cmptag b">B</b>
+        <select id="cmpB" aria-label="Build B"></select>
+        <select id="cmpBR" class="cmprace" aria-label="Race of build B"></select></div>
+    </div>
+    <div id="cmpOut"></div>
+  </details>
+
+  <details class="card toolcard" id="charts">
+    <summary>Charts — DPS by a stat · DPS by fight length · what each buff is worth</summary>
+    <div class="chartbar">
+      <label class="c" for="chKind">Chart <select id="chKind">
+        <option value="stat">DPS by a stat</option>
+        <option value="len">DPS by fight length</option>
+        <option value="buffs">What each raid buff and debuff is worth</option>
+      </select></label>
+      <label class="c" for="chStat" id="chStatLbl">Stat <select id="chStat"></select></label>
+      <label class="c" for="chBuild">Builds <select id="chBuild"></select></label>
+      <button type="button" id="chRun" class="primary" title="Simulates the chosen builds again at every point of the chart, with your current settings">Draw chart</button>
+      <span class="meta" id="chMsg" role="status"></span>
+    </div>
+    <div id="chOut"><p class="meta chcap">Pick a chart and press Draw chart. <b>DPS by a stat</b> shows how a build's damage grows as one stat on your gear goes up, with everything else as you have set it — for example where more hit stops helping. <b>DPS by fight length</b> shows which build is ahead in short and in long fights. <b>What each raid buff and debuff is worth</b> measures, for one build, what you lose without each one you have on and what you would gain with each one you have off.</p></div>
+  </details>
+
+  <div class="charhead">
+    <h2 class="parth" id="charTitle">Your character and the fight</h2>
+    <div class="presetbar" id="presetBar" aria-label="Saved setups">
+      <span class="qgroup"><label class="meta" for="presetSel">Preset</label>
+        <select id="presetSel"></select>
+        <button type="button" id="presetLoad" title="Load the selected preset: a whole setup (stats, buffs, debuffs, consumables, fight and pet settings)">Load</button>
+        <button type="button" id="presetDel" title="Delete the selected preset (only your own)">Delete</button></span>
+      <span class="qgroup">
+        <input id="presetName" type="text" placeholder="Name for your current settings" aria-label="Name for a new preset" maxlength="40">
+        <button type="button" id="presetSave" title="Save everything you have set — stats, buffs, debuffs, consumables, fight and pet settings — under this name. Kept in this browser.">Save as preset</button></span>
+      <span class="meta" id="presetMsg" role="status"></span>
+    </div>
+  </div>
   <section class="setup" id="settings" aria-label="Stats and fight settings">
     <div class="card statcard">
       <div class="cardhead">
@@ -1072,41 +1154,9 @@
     </div>
   </section>
 
-  <details class="card toolcard" id="tools">
-    <summary>Input / output settings and builds · batch compare</summary>
-    <div class="toolgrid">
-      <div class="toolpart">
-        <h2>Input / output: settings and builds</h2>
-        <p class="meta">A code is a line of text you can keep or send to someone. A <b>settings code</b> (starts with WFS1:) holds your stats, fight,
-          buffs, debuffs, consumables, professions and pet settings. A <b>build code</b> (WFB1:) holds one build: talents, pet, weapon stone and
-          priority. Make a code here, or paste one and press Load — settings are applied, a build opens in the build editor. A <b>gear code</b> (WFG1:) from the in-game addon goes into the gear builder.</p>
-        <textarea id="codeBox" rows="3" spellcheck="false" aria-label="Settings or build code" placeholder="WFS1:… or WFB1:…"></textarea>
-        <div class="btnrow">
-          <button type="button" id="codeMake">Make settings code</button>
-          <button type="button" id="codeMakeBuild">Make build code</button>
-          <select id="ioBuild" aria-label="Build to make a code for"></select>
-        </div>
-        <div class="btnrow">
-          <button type="button" id="codeCopy">Copy</button>
-          <button type="button" id="codeLoad" class="primary">Load code</button>
-        </div>
-        <p class="meta" id="codeMsg" role="status"></p>
-      </div>
-      <div class="toolpart">
-        <h2>Batch compare</h2>
-        <p class="meta">Save several setups (e.g. pre-raid vs raid-buffed), then run them all: every build × race per setup, best race per build. "Add this run" keeps the results in the table as they are.</p>
-        <div class="btnrow">
-          <input id="batchName" type="text" placeholder="Setup name" aria-label="Setup name" maxlength="40">
-          <button type="button" id="batchAdd">Add current settings</button>
-          <button type="button" id="addRunBtn" title="Save the run you see in the table (its settings and results) as a frozen entry, to compare later runs against it">Add this run</button>
-          <button type="button" id="batchRun" class="primary">Sim batch</button>
-        </div>
-        <ol id="batchList" class="batchlist"></ol>
-        <p class="meta" id="batchStatus" role="status"></p>
-      </div>
-    </div>
-    <div class="scroll"><table id="batchOut" class="batchout"></table></div>
-  </details>
+  <!-- The gear builder's place (round 147, user: "in the final version the gear builder will be at the top"): app/app.js moves
+       the #gear card in here (GEAR_PLACE = 'top' since round 166, user: "remove the under construction"). -->
+  <div class="gearanchor" id="gearTop"></div>
 
   <details class="card toolcard" id="editor">
     <summary>Build editor — make your own builds</summary>
@@ -1176,64 +1226,40 @@
     <ol id="edList" class="batchlist"></ol>
   </details>
 
-  <section class="panel">
-    <div class="stale" id="stale" role="status" hidden>
-      <span id="staleMsg"><b>Settings changed since this run.</b> The results below are from the previous settings.</span>
-      <button type="button" id="staleRun" class="primary">Sim!</button>
+  <details class="card toolcard" id="tools">
+    <summary>Input / output settings and builds · batch compare</summary>
+    <div class="toolgrid">
+      <div class="toolpart">
+        <h2>Input / output: settings and builds</h2>
+        <p class="meta">A code is a line of text you can keep or send to someone. A <b>settings code</b> (starts with WFS1:) holds your stats, fight,
+          buffs, debuffs, consumables, professions and pet settings. A <b>build code</b> (WFB1:) holds one build: talents, pet, weapon stone and
+          priority. Make a code here, or paste one and press Load — settings are applied, a build opens in the build editor. A <b>gear code</b> (WFG1:) from the in-game addon goes into the gear builder.</p>
+        <textarea id="codeBox" rows="3" spellcheck="false" aria-label="Settings or build code" placeholder="WFS1:… or WFB1:…"></textarea>
+        <div class="btnrow">
+          <button type="button" id="codeMake">Make settings code</button>
+          <button type="button" id="codeMakeBuild">Make build code</button>
+          <select id="ioBuild" aria-label="Build to make a code for"></select>
+        </div>
+        <div class="btnrow">
+          <button type="button" id="codeCopy">Copy</button>
+          <button type="button" id="codeLoad" class="primary">Load code</button>
+        </div>
+        <p class="meta" id="codeMsg" role="status"></p>
+      </div>
+      <div class="toolpart">
+        <h2>Batch compare</h2>
+        <p class="meta">Save several setups (e.g. pre-raid vs raid-buffed), then run them all: every build × race per setup, best race per build. "Add this run" keeps the results in the table as they are.</p>
+        <div class="btnrow">
+          <input id="batchName" type="text" placeholder="Setup name" aria-label="Setup name" maxlength="40">
+          <button type="button" id="batchAdd">Add current settings</button>
+          <button type="button" id="addRunBtn" title="Save the run you see in the table (its settings and results) as a frozen entry, to compare later runs against it">Add this run</button>
+          <button type="button" id="batchRun" class="primary">Sim batch</button>
+        </div>
+        <ol id="batchList" class="batchlist"></ol>
+        <p class="meta" id="batchStatus" role="status"></p>
+      </div>
     </div>
-    <div class="tabletools"><label class="c" for="myRace" title="Rank the builds for the race you play. Each build's best race: every build is listed with whichever race does the most damage with it.">Rank for <select id="myRace"></select></label><span class="meta" id="moveNote" hidden><span class="mv up">▲</span> <span class="mv down">▼</span> places gained / lost since the previous run (hover for the DPS change)</span><span class="refbar" id="refBar"></span><span class="sharebtns"><button type="button" id="shareBtn" class="resetbtn" title="Copies a link that opens the sim with these settings loaded">Share link</button><button type="button" id="copyResBtn" class="resetbtn" title="Copies the results table as text that reads well in a chat (Discord), with a link that opens these settings">Copy results</button></span><label class="switch" for="allRaces" title="Open every build's other races and its no-race baseline under its row. The pill next to each race still opens or closes one build."><input id="allRaces" type="checkbox"> Show all races</label></div>
-    <div class="shareout" id="shareOut" hidden>
-      <div class="cardhead"><span class="meta" id="shareMsg" role="status"></span><button type="button" id="shareClose" class="resetbtn">Close</button></div>
-      <textarea id="shareText" rows="2" readonly spellcheck="false" aria-label="Text to share" hidden></textarea>
-    </div>
-    <div class="scroll"><table id="results"><thead><tr>
-      <th>#</th><th>Build</th><th title="The race the build is listed with: its best race, or your race if you picked one in Rank for (above the table). The +4 races pill shows the other races and the no-race baseline; Show all races opens them for every build.">Race</th><th>Pets</th>
-      <th title="Your damaging spells in priority order (left = checked first) with their share of the total damage (bar length relative to the build's biggest source); Bane of Doom and Bane of Agony share one split icon (one Bane per target). Pet, Demonic Brand, Touch of the Grave and explosives after the divider. Curses, Life Tap and racial cooldowns are in the details' full priority list.">Spells &amp; damage</th>
-      <th class="n dpsh">DPS</th><th class="n wrap2">vs best</th>
-      <th class="n wrap2" title="What the race adds: DPS change vs the same build with no race (Human base stats, no racials).">vs no race</th>
-      <th class="w" style="--c:var(--c-sp)" title="DPS per 1 spell power">SP<span class="sub">DPS per 1</span></th>
-      <th class="w" style="--c:var(--c-hit)" title="1% hit is worth this much spell power (hit weight ÷ SP weight)">Hit<span class="sub">SP per 1%</span></th>
-      <th class="w" style="--c:var(--c-crit)" title="1% crit is worth this much spell power">Crit<span class="sub">SP per 1%</span></th>
-      <th class="w" style="--c:var(--c-haste)" title="1% haste is worth this much spell power">Haste<span class="sub">SP per 1%</span></th>
-      <th class="w" style="--c:var(--c-int)" title="1 Intellect is worth this much spell power (mana + 60 Int = 1% crit)">Int<span class="sub">SP per 1</span></th>
-    </tr></thead><tbody></tbody></table></div>
-  </section>
-
-  <details class="card toolcard" id="lenSheet">
-    <summary>By fight length <span class="meta">— every build and race at 60, 120, 180, 240 and 300 s</span></summary>
-    <p class="meta" id="lenMsg"></p>
-    <div class="btnrow"><label class="c" for="lenCmp">% against <select id="lenCmp"><option value="best">the best race at that length</option><option value="base">no race (what the race adds)</option><option value="180">the same race at 180 s</option></select></label><button type="button" id="lenRun" class="primary" title="Simulates every build and race at the five fight lengths with the settings you have now (1,000 fights each, your fight length's ± % per fight)">Redo with my settings</button></div>
-    <div class="scroll"><table id="lenTable" class="lentable"></table></div>
-  </details>
-
-  <details class="card toolcard" id="compare">
-    <summary>Compare two builds</summary>
-    <div class="cmpbar">
-      <div class="cmpside"><b class="cmptag a">A</b>
-        <select id="cmpA" aria-label="Build A"></select>
-        <select id="cmpAR" class="cmprace" aria-label="Race of build A"></select></div>
-      <button type="button" id="cmpSwap" title="Swap A and B" aria-label="Swap A and B">⇄</button>
-      <div class="cmpside"><b class="cmptag b">B</b>
-        <select id="cmpB" aria-label="Build B"></select>
-        <select id="cmpBR" class="cmprace" aria-label="Race of build B"></select></div>
-    </div>
-    <div id="cmpOut"></div>
-  </details>
-
-  <details class="card toolcard" id="charts">
-    <summary>Charts — DPS by a stat · DPS by fight length · what each buff is worth</summary>
-    <div class="chartbar">
-      <label class="c" for="chKind">Chart <select id="chKind">
-        <option value="stat">DPS by a stat</option>
-        <option value="len">DPS by fight length</option>
-        <option value="buffs">What each raid buff and debuff is worth</option>
-      </select></label>
-      <label class="c" for="chStat" id="chStatLbl">Stat <select id="chStat"></select></label>
-      <label class="c" for="chBuild">Builds <select id="chBuild"></select></label>
-      <button type="button" id="chRun" class="primary" title="Simulates the chosen builds again at every point of the chart, with your current settings">Draw chart</button>
-      <span class="meta" id="chMsg" role="status"></span>
-    </div>
-    <div id="chOut"><p class="meta chcap">Pick a chart and press Draw chart. <b>DPS by a stat</b> shows how a build's damage grows as one stat on your gear goes up, with everything else as you have set it — for example where more hit stops helping. <b>DPS by fight length</b> shows which build is ahead in short and in long fights. <b>What each raid buff and debuff is worth</b> measures, for one build, what you lose without each one you have on and what you would gain with each one you have off.</p></div>
+    <div class="scroll"><table id="batchOut" class="batchout"></table></div>
   </details>
 
   <p class="foot">Click a row for talents, stats, the DoT chart, per-spell numbers, race comparison and the full rotation log; the "+4 races" pill next to the race
@@ -1244,6 +1270,7 @@
   <section class="card gearcard" id="gear" aria-labelledby="gearTitle">
     <div class="cardhead gbhead">
       <h2 id="gearTitle">Gear builder</h2>
+      <button type="button" id="gbFold" class="resetbtn gbfold" aria-expanded="true" aria-controls="gear">Hide</button>
       <label class="switch" for="gbOn" title="On: your stats in the Stats panel are a naked character plus the items and enchants here, and what you type there is added on top. Off: the Stats panel keeps its numbers and works as before."><input id="gbOn" type="checkbox"> Use this gear for my stats</label>
       <label class="c" for="gbValFor" title="Each item's worth in spell power is worked out from this build's stat weights (the SP / Hit / Crit / Haste / Int columns of the results). Builds get stat weights with a Sim!">Value for <select id="gbValFor"></select></label>
       <button type="button" id="gbClear" class="resetbtn gbclear" data-label="Take everything off" data-armed="Click again to empty every slot">Take everything off</button>
