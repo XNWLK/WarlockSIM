@@ -18,6 +18,7 @@
 // Round 122 (user): Demo Pact Shadow Bolt Imp taken off the sheet as well — seven builds remain; it joined the fixtures.
 // Round 160 (user): Aff Pact Shadow Bolt Succubus taken off too (Demo Pact Shadow Bolt Succubus does the same job) — six builds
 // remain; it joined the fixtures. "SM Ruin (classic)" is now "SM Ruin" (key unchanged).
+// Round 166 (user: "delete destro incinerate imp because it performs worse than succubus"): five builds remain; it joined the fixtures.
 //
 // Round 16 (2026-09-24): list re-derived after pet spell power 100% → 15% (A26/A49) and Succubus melee 40 → 100 DPS
 // (A46). Full search + point-shift hill-climb + rotation search at the new defaults: docs/04_EXPLORATION.md section 8.
@@ -70,22 +71,6 @@ WL.BUILDS = [
     pet: 'succubus', sacrifice: null, oil: 'firestone',
     rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'immolate', 'corruption', 'conflagrate', 'shadowburn', 'lifeTapBelow', 'incinerate'],
     params: { lifeTapBelow: { pct: 50, sec: 25 } },   // round 105 (user): Life Tap below 50% mana with more than 25 s left, +0.36% (10,000 fights)
-  },
-  {
-    key: 'destro_incin_imp', short: 'Destro Incinerate Imp',
-    name: 'Destruction – Incinerate, Imp out',
-    notes: '14/6/31. Incinerate with Shadow and Flame, Conflagrate and Shadowburn, the Imp out with Improved Imp. The Affliction points go to Suppression, Improved Corruption, Improved Life Tap, Pandemic and Amplify Curse. With a second target, Bane of Havoc copies part of your damage to it.',
-    talents: {
-      suppression: 5, improvedCorruption: 3, improvedLifeTap: 2, pandemic: 3, amplifyCurse: 1,
-      unholyPower: 2, improvedImp: 3, demonicEnergies: 1,
-      bane: 5, cataclysm: 3, aftermath: 3, ruin: 5, shadowburn: 1, agonizingFlames: 3, conflagrate: 1,
-      baneOfHavoc: 1, fireAndBrimstone: 3, shadowAndFlame: 5, incinerate: 1,
-    },
-    pet: 'imp', sacrifice: null, oil: 'firestone',
-    // Round 130 (user): Curse of the Elements moved up from after Conflagrate to right after Immolate — with level resistance
-    // on (round 118) every hit before the curse can be partly resisted. +0.2% for every race (10,000 fights).
-    rotation: ['deathCoilFinisher', 'bane', 'corruption', 'immolate', 'curseOfElements', 'lifeTapPet', 'conflagrate', 'shadowburn', 'lifeTapBelow', 'incinerate'],
-    params: { lifeTapBelow: { pct: 40, sec: 60 } },   // round 105 (user): Life Tap below 40% mana with more than 60 s left, +0.32% (10,000 fights)
   },
   // ---- Reference builds (round 65, user): classic layouts. Round 66: every build is shown by default (no cut-off), so they
   //      need no special flag; anyone can pin any build (📌) to keep it shown when a cut-off is set. ----

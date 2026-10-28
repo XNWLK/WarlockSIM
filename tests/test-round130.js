@@ -4,7 +4,7 @@
 (function () {
   T.run('round 130: Destro Incinerate Imp casts Curse of the Elements earlier', function () {
     T.group('the priority');
-    var b = WL.BUILDS.filter(function (x) { return x.key === 'destro_incin_imp'; })[0], rot = b.rotation;
+    var b = WL.findBuild('destro_incin_imp'), rot = b.rotation;   // a fixture since round 166
     var at = function (a) { return rot.indexOf(a); };
     T.eq(rot.join(','), 'deathCoilFinisher,bane,corruption,immolate,curseOfElements,lifeTapPet,conflagrate,shadowburn,lifeTapBelow,incinerate', 'the list, curse fifth');
     T.ok(at('curseOfElements') === at('immolate') + 1 && at('curseOfElements') < at('conflagrate') && at('curseOfElements') < at('shadowburn'),
@@ -46,8 +46,7 @@
 
     if (WL.DEFAULT_RESULTS) {
       T.group('shipped default results');
-      var i = WL.DEFAULT_RESULTS.keys.indexOf('destro_incin_imp');
-      T.ok(i >= 0 && String(WL.DEFAULT_RESULTS.builds).indexOf('"immolate","curseOfElements","lifeTapPet"') > 0, 'made with the new order');
+      T.ok(WL.DEFAULT_RESULTS.keys.indexOf('destro_incin_imp') < 0, 'round 166: Destro Incinerate Imp is off the sheet, so not in the shipped results');
     }
   });
 })();

@@ -89,7 +89,7 @@ raw.items.slice().sort((a, b) => a.id - b.id).forEach(x => {
   const slot = SLOT[x.sl];
   if (!slot || !WL.GEAR_SLOTS.some(s => s.fits.indexOf(slot) >= 0)) { dropped.slot++; return; }
   const st = stats(x.s || {});
-  if (!USEFUL.some(k => st[k])) { dropped.noStat++; return; }
+  if (!USEFUL.some(k => st[k]) && !(WL.TRINKET_FX && WL.TRINKET_FX[x.id])) { dropped.noStat++; return; }   // round 166: a trinket with an effect in data/trinkets.js stays
   const it = { name: x.n, slot, quality: QUALITY[x.q] || 'common', ilvl: x.l || 0, req: x.r || 0, stats: st, icon: iconOf(x.ic) };
   if (WEAPON[x.cat]) it.weapon = WEAPON[x.cat];
   if (x.set) it.set = x.set;
@@ -142,7 +142,8 @@ function enchStats(name, text) {
     set('mp5', num(/Mana Regen \+?(\d+)|(\d+) mana (?:every|per) 5/i, n));
     set('hastePct', num(/Haste \+(\d+)%|\+(\d+)% Haste/i, n));
     set('hitPct', num(/Spell Hit \+(\d+)%|\+(\d+)% Spell Hit/i, n));   // an enchant's plain "Hit +1%" is melee / ranged hit
-    set('critPct', num(/Crit(?:ical Strike)?(?: Chance)? \+(\d+)%|\+(\d+)% (?:Spell )?Crit/i, n));
+    // round 166: "Attack Power +26 and +1% Critical Strike" (Might of the Scourge) is melee crit, not spell crit
+    if (!/Attack Power|Ranged|Melee/i.test(n) || /Spell Crit/i.test(n)) set('critPct', num(/Crit(?:ical Strike)?(?: Chance)? \+(\d+)%|\+(\d+)% (?:Spell )?Crit/i, n));
     set('hitPct', r2(num(/Hit Rating \+(\d+)|\+(\d+) Hit Rating/i, n) / cb.ratingPerHitPct));
     set('critPct', r2(num(/Critical Strike Rating \+(\d+)|\+(\d+) Critical Strike Rating/i, n) / cb.ratingPerCritPct));
     set('hastePct', r2(num(/Haste Rating \+(\d+)|\+(\d+) Haste Rating/i, n) / cb.ratingPerHastePct));
@@ -156,12 +157,21 @@ function enchStats(name, text) {
   Object.keys(o).forEach(k => { if (!o[k]) delete o[k]; });
   return o;
 }
-const enchants = {}, enchDropped = { noSlot: 0 };
+// Round 166 (user: "make sure there's nothing that isn't usable or useful for warlock. for example i see the zg enchant for
+// mages in there or hunters"): the Zul'Gurub head / leg enchants come from one class's quest each — only the Warlock's
+// (Hoodoo Hex) stays. Hand-kept: the enchant data names no class.
+const ZG_CLASS_ENCHANT = { 'Presence of Might': 'Warrior', "Syncretist's Sigil": 'Paladin', "Falcon's Call": 'Hunter', "Vodouisant's Vigilant Embrace": 'Shaman',
+  'Presence of Sight': 'Mage', 'Hoodoo Hex': 'Warlock', 'Prophetic Aura': 'Priest', "Animist's Caress": 'Druid', "Death's Embrace": 'Rogue' };
+// Stats a Warlock enchant can give the sim (round 166: Stamina too — it feeds health, Life Tap and Touch of the Grave);
+// an enchant with none of them (resistances, armor, movement, melee-only, healing-only …) is left out.
+const ENCH_USEFUL = USEFUL.concat(['sta']);
+const enchants = {}, enchDropped = { noSlot: 0, otherClass: 0, noStat: 0 };
 (raw.enchants || []).forEach(e => {
   const text = decode(e.desc), slots = enchSlots(text);
   const name = /^\$/.test(e.n) ? decode(e.sn) : decode(e.n);       // an unfinished game text ("$@spelldesc…"): the item's name
   const src = /^Enchant /.test(e.from) ? 'Enchanting' : e.from;   // an enchanting scroll counts as Enchanting
   if (!slots.length) { enchDropped.noSlot++; return; }
+  if (ZG_CLASS_ENCHANT[src] && ZG_CLASS_ENCHANT[src] !== 'Warlock') { enchDropped.otherClass++; return; }
   const cur = enchants[e.id];
   if (cur) {                                               // the same enchant from another recipe / item: more slots, more sources
     slots.forEach(s => { if (cur.slots.indexOf(s) < 0) cur.slots.push(s); });
@@ -172,6 +182,7 @@ const enchants = {}, enchDropped = { noSlot: 0 };
   const en = { name, slots, stats: enchStats(name, text), text, from: [src], icon: iconOf(e.ic), mh: slots.indexOf('mainHand') >= 0 ? [twoHandOnly(text)] : [] };
   enchants[e.id] = en;
 });
+Object.keys(enchants).forEach(id => { if (!ENCH_USEFUL.some(k => enchants[id].stats[k])) { delete enchants[id]; enchDropped.noStat++; } });   // round 166
 Object.keys(enchants).forEach(id => { const e = enchants[id]; e.slots.sort((a, b) => WL.GEAR_SLOTS.findIndex(s => s.key === a) - WL.GEAR_SLOTS.findIndex(s => s.key === b)); e.from = e.from.join(', '); if (e.mh.length && e.mh.every(Boolean)) e.twoHand = true; delete e.mh; });   // twoHand: only on a two-handed weapon
 
 // What changed since the last file

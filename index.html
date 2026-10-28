@@ -51,6 +51,21 @@
                font: 600 11.5px var(--sans); color: #fff; background: #772ce8; text-decoration: none; white-space: nowrap; }
   .twitchbtn:hover, .twitchbtn:focus-visible { background: #6420c9; color: #fff; }
   .twitchbtn svg { width: 13px; height: 13px; flex: none; fill: currentColor; }
+  /* trinkets (round 166, user) */
+  .gbtrk { display: grid; gap: 4px; font-size: 12px; }
+  .gbtrk .trk { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+  .gbtrk .trk b { font-weight: 600; }
+  /* by fight length (round 166, user) */
+  .lentable { border-collapse: collapse; font-size: 12px; }
+  .lentable th, .lentable td { padding: 3px 9px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
+  .lentable th:first-child, .lentable td:first-child { text-align: left; }
+  .lentable tr.lb td { font-weight: 600; padding-top: 9px; color: var(--ink); border-bottom-color: transparent; text-align: left; }
+  .lentable td.best { font-weight: 700; color: var(--accent); }
+  .lentable tr.base td { color: var(--muted); }
+  /* cheat mode (round 166, user): a two-column list of spells */
+  .cheatlist { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 2px 12px; align-items: center; font-size: 12px; margin: 6px 0; }
+  .cheatlist .ch { font-weight: 600; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .cheatlist label { display: inline-flex; align-items: center; gap: 4px; }
   /* Discord server (round 166, user) */
   .discordbtn { display: inline-flex; align-items: center; gap: 6px; padding: 2px 11px 2px 9px; border-radius: 999px; line-height: 18px;
                 font: 600 11.5px var(--sans); color: #fff; background: #4f5bd5; text-decoration: none; white-space: nowrap; }
@@ -1032,6 +1047,12 @@
         </fieldset>
         </div>
         </details>
+        <details class="adv" id="cheatBox">
+          <summary>Cheat mode <span class="meta">— spells that always hit or always crit, to try streaks of luck</span> <span class="ctag" id="cheatOn" hidden>on</span></summary>
+          <p class="meta">A ticked spell never misses (100% hit) or always crits (100% crit); your demon's attacks too (its melee: no miss, no dodge; every swing that is not a glancing blow crits). Everything else is rolled as usual. These are not real numbers: while cheat mode is on, the results say so.</p>
+          <div class="cheatlist" id="cheatList"></div>
+          <div class="btnrow"><button type="button" id="cheatClear" class="resetbtn">Untick all</button></div>
+        </details>
         <div class="cdbox">
           <div class="cdhead">
             <label class="c" for="o_actives" title="When to pop your short cooldowns for the first time: the racial cooldown (Blood Fury, Berserking, Eureka!), the Major Spellblasting Potion and Power Infusion. After that each one is used again whenever it is ready. 'Bane of Doom explodes' = right before the cast the first explosion falls into; builds that never cast Bane of Doom (or fights where it cannot explode) pop at the pull. Execute = boss below 35% health. Custom timeline = you place every use yourself — also mana potions, runes and explosives; whatever you do not place is used automatically as usual. Every cooldown has a row; its checkbox is the same switch as in the Buffs & debuffs / Consumables tab, and a switched-off row is greyed. The racial row shows one race at a time (Orc, Troll, Gnome buttons) with its real timers; '=' keeps one set of times for all three races. Eureka! (Gnome) is then popped right before the next long cast (Shadow Bolt, Searing Pain, Incinerate, Soul Fire, a channel), so no charge goes to a DoT.">Pop cooldowns (potion, racial, Power Infusion)
@@ -1144,8 +1165,9 @@
       <button type="button" id="edSave" class="primary">Add to the sheet</button>
       <button type="button" id="edNew">New build</button>
       <button type="button" id="edCopy">Copy build code</button>
-      <input id="edCode" type="text" placeholder="WFB1:…" aria-label="Build code">
-      <button type="button" id="edLoadCode">Load build code</button>
+      <button type="button" id="edWowhead" title="A link to this build's talents in the Wowhead Forever talent calculator, copied to the clipboard">Wowhead talent link</button>
+      <input id="edCode" type="text" placeholder="WFB1:… or a Wowhead talent link" aria-label="Build code or Wowhead talent link">
+      <button type="button" id="edLoadCode" title="A build code (WFB1:…) loads the whole build; a Wowhead Forever talent link sets the talents of the build you are editing">Load build code</button>
     </div>
     <p class="meta" id="edMsg" role="status"></p>
     <h2>Your builds</h2>
@@ -1174,6 +1196,13 @@
       <th class="w" style="--c:var(--c-int)" title="1 Intellect is worth this much spell power (mana + 60 Int = 1% crit)">Int<span class="sub">SP per 1</span></th>
     </tr></thead><tbody></tbody></table></div>
   </section>
+
+  <details class="card toolcard" id="lenSheet">
+    <summary>By fight length <span class="meta">— every build and race at 60, 120, 180, 240 and 300 s</span></summary>
+    <p class="meta" id="lenMsg"></p>
+    <div class="btnrow"><button type="button" id="lenRun" class="primary" title="Simulates every build and race at the five fight lengths with the settings you have now (1,000 fights each, your fight length's ± % per fight)">Redo with my settings</button></div>
+    <div class="scroll"><table id="lenTable" class="lentable"></table></div>
+  </details>
 
   <details class="card toolcard" id="compare">
     <summary>Compare two builds</summary>
@@ -1238,6 +1267,7 @@
       <div id="gbWeap"></div>
     </div>
     <div class="gbedit" id="gbEdit" hidden></div>
+    <div class="gbtrk" id="gbTrinkets"></div>
     <details class="gbopt" id="gbOpt"><summary>Best combination: try your favourites and bag items in every slot</summary><div id="gbOptBody"></div></details>
   </section>
 </div>
@@ -1248,6 +1278,7 @@
 <script src="data/spells.js"></script>
 <script src="data/races.js"></script>
 <script src="data/builds.js"></script>
+<script src="data/trinkets.js"></script>
 <script src="data/icons.js"></script>
 <script src="data/tooltips.js"></script>
 <script src="engine/stats.js"></script>
@@ -1261,6 +1292,7 @@
 <script src="engine/custom-builds.js"></script>
 <script src="app/sim-pool.js"></script>
 <script src="data/default-results.js"></script>
+<script src="data/length-table.js"></script>
 <script src="data/items.js"></script>
 <script src="data/item-db.js"></script>
 <script src="app/gear-builder.js"></script>

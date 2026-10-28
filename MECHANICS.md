@@ -842,13 +842,6 @@ Eureka!), the Major Spellblasting Potion and Power Infusion. After the first use
 - Destruction: Bane 5/5, Cataclysm 3/3, Aftermath 5/5, Ruin 5/5, Shadowburn 1/1, Agonizing Flames 3/3, Conflagrate 1/1, Bane of Havoc 1/1, Fire and Brimstone 3/3, Shadow and Flame 5/5, Incinerate 1/1.
 - Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Curse of the Elements if missing · 4. Immolate if missing/expiring · 5. Corruption if missing/expiring · 6. Conflagrate on cooldown while Immolate is up · 7. Shadowburn on cooldown (needs a Soul Shard) · 8. Life Tap when mana is below 50% and more than 25 s remain · 9. Incinerate (filler).
 
-### Destro Incinerate Imp (14/6/31)
-- Imp out, nothing sacrificed, Major Firestone.
-- Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 3/5, Amplify Curse 1/1, Pandemic 3/3.
-- Demonology: Improved Imp 3/3, Unholy Power 2/5, Demonic Energies 1/2.
-- Destruction: Bane 5/5, Cataclysm 3/3, Aftermath 3/5, Ruin 5/5, Shadowburn 1/1, Agonizing Flames 3/3, Conflagrate 1/1, Bane of Havoc 1/1, Fire and Brimstone 3/3, Shadow and Flame 5/5, Incinerate 1/1.
-- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Corruption if missing/expiring · 4. Immolate if missing/expiring · 5. Curse of the Elements if missing · 6. Life Tap to feed the pet (Demonic Energies) when it is nearly out of mana · 7. Conflagrate on cooldown while Immolate is up · 8. Shadowburn on cooldown (needs a Soul Shard) · 9. Life Tap when mana is below 40% and more than 60 s remain · 10. Incinerate (filler).
-
 ### SM Ruin (30/0/21)
 - Succubus out, nothing sacrificed, Major Spellstone.
 - Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 4/5, Improved Bane of Agony 2/2, Amplify Curse 1/1, Pandemic 3/3, Malevolence 5/5, Nightfall 2/2, Siphon Life 1/1, Shadow Mastery 5/5.

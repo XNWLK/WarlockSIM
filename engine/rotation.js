@@ -337,7 +337,15 @@ WL.ruleCond = function (n, S, build, depth) {
 };
 // The action object of a priority key for this build (built-in, or one of the build's rules); null when unknown.
 WL.actionOf = function (key, build) {
-  if (WL.ACTIONS[key]) return WL.ACTIONS[key];
+  // Round 166 (user: advanced conditions per priority action): build.actWhen = { actionKey: condition } — the built-in action
+  // only fires when its own check AND that condition hold. Same conditions as the rules (WL.ruleCond).
+  if (WL.ACTIONS[key]) {
+    var base = WL.ACTIONS[key], w = build && build.actWhen && build.actWhen[key];
+    if (!w) return base;
+    var o = Object.create(base); o.when = w; o.baseLabel = base.label; o.label = base.label + ' — only when ' + WL.condText(w, build);
+    o.pick = function (S) { return WL.ruleCond(w, S, build) ? base.pick(S) : null; };
+    return o;
+  }
   var m = /^rule:(\d+)$/.exec(key || ''), r = m && build && build.rules && build.rules[+m[1]];
   if (!r || WL.RULE_SPELLS.indexOf(r.spell) < 0) return null;
   return { rule: r, label: WL.ruleText(r, build), filler: !r.when, pick: function (S) {

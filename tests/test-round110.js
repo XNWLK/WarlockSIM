@@ -3,9 +3,9 @@
 (function () {
   T.run('round 110: smaller build list, elixir crit', function () {
     T.group('builds on the sheet');
-    var GONE = ['aff_pact_fire', 'demo_pact_succ_fire', 'aff_pact_succ_drain', 'aff_succ_sb', 'ds_ruin_classic', 'demo_pact_imp_sb', 'aff_pact_succ_sb'];
+    var GONE = ['aff_pact_fire', 'demo_pact_succ_fire', 'aff_pact_succ_drain', 'aff_succ_sb', 'ds_ruin_classic', 'demo_pact_imp_sb', 'aff_pact_succ_sb', 'destro_incin_imp'];
     var own = WL.BUILDS.filter(function (b) { return !b.custom; }).map(function (b) { return b.key; });
-    T.eq(own.join(','), 'demo_pact_succ_sb,demo_pact_fire,destro_incin_succ,destro_incin_imp,sm_ruin_classic,wrack_succubus', 'six builds remain, in the same order (round 122: Demo Pact Shadow Bolt Imp went too; round 160: Aff Pact Shadow Bolt Succubus)');
+    T.eq(own.join(','), 'demo_pact_succ_sb,demo_pact_fire,destro_incin_succ,sm_ruin_classic,wrack_succubus', 'five builds remain, in the same order (round 122: Demo Pact Shadow Bolt Imp went too; round 160: Aff Pact Shadow Bolt Succubus; round 166: Destro Incinerate Imp)');
     GONE.forEach(function (k) {
       T.ok(own.indexOf(k) < 0, k + ' is off the sheet');
       var b = WL.findBuild(k);

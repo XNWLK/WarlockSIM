@@ -36,6 +36,7 @@ WL.buildSpellTable = function (build, stats, cfg) {
 
     // Spell power for this spell's school.
     e.sp = stats.sp + (stats.schoolSp[s.school] || 0);
+    e.school = s.school;                                      // round 166: school-only trinket spell power (Frozen Heart)
 
     // Crit chance.
     e.critPct = stats.critPct;

@@ -42,6 +42,10 @@ WL.validateBuild = function (b) {
     if (s.talent && !t[s.talent]) errs.push(where + ': ' + s.name + ' needs the ' + WL.TALENT_BY_KEY[s.talent].name + ' talent');
     errs = errs.concat(WL.condErrors(r.when, b, where));
   });
+  Object.keys(b.actWhen || {}).forEach(function (k) {                // round 166: conditions on built-in actions
+    if (!WL.ACTIONS[k]) errs.push('A condition for an unknown action "' + k + '"');
+    else errs = errs.concat(WL.condErrors(b.actWhen[k], b, '"' + WL.ACTIONS[k].label + '"'));
+  });
   Object.keys(b.vars || {}).forEach(function (k) {
     var v = b.vars[k];
     if (!/^[A-Za-z][\w -]{0,29}$/.test(k)) errs.push('Variable "' + k + '": a name of letters, digits and spaces (up to 30)');
@@ -153,6 +157,52 @@ WL.cleanParams = function (params, rotation) {
   return any ? out : undefined;
 };
 
+// ---------- Wowhead Forever talent links (round 166, user; on hold until the format was known) ----------
+// https://www.wowhead.com/forever/talent-calc/warlock/v2<tree>-<tree>-<tree>_t0/<clicks>
+//   v2       the link version;
+//   <tree>   one digit per talent = its points, in the tree's reading order (row by row, left to right); trailing zeros and
+//            empty trees at the end are left out; Affliction - Demonology - Destruction;
+//   <clicks> the order the points were spent: a tree digit (0 / 1 / 2), then one letter per point (a = the tree's first
+//            talent …). Wowhead rewrites it in a shorter form of its own; the digits after v2 are what counts here.
+// Checked 2026-10-28: Demo Pact Shadow Bolt's link loads on Wowhead with exactly its points.
+WL.WOWHEAD_TREES = ['affliction', 'demonology', 'destruction'];
+WL.wowheadTreeOrder = function (tree) {
+  return WL.TALENTS.filter(function (t) { return t.tree === tree; }).sort(function (a, b) { return a.row - b.row || a.col - b.col; });
+};
+WL.wowheadTalentLink = function (b) {
+  var parts = [], clicks = '';
+  WL.WOWHEAD_TREES.forEach(function (tree, ti) {
+    var list = WL.wowheadTreeOrder(tree), d = '', c = '';
+    list.forEach(function (t, i) { var n = (b.talents || {})[t.key] || 0; d += n; c += new Array(n + 1).join(String.fromCharCode(97 + i)); });
+    parts.push(d.replace(/0+$/, '')); if (c) clicks += ti + c;
+  });
+  while (parts.length && !parts[parts.length - 1]) parts.pop();
+  return 'https://www.wowhead.com/forever/talent-calc/warlock/v2' + parts.join('-') + '_t0' + (clicks ? '/' + clicks : '');
+};
+// Talents of a Wowhead talent link, or null when the text is none. Throws on a link of another class or a broken one.
+WL.parseWowheadTalents = function (text) {
+  var s = String(text || '').trim(), m = s.match(/talent-calc\/([a-z-]+)\/?([^\s?#]*)/i);
+  if (!m) return null;
+  if (m[1].toLowerCase() !== 'warlock') throw new Error('That is a talent link for ' + m[1] + ', not for a Warlock.');
+  var path = m[2], talents = {}, v = path.match(/^v\d([0-9-]*)/);
+  if (v) {
+    v[1].split('-').forEach(function (d, ti) {
+      var list = WL.wowheadTreeOrder(WL.WOWHEAD_TREES[ti] || '');
+      if (ti > 2 || d.length > list.length) throw new Error('The talent link does not fit the Forever Warlock trees.');
+      d.split('').forEach(function (ch, i) { var n = +ch; if (n) talents[list[i].key] = Math.min(n, list[i].ranks); });
+    });
+  } else {                                                // only the clicks (lower case = one point, upper case = all ranks)
+    var clicks = path.split('/').pop(), tree = -1;
+    clicks.split('').forEach(function (ch) {
+      if (/[0-2]/.test(ch)) { tree = +ch; return; }
+      var list = WL.wowheadTreeOrder(WL.WOWHEAD_TREES[tree] || ''), i = ch.toLowerCase().charCodeAt(0) - 97, t = list[i];
+      if (!t) throw new Error('The talent link does not fit the Forever Warlock trees.');
+      talents[t.key] = ch === ch.toUpperCase() ? t.ranks : Math.min(t.ranks, (talents[t.key] || 0) + 1);
+    });
+  }
+  return talents;
+};
+
 WL.encodeBuild = function (b) {
   var o = { v: 1, short: b.short, talents: b.talents, pet: b.pet || null, sacrifice: b.sacrifice || null, oil: b.oil, rotation: b.rotation };
   if (b.timeline && b.timeline.length) o.tl = b.timeline.map(function (e) { return [Math.round(e.t * 100) / 100, e.k]; });   // round 70
@@ -160,6 +210,7 @@ WL.encodeBuild = function (b) {
   if (b.rules && b.rules.length) o.rules = b.rules;                                                                    // round 157
   if (b.groups && Object.keys(b.groups).length) o.groups = b.groups;
   if (b.vars && Object.keys(b.vars).length) o.vars = b.vars;
+  if (b.actWhen && Object.keys(b.actWhen).length) o.aw = b.actWhen;                                                   // round 166
   return WL.BUILD_CODE_PREFIX + btoa(unescape(encodeURIComponent(JSON.stringify(o))));
 };
 
@@ -204,6 +255,7 @@ WL.decodeBuild = function (code) {
   if (mt.notes.length) b.migrated = mt.notes;                       // round 149: what a patch changed in this build
   if (Array.isArray(o.rules)) b.rules = o.rules.filter(function (r) { return r && typeof r.spell === 'string'; }).map(function (r) { var x = { spell: r.spell }; if (r.when) x.when = r.when; if (r.name) x.name = String(r.name).slice(0, 40); return x; });   // round 157
   if (o.groups && typeof o.groups === 'object') { b.groups = {}; Object.keys(o.groups).forEach(function (k) { if (Array.isArray(o.groups[k])) b.groups[String(k).slice(0, 30)] = o.groups[k].map(String); }); }
+  if (o.aw && typeof o.aw === 'object') { b.actWhen = {}; Object.keys(o.aw).forEach(function (k) { if (WL.ACTIONS[k] && o.aw[k]) b.actWhen[k] = o.aw[k]; }); if (!Object.keys(b.actWhen).length) delete b.actWhen; }   // round 166
   if (o.vars && typeof o.vars === 'object') { b.vars = {}; Object.keys(o.vars).forEach(function (k) { var v = o.vars[k]; if (v && (v.cond || typeof v.num === 'number')) b.vars[String(k).slice(0, 30)] = v.cond ? { cond: v.cond } : { num: +v.num }; }); }
   return b;
 };

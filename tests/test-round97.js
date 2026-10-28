@@ -27,7 +27,7 @@
     var lb = JSON.parse(JSON.stringify(WL.BUILDS.filter(function (x) { return x.key === 'sm_ruin_classic'; })[0]));
     lb.rotation.splice(lb.rotation.length - 1, 0, 'conflagrateExpire');
     T.ok(WL.validateBuild(lb).some(function (e) { return /Conflagrate/.test(e); }), 'the editor refuses it without the Conflagrate talent');
-    var ok = JSON.parse(JSON.stringify(WL.BUILDS.filter(function (x) { return x.key === 'destro_incin_imp'; })[0]));
+    var ok = JSON.parse(JSON.stringify(WL.findBuild('destro_incin_imp')));   // a fixture since round 166
     ok.rotation = ok.rotation.map(function (a) { return a === 'conflagrate' ? 'conflagrateExpire' : a; });
     T.eq(WL.validateBuild(ok).join(' | '), '', 'legal in Destro Incinerate Imp');
     T.eq(WL.decodeBuild(WL.encodeBuild(ok)).rotation.join(','), ok.rotation.join(','), 'survives a build-code round trip');

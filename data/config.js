@@ -140,6 +140,13 @@ WL.DEFAULT_CONFIG = {
   options: {
     useCurseOfElements: true,  // [A34]
     includePetDamage: true,    // [A26]
+    // Round 166 (user): cheat mode — spells that always hit / always crit, to try streaks of luck. { hit: { spellKey: true },
+    // crit: { spellKey: true } }; keys are spell keys and 'pet:firebolt' / 'pet:lashOfPain' / 'pet:melee'. The dice are
+    // still thrown; only their outcome is forced. (The fight then goes differently: crits change Improved Shadow Bolt, casts, mana …)
+    cheat: { hit: {}, crit: {} },
+    // Round 166 (user): when each trinket of the gear builder is used — 'cds' with your other cooldowns (Pop cooldowns /
+    // custom timeline rows trinket1, trinket2), 'ready' whenever ready, 'execute' in the execute phase, 'never'. [A105]
+    trinketUse: { trinket1: 'cds', trinket2: 'cds' },
     weightStats: ['sp', 'hitPct', 'critPct', 'hastePct', 'int', 'pierce'],   // round 157: which stat weights are computed (sp always)
     weightPrecision: 0,        // round 157: 0 = one run of "Fights per stat weight"; > 0 = batches of them until every weight is ± this much spell power (95%)
     showWithinPct: 0,          // display cut-off: only rows within this % of the best DPS; 0 = all (default since round 66, user; 10 in rounds 17–65).

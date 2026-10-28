@@ -10,7 +10,7 @@
     var bad = ids.filter(function (id) {
       var it = I[id], st = it.stats || {};
       return !/^\d+$/.test(id) || !it.name || !WL.GEAR_SLOTS.some(function (s) { return s.fits.indexOf(it.slot) >= 0; }) || Q.indexOf(it.quality) < 0 ||
-        !Object.keys(st).every(function (k) { return WL.GEAR_STAT_KEYS.indexOf(k) >= 0 && st[k] > 0; }) || !useful.some(function (k) { return st[k]; }) ||
+        !Object.keys(st).every(function (k) { return WL.GEAR_STAT_KEYS.indexOf(k) >= 0 && st[k] > 0; }) || (!useful.some(function (k) { return st[k]; }) && !(WL.TRINKET_FX && WL.TRINKET_FX[id])) ||   // round 166: a trinket with an effect needs no stat
         !(it.icon >= 0 && it.icon < WL.ITEM_ICONS.names.length);
     });
     T.eq(bad.length, 0, 'every item: a game id, a name, a slot a Warlock has, a quality, positive stats of the sheet, at least one that is not Stamina, an icon', bad.slice(0, 5).map(function (id) { return id + ' ' + I[id].name; }).join('; '));

@@ -1,6 +1,6 @@
 // Builds that were on the sheet until round 110 (user: taken off the sheet) — and, last in the list, Demo Pact Shadow Bolt
 // Imp, taken off in round 122, and Aff Pact Shadow Bolt Succubus, taken off in round 160 (user: nothing Demo Pact Shadow Bolt
-// does not already give). Kept here, exactly as they were, because
+// does not already give), and Destro Incinerate Imp, taken off in round 166 (user: it does worse than the Succubus one). Kept here, exactly as they were, because
 // tests of earlier rounds use them (drain filler, Demonic Brand upkeep, filler talents, Life Tap settings …).
 // WL.findBuild(key): a build of the sheet, else one of these.
 window.WL = window.WL || {};
@@ -101,6 +101,22 @@ WL.RETIRED_BUILDS = [
     pet: 'succubus', sacrifice: 'imp', oil: 'spellstone',
     rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'searingPainBrand', 'corruption', 'immolate', 'lifeTapBelow', 'shadowBolt'],
     params: { lifeTapBelow: { pct: 80, sec: 45 } },   // round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.43% (10,000 fights)
+  },
+  {
+    key: 'destro_incin_imp', short: 'Destro Incinerate Imp',
+    name: 'Destruction – Incinerate, Imp out',
+    notes: '14/6/31. Incinerate with Shadow and Flame, Conflagrate and Shadowburn, the Imp out with Improved Imp. The Affliction points go to Suppression, Improved Corruption, Improved Life Tap, Pandemic and Amplify Curse. With a second target, Bane of Havoc copies part of your damage to it.',
+    talents: {
+      suppression: 5, improvedCorruption: 3, improvedLifeTap: 2, pandemic: 3, amplifyCurse: 1,
+      unholyPower: 2, improvedImp: 3, demonicEnergies: 1,
+      bane: 5, cataclysm: 3, aftermath: 3, ruin: 5, shadowburn: 1, agonizingFlames: 3, conflagrate: 1,
+      baneOfHavoc: 1, fireAndBrimstone: 3, shadowAndFlame: 5, incinerate: 1,
+    },
+    pet: 'imp', sacrifice: null, oil: 'firestone',
+    // Round 130 (user): Curse of the Elements moved up from after Conflagrate to right after Immolate — with level resistance
+    // on (round 118) every hit before the curse can be partly resisted. +0.2% for every race (10,000 fights).
+    rotation: ['deathCoilFinisher', 'bane', 'corruption', 'immolate', 'curseOfElements', 'lifeTapPet', 'conflagrate', 'shadowburn', 'lifeTapBelow', 'incinerate'],
+    params: { lifeTapBelow: { pct: 40, sec: 60 } },   // round 105 (user): Life Tap below 40% mana with more than 60 s left, +0.32% (10,000 fights)
   },
 ];
 

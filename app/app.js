@@ -232,6 +232,10 @@
     if (t.id !== 't_race') markDirty();   // the Stats race only changes the Total column, not the run
   });
   document.addEventListener('input', function (e) { if (e.target.closest && e.target.closest('#totalTable')) { readSettings(); markDirty(); } });
+  $('cheatClear').addEventListener('click', function () {   // cheat mode (round 166): everything back to the real dice
+    Array.prototype.forEach.call(document.querySelectorAll('#cheatList input[data-cheat]'), function (i) { i.checked = false; });
+    readSettings(); markDirty();
+  });
   // Out-of-date results (round 44, after the Havoc report in round 40): any settings change after a run marks the
   // table as stale until the next Sim!.
   // Round 55: "changed" = the settings differ from the run's (changing a value back clears it again).
@@ -305,6 +309,8 @@
       }).join('') + '</tbody><tfoot><tr><td colspan="4" class="src" id="totNote"></td></tr></tfoot>';
     numFields.forEach(function (f) { $(f[0]).value = cfg[f[1]][f[2]]; });
     boxFields.forEach(function (f) { $(f[0]).checked = !!cfg[f[1]][f[2]]; });
+    renderCheat();                                         // round 166
+    renderLen();
     $('encPreset').value = '';                            // loaded / reset settings: no preset shown
     $('p_spPct').value = cfg.petSpPct; $('p_succAp').value = cfg.pets.succubus.melee.apPerSp; $('p_succBase').value = cfg.pets.succubus.melee.baseDps;
     var wsel = cfg.options.weightStats || WL.STAT_WEIGHT_KEYS;   // round 157
@@ -478,10 +484,64 @@
     $('armorNote').title = 'Boss armor after debuffs: ' + fmt(WL.bossArmor(cfg)) + ' → pet melee damage reduced by ' + (100 * WL.armorReduction(cfg)).toFixed(1) + '%. Base armor and resistances: Fight & pets tab.\n\n' +
       'Personal in Forever, so they do not help you: Shadow Weaving, Improved Scorch, Winter\'s Chill, Stormstrike and other Warlocks\' Improved Shadow Bolt (their tooltips say "damage you deal").';
   }
+  // ---------- by fight length (round 166, user: "a table breaking down the builds by race and time frame") ----------
+  // Shipped: data/length-table.js (default settings, tools/gen-length-table.js). "Redo with my settings" runs the same
+  // jobs on the worker pool: every built-in build × race × 60 / 120 / 180 / 240 / 300 s.
+  var lenData = null, lenRunning = false;
+  function renderLen() {
+    var T = lenData || WL.LENGTH_TABLE; if (!T) { $('lenMsg').textContent = 'No table yet: press Redo with my settings.'; $('lenTable').innerHTML = ''; return; }
+    var D = T.durations, keys = WL.BUILDS.filter(function (b) { return !b.custom; }).map(function (b) { return b.key; });
+    $('lenMsg').textContent = (lenData ? 'Your settings' : 'Default settings') + ', ' + fmt(T.iterations) + ' fights per cell (each ± ' + T.varPct + '% long), seed ' + T.seed + '. The best race of each build at each length is marked.' + (lenData ? '' : ' Your own settings: Redo with my settings.');
+    var h = '<thead><tr><th>Build / race</th>' + D.map(function (d) { return '<th>' + d + ' s</th>'; }).join('') + '</tr></thead><tbody>';
+    keys.forEach(function (bk) {
+      // not WL.findBuild: that one is the test page's (the round 157 mistake again)
+      var b = WL.BUILDS.filter(function (x) { return x.key === bk; })[0], rows = T.rows.filter(function (r) { return r.build === bk; }); if (!b || !rows.length) return;
+      var best = D.map(function (d, i) { var m = -1; rows.forEach(function (r) { if (r.race !== WL.BASELINE_RACE && r.dps[i] > m) m = r.dps[i]; }); return m; });
+      h += '<tr class="lb"><td colspan="' + (D.length + 1) + '">' + esc(b.short) + '</td></tr>';
+      rows.forEach(function (r) {
+        var base = r.race === WL.BASELINE_RACE;
+        h += '<tr' + (base ? ' class="base"' : '') + '><td>' + esc(WL.RACES[r.race].name) + (base ? ' (baseline)' : '') + '</td>' +
+          r.dps.map(function (v, i) { return '<td' + (!base && v === best[i] ? ' class="best" title="Best race at ' + D[i] + ' s"' : '') + '>' + fmt(v, 1) + '</td>'; }).join('') + '</tr>';
+      });
+    });
+    $('lenTable').innerHTML = h + '</tbody>';
+  }
+  $('lenRun').addEventListener('click', function () {
+    if (lenRunning) return; readSettings(); lenRunning = true; $('lenRun').disabled = true;
+    var D = [60, 120, 180, 240, 300], jobs = [], c0 = JSON.parse(JSON.stringify(cfg));
+    WL.BUILDS.filter(function (b) { return !b.custom; }).forEach(function (b) { WL.SIM_RACE_KEYS.forEach(function (race) { D.forEach(function (d) {
+      var c = JSON.parse(JSON.stringify(c0)); c.fight.duration = d; jobs.push({ kind: 'combo', build: b, race: race, cfg: c, d: d });
+    }); }); });
+    var got = 0, out = {};
+    WL.SimPool.run(jobs, function (j, res) { out[j.build.key + '|' + j.race + '|' + j.d] = res.r.dps; got++; $('lenMsg').textContent = 'Simulating ' + got + ' / ' + jobs.length + ' …'; }, function () {
+      var rows = []; WL.BUILDS.filter(function (b) { return !b.custom; }).forEach(function (b) { WL.SIM_RACE_KEYS.forEach(function (race) { rows.push({ build: b.key, race: race, dps: D.map(function (d) { return Math.round(10 * out[b.key + '|' + race + '|' + d]) / 10; }) }); }); });
+      lenData = { durations: D, iterations: c0.fight.iterations, varPct: c0.fight.durationVarPct, seed: c0.fight.seed, rows: rows };
+      lenRunning = false; $('lenRun').disabled = false; renderLen();
+    });
+  });
+  // ---------- cheat mode (round 166, user): spells that always hit / always crit ----------
+  function cheatSpells() {
+    var out = Object.keys(WL.SPELLS).filter(function (k) { var s = WL.SPELLS[k]; return k !== 'lifeTap' && k !== 'baneOfHavoc' && s.kind !== 'utility' || k === 'curseOfElements'; })
+      .map(function (k) { return { k: k, name: WL.SPELLS[k].name, crit: WL.SPELLS[k].kind !== 'utility' }; });
+    return out.concat([{ k: 'pet:firebolt', name: 'Firebolt (Imp)', crit: true }, { k: 'pet:lashOfPain', name: 'Lash of Pain (Succubus)', crit: true }, { k: 'pet:melee', name: 'Succubus melee', crit: true }]);
+  }
+  function cheatOf(c) { var x = (c.options && c.options.cheat) || {}; return { hit: Object.keys(x.hit || {}).filter(function (k) { return x.hit[k]; }), crit: Object.keys(x.crit || {}).filter(function (k) { return x.crit[k]; }) }; }
+  function cheatText(c) { var x = cheatOf(c); return x.hit.length || x.crit.length ? 'CHEAT MODE (' + [x.hit.length ? x.hit.length + ' spell' + (x.hit.length === 1 ? '' : 's') + ' always hit' : '', x.crit.length ? x.crit.length + ' always crit' : ''].filter(Boolean).join(', ') + ' — not real numbers) · ' : ''; }
+  function renderCheat() {
+    var x = (cfg.options.cheat = cfg.options.cheat || { hit: {}, crit: {} });
+    $('cheatList').innerHTML = '<span class="ch">Spell</span><span class="ch">100% hit</span><span class="ch">100% crit</span>' + cheatSpells().map(function (s) {
+      return '<span>' + esc(s.name) + '</span><label><input type="checkbox" data-cheat="hit" data-ck="' + s.k + '"' + (x.hit[s.k] ? ' checked' : '') + ' aria-label="' + esc(s.name) + ' always hits"></label>' +
+        (s.crit ? '<label><input type="checkbox" data-cheat="crit" data-ck="' + s.k + '"' + (x.crit[s.k] ? ' checked' : '') + ' aria-label="' + esc(s.name) + ' always crits"></label>' : '<span class="meta">–</span>');
+    }).join('');
+    var on = cheatOf(cfg); $('cheatOn').hidden = !(on.hit.length || on.crit.length);
+  }
   function readSettings() {
     gbTakeTyped();                                        // gear builder on: a sheet value you changed = your addition
     numFields.forEach(function (f) { var v = parseFloat($(f[0]).value); if (isFinite(v)) cfg[f[1]][f[2]] = v; });
     boxFields.forEach(function (f) { cfg[f[1]][f[2]] = $(f[0]).checked; });
+    var chx = { hit: {}, crit: {} };                                      // cheat mode (round 166)
+    Array.prototype.forEach.call(document.querySelectorAll('#cheatList input[data-cheat]'), function (i) { if (i.checked) chx[i.getAttribute('data-cheat')][i.getAttribute('data-ck')] = true; });
+    cfg.options.cheat = chx; var con = cheatOf(cfg); $('cheatOn').hidden = !(con.hit.length || con.crit.length);
     Object.keys(cfg.buffs).forEach(function (k) {
       cfg.buffs[k].on = $('b_' + k).checked;
       var bn = $('bn_' + k); if (bn) { var v = Math.round(parseFloat(bn.value)); cfg.buffs[k].count = isFinite(v) && v > 0 ? Math.min(cfg.buffs[k].maxCount || 5, v) : 1; }   // round 157
@@ -543,6 +603,10 @@
     var rows = [{ k: split ? 'racial_' + cdRace : 'racial', racial: true, name: rc.name, icon: 'race_' + cdRace, dur: rc.duration, cd: rc.cd, auto: 'buff', on: true, box: null,
       tip: cdRacialTip(cdRace) + '. Humans and Undead have no racial cooldown. Always on' }];
     if (pi) rows.push({ k: 'pi', name: pi.name, icon: 'buff_powerInfusion', dur: pi.duration, cd: pi.cd, auto: 'buff', on: !!pi.on, ticked: !!pi.on, box: 'b_powerInfusion', tip: pi.desc });
+    WL.equippedTrinkets(cfg).forEach(function (x) {                  // round 166: the gear builder's trinkets
+      var u = x.fx.use; if (!u || (cfg.options.trinketUse || {})[x.slot] === 'never') return;
+      rows.push({ k: x.slot, name: x.fx.name, icon: '', dur: u.duration || 0, cd: u.cd, auto: u.kind === 'mana' ? 'mana' : 'buff', on: true, box: null, tip: trkText(x.fx) + ' — worn in the gear builder' });
+    });
     // Row order (round 94, user): Spellblasting, mana potions, rune, then the Engineering items; anything new goes last.
     var keys = Object.keys(cfg.consumables).filter(function (k) { var c = cfg.consumables[k]; return c.spPotion || c.manaRestore || c.explosive; });
     keys.sort(function (a, b) { var ia = CD_ORDER.indexOf(a), ib = CD_ORDER.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
@@ -781,12 +845,12 @@
       renderStatbar(); render(); showStale(); renderCompareOptions(); renderGear();   // renderGear: item values use the new stat weights (round 148)
       openShared();                                                      // a share link's build (round 140)
       var secs = ((performance.now() - t0) / 1000).toFixed(1), how = WL.SimPool.mode() === 'page' ? '' : ' on ' + WL.SimPool.mode();   // e.g. "on workers (7)"
-      $('runMeta').textContent = !keep
+      $('runMeta').textContent = cheatText(runCfg) + (!keep
         ? results.length + ' combos × ' + fmt(runCfg.fight.iterations) + ' fights + stat weights (' + fmt(runCfg.fight.weightIterations) +
           ' fights each) in ' + secs + ' s' + how + ' · seed ' + runCfg.fight.seed
         : !nCombos && !nWeights ? 'Nothing new to simulate: the settings are unchanged and every build has results · seed ' + runCfg.fight.seed
         : 'Added ' + todo.length + ' build' + (todo.length === 1 ? '' : 's') + ' (' + nCombos + ' combos × ' + fmt(runCfg.fight.iterations) +
-          ' fights' + (nWeights ? ' + stat weights' : '') + ') in ' + secs + ' s' + how + '; the other builds keep their results (same settings) · seed ' + runCfg.fight.seed;
+          ' fights' + (nWeights ? ' + stat weights' : '') + ') in ' + secs + ' s' + how + '; the other builds keep their results (same settings) · seed ' + runCfg.fight.seed);
     }
     function runWeights(batch, only) {
       batch = batch || 0;
@@ -2067,7 +2131,7 @@
     renderPts();                                          // round 148: the point values say when the build has changed
     // Round 44: drag an entry by its row (⠿ grip) to reorder; the ↑ ↓ buttons stay for keyboard / touch.
     $('edRot').innerHTML = b.rotation.map(function (a, i) {
-      var A = WL.ACTIONS[a] || WL.actionOf(a, b), own = /^(rule|group):/.test(a), lbl = esc(own ? WL.actionLabel(b, a) : A ? A.label : a);
+      var A = WL.actionOf(a, b) || WL.ACTIONS[a], own = /^(rule|group):/.test(a), lbl = esc(own || (A && A.when) ? WL.actionLabel(b, a) : A ? A.label : a);   // round 166: an action's own condition shows
       if (/^rule:/.test(a)) lbl += ' <button type="button" class="resetbtn" data-edrule="' + esc(a.slice(5)) + '">Edit</button>';   // round 157
       if (A && A.params) {                                               // numbers you fill in yourself (round 104)
         var pv = WL.actionParams(b, a), pi = 0;
@@ -2165,7 +2229,7 @@
       var v = b.vars[k];
       return '<li><b>' + esc(k) + '</b> = ' + esc(v.cond ? WL.condText(v.cond, b) : String(v.num)) + ' <button type="button" class="resetbtn" data-varedit="' + esc(k) + '">Edit</button><button type="button" class="resetbtn" data-vardel="' + esc(k) + '">Delete</button></li>';
     }).join('');
-    h += '<div class="btnrow"><button type="button" data-rulenew="rule">New rule</button><button type="button" data-rulenew="group">New group</button><button type="button" data-rulenew="num">New number</button><button type="button" data-rulenew="cond">New named condition</button></div>';
+    h += '<div class="btnrow"><button type="button" data-rulenew="rule">New rule</button><button type="button" data-rulenew="act" title="Give one of the built-in actions in this priority list an extra condition">Condition on an action</button><button type="button" data-rulenew="group">New group</button><button type="button" data-rulenew="num">New number</button><button type="button" data-rulenew="cond">New named condition</button></div>';
     if (R) {
       h += '<div class="ruleform">';
       if (R.kind === 'rule') h += '<h4>' + (R.idx != null ? 'Rule ' + (R.idx + 1) : 'New rule') + '</h4><div class="btnrow">Cast <select id="ruleSpell">' + ruleSpellOpts(R.spell) + '</select>' +
@@ -2176,11 +2240,21 @@
           '<ol class="edrot">' + R.items.map(function (x, i) { return '<li><span class="lbl">' + esc(WL.actionLabel(b, x)) + '</span><button type="button" data-grprm="' + i + '" aria-label="Remove">✕</button></li>'; }).join('') + '</ol>' +
           '<div class="btnrow"><select id="grpAct" aria-label="Action to add to the group">' + acts.map(function (a) { return '<option value="' + esc(a[0]) + '">' + esc(a[1]) + '</option>'; }).join('') + '</select><button type="button" data-grpadd="1">Add to the group</button></div>';
       }
+      if (R.kind === 'act') {
+        var bi = WL.expandGroups(b).filter(function (k, i, a) { return WL.ACTIONS[k] && a.indexOf(k) === i; });
+        h += '<h4>Condition on a built-in action</h4><div class="btnrow"><select id="acwAct" aria-label="Action">' + bi.map(function (k) { return '<option value="' + k + '"' + (k === R.act ? ' selected' : '') + '>' + esc(ACTION_SHORT[k] || WL.ACTIONS[k].label) + '</option>'; }).join('') + '</select></div>' +
+          '<p class="meta">fires (when its own check says so) only when:</p>' + condHtml(R.tree, '');
+      }
       if (R.kind === 'num') h += '<h4>' + (R.old ? 'Number "' + esc(R.old) + '"' : 'New number') + '</h4><div class="btnrow"><input id="varName" type="text" maxlength="30" placeholder="Name, e.g. Doom tick" value="' + esc(R.name || '') + '" aria-label="Name"> = <input id="varNum" type="number" step="0.1" value="' + esc(R.num == null ? '' : String(R.num)) + '" aria-label="Number"></div>';
       if (R.kind === 'cond') h += '<h4>' + (R.old ? 'Condition "' + esc(R.old) + '"' : 'New named condition') + '</h4><div class="btnrow"><input id="varName" type="text" maxlength="30" placeholder="Name, e.g. Boost window" value="' + esc(R.name || '') + '" aria-label="Name"></div>' + condHtml(R.tree, '');
       h += '<div class="btnrow"><button type="button" class="primary" data-rulesave="1">' + (R.kind === 'rule' && R.idx == null ? 'Add to the priority' : 'Save') + '</button><button type="button" data-rulecancel="1">Cancel</button></div>' +
         (R.kind === 'rule' ? '<p class="meta">Reads as: ' + esc(WL.ruleText({ spell: R.spell, when: condToEngine(R.tree), name: R.name }, b)) + '. The spell is cast only when it is talented and off cooldown; the rule checks nothing else, so give a DoT rule its "time left" condition.</p>' : '') + '</div>';
     }
+    var acw = Object.keys(b.actWhen || {}).map(function (k) {        // round 166: conditions on built-in actions
+      return '<li>' + esc(WL.ACTIONS[k].label) + ' <b>only when</b> ' + esc(WL.condText(b.actWhen[k], b)) + (WL.expandGroups(b).indexOf(k) >= 0 ? '' : ' <span class="meta">(not in the priority)</span>') +
+        ' <button type="button" class="resetbtn" data-acwedit="' + k + '">Edit</button><button type="button" class="resetbtn" data-acwdel="' + k + '">Delete</button></li>';
+    }).join('');
+    h += (acw ? '<h4>Conditions on built-in actions</h4><ul class="rulelist">' + acw + '</ul>' : '');
     h += (rules ? '<h4>Your rules</h4><ul class="rulelist">' + rules + '</ul>' : '') + (groups ? '<h4>Your groups</h4><ul class="rulelist">' + groups + '</ul>' : '') + (vars ? '<h4>Your variables</h4><ul class="rulelist">' + vars + '</ul>' : '');
     box.innerHTML = h;
   }
@@ -2190,6 +2264,7 @@
     if ((x = t.closest('[data-edrule]'))) { var i = +x.getAttribute('data-edrule'), r = b.rules[i]; ruleEd = { kind: 'rule', idx: i, spell: r.spell, name: r.name || '', tree: (function (c) { return c.t === 'all' || c.t === 'any' ? c : { t: 'all', c: [c] }; })(condFromEngine(r.when)) }; $('edRulesBox').open = true; renderRuleEd(); return true; }
     if ((x = t.closest('[data-rulenew]'))) {
       var k = x.getAttribute('data-rulenew');
+      if (k === 'act') { var bi0 = WL.expandGroups(b).filter(function (y) { return WL.ACTIONS[y]; })[0]; if (!bi0) { edMsg('There is no built-in action in this priority list.', true); return true; } ruleEd = { kind: 'act', act: bi0, tree: { t: 'all', c: [newLeaf()] } }; renderRuleEd(); return true; }
       ruleEd = k === 'rule' ? { kind: 'rule', idx: null, spell: 'shadowBolt', name: '', tree: { t: 'all', c: [newLeaf()] } } : k === 'group' ? { kind: 'group', name: '', items: [] } : k === 'num' ? { kind: 'num', name: '', num: '' } : { kind: 'cond', name: '', tree: { t: 'all', c: [newLeaf()] } };
       renderRuleEd(); return true;
     }
@@ -2211,11 +2286,21 @@
     if ((x = t.closest('[data-grpedit]'))) { var gn = x.getAttribute('data-grpedit'); ruleEd = { kind: 'group', old: gn, name: gn, items: b.groups[gn].slice() }; renderRuleEd(); return true; }
     if ((x = t.closest('[data-grpdel]'))) { var gd = x.getAttribute('data-grpdel'); delete b.groups[gd]; b.rotation = b.rotation.filter(function (y) { return y !== 'group:' + gd; }); if (!Object.keys(b.groups).length) delete b.groups; ruleEd = null; renderEditor(); return true; }
     if ((x = t.closest('[data-varedit]'))) { var vn = x.getAttribute('data-varedit'), vv = b.vars[vn]; ruleEd = vv.cond ? { kind: 'cond', old: vn, name: vn, tree: (function (c) { return c.t === 'all' || c.t === 'any' ? c : { t: 'all', c: [c] }; })(condFromEngine(vv.cond)) } : { kind: 'num', old: vn, name: vn, num: vv.num }; renderRuleEd(); return true; }
+    if ((x = t.closest('[data-acwedit]'))) { var ak = x.getAttribute('data-acwedit'); ruleEd = { kind: 'act', act: ak, tree: (function (c) { return c.t === 'all' || c.t === 'any' ? c : { t: 'all', c: [c] }; })(condFromEngine(b.actWhen[ak])) }; renderRuleEd(); return true; }
+    if ((x = t.closest('[data-acwdel]'))) { delete b.actWhen[x.getAttribute('data-acwdel')]; if (!Object.keys(b.actWhen).length) delete b.actWhen; ruleEd = null; renderEditor(); return true; }
     if ((x = t.closest('[data-vardel]'))) { delete b.vars[x.getAttribute('data-vardel')]; if (!Object.keys(b.vars).length) delete b.vars; ruleEd = null; renderEditor(); return true; }
     return false;
   }
   function ruleSave() {
     var b = ed.b, R = ruleEd, msg = '';
+    if (R.kind === 'act') {                                            // round 166
+      var ak2 = $('acwAct').value, aw = condToEngine(R.tree);
+      b.actWhen = b.actWhen || {};
+      if (aw) { b.actWhen[ak2] = aw; msg = '"' + WL.ACTIONS[ak2].label + '" now fires only when ' + WL.condText(aw, b) + '.'; }
+      else { delete b.actWhen[ak2]; msg = 'No condition: "' + WL.ACTIONS[ak2].label + '" as built in.'; }
+      if (!Object.keys(b.actWhen).length) delete b.actWhen;
+      ruleEd = null; renderEditor(); edMsg(msg); return;
+    }
     if (R.kind === 'rule') {
       var r = { spell: $('ruleSpell').value }, w = condToEngine(R.tree), nm = $('ruleName').value.trim(); if (w) r.when = w; if (nm) r.name = nm.slice(0, 40);
       b.rules = b.rules || [];
@@ -2249,6 +2334,7 @@
     if (ruleEd.kind === 'rule') { ruleEd.spell = $('ruleSpell').value; ruleEd.name = $('ruleName').value; }
     renderRuleEd();
   });
+  document.addEventListener('change', function (e) { if (ruleEd && ruleEd.kind === 'act' && e.target.id === 'acwAct') ruleEd.act = e.target.value; });   // round 166
   document.addEventListener('change', function (e) { if (ruleEd && ruleEd.kind === 'rule' && (e.target.id === 'ruleSpell')) { ruleEd.spell = e.target.value; renderRuleEd(); } });
   function edTalent(key, delta) {
     var t = ed.b.talents, x = WL.TALENT_BY_KEY[key], n = (t[key] || 0) + delta;
@@ -2624,7 +2710,21 @@
       catch (e2) { $('edCode').select(); edMsg('Selected — press Ctrl+C.'); }
       return true;
     }
+    if (t.closest('#edWowhead')) {                                     // round 166: Wowhead Forever talent link
+      $('edCode').value = WL.wowheadTalentLink(b);
+      try { navigator.clipboard.writeText($('edCode').value).then(function () { edMsg('Wowhead talent link copied.'); }, function () { $('edCode').select(); edMsg('Selected — press Ctrl+C.'); }); }
+      catch (e4) { $('edCode').select(); edMsg('Selected — press Ctrl+C.'); }
+      return true;
+    }
     if (t.closest('#edLoadCode')) {
+      var wt = null;
+      try { wt = WL.parseWowheadTalents($('edCode').value); } catch (e5) { edMsg(e5.message, true); return true; }
+      if (wt) {                                                          // round 166: a Wowhead talent link sets the talents
+        ed.b.talents = wt; renderEditor();
+        var sp = WL.WOWHEAD_TREES.map(function (tr) { return WL.TALENTS.filter(function (x) { return x.tree === tr; }).reduce(function (a, x) { return a + (wt[x.key] || 0); }, 0); });
+        edMsg('Talents from the Wowhead link: ' + sp.join('/') + (WL.validateBuild(ed.b).length ? ' — see the checks.' : '.'));
+        return true;
+      }
       if (!codeKind($('edCode').value)) { edMsg($('edCode').value.trim() ? NOT_A_CODE : 'Paste a code first.', true); return true; }
       try {
         if (codeKind($('edCode').value) === 'gear') edMsg('That is a gear code (WFG1), not a build code — ' + gbLoadCode($('edCode').value));
@@ -3255,7 +3355,9 @@
     if (!list.length) return '<p class="meta">' + (what === 'item' ? 'No listed item fits this slot yet. Type it in on the right.' : 'The enchant list is still empty: type the enchant in on the right.') + '</p>';
     var ctx = gbValCtx(), isItem = what === 'item';
     var hits = list.filter(function (x) { return (!q || x.it.name.toLowerCase().indexOf(q) >= 0) && (!isItem || gbPasses(x.id, x.it)); }).map(function (x) {
-      return { x: x, v: ctx ? WL.gearValue(x.it.stats, ctx.w, ctx.share) : null };
+      var v = ctx ? WL.gearValue(x.it.stats, ctx.w, ctx.share) : null;
+      if (v && isItem && WL.TRINKET_FX && WL.TRINKET_FX[x.id] && ctx.w.sp > 0) { var tw = WL.trinketSpWorth(WL.TRINKET_FX[x.id]); v.dps += tw * ctx.w.sp; v.sp = (v.sp || 0) + tw; }   // round 166: a use effect, roughly
+      return { x: x, v: v };
     }).sort(function (a, b) {
       return ((b.v ? b.v.dps : 0) - (a.v ? a.v.dps : 0)) || ((b.x.it.ilvl || 0) - (a.x.it.ilvl || 0)) || (a.x.it.name < b.x.it.name ? -1 : a.x.it.name > b.x.it.name ? 1 : 0);
     });
@@ -3348,7 +3450,43 @@
       '<div id="gbCmp"></div></div></div>' + ench;
     gbFormValues(); renderGbCmp();
   }
+  // ---------- trinkets (round 166, user): what each worn trinket does in the fight, and when it is used ----------
+  var TRK_WHEN = [['cds', 'with your other cooldowns'], ['ready', 'whenever it is ready'], ['execute', 'in the execute phase'], ['never', 'never']];
+  function trkText(fx) {
+    var u = fx.use, p = fx.proc;
+    if (p) return p.chancePct + '% chance per damaging cast: +' + p.spi + ' Spirit for ' + p.duration + ' s';
+    var d = ' for ' + u.duration + ' s', c = ' (' + (u.cd >= 60 && u.cd % 60 === 0 ? u.cd / 60 + ' min' : u.cd + ' s') + ' cooldown)';
+    return (u.kind === 'sp' ? '+' + u.sp + (u.school ? ' ' + u.school : '') + ' spell power' + (u.pierce ? ' and −' + u.pierce + ' boss resistances' : '') + d
+      : u.kind === 'spDecay' ? '+' + u.sp + ' spell power, ' + u.per + ' less after each of your casts' + d
+      : u.kind === 'spStack' ? '+' + u.per + ' spell power per cast, up to ' + u.max + ' times, for ' + u.casts + ' casts or ' + u.duration + ' s'
+      : u.kind === 'crit' ? '+' + u.pct + '% crit' + (u.tree ? ' for ' + cap1(u.tree) + ' spells' : '') + d + (u.endsOnCrit ? ' or until a crit' : '')
+      : u.kind === 'petDmg' ? 'your demon deals ' + u.pct + '% more' + d
+      : u.kind === 'spi' ? '+' + u.spi + ' Spirit' + d
+      : u.kind === 'mana' ? '+' + u.amount + ' mana, used when that much is missing'
+      : u.kind === 'dmgAfter' ? u.min + ' Fire damage after ' + u.casts + ' of your spells'
+      : (u.min === u.max ? u.min : u.min + '–' + u.max) + ' ' + cap1(u.school || '') + ' damage') + c;
+  }
+  function renderTrinketUse() {
+    var box = $('gbTrinkets'); if (!box) return;
+    var G = gb(), use = (cfg.options.trinketUse = cfg.options.trinketUse || {});
+    var rows = ['trinket1', 'trinket2'].map(function (slot) {
+      var e = G.slots && G.slots[slot], it = WL.gearItem(e); if (!it) return '';
+      var id = e.id != null ? e.id : e.custom && e.custom.id, fx = id != null && WL.TRINKET_FX[id];
+      if (!fx) return '<div class="trk"><b>' + esc(it.name) + '</b><span class="meta">its stats count; nothing to use</span></div>';
+      var sel = fx.use && fx.use.kind !== 'mana' ? '<label class="c">Use <select data-trkuse="' + slot + '" aria-label="When to use ' + esc(it.name) + '">' + TRK_WHEN.map(function (w) { return '<option value="' + w[0] + '"' + ((use[slot] || 'cds') === w[0] ? ' selected' : '') + '>' + w[1] + '</option>'; }).join('') + '</select></label>'
+        : fx.use ? '<label class="c"><input type="checkbox" data-trkuse="' + slot + '"' + ((use[slot] || 'cds') !== 'never' ? ' checked' : '') + '> use it</label>' : '';
+      return '<div class="trk"><b>' + esc(it.name) + '</b><span>' + esc(trkText(fx)) + '</span>' + sel + '</div>';
+    }).join('');
+    box.innerHTML = rows ? '<h3 class="meta">Trinkets in the fight' + (G.on ? '' : ' (switch the gear builder on to use them)') + '</h3>' + rows + '<p class="meta">"With your other cooldowns" follows Pop cooldowns (Fight &amp; pets), and its custom timeline has a row for each trinket.</p>' : '';
+  }
+  document.addEventListener('change', function (e) {
+    var s = e.target.getAttribute && e.target.getAttribute('data-trkuse'); if (!s) return;
+    cfg.options.trinketUse = cfg.options.trinketUse || {};
+    cfg.options.trinketUse[s] = e.target.type === 'checkbox' ? (e.target.checked ? 'cds' : 'never') : e.target.value;
+    markDirty(); renderCdTl();
+  });
   function renderGear() {                                 // the slots and the sums (not the open slot's form: what you type there stays)
+    renderTrinketUse();                                   // round 166
     var g = gb(), ctx = gbValCtx(), col = function (c) { return WL.GEAR_SLOTS.filter(function (s) { return s.col === c; }).map(function (s) { return gbSlotHtml(s, ctx); }).join(''); };
     $('gear').classList.toggle('building', GEAR_BUILDING);
     $('gbOn').checked = !!g.on;

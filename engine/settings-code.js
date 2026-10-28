@@ -49,6 +49,7 @@ WL.decodeSettings = function (code) {
 // Applies a snapshot onto config `c` in place. Returns the list of names in the code that this version does not know.
 WL.applySettings = function (c, o) {
   var unknown = [];
+  if (c.options && !((o.options || {}).cheat)) c.options.cheat = { hit: {}, crit: {} };   // round 166: a code without cheat mode = none
   ['fight', 'gear', 'options'].forEach(function (sec) {
     Object.keys(o[sec] || {}).forEach(function (k) { if (k in c[sec]) c[sec][k] = o[sec][k]; else if (WL.RETIRED_SETTINGS.indexOf(sec + '.' + k) < 0) unknown.push(sec + '.' + k); });
   });

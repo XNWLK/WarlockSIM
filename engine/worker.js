@@ -8,7 +8,7 @@
 // Message out on start: { ready: true } once the engine is loaded.
 self.window = self;
 importScripts('../data/consumables.js', '../data/config.js', '../data/talents.js', '../data/spells.js', '../data/races.js',
-  '../data/builds.js', 'stats.js', 'spelltable.js', 'rng.js', 'resist.js', 'rotation.js', 'sim.js', 'custom-builds.js');
+  '../data/builds.js', '../data/trinkets.js', 'stats.js', 'spelltable.js', 'rng.js', 'resist.js', 'rotation.js', 'sim.js', 'custom-builds.js');
 
 self.onmessage = function (e) {
   var j = e.data;

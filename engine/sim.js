@@ -94,6 +94,11 @@ window.WL = window.WL || {};
     function row(key) {
       return res.bySpell[key] || (res.bySpell[key] = { casts: 0, landed: 0, misses: 0, crits: 0, hits: 0, ticks: 0, tickCrits: 0, dmg: 0, castTime: 0, glances: 0, threat: 0 });
     }
+    // Cheat mode (round 166, user): a ticked spell always hits / always crits. The dice are still thrown, so every other
+    // roll stays where it was. Keys: spell keys, 'pet:firebolt', 'pet:lashOfPain', 'pet:melee'.
+    var CH = (cfg.options && cfg.options.cheat) || {}, CHH = CH.hit || {}, CHC = CH.crit || {};
+    function missRoll(k) { var x = R.hit() * 100; return !CHH[k] && x >= stats.hitPct; }
+    function critRoll(k, pct) { var x = R.crit() * 100; return !!CHC[k] || x < pct + (TRK.length ? trCrit(k) : 0); }   // + trinket crit (round 166)
     function L(type, spell, extra) {
       if (!logOn) return;
       var e = { t: +S.t.toFixed(3), type: type, spell: spell, mana: Math.round(S.mana) };
@@ -306,6 +311,7 @@ window.WL = window.WL || {};
     function slotUsed(k) { var sl = ACT_TL && ACT_TL[k]; if (sl && sl.i < sl.t.length && slotDue(sl.t[sl.i])) sl.i++; }
     // Racial cooldown, Spellblasting potion and Power Infusion, right before a damaging cast.
     function popActives(key) {
+      if (TRK.length) { gateKey = key; useTrinkets(key); gateKey = null; }   // round 166: each trinket follows its own use setting
       if (!ACT_TL) { if (activesOk(key)) { useRacials(key); useSpPotion(); usePowerInfusion(); } return; }
       gateKey = key;
       var g = slotGate(RSLOT);
@@ -397,17 +403,91 @@ window.WL = window.WL || {};
       }
       return false;
     }
+    // ---------- trinkets (round 166, user) [A105] ----------
+    // The gear builder's trinkets with an effect in data/trinkets.js. Use effects follow options.trinketUse[slot]:
+    // 'cds' (default) with your other cooldowns ("Pop cooldowns", custom timeline rows trinket1 / trinket2), 'ready' whenever
+    // ready from the pull, 'execute' only once the boss is below the execute line, 'never'. Mana trinkets: when their amount
+    // is missing. Off the global cooldown; a trinket's hit (Shard of the Fallen Star …) has no spell power, rolls your spell
+    // hit and crit (×1.5) and takes Curse of the Elements.
+    var TRK = WL.equippedTrinkets ? WL.equippedTrinkets(cfg) : [], TRU = (cfg.options && cfg.options.trinketUse) || {}, trs = {};
+    TRK.forEach(function (x) { trs[x.slot] = { until: -1, n: 0, pending: 0, procUntil: -1 }; });
+    function trUp(x) { return trs[x.slot].until > S.t + EPS; }
+    function trSp(e) {
+      var s = 0;
+      TRK.forEach(function (x) {
+        var u = x.fx.use; if (!u || !trUp(x)) return;
+        if (u.kind === 'sp' && (!u.school || (e && e.school === u.school))) s += u.sp;
+        else if (u.kind === 'spDecay') s += Math.max(0, u.sp - u.per * trs[x.slot].n);
+        else if (u.kind === 'spStack') s += u.per * Math.min(u.max, trs[x.slot].n);
+      });
+      return s;
+    }
+    function trPierce() { var p = 0; TRK.forEach(function (x) { var u = x.fx.use; if (u && u.pierce && trUp(x)) p += u.pierce; }); return p; }
+    function trCrit(k) { var c = 0, s = SPELLS[k]; TRK.forEach(function (x) { var u = x.fx.use; if (u && u.kind === 'crit' && trUp(x) && (!u.tree || (s && s.tree === u.tree))) c += u.pct; }); return c; }
+    function trPet() { var m = 1; TRK.forEach(function (x) { var u = x.fx.use; if (u && u.kind === 'petDmg' && trUp(x)) m *= 1 + u.pct / 100; }); return m; }
+    function trSpi() {
+      var s = 0;
+      TRK.forEach(function (x) { var u = x.fx.use, p = x.fx.proc; if (u && u.kind === 'spi' && trUp(x)) s += u.spi; if (p && p.kind === 'spi' && trs[x.slot].procUntil > S.t + EPS) s += p.spi; });
+      return s;
+    }
+    function trHit(x, u) {                                           // a trinket's own hit
+      var key = 'trinket:' + x.id, r = row(key);
+      if (R.hit() * 100 >= stats.hitPct) { r.misses++; L('miss', key); return; }
+      r.landed++;
+      var amt = u.min + (u.max - u.min) * R.proc();
+      if (S.buff('coe')) amt *= 1 + SPELLS.curseOfElements.dmgTakenPct / 100;
+      var crit = R.crit() * 100 < stats.critPct; if (crit) amt *= cb.critMultiplier;
+      deal(key, amt, crit, false);
+      L('hit', key, { dmg: Math.round(amt), crit: crit });
+    }
+    function trOnCast() {                                            // each landed damaging cast (the Touch of the Grave hook)
+      TRK.forEach(function (x) {
+        var u = x.fx.use, p = x.fx.proc, st = trs[x.slot];
+        if (u && trUp(x) && (u.kind === 'spDecay' || u.kind === 'spStack')) { st.n++; if (u.kind === 'spStack' && st.n >= u.casts) st.until = -1; }
+        if (u && u.kind === 'dmgAfter' && st.pending > 0 && --st.pending === 0) trHit(x, u);
+        if (p && R.proc() * 100 < p.chancePct) { st.procUntil = S.t + p.duration; L('buff', x.fx.name); }
+      });
+    }
+    function trCritDone() { TRK.forEach(function (x) { var u = x.fx.use; if (u && u.endsOnCrit && trUp(x)) trs[x.slot].until = -1; }); }   // Weakness Analyzer
+    function trUse(x) {
+      var u = x.fx.use, st = trs[x.slot];
+      if (!u || !S.ready('tr:' + x.slot) || S.t >= dur - EPS) return false;
+      S.cds['tr:' + x.slot] = S.t + u.cd;
+      if (u.duration) { st.until = S.t + u.duration; st.n = 0; }
+      L('trinket', x.fx.name);
+      var r = row('trinket:' + x.id);
+      if (u.kind === 'dmg') { r.casts++; trHit(x, u); }
+      if (u.kind === 'dmgAfter') { r.casts++; st.pending = u.casts; }
+      if (u.kind === 'mana') { var miss = stats.maxMana - S.mana, amt = Math.min(u.amount, miss); S.mana += amt; res.manaFromConsumables = (res.manaFromConsumables || 0) + amt; }
+      return true;
+    }
+    function trWhen(x, key) {                                        // may this trinket be used now (right before a damaging cast)?
+      var pol = TRU[x.slot] || 'cds';
+      if (pol === 'never') return false;
+      if (pol === 'ready') return true;
+      if (pol === 'execute') return S.targetHpPct < cfg.fight.executePct;
+      if (!ACT_TL) return activesOk(key);
+      var g = slotGate(x.slot); return g === 1 || (g === 2 && (!!ACT_TL[x.slot] || activesOk(key)));
+    }
+    function useTrinkets(key) { TRK.forEach(function (x) { var u = x.fx.use; if (u && u.kind !== 'mana' && trWhen(x, key) && trUse(x)) slotUsed(x.slot); }); }
+    function useManaTrinkets() {
+      TRK.forEach(function (x) {
+        var u = x.fx.use; if (!u || u.kind !== 'mana' || (TRU[x.slot] || 'cds') === 'never') return;
+        if (stats.maxMana - S.mana >= u.amount && trUse(x)) slotUsed(x.slot);
+      });
+    }
     // Your spell power right now for this spell: sheet + school + Spellblasting potion, × Blood Fury. [A32]
     // Round 96 (user: in Forever every DoT is dynamic, unlike Classic): periodic ticks — DoTs incl. the Bane of Doom explosion,
     // and channels — read it when the tick lands, like a direct hit does when it is cast; nothing is kept from the cast. [A13]
-    function spNow(e) { return (e.sp + potSp()) * (S.buff('bloodFury') ? 1 + racialOf('cooldown').spPct / 100 : 1); }
+    function spNow(e) { return (e.sp + potSp() + (TRK.length ? trSp(e) : 0)) * (S.buff('bloodFury') ? 1 + racialOf('cooldown').spPct / 100 : 1); }   // + trinkets (round 166)
 
     // Resistance / Spell Pierce roll for one Warlock damage event. [A43][A44]
     var resCache = {}, lastVulnPct = 0;                 // vulnerable (+) / partially resisted (−) step of the last roll (log marker)
     // `ti` > 1 = an extra target: its own Curse of the Elements counts (round 39; the boss's CoE does not carry over).
     function vulnMult(school, ti) {
-      var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe'), key = school + (coe ? '1' : '0');
-      var pr = resCache[key] || (resCache[key] = WL.resistProfile(cfg, stats.pierce, school, coe, stats.spellPen));
+      var tp = TRK.length ? trPierce() : 0;                             // Eye of Moam (round 166): −100 resistances while up
+      var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe'), key = school + (coe ? '1' : '0') + (tp ? 'p' + tp : '');
+      var pr = resCache[key] || (resCache[key] = WL.resistProfile(cfg, stats.pierce, school, coe, stats.spellPen + tp));
       var m = pr.flat;
       lastVulnPct = 0;
       if (pr.dist.length > 1) {
@@ -558,7 +638,7 @@ window.WL = window.WL || {};
       var amt = (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * liveMultX(key, ti, true) * (snap.castMult || 1);
       if (s.ramp) amt *= s.ramp[i];
       amt *= vulnMult(s.school, ti);
-      var crit = R.crit() * 100 < e.critPct;
+      var crit = critRoll(key, e.critPct);
       if (crit) amt *= e.critMult;
       deal(rk, amt, crit, true, ti);
       if (logOn) L('tick', rk, Object.assign({ dmg: Math.round(amt), crit: crit, n: i + 1, of: e.ticks }, vulnLog(amt)));
@@ -570,7 +650,7 @@ window.WL = window.WL || {};
     // spread for Improved Shadow Bolt, round 39).
     function landExtra(key, eureka, castMult, ti) {
       var s = SPELLS[key], e = table[key], rk = xkey(ti, key), r = row(rk);
-      if (R.hit() * 100 >= stats.hitPct) { r.misses++; L('miss', rk); return false; }
+      if (missRoll(key)) { r.misses++; L('miss', rk); return false; }
       r.landed++;
       if (s.kind === 'utility') {                                         // your Curse of the Elements on this target
         if (key === 'curseOfElements') { S.xdeb[ti].coe = S.t + s.duration; L('debuff', rk); }
@@ -583,7 +663,7 @@ window.WL = window.WL || {};
           amt *= addOp0(key, tv('decimation', 'dmgPct')); S.buffs.decimation = S.t + 10;   // additive spell mod (round 43)
         }
         amt *= vulnMult(s.school, ti);
-        var crit = R.crit() * 100 < e.critPct;
+        var crit = critRoll(key, e.critPct);
         if (crit) amt *= e.critMult;
         deal(rk, amt, crit, false, ti);
         if (logOn) L('hit', rk, Object.assign({ dmg: Math.round(amt), crit: crit }, vulnLog(amt)));
@@ -604,7 +684,7 @@ window.WL = window.WL || {};
       var amt = (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * liveMult(key, true) * (snap.castMult || 1);
       if (s.ramp) amt *= s.ramp[i];                                                                     // [A15]
       amt *= vulnMult(s.school);
-      var crit = R.crit() * 100 < e.critPct;                                                               // [A07]
+      var crit = critRoll(key, e.critPct);                                                               // [A07]
       if (crit) amt *= e.critMult;
       deal(key, amt, crit, true);
       if (logOn) L('tick', key, Object.assign({ dmg: Math.round(amt), crit: crit, n: i + 1, of: e.ticks }, vulnLog(amt)));
@@ -621,10 +701,10 @@ window.WL = window.WL || {};
       var s = SPELLS[key], e = table[key];
       for (var ti = 1; ti <= NT; ti++) {
         var rk = ti > 1 ? xkey(ti, key) : key, r = row(rk);
-        if (R.hit() * 100 >= stats.hitPct) { r.misses++; L('miss', rk, { n: i + 1, of: e.ticks }); continue; }
+        if (missRoll(key)) { r.misses++; L('miss', rk, { n: i + 1, of: e.ticks }); continue; }
         var amt = (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * (ti > 1 ? liveMultX(key, ti, true) : liveMult(key, true));
         amt *= vulnMult(s.school, ti);
-        var crit = R.crit() * 100 < e.critPct;
+        var crit = critRoll(key, e.critPct);
         if (crit) amt *= e.critMult;
         deal(rk, amt, crit, true, ti);
         if (logOn) L('tick', rk, Object.assign({ dmg: Math.round(amt), crit: crit, n: i + 1, of: e.ticks }, vulnLog(amt)));
@@ -638,7 +718,7 @@ window.WL = window.WL || {};
     function land(key, eureka, castMult, target) {
       if (target > 1) return landExtra(key, eureka, castMult, target);
       var s = SPELLS[key], e = table[key], r = row(key);
-      if (R.hit() * 100 >= stats.hitPct) { r.misses++; L('miss', key); return false; }                  // [A01][A17]
+      if (missRoll(key)) { r.misses++; L('miss', key); return false; }                  // [A01][A17]; cheat mode (round 166)
       r.landed++;
       if (s.kind === 'utility') {
         if (key === 'curseOfElements') { S.buffs.coe = S.t + s.duration; L('debuff', key); }
@@ -656,9 +736,10 @@ window.WL = window.WL || {};
         S.buffs.decimation = S.t + 10;
       }
       amt *= vulnMult(s.school);
-      var crit = R.crit() * 100 < e.critPct;
+      var crit = critRoll(key, e.critPct);
       if (crit) amt *= e.critMult;
       deal(key, amt, crit, false);
+      if (crit && TRK.length) trCritDone();                                  // Weakness Analyzer ends on a direct crit (round 166)
       if (logOn) L('hit', key, Object.assign({ dmg: Math.round(amt), crit: crit }, vulnLog(amt)));
       if (isSB(key) && crit && tv('improvedShadowBolt')) { S.buffs.isb = S.t + 12; L('debuff', 'isb'); }
       if (key === 'searingPain' && tv('demonicBrand') && P) {                                            // [A51] Demonic Brand
@@ -696,6 +777,7 @@ window.WL = window.WL || {};
     // (was 10%), then an internal cooldown (race data: 15 s since round 164, 25 s before; no roll while it runs). No spell power, no crit, no resist / Spell Pierce
     // roll. `ti` > 1 = an extra target. [A29][A93]
     function touchOfTheGrave(ti) {
+      if (TRK.length && !(ti > 1)) trOnCast();                       // trinkets count your landed damaging casts (round 166)
       if (TOG && !(S.togReady > S.t + EPS) && R.proc() * 100 < TOG.chancePct) {
         S.togReady = S.t + (TOG.icd || 0);
         var td = stats.maxHealth * TOG.maxHealthPct / 100;
@@ -746,7 +828,7 @@ window.WL = window.WL || {};
       S.cast = null;
       if (s.kind === 'channel') {
         var r = row(key);
-        if (!s.aoe && R.hit() * 100 >= stats.hitPct) {                    // area channels always start; their ticks roll per target (round 100)
+        if (!s.aoe && missRoll(key)) {                    // area channels always start; their ticks roll per target (round 100)
           r.misses++; L('miss', key); if (fromTL) TL.turn = true; S.busyUntil = S.t; S.gcdReady = S.t + gcdT; scheduleDecide(S.gcdReady); return;
         }
         r.landed++;
@@ -781,7 +863,7 @@ window.WL = window.WL || {};
     function lifeTap(moving) {
       if (!canTap()) { res.health.blocked += 0.1; res.idle += 0.1; scheduleDecide(S.t + 0.1); return; }   // not enough health: wait for a heal (round 119)
       loseHealth(TAP_HP, 'tap');
-      var gain = (SPELLS.lifeTap.manaBase + stats.spi) * (1 + tv('improvedLifeTap', 'manaPct') / 100); // [A12]
+      var gain = (SPELLS.lifeTap.manaBase + stats.spi + (TRK.length ? trSpi() : 0)) * (1 + tv('improvedLifeTap', 'manaPct') / 100); // [A12]; + trinket Spirit (round 166)
       var before = S.mana;
       S.mana = Math.min(stats.maxMana, S.mana + gain);
       res.lifeTaps++; res.manaFromTaps += S.mana - before; row('lifeTap').casts++;
@@ -835,23 +917,24 @@ window.WL = window.WL || {};
     S.petManaPct = function () { if (!P) return 100; petRegen(); return 100 * P.mana / P.maxMana; };
     S.petSpellCost = function () { return P && P.c.spell ? P.c.spell.cost : Infinity; };
     S.petMana = function () { if (!P) return Infinity; petRegen(); return P.mana; };
-    S.tapGain = function () { return (SPELLS.lifeTap.manaBase + stats.spi) * (1 + tv('improvedLifeTap', 'manaPct') / 100); };
+    S.tapGain = function () { return (SPELLS.lifeTap.manaBase + stats.spi + (TRK.length ? trSpi() : 0)) * (1 + tv('improvedLifeTap', 'manaPct') / 100); };
     S.maxMana = stats.maxMana;
     function petRegen() { P.mana = Math.min(P.maxMana, P.mana + P.c.manaRegen * (S.t - P.lastRegen)); P.lastRegen = S.t; }
     function petMult(school) {
       var m = (1 + tv('unholyPower', 'petDmgPct') / 100) * stats.mult.all;                             // Soul Link lives in mult.all
       var cmd = racialOf('petDmgPct'); if (cmd) m *= 1 + cmd.value / 100;                              // Command (Orc), patch notes of 2026-10-26 [A100]
+      if (TRK.length) m *= trPet();                                                                     // The Black Book (round 166)
       if ((build.pet === 'succubus' && school === 'shadow') || (build.pet === 'imp' && school === 'fire'))
         m *= 1 + tv('masterDemonologist', 'schoolPct') / 100;
       if (school !== 'physical' && S.buff('coe')) m *= 1 + SPELLS.curseOfElements.dmgTakenPct / 100;
       return m;
     }
-    function warlockSpNow() { return (stats.sp + potSp()) * (S.buff('bloodFury') ? 1 + racialOf('cooldown').spPct / 100 : 1); }
+    function warlockSpNow() { return (stats.sp + potSp() + (TRK.length ? trSp(null) : 0)) * (S.buff('bloodFury') ? 1 + racialOf('cooldown').spPct / 100 : 1); }
     function petSp() { return warlockSpNow() * (cfg.petSpPct != null ? cfg.petSpPct : 100) / 100 + (stats.dkSp || 0); }   // [A26][A27] pet spells
     function petSpellHit(sp) {
       var key = 'pet:' + sp.key, r = row(key);
       r.casts++;
-      if (R.pet() * 100 >= stats.hitPct) { r.misses++; L('miss', key); return; }
+      var hx = R.pet() * 100; if (!CHH[key] && hx >= stats.hitPct) { r.misses++; L('miss', key); return; }   // cheat mode (round 166)
       r.landed++;
       jowProc(true);                                                     // pet attack on the judged boss → pet mana [A64]
       // Improved Imp = "Modifies Damage/Healing Done" on Firebolt (whole hit); Improved Sayaad = "Modifies Spell
@@ -860,7 +943,7 @@ window.WL = window.WL || {};
       var base = sp.base * (sp.key === 'lashOfPain' ? 1 + tv('improvedSayaad', 'lashPct') / 100 : 1);
       var amt = (base + sp.coef * petSp()) * petMult(sp.school);
       if (sp.key === 'firebolt') amt *= 1 + tv('improvedImp', 'firebolt') / 100;
-      var crit = R.pet() * 100 < stats.critPct;                          // master's crit (round 31) [A26]
+      var cx = R.pet() * 100, crit = !!CHC[key] || cx < stats.critPct;   // master's crit (round 31) [A26]; cheat mode (round 166)
       if (crit) amt *= cb.critMultiplier;
       deal(key, amt, crit, false);
       L('pet', key, { dmg: Math.round(amt), crit: crit });
@@ -909,15 +992,17 @@ window.WL = window.WL || {};
       // glancing 40% at 65% damage → crit (your spell crit − 4.8%; round 152, user: nothing of her own — rounds 75–151 her
       // own 7.52% + your melee crit from Agility) [A95] → hit.
       var hitBonus = WL.petMeleeHit(stats, cb);
-      var miss = Math.max(0, tb.missPct - hitBonus);
+      var miss = Math.max(0, tb.missPct - hitBonus), dodge = tb.dodgePct;
       var critCh = Math.max(0, (m.critPct || 0) + (m.inheritSpellCrit ? stats.critPct : 0) - tb.critSuppressionPct);
-      if (roll >= miss + tb.dodgePct) {
+      if (CHH[rk]) { miss = 0; dodge = 0; }                                   // cheat mode (round 166): every swing lands (glancing blows stay)
+      if (CHC[rk]) critCh = 100;                                            // … and every one that is not a glancing blow crits
+      if (roll >= miss + dodge) {
         r.landed++;
         jowProc(true);                                                   // [A64]
         var dps = m.baseDps + m.apPerSp * warlockSpNow() / m.apPerDps;                                  // [A46] own AP rule
         var amt = dps * m.swing * (1 - armorRed) * petMult('physical');                                  // [A54] boss armor − debuffs
-        var glance = roll < miss + tb.dodgePct + tb.glancePct;
-        var crit = !glance && roll < miss + tb.dodgePct + tb.glancePct + critCh;
+        var glance = roll < miss + dodge + tb.glancePct;
+        var crit = !glance && (CHC[rk] || roll < miss + dodge + tb.glancePct + critCh);
         if (glance) { amt *= tb.glanceDmgPct / 100; r.glances++; }
         if (crit) amt *= 2;
         deal(rk, amt, crit, false);
@@ -982,8 +1067,9 @@ window.WL = window.WL || {};
     var DOT_END = !(cfg.options && cfg.options.dotEndCheck === false);
     res.dotSkips = {};
     function expVuln(school, ti) {
-      var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe'), key = school + (coe ? '1' : '0');
-      var pr = resCache[key] || (resCache[key] = WL.resistProfile(cfg, stats.pierce, school, coe, stats.spellPen));
+      var tp = TRK.length ? trPierce() : 0;
+      var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe'), key = school + (coe ? '1' : '0') + (tp ? 'p' + tp : '');
+      var pr = resCache[key] || (resCache[key] = WL.resistProfile(cfg, stats.pierce, school, coe, stats.spellPen + tp));
       return pr.flat * pr.dist.reduce(function (a, d) { return a + d.p * (1 + d.pct / 100); }, 0);
     }
     function expCrit(critPct, critMult) { return 1 + Math.max(0, Math.min(100, critPct)) / 100 * (critMult - 1); }
@@ -1115,6 +1201,7 @@ window.WL = window.WL || {};
       }
       manaBuffCheck();
       useManaItems();
+      if (TRK.length) useManaTrinkets();                                 // round 166
       if (explosives.length && useExplosive()) return;
       if (TL && !TL.turn && timelineStep()) return;
       var fit = TL && !TL.turn && TL.wake != null ? TL.wake : null;       // a gap before the next timeline entry

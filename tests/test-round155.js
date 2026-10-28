@@ -23,7 +23,7 @@
 
     T.group('the enchant list');
     var E = WL.ENCHANTS, ids = Object.keys(E);
-    T.ok(ids.length > 100 && WL.ITEM_DB.enchants === ids.length, ids.length + ' enchants');
+    T.ok(ids.length > 60 && WL.ITEM_DB.enchants === ids.length, ids.length + ' enchants (round 166: only those a Warlock can use with a stat the sim counts)');
     var slotKeys = WL.GEAR_SLOTS.filter(function (s) { return s.enchant; }).map(function (s) { return s.key; });
     var bad = ids.filter(function (id) {
       var e = E[id];
@@ -38,14 +38,15 @@
     e(7662, '+65 Spell Power: main hand, two-handed weapons only', function (x) { return x.slots.join() === 'mainHand' && x.stats.sp === 65 && x.twoHand; });
     e(2504, 'Spell Power +30: any weapon', function (x) { return x.stats.sp === 30 && !x.twoHand; });
     e(2614, 'Shadow Damage +20: gloves, Shadow spell power', function (x) { return x.slots.join() === 'hands' && x.stats.shadowSp === 20 && !x.stats.sp; });
-    e(2443, 'Frost Spell Damage +15: nothing the sim uses', function (x) { return !Object.keys(x.stats).length; });
+    T.ok(!E[2443], 'Frost Spell Damage +15: nothing the sim uses — left out since round 166');
     e(2505, 'Healing Spells +55: its 19 damage from the text', function (x) { return x.stats.sp === 19; });
     e(7661, '+6 Intellect and +5 Spirit: off hand only', function (x) { return x.slots.join() === 'offHand' && x.stats.int === 6 && x.stats.spi === 5; });
     e(2565, 'Mana Regen 4 per 5 sec.: MP5 4', function (x) { return x.stats.mp5 === 4; });
-    T.ok(E[911] && !Object.keys(E[911].stats).length, 'enchants without a stat the sim uses are listed too (Minor Speed Increase)');
+    T.ok(!E[911], 'enchants without a stat the sim uses are left out since round 166 (Minor Speed Increase)');
     e(2544, 'Arcanum of Focus: head and legs, +8 spell power', function (x) { return x.slots.join() === 'head,legs' && x.stats.sp === 8; });
     e(2605, 'Zandalar Signet of Mojo: shoulder, +18 spell power', function (x) { return x.slots.join() === 'shoulder' && x.stats.sp === 18; });
-    e(2590, 'Prophetic Aura: Mana Regen +4 and Stamina +10', function (x) { return x.stats.mp5 === 4 && x.stats.sta === 10; });
+    T.ok(!E[2590], "Prophetic Aura (the Priest's Zul'Gurub enchant) is left out since round 166");
+    e(2589, 'Hoodoo Hex (the Warlock\'s): +18 spell power, +10 Stamina', function (x) { return x.stats.sp === 18 && x.stats.sta === 10; });
     e(8218, 'necklace enchant: +6 spell power on the neck', function (x) { return x.slots.join() === 'neck' && x.stats.sp === 6; });
     T.ok(!ids.some(function (id) { return /^$/.test(E[id].name); }), 'no unfinished game texts as names');
   });

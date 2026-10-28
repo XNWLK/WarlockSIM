@@ -1,5 +1,13 @@
 // Collects the Wowhead Forever item and enchant data for the gear builder. Runs in a browser tab on any
-// www.wowhead.com/forever page (those pages only open in a real browser), in two steps:
+// www.wowhead.com/forever page (those pages only open in a real browser).
+//
+// THE SHORT WAY (round 166): run `node tools/items-sync.js`, paste what it prints into the console of a
+// www.wowhead.com/forever tab, wait. When COLLECT is done it packs the data (gzip) and the tab jumps to the local
+// receiver by itself; items-sync.js saves it, rebuilds data/item-db.js and lists what is new, gone or changed.
+// (A Wowhead tab cannot post to 127.0.0.1 — its fetch is refused — and popups are blocked, so the data travels in the
+// address of that one jump; packed it fits. If it does not, the tab says so and SEND(i) sends it in parts.)
+//
+// The older two steps, still possible:
 //
 //   1. Paste COLLECT (below) into that tab's console. It takes about 10 minutes: it pauses between requests, and waits a
 //      minute whenever Wowhead refuses one (it does when asked too fast). It reads
@@ -20,6 +28,7 @@
 // 1,000 has been cut off and needs splitting further.
 
 const COLLECT = `(async () => {
+  if (!/(^|\\.)wowhead\\.com$/.test(location.hostname)) throw new Error("run this in a www.wowhead.com/forever tab");   // round 166: nowhere else
   function arr(t, from) { const s = t.indexOf('[', from); let d = 0, e = s; for (; e < t.length; e++) { const c = t[e]; if (c === '[') d++; else if (c === ']') { d--; if (!d) break; } } return Function('return ' + t.slice(s, e + 1))(); }
   const pause = ms => new Promise(r => setTimeout(r, ms));
   async function page(p) {                                         // refused (403): wait a minute and try again, up to 5 times
@@ -44,6 +53,15 @@ const COLLECT = `(async () => {
   const K = ['splpwr', 'spldmg', 'shasplpwr', 'firsplpwr', 'arcsplpwr', 'frosplpwr', 'holsplpwr', 'natsplpwr', 'splheal', 'hitrtng', 'critstrkrtng', 'splcritstrkpct',
     'hastertng', 'splpen', 'int', 'spi', 'sta', 'manargn', 'agi', 'str', 'atkpwr'];
   const items = {}, counts = {};
+  async function tipText(itemId) {                               // round 166: a trinket's whole tooltip as text, spell links kept as [spell:ID]
+    if (cache['t' + itemId]) return cache['t' + itemId];
+    let tip = null;
+    for (let k = 0; k < 3 && !tip; k++) { await pause(700); try { tip = await (await fetch('https://nether.wowhead.com/tooltip/item/' + itemId + '?dataEnv=16&locale=0')).json(); } catch (e) { await pause(30000); } }
+    if (!tip) return '';
+    const t = (tip.tooltip || '').replace(/<a[^>]*spell=(\\d+)[^>]*>/g, '[spell:$1]').replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(?:div|td|tr|table|span)>/gi, '\\n').replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#039;/g, "'").replace(/&quot;/g, '"').replace(/\\n\\s*\\n+/g, '\\n').trim();
+    cache['t' + itemId] = t; keep(); return t;
+  }
   for (const c of cats) {
     const { lv, g } = await get(c); counts[c] = lv.length;
     lv.forEach(x => {
@@ -55,6 +73,8 @@ const COLLECT = `(async () => {
         src: x.source || [], sm: (x.sourcemore || []).map(m => ({ n: m.n, t: m.t, z: m.z, c: m.c, ti: m.ti })), cat: c };   // c: a quest's zone
     });
   }
+  counts.trinketTips = 0;
+  for (const id of Object.keys(items)) if (items[id].cat === 'armor/trinkets') { items[id].tt = await tipText(id); counts.trinketTips++; }
   // item sets: which class each is for
   const st = await page('/forever/item-sets'), sb = st.indexOf('var itemSets = ');
   const sets = (sb >= 0 ? arr(st, sb) : []).map(x => ({ id: x.id, n: x.name, rc: x.reqclass || 0, p: x.pieces || [] }));
@@ -91,15 +111,20 @@ const COLLECT = `(async () => {
   }
   counts.enchants = enchants.length;
   const txt = JSON.stringify({ collected: new Date().toISOString(), counts, items: Object.values(items), sets, enchants });
-  localStorage.setItem('__wlx', encodeURIComponent(txt));
-  return { items: Object.keys(items).length, counts, parts: Math.ceil(localStorage.getItem('__wlx').length / 480000) };
+  // Round 166: packed (gzip, base64url) — about a fifth of the size, so it fits into one jump to the receiver.
+  const gz = new Uint8Array(await new Response(new Blob([txt]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer());
+  let bin = ''; for (let i = 0; i < gz.length; i += 0x8000) bin += String.fromCharCode.apply(null, gz.subarray(i, i + 0x8000));
+  const z = btoa(bin).replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/, '');
+  localStorage.setItem('__wlx', z);
+  const parts = Math.ceil(z.length / 1500000);
+  if (parts === 1) setTimeout(() => { location.href = 'http://127.0.0.1:8799/save?part=0&of=1&z=' + z; }, 300);
+  return { items: Object.keys(items).length, counts, packed: z.length, parts, next: parts === 1 ? 'jumping to the receiver' : 'too big for one jump: paste SEND(0) … SEND(' + (parts - 1) + ')' };
 })()`;
 
 // SEND(i): part i of the collected data to the local receiver; SEND(-1): forget the collected data in this tab.
 const SEND = i => i < 0 ? "localStorage.removeItem('__wlx'); localStorage.removeItem('__wlx_cache'); 'removed'" :
-  `(() => { const e = localStorage.getItem('__wlx'), N = 480000, i = ${i}, n = Math.ceil(e.length / N);
-    const at = x => x >= e.length ? e.length : e[x - 1] === '%' ? x - 1 : e[x - 2] === '%' ? x - 2 : x;   // never cut through a %XX
-    setTimeout(() => { location.href = 'http://127.0.0.1:8799/save?name=forever-items.json&part=' + i + '&of=' + n + '&d=' + e.slice(at(i * N), at((i + 1) * N)); }, 50);
+  `(() => { const e = localStorage.getItem('__wlx'), N = 1500000, i = ${i}, n = Math.ceil(e.length / N);   // round 166: packed text, plain cuts
+    setTimeout(() => { location.href = 'http://127.0.0.1:8799/save?part=' + i + '&of=' + n + '&z=' + e.slice(i * N, (i + 1) * N); }, 50);
     return 'part ' + i + ' of ' + n; })()`;
 
 module.exports = { COLLECT, SEND };

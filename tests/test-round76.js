@@ -56,7 +56,7 @@
       });
     })).then(function (hs) {
       T.group('shipped default results: made from the current engine and data (else run node tools/gen-default-results.js)');
-      T.eq(files.length, 13, 'hashes of the 13 engine / data files are recorded');
+      T.eq(files.length, 14, 'hashes of the 14 engine / data files are recorded (round 166: + data/trinkets.js)');
       hs.forEach(function (h) { T.ok(h.ok, h.f + ' unchanged since the results were generated (' + D.generated + ')'); });
       var builtins = WL.BUILDS.filter(function (b) { return !b.custom; });
       T.eq(D.keys.length, builtins.length * WL.SIM_RACE_KEYS.length, 'one result per built-in build × race (' + D.keys.length + ')');
