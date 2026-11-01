@@ -33,7 +33,7 @@
     --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
   }
   * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }   /* no mobile font boosting next to wide tables */
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scrollbar-gutter: stable; }   /* round 175: room for the scrollbar kept, so opening a card never shifts the page sideways */   /* no mobile font boosting next to wide tables */
   body { margin: 0; background: var(--ground); color: var(--ink); font: 12.5px/1.4 var(--sans); }
   .wrap { max-width: 1320px; margin: 0 auto; padding-inline: 16px; padding-block: 14px 32px; display: grid; gap: 10px; }
   .wrap > * { min-width: 0; }   /* let wide tables scroll inside their panel instead of widening the page */
@@ -50,6 +50,8 @@
     .wrap { max-width: 2560px; }
     .cols { display: grid; grid-template-columns: minmax(1180px, 1fr) minmax(1080px, 1.05fr); gap: 10px 18px; align-items: start; }
     .colmain, .colside { display: grid; gap: 10px; align-content: start; min-width: 0; }
+    /* round 175 (user: cheat mode "messes with the window"): the room is there — the tabs card grows with its content instead of scrolling inside */
+    .charpanel .sidecard { height: auto; min-height: 0; overflow-y: visible; }
   }
   header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
   h1 { font: 600 21px/1.15 var(--display); margin: 0; }

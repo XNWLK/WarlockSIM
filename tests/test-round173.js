@@ -17,5 +17,8 @@
     T.ok(!has('class="cardrow') && !has('.cardrow'), 'no tiles: cards stack in their column, opening one only pushes the ones below');
     T.ok(has('.edmain .edrots { display: contents; }') && at('class="edmain"') < at('class="edrots"') && at('class="edrots"') < at('class="edchecks"'), 'Simple | Advanced share the columns of the talent trees | quick sim (the four boxes line up)');
     T.ok(has('.edcol.edrules { margin-top: 0; }'), 'Simple and Advanced start at the same height');
+    // Round 175 (user: at 1440p cheat mode, the build editor, import / export and the gear builder "mess with the layout")
+    T.ok(has('scrollbar-gutter: stable;'), 'room for the scrollbar is kept: opening a card never shifts the page sideways');
+    T.ok(has('.charpanel .sidecard { height: auto; min-height: 0; overflow-y: visible; }'), 'side by side, the tabs card grows with its content (cheat mode) instead of scrolling inside');
   });
 })();

@@ -8,7 +8,8 @@ What each version added or changed, newest first. Version = the version of the
   things are for: on the left what the sim shows (the builds, Compare, Charts, Racials by fight length), on the right what
   you put in (your character and the fight, the gear builder, the build editor, Import / output) — the page fits on one
   screen. Narrower windows stack everything as before.
-- **Your character and the fight** is one box with its title inside, like the builds.
+- **Your character and the fight** is one box with its title inside, like the builds. Side by side, its tabs box grows with
+  what is in it (cheat mode) instead of scrolling inside, and opening a card no longer shifts the page sideways.
 - **Build editor**: the talent trees, the quick sim, Simple and Advanced (APL) line up in one grid.
 - **Build editor: Simple and Advanced (APL) side by side.** The priority shows twice, next to each other: as the simple list
   of actions and as APL lines ("cast Shadow Bolt if Shadow Trance time left > 0 s"). Every simple action has APL lines that
