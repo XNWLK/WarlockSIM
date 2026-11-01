@@ -4,10 +4,11 @@ What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
 ## v155
-- **Wide screens**: the page grows up to 1880 px wide (was 1320). From about 2350 px (a 1440p screen) the builds and the tool
-  cards sit on the left and your character and the fight on the right — the whole page fits on one screen. Folded cards
-  (Compare, Charts, Build editor, Import / output, Racials by fight length) sit next to each other; an open one takes the
-  whole row. Narrower windows stack everything as before.
+- **Wide screens**: the page grows up to 1880 px wide (was 1320). From about 2350 px (a 1440p screen) it splits by what
+  things are for: on the left what the sim shows (the builds, Compare, Charts, Racials by fight length), on the right what
+  you put in (your character and the fight, the gear builder, the build editor, Import / output) — the page fits on one
+  screen. Narrower windows stack everything as before.
+- **Your character and the fight** is one box with its title inside, like the builds.
 - **Build editor**: the talent trees, the quick sim, Simple and Advanced (APL) line up in one grid.
 - **Build editor: Simple and Advanced (APL) side by side.** The priority shows twice, next to each other: as the simple list
   of actions and as APL lines ("cast Shadow Bolt if Shadow Trance time left > 0 s"). Every simple action has APL lines that

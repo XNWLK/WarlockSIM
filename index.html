@@ -39,16 +39,17 @@
   .wrap > * { min-width: 0; }   /* let wide tables scroll inside their panel instead of widening the page */
   /* round 173 (user): wide screens. Up to 1880 px of page; from 2350 px two columns (results | your character and the fight). */
   .cols, .colmain, .colside { display: contents; }
-  .colmain > *, .colside > *, .cardrow > * { min-width: 0; }
-  .cardrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 10px; align-items: start; }
-  .cardrow > details[open] { grid-column: 1 / -1; }   /* an open card takes the whole row */
-  .cardrow.late { order: 1; } .foot { order: 2; }   /* stacked: the editor, import / export and fight lengths after your settings */
+  .colmain > *, .colside > * { min-width: 0; }
+  #lenSheet { order: 1; } .foot { order: 2; }   /* stacked: Racials by fight length last (round 170) */
+  /* your character and the fight: one panel, its title inside like the builds' (round 174) */
+  .charpanel { display: grid; gap: 10px; min-width: 0; }
+  .charpanel .charhead { margin: 0; }
+  .charpanel .setup > .card { background: var(--ground); }
   @media (min-width: 1500px) { .wrap { max-width: min(1880px, 100%); } }
   @media (min-width: 2350px) {
     .wrap { max-width: 2560px; }
     .cols { display: grid; grid-template-columns: minmax(1180px, 1fr) minmax(1080px, 1.05fr); gap: 10px 18px; align-items: start; }
     .colmain, .colside { display: grid; gap: 10px; align-content: start; min-width: 0; }
-    .colside .charhead { margin-top: 0; }
   }
   header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
   h1 { font: 600 21px/1.15 var(--display); margin: 0; }
@@ -968,9 +969,10 @@
     </div>
   </header>
 
-  <!-- Round 173 (user: use the room of wide screens): from 2350 px wide the results and the tool cards (left) and your character
-       and the fight (right) sit side by side; narrower, .cols / .colmain / .colside step aside (display: contents) and it all stacks as
-       before. Folded cards sit next to each other as tiles (.cardrow); an open one takes the whole row. -->
+  <!-- Round 173 / 174 (user: use the room of wide screens; place things by what they belong to): from 2350 px wide, left = what
+       the sim shows (builds, compare, charts, fight lengths), right = what you put in (your character and the fight, gear builder,
+       build editor, import / export). Narrower, .cols / .colmain / .colside step aside (display: contents) and it all stacks as
+       before (Racials by fight length last, by CSS order). -->
   <div class="cols">
   <div class="colmain">
   <section class="panel buildpanel" id="buildPanel" aria-labelledby="buildsTitle">
@@ -1016,7 +1018,6 @@
       <th class="w" style="--c:var(--c-int)" title="1 Intellect is worth this much spell power (mana + 60 Int = 1% crit)">Int<span class="sub">SP per 1</span></th>
     </tr></thead><tbody></tbody></table></div>
   </section>
-  <div class="cardrow">
   <details class="card toolcard" id="compare">
     <summary>Compare two builds</summary>
     <div class="cmpbar">
@@ -1045,108 +1046,6 @@
     </div>
     <div id="chOut"><p class="meta chcap">Pick a chart and press Draw chart. <b>DPS by a stat</b> shows how a build's damage grows as one stat on your gear goes up, with everything else as you have set it — for example where more hit stops helping. <b>DPS by fight length</b> shows which build is ahead in short and in long fights. <b>What each raid buff and debuff is worth</b> measures, for one build, what you lose without each one you have on and what you would gain with each one you have off.</p></div>
   </details>
-  </div>
-  <div class="cardrow late">
-  <details class="card toolcard" id="editor">
-    <summary>Build editor — make your own builds</summary>
-    <div class="edtop">
-      <label class="c" for="edFrom">Start from <select id="edFrom"></select></label>
-      <button type="button" id="edLoadFrom">Load</button>
-      <label class="c" for="edName">Name <input id="edName" type="text" maxlength="40" placeholder="My build"></label>
-      <label class="c" for="edPet">Pet out <select id="edPet"></select></label>
-      <label class="c" for="edSac">Sacrificed <select id="edSac"></select></label>
-      <label class="c" for="edOil" title="The build's Spellstone or Firestone. A weapon oil from the Consumables tab stacks with it.">Weapon stone <select id="edOil"></select></label>
-      <span class="meta" id="edPts"></span>
-      <button type="button" id="edResetAll" class="resetbtn" title="Remove every talent point in all three trees (pet, weapon and priority stay)">Reset all talents</button>
-    </div>
-    <p class="meta simkey">Click a talent to add a point; Shift+click or right-click removes one. Hover for the tooltip.
-      Marks:<span class="sim none">✕</span>not simulated<span class="sim part">½</span>partly simulated<span class="sim cond">if</span>only with a setting or action</p>
-    <div class="edmain">
-      <div class="edleft">
-        <div id="edTrees" class="trees"></div>
-      </div>
-      <div class="edquick" aria-label="Quick sim of the build in the editor">
-        <div class="cardhead">
-          <h2>Quick sim</h2>
-          <button type="button" id="edQuick" class="primary" title="Simulate only this build: 300 fights per race with the current settings, next to the sheet's best build on the same fights">Quick sim this build</button>
-          <button type="button" id="edPoints" title="Simulates this build once more for every talent it has points in, with one point fewer there, on the same fights: what the last point of each talent is worth">Value of each point</button>
-        </div>
-        <div id="edQuickOut" role="status"></div>
-        <div id="edPtsOut" role="status"></div>
-      </div>
-    <!-- Round 172 (user): the priority twice, next to each other — as a simple list and as APL lines. Both show the same list. -->
-    <div class="edrots">
-      <details class="edcol" id="edSimpleBox" open><summary>Simple <span class="meta">— the priority list, top = checked first</span></summary>
-        <ol id="edRot" class="edrot"></ol>
-        <div class="btnrow"><select id="edAddAct" aria-label="Action to add"></select><button type="button" id="edAdd">Add to the priority</button></div>
-      </details>
-      <details class="edcol edrules" id="edRulesBox" open><summary>Advanced (APL) <span class="meta">— the same priority as conditions</span></summary>
-        <p class="meta">Each line casts its spell when its conditions hold — the first line that can is cast. A simple action shows here as the lines that check exactly what it checks; edit a line and it stays that action as long as it still matches one (your numbers and extra conditions are kept), otherwise it becomes an APL line of your own. A new APL line that matches a simple action is added as that action.</p>
-        <ol id="edApl" class="edapl"></ol>
-        <div id="edRules"></div></details>
-    </div>
-    </div>
-    <div class="edchecks"><h2>Checks</h2><ul id="edErrs" class="ederrs"></ul></div>
-    <label class="c tlon" for="edTlOn" title="Script the fight yourself: drag spells onto a timeline at the exact moment you want them cast. The priority above still runs: it fills every gap, recasts what misses and takes over when the timeline ends."><input id="edTlOn" type="checkbox"> Super advanced: fight timeline</label>
-    <div id="edTl" class="tlbox" hidden>
-      <div class="btnrow">
-        <span class="meta">Spells (drag onto the timeline, or click to add at the end):</span>
-        <button type="button" id="edTlFill" title="Put the casts the priority makes in fight #1 (Human, current settings) on the timeline as a starting point">Fill from the priority</button>
-        <button type="button" id="edTlClear">Clear</button>
-        <button type="button" data-tlzoom="0.5" aria-label="Zoom out">−</button><button type="button" data-tlzoom="2" aria-label="Zoom in">+</button>
-      </div>
-      <div id="edTlPal" class="tlpals"></div>
-      <div class="tlscroll"><div id="edTlLane" class="tllane"></div></div>
-      <div id="edTlSel" class="btnrow tlsel"></div>
-      <p class="meta" id="edTlInfo"></p>
-    </div>
-    <div class="btnrow">
-      <button type="button" id="edSave" class="primary">Add to the sheet</button>
-      <button type="button" id="edNew">New build</button>
-      <button type="button" id="edCopy">Copy build code</button>
-      <button type="button" id="edWowhead" title="A link to this build's talents in the Wowhead Forever talent calculator, copied to the clipboard">Wowhead talent link</button>
-      <input id="edCode" type="text" placeholder="WFB1:… or a Wowhead talent link" aria-label="Build code or Wowhead talent link">
-      <button type="button" id="edLoadCode" title="A build code (WFB1:…) loads the whole build; a Wowhead Forever talent link sets the talents of the build you are editing">Load build code</button>
-    </div>
-    <p class="meta" id="edMsg" role="status"></p>
-    <h2>Your builds</h2>
-    <ol id="edList" class="batchlist"></ol>
-  </details>
-  <details class="card toolcard" id="tools">
-    <summary>Input / output settings and builds · batch compare</summary>
-    <div class="toolgrid">
-      <div class="toolpart">
-        <h2>Input / output: settings and builds</h2>
-        <p class="meta">A code is a line of text you can keep or send to someone. A <b>settings code</b> (starts with WFS1:) holds your stats, fight,
-          buffs, debuffs, consumables, professions and pet settings. A <b>build code</b> (WFB1:) holds one build: talents, pet, weapon stone and
-          priority. Make a code here, or paste one and press Load — settings are applied, a build opens in the build editor. A <b>gear code</b> (WFG1:) from the in-game addon goes into the gear builder.</p>
-        <textarea id="codeBox" rows="3" spellcheck="false" aria-label="Settings or build code" placeholder="WFS1:… or WFB1:…"></textarea>
-        <div class="btnrow">
-          <button type="button" id="codeMake">Make settings code</button>
-          <button type="button" id="codeMakeBuild">Make build code</button>
-          <select id="ioBuild" aria-label="Build to make a code for"></select>
-        </div>
-        <div class="btnrow">
-          <button type="button" id="codeCopy">Copy</button>
-          <button type="button" id="codeLoad" class="primary">Load code</button>
-        </div>
-        <p class="meta" id="codeMsg" role="status"></p>
-      </div>
-      <div class="toolpart">
-        <h2>Batch compare</h2>
-        <p class="meta">Save several setups (e.g. pre-raid vs raid-buffed), then run them all: every build × race per setup, best race per build. "Add this run" keeps the results in the table as they are.</p>
-        <div class="btnrow">
-          <input id="batchName" type="text" placeholder="Setup name" aria-label="Setup name" maxlength="40">
-          <button type="button" id="batchAdd">Add current settings</button>
-          <button type="button" id="addRunBtn" title="Save the run you see in the table (its settings and results) as a frozen entry, to compare later runs against it">Add this run</button>
-          <button type="button" id="batchRun" class="primary">Sim batch</button>
-        </div>
-        <ol id="batchList" class="batchlist"></ol>
-        <p class="meta" id="batchStatus" role="status"></p>
-      </div>
-    </div>
-    <div class="scroll"><table id="batchOut" class="batchout"></table></div>
-  </details>
   <details class="card toolcard" id="lenSheet">
     <summary>Racials by fight length <span class="meta">— every build and race at 60, 120, 180, 240 and 300 s</span></summary>
     <p class="meta" id="lenMsg"></p>
@@ -1154,8 +1053,8 @@
     <div class="scroll"><table id="lenTable" class="lentable"></table></div>
   </details>
   </div>
-  </div>
   <div class="colside">
+  <section class="panel charpanel" aria-labelledby="charTitle">
   <div class="charhead">
     <h2 class="parth" id="charTitle">Your character and the fight</h2>
     <div class="presetbar" id="presetBar" aria-label="Saved setups">
@@ -1301,13 +1200,112 @@
       </div>
     </div>
   </section>
+  </section>
   <!-- The gear builder's place (round 147, user: "in the final version the gear builder will be at the top"): app/app.js moves
        the #gear card in here (GEAR_PLACE = 'top' since round 166, user: "remove the under construction"). -->
   <div class="gearanchor" id="gearTop"></div>
+  <details class="card toolcard" id="editor">
+    <summary>Build editor — make your own builds</summary>
+    <div class="edtop">
+      <label class="c" for="edFrom">Start from <select id="edFrom"></select></label>
+      <button type="button" id="edLoadFrom">Load</button>
+      <label class="c" for="edName">Name <input id="edName" type="text" maxlength="40" placeholder="My build"></label>
+      <label class="c" for="edPet">Pet out <select id="edPet"></select></label>
+      <label class="c" for="edSac">Sacrificed <select id="edSac"></select></label>
+      <label class="c" for="edOil" title="The build's Spellstone or Firestone. A weapon oil from the Consumables tab stacks with it.">Weapon stone <select id="edOil"></select></label>
+      <span class="meta" id="edPts"></span>
+      <button type="button" id="edResetAll" class="resetbtn" title="Remove every talent point in all three trees (pet, weapon and priority stay)">Reset all talents</button>
+    </div>
+    <p class="meta simkey">Click a talent to add a point; Shift+click or right-click removes one. Hover for the tooltip.
+      Marks:<span class="sim none">✕</span>not simulated<span class="sim part">½</span>partly simulated<span class="sim cond">if</span>only with a setting or action</p>
+    <div class="edmain">
+      <div class="edleft">
+        <div id="edTrees" class="trees"></div>
+      </div>
+      <div class="edquick" aria-label="Quick sim of the build in the editor">
+        <div class="cardhead">
+          <h2>Quick sim</h2>
+          <button type="button" id="edQuick" class="primary" title="Simulate only this build: 300 fights per race with the current settings, next to the sheet's best build on the same fights">Quick sim this build</button>
+          <button type="button" id="edPoints" title="Simulates this build once more for every talent it has points in, with one point fewer there, on the same fights: what the last point of each talent is worth">Value of each point</button>
+        </div>
+        <div id="edQuickOut" role="status"></div>
+        <div id="edPtsOut" role="status"></div>
+      </div>
+    <!-- Round 172 (user): the priority twice, next to each other — as a simple list and as APL lines. Both show the same list. -->
+    <div class="edrots">
+      <details class="edcol" id="edSimpleBox" open><summary>Simple <span class="meta">— the priority list, top = checked first</span></summary>
+        <ol id="edRot" class="edrot"></ol>
+        <div class="btnrow"><select id="edAddAct" aria-label="Action to add"></select><button type="button" id="edAdd">Add to the priority</button></div>
+      </details>
+      <details class="edcol edrules" id="edRulesBox" open><summary>Advanced (APL) <span class="meta">— the same priority as conditions</span></summary>
+        <p class="meta">Each line casts its spell when its conditions hold — the first line that can is cast. A simple action shows here as the lines that check exactly what it checks; edit a line and it stays that action as long as it still matches one (your numbers and extra conditions are kept), otherwise it becomes an APL line of your own. A new APL line that matches a simple action is added as that action.</p>
+        <ol id="edApl" class="edapl"></ol>
+        <div id="edRules"></div></details>
+    </div>
+    </div>
+    <div class="edchecks"><h2>Checks</h2><ul id="edErrs" class="ederrs"></ul></div>
+    <label class="c tlon" for="edTlOn" title="Script the fight yourself: drag spells onto a timeline at the exact moment you want them cast. The priority above still runs: it fills every gap, recasts what misses and takes over when the timeline ends."><input id="edTlOn" type="checkbox"> Super advanced: fight timeline</label>
+    <div id="edTl" class="tlbox" hidden>
+      <div class="btnrow">
+        <span class="meta">Spells (drag onto the timeline, or click to add at the end):</span>
+        <button type="button" id="edTlFill" title="Put the casts the priority makes in fight #1 (Human, current settings) on the timeline as a starting point">Fill from the priority</button>
+        <button type="button" id="edTlClear">Clear</button>
+        <button type="button" data-tlzoom="0.5" aria-label="Zoom out">−</button><button type="button" data-tlzoom="2" aria-label="Zoom in">+</button>
+      </div>
+      <div id="edTlPal" class="tlpals"></div>
+      <div class="tlscroll"><div id="edTlLane" class="tllane"></div></div>
+      <div id="edTlSel" class="btnrow tlsel"></div>
+      <p class="meta" id="edTlInfo"></p>
+    </div>
+    <div class="btnrow">
+      <button type="button" id="edSave" class="primary">Add to the sheet</button>
+      <button type="button" id="edNew">New build</button>
+      <button type="button" id="edCopy">Copy build code</button>
+      <button type="button" id="edWowhead" title="A link to this build's talents in the Wowhead Forever talent calculator, copied to the clipboard">Wowhead talent link</button>
+      <input id="edCode" type="text" placeholder="WFB1:… or a Wowhead talent link" aria-label="Build code or Wowhead talent link">
+      <button type="button" id="edLoadCode" title="A build code (WFB1:…) loads the whole build; a Wowhead Forever talent link sets the talents of the build you are editing">Load build code</button>
+    </div>
+    <p class="meta" id="edMsg" role="status"></p>
+    <h2>Your builds</h2>
+    <ol id="edList" class="batchlist"></ol>
+  </details>
+  <details class="card toolcard" id="tools">
+    <summary>Input / output settings and builds · batch compare</summary>
+    <div class="toolgrid">
+      <div class="toolpart">
+        <h2>Input / output: settings and builds</h2>
+        <p class="meta">A code is a line of text you can keep or send to someone. A <b>settings code</b> (starts with WFS1:) holds your stats, fight,
+          buffs, debuffs, consumables, professions and pet settings. A <b>build code</b> (WFB1:) holds one build: talents, pet, weapon stone and
+          priority. Make a code here, or paste one and press Load — settings are applied, a build opens in the build editor. A <b>gear code</b> (WFG1:) from the in-game addon goes into the gear builder.</p>
+        <textarea id="codeBox" rows="3" spellcheck="false" aria-label="Settings or build code" placeholder="WFS1:… or WFB1:…"></textarea>
+        <div class="btnrow">
+          <button type="button" id="codeMake">Make settings code</button>
+          <button type="button" id="codeMakeBuild">Make build code</button>
+          <select id="ioBuild" aria-label="Build to make a code for"></select>
+        </div>
+        <div class="btnrow">
+          <button type="button" id="codeCopy">Copy</button>
+          <button type="button" id="codeLoad" class="primary">Load code</button>
+        </div>
+        <p class="meta" id="codeMsg" role="status"></p>
+      </div>
+      <div class="toolpart">
+        <h2>Batch compare</h2>
+        <p class="meta">Save several setups (e.g. pre-raid vs raid-buffed), then run them all: every build × race per setup, best race per build. "Add this run" keeps the results in the table as they are.</p>
+        <div class="btnrow">
+          <input id="batchName" type="text" placeholder="Setup name" aria-label="Setup name" maxlength="40">
+          <button type="button" id="batchAdd">Add current settings</button>
+          <button type="button" id="addRunBtn" title="Save the run you see in the table (its settings and results) as a frozen entry, to compare later runs against it">Add this run</button>
+          <button type="button" id="batchRun" class="primary">Sim batch</button>
+        </div>
+        <ol id="batchList" class="batchlist"></ol>
+        <p class="meta" id="batchStatus" role="status"></p>
+      </div>
+    </div>
+    <div class="scroll"><table id="batchOut" class="batchout"></table></div>
+  </details>
   </div>
   </div>
-
-
   <p class="foot">Click a row for talents, stats, the DoT chart, per-spell numbers, race comparison and the full rotation log; the "+4 races" pill next to the race
     (or Show all races above the table) shows the build's other races. Stat weights: DPS per 1 spell power; hit / crit / haste / Int shown as the spell power they are worth,
     computed on each build's best race with common random numbers (hit/haste carry some noise). Spell Pierce weight: in the details.
