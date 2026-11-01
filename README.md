@@ -60,6 +60,10 @@ Click a build for:
 - Options: keep Curse of the Elements up, pets on or off, AQ20 book ranks (Shadow Bolt R10, Immolate R8, Corruption R7),
   Eureka! timing, pet scaling.
 
+### Your page
+- **Layout editor**: drag the boxes of the page where you want them (two columns on wide screens, one list on narrower
+  windows); kept in your browser.
+
 ### Make your own builds
 - **Build editor:** click talents in the three trees, pick the pet out, the sacrificed pet and the weapon (Spellstone /
   Firestone / oil), and arrange the spell priority with drag and drop — as a simple list or, right next to it, as APL lines

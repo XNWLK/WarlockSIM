@@ -40,7 +40,8 @@
   /* round 173 (user): wide screens. Up to 1880 px of page; from 2350 px two columns (results | your character and the fight). */
   .cols, .colmain, .colside { display: contents; }
   .colmain > *, .colside > * { min-width: 0; }
-  #lenSheet { order: 1; } .foot { order: 2; }   /* stacked: Racials by fight length last (round 170) */
+  /* stacked: each box's place in the list (round 176: --stack, set by app/app.js from the layout; Racials by fight length last by default) */
+  .colmain > *, .colside > * { order: var(--stack, 0); } #lenSheet { --stack: 9; } .foot { order: 100; }
   /* your character and the fight: one panel, its title inside like the builds' (round 174) */
   .charpanel { display: grid; gap: 10px; min-width: 0; }
   .charpanel .charhead { margin: 0; }
@@ -50,6 +51,7 @@
     .wrap { max-width: 2560px; }
     .cols { display: grid; grid-template-columns: minmax(1180px, 1fr) minmax(1080px, 1.05fr); gap: 10px 18px; align-items: start; }
     .colmain, .colside { display: grid; gap: 10px; align-content: start; min-width: 0; }
+    .colmain > *, .colside > * { order: 0; }   /* side by side: the columns' own order (the layout puts the boxes in it) */
     /* round 175 (user: cheat mode "messes with the window"): the room is there — the tabs card grows with its content instead of scrolling inside */
     .charpanel .sidecard { height: auto; min-height: 0; overflow-y: visible; }
   }
@@ -735,6 +737,23 @@
   .tl-mana { fill: var(--c-hit); opacity: .35; }
   .tl-gcd { fill: var(--muted); opacity: .7; }
   .tlopts { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: -2px 0 6px; font-size: 12px; }
+  /* round 176: the layout editor */
+  .layoutdlg { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); padding: 0; width: min(780px, calc(100vw - 32px)); }
+  .layoutdlg::backdrop { background: rgba(10, 8, 16, .55); }
+  .lyin { padding: 14px 16px; display: grid; gap: 8px; }
+  .lyin .cardhead h2 { margin: 0; font-size: 13px; color: var(--ink); }
+  .lyin > p.meta { margin: 0; }
+  .lygrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+  .lygrid h3 { margin: 0 0 6px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; }
+  .lylist { list-style: none; margin: 0; padding: 6px; min-height: 140px; border: 1px dashed var(--line); border-radius: 6px; display: grid; gap: 4px; align-content: start; }
+  .lylist.dropin { border-color: var(--accent); }
+  .lylist li { display: flex; align-items: center; gap: 5px; padding: 5px 6px; border: 1px solid var(--line); border-radius: 4px; background: var(--sunk); cursor: grab; font-size: 12px; font-weight: 600; touch-action: none; user-select: none; }
+  .lylist li .lyn { flex: 1 1 auto; min-width: 0; }
+  .lylist li .grip { color: var(--muted); }
+  .lylist li button { padding: 0 6px; font-size: 11px; line-height: 18px; }
+  .lylist li.dragging { opacity: .45; }
+  .lylist li.dropabove { box-shadow: 0 -2px 0 var(--accent); } .lylist li.dropbelow { box-shadow: 0 2px 0 var(--accent); }
+  #layoutBtn svg { width: 13px; height: 13px; }
   /* round 172: Simple | Advanced (APL) next to each other */
   .edrots { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 14px; align-items: start; margin-top: 12px; }
   .edcol.edrules { margin-top: 0; }   /* round 173: the old 8 px put Advanced lower than Simple */
@@ -955,6 +974,7 @@
       <img class="sitelogo" src="art/logo-64.png" width="32" height="32" alt="">
       <h1>Xn's Forever Warlock Sim</h1>
       <button type="button" id="themeBtn" class="themebtn">Auto</button>
+      <button type="button" id="layoutBtn" class="themebtn" title="Arrange the boxes of the page the way you like (kept in this browser)"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M1 2h6v5H1zM9 2h6v12H9zM1 9h6v5H1z"/></svg>Layout</button>
       <a class="twitchbtn" href="https://www.twitch.tv/ascalontv" target="_blank" rel="noopener" title="Xn's live stream: come by with questions, or just to say hi"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 1 1.5 3.5v10h3V15h1.7l1.6-1.5h2.5L13.5 10V1h-11zm9.8 8.4-2 1.9H7.8L6.2 12.8v-1.5H4.1V2.2h8.2v7.2zM10.6 4.5h-1.2v3.4h1.2V4.5zm-3.2 0H6.2v3.4h1.2V4.5z"/></svg>Twitch</a>
       <a class="discordbtn" href="https://discord.gg/uepKAsY" target="_blank" rel="noopener" title="Xn's Discord server: questions, ideas and bug reports"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 3.2A12.3 12.3 0 0 0 10.4 2.3l-.4.8a11.4 11.4 0 0 0-4 0l-.4-.8a12.3 12.3 0 0 0-3.1.9C.6 6.1.1 8.9.3 11.7a12.4 12.4 0 0 0 3.8 1.9l.8-1.3a8 8 0 0 1-1.3-.6l.3-.2a8.8 8.8 0 0 0 7.6 0l.3.2a8 8 0 0 1-1.3.6l.8 1.3a12.4 12.4 0 0 0 3.8-1.9c.3-3.3-.5-6-2.3-8.5zM5.6 10.1c-.7 0-1.3-.7-1.3-1.5s.6-1.5 1.3-1.5 1.3.7 1.3 1.5-.6 1.5-1.3 1.5zm4.8 0c-.7 0-1.3-.7-1.3-1.5s.6-1.5 1.3-1.5 1.3.7 1.3 1.5-.6 1.5-1.3 1.5z"/></svg>Discord</a>
       <nav class="toplinks" aria-label="Project links">
@@ -1308,6 +1328,17 @@
   </details>
   </div>
   </div>
+  <!-- Round 176 (user): the layout editor — tiles stand in for the boxes of the page; app/app.js keeps them and the page in step. -->
+  <dialog id="layoutDlg" class="layoutdlg" aria-labelledby="layoutTitle"><div class="lyin">
+    <div class="cardhead"><h2 id="layoutTitle">Page layout</h2><button type="button" id="layoutClose" class="primary">Done</button></div>
+    <p class="meta">Drag the boxes where you want them, or use the arrows — the page behind changes at once. Wide screens (2350 px and more) show two columns; narrower windows show one list. Kept in this browser.</p>
+    <div class="lygrid">
+      <section><h3>Wide screens · left</h3><ol class="lylist" id="ly_left" data-ly="left"></ol></section>
+      <section><h3>Wide screens · right</h3><ol class="lylist" id="ly_right" data-ly="right"></ol></section>
+      <section><h3>Narrower windows · top to bottom</h3><ol class="lylist" id="ly_stack" data-ly="stack"></ol></section>
+    </div>
+    <div class="btnrow"><button type="button" id="layoutReset" class="resetbtn">Back to the default layout</button><span class="meta" id="layoutNow"></span></div>
+  </div></dialog>
   <p class="foot">Click a row for talents, stats, the DoT chart, per-spell numbers, race comparison and the full rotation log; the "+4 races" pill next to the race
     (or Show all races above the table) shows the build's other races. Stat weights: DPS per 1 spell power; hit / crit / haste / Int shown as the spell power they are worth,
     computed on each build's best race with common random numbers (hit/haste carry some noise). Spell Pierce weight: in the details.

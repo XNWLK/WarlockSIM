@@ -15,7 +15,7 @@
     T.ok(at('id="compare"') < at('id="settings"') && at('id="editor"') > at('id="settings"'), 'result tools under the list; build editor below the settings');
     // Round 170 (user: "move that window to the very bottom"); round 174: it sits in the left column (wide screens), and CSS order
     // puts it last when everything stacks.
-    T.ok(at('id="lenSheet"') < at('class="colside"') && src.indexOf('#lenSheet { order: 1; } .foot { order: 2; }') >= 0, 'Racials by fight length is the last box on the page (stacked)');
+    T.ok(at('id="lenSheet"') < at('class="colside"') && src.indexOf('#lenSheet { --stack: 9; }') >= 0, 'Racials by fight length is the last box on the page (stacked; round 176: the layout\'s default)');
     // Round 171 (user: call it "Racials by fight length")
     T.ok(/<summary>Racials by fight length </.test(src), 'its title: Racials by fight length');
     T.ok(/\.buildpanel \{[^}]*minmax\(0, 1fr\)/.test(src), 'the build list stays inside a phone screen (its wide table scrolls)');

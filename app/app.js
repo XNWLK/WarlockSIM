@@ -3959,6 +3959,87 @@
   });
   if (GEAR_PLACE === 'top') $('gearTop').appendChild($('gear'));
 
+  // ---------- your own page layout (round 176, user: "a layout editor so people can drag the different windows how they want them") ----------
+  // Two arrangements: wide screens (two columns, 2350 px and more) and narrower windows (one list, top to bottom). The editor's
+  // tiles stand in for the boxes; every change is put on the page at once and kept in this browser ('wfs.layout').
+  var LY_BLOCKS = { builds: ['Builds', 'buildPanel'], compare: ['Compare two builds', 'compare'], charts: ['Charts', 'charts'], len: ['Racials by fight length', 'lenSheet'],
+    char: ['Your character and the fight', null], gear: ['Gear builder', 'gearTop'], editor: ['Build editor', 'editor'], tools: ['Import / output', 'tools'] };
+  var LY_DEFAULT = { left: ['builds', 'compare', 'charts', 'len'], right: ['char', 'gear', 'editor', 'tools'], stack: ['builds', 'compare', 'charts', 'char', 'gear', 'editor', 'tools', 'len'] };
+  var layout = null, lyDrag = null;
+  function lyEl(id) { return id === 'char' ? document.querySelector('.charpanel') : $(LY_BLOCKS[id][1]); }
+  function lyClean(o) {                                   // every box once; unknown names dropped; a missing one where the default has it
+    var ok = function (x) { return typeof x === 'string' && LY_BLOCKS.hasOwnProperty(x); }, seen = {}, seen2 = {}, out = { left: [], right: [], stack: [] };
+    ['left', 'right'].forEach(function (c) { ((o && o[c]) || []).forEach(function (x) { if (ok(x) && !seen[x]) { seen[x] = 1; out[c].push(x); } }); });
+    Object.keys(LY_BLOCKS).forEach(function (x) { if (!seen[x]) out[LY_DEFAULT.left.indexOf(x) >= 0 ? 'left' : 'right'].push(x); });
+    ((o && o.stack) || []).forEach(function (x) { if (ok(x) && !seen2[x]) { seen2[x] = 1; out.stack.push(x); } });
+    LY_DEFAULT.stack.forEach(function (x) { if (!seen2[x]) out.stack.push(x); });
+    return out;
+  }
+  function lyApply() {
+    var m = document.querySelector('.colmain'), s = document.querySelector('.colside');
+    layout.left.forEach(function (id) { m.appendChild(lyEl(id)); });
+    layout.right.forEach(function (id) { s.appendChild(lyEl(id)); });
+    layout.stack.forEach(function (id, i) { lyEl(id).style.setProperty('--stack', i); });
+  }
+  function lyIsDefault() { return JSON.stringify(layout) === JSON.stringify(LY_DEFAULT); }
+  function lySave() { try { if (lyIsDefault()) localStorage.removeItem('wfs.layout'); else localStorage.setItem('wfs.layout', JSON.stringify(layout)); } catch (e) { /* page only */ } }
+  (function () { var v = null; try { v = JSON.parse(localStorage.getItem('wfs.layout') || 'null'); } catch (e) { v = null; } layout = lyClean(v); lyApply(); })();
+  function lyRender() {
+    ['left', 'right', 'stack'].forEach(function (c) {
+      var n = layout[c].length;
+      $('ly_' + c).innerHTML = layout[c].map(function (id, i) {
+        return '<li data-lyid="' + id + '" data-lyc="' + c + '"><span class="grip" aria-hidden="true">⠿</span><span class="lyn">' + esc(LY_BLOCKS[id][0]) + '</span>' +
+          '<button type="button" data-lymove="' + c + ':' + i + ':-1" aria-label="Move up"' + (i ? '' : ' disabled') + '>↑</button>' +
+          '<button type="button" data-lymove="' + c + ':' + i + ':1" aria-label="Move down"' + (i < n - 1 ? '' : ' disabled') + '>↓</button>' +
+          (c === 'stack' ? '' : '<button type="button" data-lyswap="' + c + ':' + i + '" aria-label="To the ' + (c === 'left' ? 'right' : 'left') + ' column" title="To the ' + (c === 'left' ? 'right' : 'left') + ' column">' + (c === 'left' ? '→' : '←') + '</button>') + '</li>';
+      }).join('');
+    });
+    $('layoutNow').textContent = window.matchMedia && window.matchMedia('(min-width: 2350px)').matches ? 'This window is wide: it shows the two columns.' : 'This window is narrower: it shows the list (the two columns need 2350 px).';
+    $('layoutReset').disabled = lyIsDefault();
+  }
+  function lyMove(c, from, toC, to) {                    // to = the place in toC before which it goes (counted before it is taken out)
+    var id = layout[c].splice(from, 1)[0]; if (id == null) return;
+    if (toC === c && to > from) to--;
+    layout[toC].splice(Math.max(0, Math.min(to, layout[toC].length)), 0, id);
+    lyApply(); lySave(); lyRender();
+  }
+  function lyTarget(ol, y) { var lis = ol.querySelectorAll('li[data-lyid]'); for (var i = 0; i < lis.length; i++) { var r = lis[i].getBoundingClientRect(); if (y < r.top + r.height / 2) return i; } return lis.length; }
+  function lyUnmark() { Array.prototype.forEach.call(document.querySelectorAll('.lylist .dropabove, .lylist .dropbelow, .lylist.dropin'), function (x) { x.classList.remove('dropabove', 'dropbelow', 'dropin'); }); }
+  // Dragging a tile (pointer events: mouse, touch and pen alike). The columns swap among themselves; the list stays the list.
+  function lyListAt(x, y) {
+    var el = document.elementFromPoint(x, y), ol = el && el.closest && el.closest('#layoutDlg .lylist'), c = ol && ol.getAttribute('data-ly');
+    return ol && lyDrag && (c === 'stack') === (lyDrag.c === 'stack') ? ol : null;
+  }
+  $('layoutDlg').addEventListener('pointerdown', function (e) {
+    var li = e.target.closest && e.target.closest('li[data-lyid]'); if (!li || e.target.closest('button') || e.button > 0) return;
+    var c = li.getAttribute('data-lyc');
+    lyDrag = { c: c, i: layout[c].indexOf(li.getAttribute('data-lyid')), li: li, x: e.clientX, y: e.clientY, moved: false };
+    try { li.setPointerCapture(e.pointerId); } catch (x) { /* old browsers */ }
+    e.preventDefault();
+  });
+  $('layoutDlg').addEventListener('pointermove', function (e) {
+    if (!lyDrag) return;
+    if (!lyDrag.moved && Math.abs(e.clientX - lyDrag.x) + Math.abs(e.clientY - lyDrag.y) < 5) return;   // a click, not a drag yet
+    lyDrag.moved = true; lyDrag.li.classList.add('dragging'); lyUnmark();
+    var ol = lyListAt(e.clientX, e.clientY); if (!ol) return;
+    var t = lyTarget(ol, e.clientY), lis = ol.querySelectorAll('li[data-lyid]');
+    if (t < lis.length) lis[t].classList.add('dropabove'); else if (lis.length) lis[lis.length - 1].classList.add('dropbelow'); else ol.classList.add('dropin');
+  });
+  $('layoutDlg').addEventListener('pointerup', function (e) {
+    if (!lyDrag) return;
+    var d = lyDrag, ol = d.moved ? lyListAt(e.clientX, e.clientY) : null; lyDrag = null; lyUnmark(); d.li.classList.remove('dragging');
+    if (ol) lyMove(d.c, d.i, ol.getAttribute('data-ly'), lyTarget(ol, e.clientY));
+  });
+  $('layoutDlg').addEventListener('pointercancel', function () { if (lyDrag) lyDrag.li.classList.remove('dragging'); lyDrag = null; lyUnmark(); });
+  $('layoutDlg').addEventListener('click', function (e) {
+    var t = e.target, x;
+    if (t === $('layoutDlg') || t.closest('#layoutClose')) { $('layoutDlg').close(); return; }   // the dark area around it closes it too
+    if ((x = t.closest('[data-lymove]'))) { var p = x.getAttribute('data-lymove').split(':'), d = +p[2]; lyMove(p[0], +p[1], p[0], +p[1] + (d > 0 ? 2 : -1)); return; }
+    if ((x = t.closest('[data-lyswap]'))) { var q = x.getAttribute('data-lyswap').split(':'), o = q[0] === 'left' ? 'right' : 'left'; lyMove(q[0], +q[1], o, layout[o].length); return; }
+    if (t.closest('#layoutReset')) { layout = lyClean(LY_DEFAULT); lyApply(); lySave(); lyRender(); }
+  });
+  $('layoutBtn').addEventListener('click', function () { lyRender(); if ($('layoutDlg').showModal) $('layoutDlg').showModal(); else $('layoutDlg').setAttribute('open', ''); });
+
   // ---------- events ----------
   document.addEventListener('click', function (e) {
     var t = e.target;

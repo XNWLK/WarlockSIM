@@ -4,6 +4,10 @@ What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
 ## v155
+- **Layout editor** (the Layout button at the top): drag the boxes of the page where you want them — Builds, Compare, Charts,
+  Racials by fight length, Your character and the fight, the gear builder, the build editor, Import / output. One arrangement
+  for wide screens (two columns) and one for narrower windows (one list); the page changes as you drag. Works with a mouse
+  and on touch screens, has arrow buttons too, is kept in your browser, and "Back to the default layout" undoes it.
 - **Wide screens**: the page grows up to 1880 px wide (was 1320). From about 2350 px (a 1440p screen) it splits by what
   things are for: on the left what the sim shows (the builds, Compare, Charts, Racials by fight length), on the right what
   you put in (your character and the fight, the gear builder, the build editor, Import / output) — the page fits on one
