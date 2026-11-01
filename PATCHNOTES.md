@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v154
+- "By fight length" is now called **Racials by fight length**.
+
 ## v153
 - **A tidier page**: the build list is now the first thing on the page, with Sim! and the stats used in its top row and quick
   setup and the table tools in one row above the table. Your stats, buffs and fight settings follow under "Your character and the

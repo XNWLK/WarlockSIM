@@ -863,7 +863,7 @@ Undead) only bring their stats.
 and no dodge; every swing that is not a glancing blow crits), to try streaks of luck. The results say "cheat mode" while it
 is on; these are not real numbers.
 
-**By fight length** (under the results): every built-in build and race at 60, 120, 180, 240 and 300 s, made with the
+**Racials by fight length** (the last box on the page): every built-in build and race at 60, 120, 180, 240 and 300 s, made with the
 default settings and shipped with the page, or redone with your own settings.
 
 **The builds on the sheet**

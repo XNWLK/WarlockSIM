@@ -14,7 +14,9 @@
     T.ok(at('id="presetMsg"') > 0, '… with their own message line');
     T.ok(at('id="compare"') < at('id="settings"') && at('id="editor"') > at('id="settings"'), 'result tools under the list; build editor below the settings');
     // Round 170 (user: "move that window to the very bottom")
-    T.ok(at('id="lenSheet"') > at('id="tools"') && at('id="lenSheet"') < at('class="foot"'), 'By fight length is the last box on the page');
+    T.ok(at('id="lenSheet"') > at('id="tools"') && at('id="lenSheet"') < at('class="foot"'), 'Racials by fight length is the last box on the page');
+    // Round 171 (user: call it "Racials by fight length")
+    T.ok(/<summary>Racials by fight length </.test(src), 'its title: Racials by fight length');
     T.ok(/\.buildpanel \{[^}]*minmax\(0, 1fr\)/.test(src), 'the build list stays inside a phone screen (its wide table scrolls)');
   });
 })();
