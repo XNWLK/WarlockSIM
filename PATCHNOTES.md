@@ -3,6 +3,19 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v155
+- **Build editor: Simple and Advanced (APL) side by side.** The priority shows twice, next to each other: as the simple list
+  of actions and as APL lines ("cast Shadow Bolt if Shadow Trance time left > 0 s"). Every simple action has APL lines that
+  check exactly what it does. Add a simple action and its APL lines appear; write an APL line that matches a simple action and
+  it is added as that action. Edit any line: while it still matches its action it stays that action (with your numbers and
+  extra conditions), otherwise it becomes an APL line of your own. New APL conditions: a DoT needs a recast, a DoT still
+  pays off, the shortest DoT's time left, a spell's cast time, the execute %, talent points, a demon is out, the rest of the
+  fight needs more mana, free mana is ready, and more.
+- **Quick sim races**: a plain list with the DPS and the difference to the best race, no bars.
+- Fixed: a build loaded into the editor (or saved from it) lost its extra conditions — Wrack Succubus's "only while the DoTs
+  have 4 s left" among them.
+- Fixed: the saved-presets row was wider than a phone screen.
+
 ## v154
 - "By fight length" is now called **Racials by fight length**.
 

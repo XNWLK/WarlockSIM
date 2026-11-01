@@ -2082,7 +2082,8 @@
       params: WL.cleanParams(b.params, b.rotation),                                                                          // round 104
       rules: b.rules && b.rules.length ? JSON.parse(JSON.stringify(b.rules)) : undefined,                                   // round 157
       groups: b.groups && Object.keys(b.groups).length ? JSON.parse(JSON.stringify(b.groups)) : undefined,
-      vars: b.vars && Object.keys(b.vars).length ? JSON.parse(JSON.stringify(b.vars)) : undefined };
+      vars: b.vars && Object.keys(b.vars).length ? JSON.parse(JSON.stringify(b.vars)) : undefined,
+      actWhen: b.actWhen && Object.keys(b.actWhen).length ? JSON.parse(JSON.stringify(b.actWhen)) : undefined };   // round 172: was lost
   }
   function edStart(src) {
     ed.b = src ? { short: src.custom ? src.short : src.short + ' (copy)', talents: JSON.parse(JSON.stringify(src.talents)), pet: src.pet || null,
@@ -2090,7 +2091,7 @@
       timeline: src.timeline ? src.timeline.map(function (e) { return { t: e.t, k: e.k }; }) : undefined,
       params: src.params ? JSON.parse(JSON.stringify(src.params)) : undefined,
       rules: src.rules ? JSON.parse(JSON.stringify(src.rules)) : undefined, groups: src.groups ? JSON.parse(JSON.stringify(src.groups)) : undefined,   // round 157
-      vars: src.vars ? JSON.parse(JSON.stringify(src.vars)) : undefined }
+      vars: src.vars ? JSON.parse(JSON.stringify(src.vars)) : undefined, actWhen: src.actWhen ? JSON.parse(JSON.stringify(src.actWhen)) : undefined }   // actWhen: round 172 (Wrack Succubus lost its condition here)
       : { short: 'My build', talents: {}, pet: null, sacrifice: null, oil: 'spellstone', rotation: ['bane', 'curseOfElements', 'corruption', 'immolate', 'shadowBolt'] };
     ed.editing = src && src.custom ? src.key : null; ed.held = null; ruleEd = null;
     ed.from = src ? src.key : null; quick = null; quickSel = null;   // round 110: the quick-sim panel starts over
@@ -2147,7 +2148,7 @@
     // Round 44: drag an entry by its row (⠿ grip) to reorder; the ↑ ↓ buttons stay for keyboard / touch.
     $('edRot').innerHTML = b.rotation.map(function (a, i) {
       var A = WL.actionOf(a, b) || WL.ACTIONS[a], own = /^(rule|group):/.test(a), lbl = esc(own || (A && A.when) ? WL.actionLabel(b, a) : A ? A.label : a);   // round 166: an action's own condition shows
-      if (/^rule:/.test(a)) lbl += ' <button type="button" class="resetbtn" data-edrule="' + esc(a.slice(5)) + '">Edit</button>';   // round 157
+      if (/^rule:/.test(a)) lbl += ' <span class="ctag" title="No simple action matches this APL line">APL</span> <button type="button" class="resetbtn" data-edrule="' + esc(a.slice(5)) + '">Edit</button>';   // round 157; tag round 172
       if (A && A.params) {                                               // numbers you fill in yourself (round 104)
         var pv = WL.actionParams(b, a), pi = 0;
         lbl = esc(A.label).replace(/_/g, function () {
@@ -2163,7 +2164,7 @@
         '<button type="button" data-edrm="' + i + '" aria-label="Remove">✕</button></li>';
     }).join('') + '<li class="meta">' + icon('lifeTap', 'Life Tap') + ' Life Tap whenever mana is below the next spell\'s cost (automatic)</li>';
     var errs = WL.validateBuild(b).concat(timelineErrors().map(function (x) { return 'Timeline: ' + x.msg; }));
-    renderTimeline(); renderRuleEd();                                     // renderRuleEd: round 157
+    renderTimeline(); renderRuleEd(); renderApl();                        // renderRuleEd: round 157; renderApl: round 172
     $('edErrs').innerHTML = errs.length ? errs.map(function (e) { return '<li>' + esc(e) + '</li>'; }).join('') : '<li class="ok">Legal build — ready to add.</li>';
     $('edSave').disabled = !!errs.length;
     $('edSave').textContent = ed.editing ? 'Update on the sheet' : 'Add to the sheet';
@@ -2181,22 +2182,42 @@
   // each with neg ("not"). It becomes the engine's form (WL.ruleCond) when saved.
   var ruleEd = null;
   var COND_KINDS = [['dot', 'DoT time left (s)'], ['aura', 'Buff / debuff time left (s)'], ['cd', 'Cooldown left (s)'], ['remaining', 'Fight time left (s)'], ['elapsed', 'Fight time gone (s)'],
-    ['bossHp', 'Boss health %'], ['mana', 'Mana %'], ['shards', 'Soul Shards'], ['brand', 'Demonic Brand charges'], ['var', 'A condition of yours']];
+    ['bossHp', 'Boss health %'], ['mana', 'Mana %'], ['shards', 'Soul Shards'], ['brand', 'Demonic Brand charges'], ['var', 'A condition of yours'],
+    // round 172: the checks the built-in actions make
+    ['refresh', 'DoT needs a recast'], ['paysOff', 'DoT still pays off'], ['minDot', 'Shortest DoT time left (s)'], ['known', 'You know the spell'], ['talent', 'Talent points'],
+    ['pet', 'A demon is out'], ['setting', 'A setting is on'], ['manaNeed', 'The rest of the fight needs more mana'], ['freeMana', 'Free mana is ready'], ['check', 'A built-in check']];
+  var COND_NOVAL = { refresh: 1, paysOff: 1, known: 1, pet: 1, setting: 1, manaNeed: 1, freeMana: 1, check: 1, var: 1 };   // kinds without a comparison
   function condFromEngine(n) {
     if (!n) return { t: 'all', c: [] };
     if (n.t === 'not') { var x = condFromEngine(n.c); x.neg = !x.neg; return x; }
     if (n.t === 'all' || n.t === 'any') return { t: n.t, c: (n.c || []).map(condFromEngine) };
-    var v = n.v && typeof n.v === 'object' && n.v.var != null ? n.v.var : n.v;
-    if (n.t === 'fight') return { t: n.what, op: n.op, v: v == null ? '' : String(v) };
-    return { t: n.t, spell: n.spell, aura: n.aura, name: n.name, op: n.op, v: v == null ? '' : String(v) };
+    var v = n.v == null ? '' : typeof n.v === 'object' ? WL.valText(n.v) : String(n.v);   // round 172: a cast time, the execute %
+    if (n.t === 'fight') return { t: n.what, op: n.op, v: v };
+    var o = { t: n.t, op: n.op, v: v };
+    ['spell', 'aura', 'name', 'talent', 'key', 'act'].forEach(function (k) { if (n[k] != null) o[k] = n[k]; });
+    return o;
+  }
+  // A typed value: a number, "<spell> cast time", "the execute %", or the name of a number of yours (round 172).
+  function condVal(raw) {
+    raw = String(raw == null ? '' : raw).trim();
+    if (raw !== '' && isFinite(+raw)) return +raw;
+    if (/^(the )?execute ?%$/i.test(raw)) return { exec: 1 };
+    var m = /^(.+?) cast time$/i.exec(raw);
+    if (m) { var k = WL.RULE_SPELLS.filter(function (s) { return WL.SPELLS[s].name.toLowerCase() === m[1].toLowerCase(); })[0]; if (k) return { cast: k }; }
+    return { var: raw };
   }
   function condToEngine(n) {                             // null = no condition (an empty "all of")
     var x;
     if (n.t === 'all' || n.t === 'any') { var c = n.c.map(condToEngine).filter(Boolean); if (!c.length) return n.neg ? { t: 'not', c: { t: 'all', c: [] } } : null; x = c.length === 1 && !n.neg && n.t === 'all' ? c[0] : { t: n.t, c: c }; }
     else {
-      var raw = String(n.v == null ? '' : n.v).trim(), v = raw !== '' && isFinite(+raw) ? +raw : { var: raw };
+      var v = condVal(n.v);
       if (n.t === 'remaining' || n.t === 'elapsed' || n.t === 'bossHp') x = { t: 'fight', what: n.t, op: n.op, v: v };
       else if (n.t === 'var') x = { t: 'var', name: n.name };
+      else if (n.t === 'refresh' || n.t === 'paysOff' || n.t === 'known') x = { t: n.t, spell: n.spell };   // round 172
+      else if (n.t === 'pet' || n.t === 'manaNeed' || n.t === 'freeMana') x = { t: n.t };
+      else if (n.t === 'setting') x = { t: 'setting', key: n.key };
+      else if (n.t === 'check') x = { t: 'check', act: n.act };
+      else if (n.t === 'talent') x = { t: 'talent', talent: n.talent, op: n.op, v: v };
       else { x = { t: n.t, op: n.op, v: v }; if (n.t === 'dot' || n.t === 'cd') x.spell = n.spell; if (n.t === 'aura') x.aura = n.aura; }
     }
     return n.neg ? { t: 'not', c: x } : x;
@@ -2216,12 +2237,18 @@
     if (n.t === 'dot') mid = sel('spell', WL.RULE_DOTS.map(function (k) { return [k, WL.SPELLS[k].name]; }), n.spell);
     else if (n.t === 'cd') mid = sel('spell', WL.RULE_SPELLS.map(function (k) { return [k, WL.SPELLS[k].name]; }), n.spell);
     else if (n.t === 'aura') mid = sel('aura', WL.RULE_AURAS, n.aura);
+    else if (n.t === 'refresh' || n.t === 'paysOff') mid = sel('spell', WL.RULE_DOTS.map(function (k) { return [k, WL.SPELLS[k].name]; }), n.spell);   // round 172
+    else if (n.t === 'known') mid = sel('spell', WL.RULE_SPELLS.filter(function (k) { return WL.SPELLS[k].talent; }).map(function (k) { return [k, WL.SPELLS[k].name]; }), n.spell);
+    else if (n.t === 'talent') mid = sel('talent', WL.TALENTS.map(function (x) { return [x.key, x.name]; }), n.talent);
+    else if (n.t === 'setting') mid = sel('key', Object.keys(WL.APL_SETTINGS).map(function (k) { return [k, WL.APL_SETTINGS[k]]; }), n.key);
+    else if (n.t === 'check') mid = sel('act', Object.keys(WL.APL_CHECKS).map(function (k) { return [k, WL.APL_CHECKS[k]]; }), n.act);
+    if (COND_NOVAL[n.t] && n.t !== 'var') return '<div class="cleaf">' + neg + what + mid + rm + '</div>';
     if (n.t === 'var') {
       var cv = Object.keys(b.vars || {}).filter(function (k) { return b.vars[k].cond; });
       return '<div class="cleaf">' + neg + what + (cv.length ? sel('name', cv.map(function (k) { return [k, k]; }), n.name) : '<span class="meta">no conditions of yours yet (Variables below)</span>') + rm + '</div>';
     }
     return '<div class="cleaf">' + neg + what + mid + sel('op', WL.RULE_OPS.map(function (o) { return [o, o]; }), n.op) +
-      '<input type="text" class="cval" data-cpath="' + path + '" data-cf="v" value="' + esc(n.v == null ? '' : n.v) + '" placeholder="0" title="A number, or the name of a number of yours (Variables below)" aria-label="Value">' + rm + '</div>';
+      '<input type="text" class="cval" list="aplVals" data-cpath="' + path + '" data-cf="v" value="' + esc(n.v == null ? '' : n.v) + '" placeholder="0" title="A number, a spell\'s cast time (e.g. Shadow Bolt cast time), the execute %, or the name of a number of yours" aria-label="Value">' + rm + '</div>';
   }
   function ruleSpellOpts(cur) {
     return WL.RULE_SPELLS.map(function (k) { var s = WL.SPELLS[k]; return '<option value="' + k + '"' + (k === cur ? ' selected' : '') + '>' + esc(s.name) + (s.talent ? ' (talent)' : '') + '</option>'; }).join('');
@@ -2231,6 +2258,7 @@
     var b = ed.b, R = ruleEd, h = '';
     var rules = (b.rules || []).map(function (r, i) {
       var used = b.rotation.indexOf('rule:' + i) >= 0 || Object.keys(b.groups || {}).some(function (g) { return b.groups[g].indexOf('rule:' + i) >= 0; });
+      if (b.rotation.indexOf('rule:' + i) >= 0) return '';                // round 172: shown in the APL list
       return '<li>' + esc(WL.ruleText(r, b)) + (used ? '' : ' <span class="meta">(not in the priority)</span>') +
         ' <button type="button" class="resetbtn" data-edrule="' + i + '">Edit</button>' + (used ? '' : '<button type="button" class="resetbtn" data-ruleput="rule:' + i + '">Put in the priority</button>') +
         '<button type="button" class="resetbtn" data-ruledel="' + i + '">Delete</button></li>';
@@ -2244,10 +2272,12 @@
       var v = b.vars[k];
       return '<li><b>' + esc(k) + '</b> = ' + esc(v.cond ? WL.condText(v.cond, b) : String(v.num)) + ' <button type="button" class="resetbtn" data-varedit="' + esc(k) + '">Edit</button><button type="button" class="resetbtn" data-vardel="' + esc(k) + '">Delete</button></li>';
     }).join('');
-    h += '<div class="btnrow"><button type="button" data-rulenew="rule">New rule</button><button type="button" data-rulenew="act" title="Give one of the built-in actions in this priority list an extra condition">Condition on an action</button><button type="button" data-rulenew="group">New group</button><button type="button" data-rulenew="num">New number</button><button type="button" data-rulenew="cond">New named condition</button></div>';
+    h += '<datalist id="aplVals">' + ['Shadow Bolt cast time', 'Immolate cast time', 'Corruption cast time', 'Incinerate cast time', 'Soul Fire cast time', 'the execute %']
+      .concat(Object.keys(b.vars || {}).filter(function (k) { return typeof b.vars[k].num === 'number'; })).map(function (x) { return '<option value="' + esc(x) + '">'; }).join('') + '</datalist>';
+    h += '<div class="btnrow"><button type="button" data-rulenew="rule">New APL line</button><button type="button" data-rulenew="act" title="Give one of the built-in actions in this priority list an extra condition">Condition on an action</button><button type="button" data-rulenew="group">New group</button><button type="button" data-rulenew="num">New number</button><button type="button" data-rulenew="cond">New named condition</button></div>';
     if (R) {
       h += '<div class="ruleform">';
-      if (R.kind === 'rule') h += '<h4>' + (R.idx != null ? 'Rule ' + (R.idx + 1) : 'New rule') + '</h4><div class="btnrow">Cast <select id="ruleSpell">' + ruleSpellOpts(R.spell) + '</select>' +
+      if (R.kind === 'rule') h += '<h4>' + (R.at != null ? 'Line ' + (R.at + 1) + (R.lines > 1 ? String.fromCharCode(97 + R.line) : '') + ' of the priority' : R.idx != null ? 'Your APL line ' + (R.idx + 1) : 'New APL line') + '</h4><div class="btnrow">Cast <select id="ruleSpell">' + ruleSpellOpts(R.spell) + '</select>' +
         '<input id="ruleName" type="text" maxlength="40" placeholder="Name (optional)" value="' + esc(R.name || '') + '" aria-label="Name of the rule"></div><p class="meta">when:</p>' + condHtml(R.tree, '');
       if (R.kind === 'group') {
         var acts = WL.editorActions().map(function (k) { return [k, ACTION_SHORT[k] || WL.ACTIONS[k].label]; }).concat((b.rules || []).map(function (r, i) { return ['rule:' + i, 'Rule ' + (i + 1) + ': ' + WL.ruleText(r, b)]; }));
@@ -2262,24 +2292,32 @@
       }
       if (R.kind === 'num') h += '<h4>' + (R.old ? 'Number "' + esc(R.old) + '"' : 'New number') + '</h4><div class="btnrow"><input id="varName" type="text" maxlength="30" placeholder="Name, e.g. Doom tick" value="' + esc(R.name || '') + '" aria-label="Name"> = <input id="varNum" type="number" step="0.1" value="' + esc(R.num == null ? '' : String(R.num)) + '" aria-label="Number"></div>';
       if (R.kind === 'cond') h += '<h4>' + (R.old ? 'Condition "' + esc(R.old) + '"' : 'New named condition') + '</h4><div class="btnrow"><input id="varName" type="text" maxlength="30" placeholder="Name, e.g. Boost window" value="' + esc(R.name || '') + '" aria-label="Name"></div>' + condHtml(R.tree, '');
-      h += '<div class="btnrow"><button type="button" class="primary" data-rulesave="1">' + (R.kind === 'rule' && R.idx == null ? 'Add to the priority' : 'Save') + '</button><button type="button" data-rulecancel="1">Cancel</button></div>' +
-        (R.kind === 'rule' ? '<p class="meta">Reads as: ' + esc(WL.ruleText({ spell: R.spell, when: condToEngine(R.tree), name: R.name }, b)) + '. The spell is cast only when it is talented and off cooldown; the rule checks nothing else, so give a DoT rule its "time left" condition.</p>' : '') + '</div>';
+      h += '<div class="btnrow"><button type="button" class="primary" data-rulesave="1">' + (R.kind === 'rule' && R.idx == null && R.at == null ? 'Add to the priority' : 'Save') + '</button><button type="button" data-rulecancel="1">Cancel</button></div>' +
+        (R.kind === 'rule' ? '<p class="meta">Reads as: ' + esc(WL.ruleText({ spell: R.spell, when: condToEngine(R.tree), name: R.name }, b)) + '. ' + aplMatchNote({ spell: R.spell, when: condToEngine(R.tree), name: R.name }, R) + ' The spell is cast only when it is talented and off cooldown; the line checks nothing else, so give a DoT line its "needs a recast" or "time left" condition.</p>' : '') + '</div>';
     }
     var acw = Object.keys(b.actWhen || {}).map(function (k) {        // round 166: conditions on built-in actions
+      if (b.rotation.indexOf(k) >= 0) return '';                         // round 172: shown in the APL list
       return '<li>' + esc(WL.ACTIONS[k].label) + ' <b>only when</b> ' + esc(WL.condText(b.actWhen[k], b)) + (WL.expandGroups(b).indexOf(k) >= 0 ? '' : ' <span class="meta">(not in the priority)</span>') +
         ' <button type="button" class="resetbtn" data-acwedit="' + k + '">Edit</button><button type="button" class="resetbtn" data-acwdel="' + k + '">Delete</button></li>';
     }).join('');
-    h += (acw ? '<h4>Conditions on built-in actions</h4><ul class="rulelist">' + acw + '</ul>' : '');
-    h += (rules ? '<h4>Your rules</h4><ul class="rulelist">' + rules + '</ul>' : '') + (groups ? '<h4>Your groups</h4><ul class="rulelist">' + groups + '</ul>' : '') + (vars ? '<h4>Your variables</h4><ul class="rulelist">' + vars + '</ul>' : '');
+    h += (acw ? '<h4>Extra conditions on actions that are not in the priority</h4><ul class="rulelist">' + acw + '</ul>' : '');
+    h += (rules ? '<h4>Your APL lines that are not in the priority</h4><ul class="rulelist">' + rules + '</ul>' : '') + (groups ? '<h4>Your groups</h4><ul class="rulelist">' + groups + '</ul>' : '') + (vars ? '<h4>Your variables</h4><ul class="rulelist">' + vars + '</ul>' : '');
     box.innerHTML = h;
   }
   function ruleClick(t) {
-    if (!t.closest('#edRules') && !t.closest('[data-edrule]')) return false;
+    if (!t.closest('#edRules') && !t.closest('#edApl') && !t.closest('[data-edrule]')) return false;   // #edApl: round 172
     var b = ed.b, x;
-    if ((x = t.closest('[data-edrule]'))) { var i = +x.getAttribute('data-edrule'), r = b.rules[i]; ruleEd = { kind: 'rule', idx: i, spell: r.spell, name: r.name || '', tree: (function (c) { return c.t === 'all' || c.t === 'any' ? c : { t: 'all', c: [c] }; })(condFromEngine(r.when)) }; $('edRulesBox').open = true; renderRuleEd(); return true; }
+    if ((x = t.closest('[data-edrule]'))) { var i = +x.getAttribute('data-edrule'), r = b.rules[i]; ruleEd = { kind: 'rule', idx: i, spell: r.spell, name: r.name || '', tree: treeOf(r.when) }; $('edRulesBox').open = true; renderRuleEd(); showRuleForm(); return true; }
+    if ((x = t.closest('[data-apledit]'))) {                // round 172: a line of a built-in action
+      var pp = x.getAttribute('data-apledit').split(':'), ai = +pp[0], aj = +pp[1], AL = WL.aplLines(b.rotation[ai], b), al = AL && AL[aj];
+      if (!al || al.special) return true;
+      ruleEd = { kind: 'rule', idx: null, at: ai, line: aj, lines: AL.length, spell: al.spell, name: '', tree: treeOf(al.when) };
+      $('edRulesBox').open = true; renderRuleEd(); showRuleForm(); return true;
+    }
+    if ((x = t.closest('[data-aplacw]'))) { var ak0 = x.getAttribute('data-aplacw'); ruleEd = { kind: 'act', act: ak0, tree: b.actWhen && b.actWhen[ak0] ? treeOf(b.actWhen[ak0]) : { t: 'all', c: [newLeaf()] } }; renderRuleEd(); showRuleForm(); return true; }
     if ((x = t.closest('[data-rulenew]'))) {
       var k = x.getAttribute('data-rulenew');
-      if (k === 'act') { var bi0 = WL.expandGroups(b).filter(function (y) { return WL.ACTIONS[y]; })[0]; if (!bi0) { edMsg('There is no built-in action in this priority list.', true); return true; } ruleEd = { kind: 'act', act: bi0, tree: { t: 'all', c: [newLeaf()] } }; renderRuleEd(); return true; }
+      if (k === 'act') { var bi0 = WL.expandGroups(b).filter(function (y) { return WL.ACTIONS[y]; })[0]; if (!bi0) { edMsg('There is no built-in action in this priority list.', true); return true; } ruleEd = { kind: 'act', act: bi0, tree: { t: 'all', c: [newLeaf()] } }; renderRuleEd(); showRuleForm(); return true; }
       ruleEd = k === 'rule' ? { kind: 'rule', idx: null, spell: 'shadowBolt', name: '', tree: { t: 'all', c: [newLeaf()] } } : k === 'group' ? { kind: 'group', name: '', items: [] } : k === 'num' ? { kind: 'num', name: '', num: '' } : { kind: 'cond', name: '', tree: { t: 'all', c: [newLeaf()] } };
       renderRuleEd(); return true;
     }
@@ -2291,13 +2329,8 @@
     if (R && t.closest('[data-grpadd]')) { R.items.push($('grpAct').value); renderRuleEd(); return true; }
     if (R && (x = t.closest('[data-grprm]'))) { R.items.splice(+x.getAttribute('data-grprm'), 1); renderRuleEd(); return true; }
     if (R && t.closest('[data-rulesave]')) { ruleSave(); return true; }
-    if ((x = t.closest('[data-ruleput]'))) { var key = x.getAttribute('data-ruleput'), fi = b.rotation.map(function (y) { var A = WL.actionOf(y, b); return A && A.filler; }).indexOf(true); var A2 = WL.actionOf(key, b); if ((A2 && A2.filler) || fi < 0) b.rotation.push(key); else b.rotation.splice(fi, 0, key); renderEditor(); return true; }
-    if ((x = t.closest('[data-ruledel]'))) {               // delete a rule: later rule numbers move down by one
-      var di = +x.getAttribute('data-ruledel'), ren = function (y) { var m = /^rule:(\d+)$/.exec(y); return !m ? y : +m[1] === di ? null : +m[1] > di ? 'rule:' + (+m[1] - 1) : y; };
-      b.rules.splice(di, 1); b.rotation = b.rotation.map(ren).filter(Boolean);
-      Object.keys(b.groups || {}).forEach(function (g) { b.groups[g] = b.groups[g].map(ren).filter(Boolean); });
-      if (!b.rules.length) delete b.rules; ruleEd = null; renderEditor(); return true;
-    }
+    if ((x = t.closest('[data-ruleput]'))) { var key = x.getAttribute('data-ruleput'), fi = firstFiller(b); var A2 = WL.actionOf(key, b); if ((A2 && A2.filler) || fi < 0) b.rotation.push(key); else b.rotation.splice(fi, 0, key); renderEditor(); return true; }
+    if ((x = t.closest('[data-ruledel]'))) { dropRule(+x.getAttribute('data-ruledel')); ruleEd = null; renderEditor(); return true; }
     if ((x = t.closest('[data-grpedit]'))) { var gn = x.getAttribute('data-grpedit'); ruleEd = { kind: 'group', old: gn, name: gn, items: b.groups[gn].slice() }; renderRuleEd(); return true; }
     if ((x = t.closest('[data-grpdel]'))) { var gd = x.getAttribute('data-grpdel'); delete b.groups[gd]; b.rotation = b.rotation.filter(function (y) { return y !== 'group:' + gd; }); if (!Object.keys(b.groups).length) delete b.groups; ruleEd = null; renderEditor(); return true; }
     if ((x = t.closest('[data-varedit]'))) { var vn = x.getAttribute('data-varedit'), vv = b.vars[vn]; ruleEd = vv.cond ? { kind: 'cond', old: vn, name: vn, tree: (function (c) { return c.t === 'all' || c.t === 'any' ? c : { t: 'all', c: [c] }; })(condFromEngine(vv.cond)) } : { kind: 'num', old: vn, name: vn, num: vv.num }; renderRuleEd(); return true; }
@@ -2305,6 +2338,90 @@
     if ((x = t.closest('[data-acwdel]'))) { delete b.actWhen[x.getAttribute('data-acwdel')]; if (!Object.keys(b.actWhen).length) delete b.actWhen; ruleEd = null; renderEditor(); return true; }
     if ((x = t.closest('[data-vardel]'))) { delete b.vars[x.getAttribute('data-vardel')]; if (!Object.keys(b.vars).length) delete b.vars; ruleEd = null; renderEditor(); return true; }
     return false;
+  }
+  // ----- round 172: the APL column (user: "Simple" and "Advanced (APL)" next to each other) -----
+  // Every entry of the priority as APL lines: a built-in action as the lines that check exactly what it checks (WL.aplLines,
+  // with the build's numbers and extra condition), an APL line of yours as itself, a group with its entries. Edit a line here
+  // and it stays that simple action while it still matches one (WL.aplMatch), else it becomes an APL line of your own;
+  // a new APL line that matches a simple action is added as that action.
+  // Where a new entry goes: above the first filler, or above a filler with a condition (e.g. Wrack while the DoTs last), so it can fire.
+  function firstFiller(b) { return b.rotation.map(function (y) { var A = WL.actionOf(y, b); return !!(A && (A.filler || A.preFiller)); }).indexOf(true); }
+  function treeOf(c) { if (!c) return { t: 'all', c: [] }; var f = condFromEngine(c); return f.t === 'all' || f.t === 'any' ? f : { t: 'all', c: [f] }; }
+  function showRuleForm() { var f = document.querySelector('#edRules .ruleform'); if (f && f.scrollIntoView) f.scrollIntoView({ block: 'nearest' }); }
+  function simpleName(k) { return ACTION_SHORT[k] || (WL.ACTIONS[k] ? WL.ACTIONS[k].label : k); }
+  function aplWhenText(w, b) { return w.t === 'all' ? (w.c || []).map(function (x) { return WL.condText(x, b); }).join(' and ') : WL.condText(w, b); }
+  function aplLineHtml(l, b) {
+    return '<span class="aplcast">' + icon(l.spell, spellName(l.spell)) + ' <b>' + esc(spellName(l.spell)) + '</b></span>' +
+      (l.when ? ' <span class="aplif"><i>if</i> ' + esc(aplWhenText(l.when, b)) + '</span>' : ' <span class="meta">— the filler: whenever nothing above can be cast</span>');
+  }
+  function aplEntryLines(a, b, i) {                       // i = its place in the priority; null inside a group (edit the group)
+    var L = WL.aplLines(a, b), m = /^rule:(\d+)$/.exec(a);
+    if (m) { var r = (b.rules || [])[+m[1]]; return '<div class="aplline">' + (r ? aplLineHtml(r, b) : esc(a)) + (r && r.name ? ' <span class="meta">(' + esc(r.name) + ')</span>' : '') +
+      (i != null ? ' <button type="button" class="resetbtn" data-edrule="' + m[1] + '">Edit</button>' : '') + '</div>'; }
+    if (!L) return '<div class="aplline">' + esc(WL.actionLabel(b, a)) + '</div>';
+    return L.map(function (l, j) {
+      if (l.special) return '<div class="aplline">' + icon(actIcon(a, b), WL.ACTIONS[a].label) + ' <b>' + esc(WL.actionLabel(b, a)) + '</b> <span class="meta">(built in: it picks its spell and target itself)</span>' +
+        (i != null ? ' <button type="button" class="resetbtn" data-aplacw="' + a + '">' + (b.actWhen && b.actWhen[a] ? 'Edit its condition' : 'Add a condition') + '</button>' : '') + '</div>';
+      return '<div class="aplline">' + (L.length > 1 ? '<span class="meta">' + String.fromCharCode(97 + j) + '.</span> ' : '') + aplLineHtml(l, b) +
+        (i != null ? ' <button type="button" class="resetbtn" data-apledit="' + i + ':' + j + '">Edit</button>' : '') + '</div>';
+    }).join('');
+  }
+  function renderApl() {
+    var box = $('edApl'); if (!box || !ed.b) return;
+    var b = ed.b, n = b.rotation.length, h = '';
+    b.rotation.forEach(function (a, i) {
+      var g = /^group:(.+)$/.exec(a), body;
+      if (g) body = '<div class="aplline"><b>Group "' + esc(g[1]) + '"</b> <button type="button" class="resetbtn" data-grpedit="' + esc(g[1]) + '">Edit</button></div>' +
+        '<div class="aplgrp">' + WL.expandGroups(b, [a]).map(function (k) { return aplEntryLines(k, b, null); }).join('') + '</div>';
+      else body = aplEntryLines(a, b, i);
+      h += '<li><span class="aplnum">' + (i + 1) + '</span><div class="apllines">' + body + '</div><span class="aplbtns">' +
+        '<button type="button" data-edup="' + i + '" aria-label="Move up"' + (i ? '' : ' disabled') + '>↑</button>' +
+        '<button type="button" data-eddown="' + i + '" aria-label="Move down"' + (i < n - 1 ? '' : ' disabled') + '>↓</button>' +
+        '<button type="button" data-edrm="' + i + '" aria-label="Remove">✕</button></span></li>';
+    });
+    box.innerHTML = h + '<li class="meta"><span class="aplnum"></span><div class="apllines"><div class="aplline">' + icon('lifeTap', 'Life Tap') + ' <b>Life Tap</b> <i>if</i> mana is below the next spell\'s cost (automatic)</div></div></li>';
+  }
+  // An APL line → its priority entry: the simple action it matches (its numbers and extra condition set on the build), or a
+  // new APL line of your own. A named line stays yours. others = the other entries of the priority.
+  function aplEntry(r, others) {
+    var b = ed.b, m = r.name ? null : WL.aplMatch(r, b, WL.expandGroups(b, others));
+    if (m) {
+      if (m.params) { b.params = b.params || {}; b.params[m.key] = Object.assign({}, WL.actionParams(b, m.key), m.params); }
+      if (m.extra) { b.actWhen = b.actWhen || {}; b.actWhen[m.key] = m.extra; }
+      else if (b.actWhen) { delete b.actWhen[m.key]; if (!Object.keys(b.actWhen).length) delete b.actWhen; }
+      return { key: m.key, simple: true };
+    }
+    b.rules = b.rules || []; b.rules.push(r); return { key: 'rule:' + (b.rules.length - 1), simple: false };
+  }
+  // A line of a built-in action edited: the action's lines again, with that one changed; each becomes its entry.
+  function aplReplace(r, at, line) {
+    var b = ed.b, key = b.rotation[at], L = WL.aplLines(key, b), others = b.rotation.slice(0, at).concat(b.rotation.slice(at + 1)), keys = [];
+    if (b.actWhen && b.actWhen[key] && WL.expandGroups(b, others).indexOf(key) < 0) { delete b.actWhen[key]; if (!Object.keys(b.actWhen).length) delete b.actWhen; }   // made again from the lines
+    var mine = 0;
+    L.forEach(function (l, j) { var o = { spell: l.spell }; if (l.when) o.when = l.when; var e = aplEntry(j === line ? r : o, others.concat(keys)); keys.push(e.key); if (!e.simple) mine++; });
+    b.rotation.splice.apply(b.rotation, [at, 1].concat(keys));
+    if (keys.length === 1 && keys[0] === key) return 'Saved: still the simple action "' + simpleName(key) + '"' + (b.actWhen && b.actWhen[key] ? ', with your extra condition' : '') + '.';
+    return mine ? 'Saved as an APL line of your own: no simple action matches it' + (keys.length > 1 ? ' (the action\'s other line stays as it was)' : '') + '.' : 'Saved: now the simple action "' + keys.map(simpleName).join('" and "') + '".';
+  }
+  // An APL line of yours saved: when it now matches a simple action, it becomes that action.
+  function aplResave(r, idx) {
+    var b = ed.b, inGroup = Object.keys(b.groups || {}).some(function (g) { return b.groups[g].indexOf('rule:' + idx) >= 0; });
+    var others = b.rotation.filter(function (y) { return y !== 'rule:' + idx; }), m = r.name || inGroup ? null : WL.aplMatch(r, b, WL.expandGroups(b, others));
+    if (!m || b.rotation.indexOf('rule:' + idx) < 0) { b.rules[idx] = r; return 'APL line saved.'; }
+    var e = aplEntry(r, others);
+    b.rotation = b.rotation.map(function (y) { return y === 'rule:' + idx ? e.key : y; }); dropRule(idx);
+    return 'It matches the simple action "' + simpleName(e.key) + '": saved as that.';
+  }
+  function aplMatchNote(r, R) {                          // under the form: what the line will be
+    var b = ed.b, others = R.at != null ? b.rotation.slice(0, R.at).concat(b.rotation.slice(R.at + 1)) : R.idx != null ? b.rotation.filter(function (y) { return y !== 'rule:' + R.idx; }) : b.rotation;
+    var m = r.name ? null : WL.aplMatch(r, b, WL.expandGroups(b, others));
+    return m ? 'This is the simple action "' + simpleName(m.key) + '"' + (m.extra ? ' with an extra condition' : '') + '.' : r.name ? 'A named line stays an APL line of your own.' : 'No simple action matches it: it will be an APL line of your own.';
+  }
+  function dropRule(di) {                                // delete a rule: later rule numbers move down by one
+    var b = ed.b, ren = function (y) { var m = /^rule:(\d+)$/.exec(y); return !m ? y : +m[1] === di ? null : +m[1] > di ? 'rule:' + (+m[1] - 1) : y; };
+    b.rules.splice(di, 1); b.rotation = b.rotation.map(ren).filter(Boolean);
+    Object.keys(b.groups || {}).forEach(function (g) { b.groups[g] = b.groups[g].map(ren).filter(Boolean); });
+    if (!b.rules.length) delete b.rules;
   }
   function ruleSave() {
     var b = ed.b, R = ruleEd, msg = '';
@@ -2318,9 +2435,13 @@
     }
     if (R.kind === 'rule') {
       var r = { spell: $('ruleSpell').value }, w = condToEngine(R.tree), nm = $('ruleName').value.trim(); if (w) r.when = w; if (nm) r.name = nm.slice(0, 40);
-      b.rules = b.rules || [];
-      if (R.idx != null) { b.rules[R.idx] = r; msg = 'Rule ' + (R.idx + 1) + ' saved.'; }
-      else { b.rules.push(r); var key = 'rule:' + (b.rules.length - 1), fi = b.rotation.map(function (y) { var A = WL.actionOf(y, b); return A && A.filler; }).indexOf(true); if (!r.when || fi < 0) b.rotation.push(key); else b.rotation.splice(fi, 0, key); msg = 'Rule added to the priority (above the filler: drag it where it belongs).'; }
+      if (R.at != null) msg = aplReplace(r, R.at, R.line);              // round 172: a line of a built-in action
+      else if (R.idx != null) msg = aplResave(r, R.idx);
+      else {
+        var e = aplEntry(r, b.rotation), key = e.key, fi = firstFiller(b), A2 = WL.actionOf(key, b);
+        if ((A2 && A2.filler) || fi < 0) b.rotation.push(key); else b.rotation.splice(fi, 0, key);
+        msg = (e.simple ? 'It matches the simple action "' + simpleName(key) + '": added as that' : 'Added as an APL line of your own (no simple action matches it)') + ' — above the filler; move it where it belongs.';
+      }
     } else {
       var name = ($(R.kind === 'group' ? 'grpName' : 'varName').value || '').trim().slice(0, 30);
       if (!/^[A-Za-z][\w -]{0,29}$/.test(name)) { edMsg('Give it a name of letters, digits and spaces, starting with a letter.', true); return; }
@@ -2343,7 +2464,12 @@
     if (f === 'neg') n.neg = e.target.checked;
     else if (f === 't' && (e.target.value === 'all' || e.target.value === 'any')) n.t = e.target.value;
     else if (f === 't') { var keepNeg = n.neg; Object.keys(n).forEach(function (k) { delete n[k]; }); var nl = newLeaf(); nl.t = e.target.value; nl.neg = keepNeg;
-      if (nl.t === 'aura') { delete nl.spell; nl.aura = 'shadowTrance'; nl.op = '>'; } else if (nl.t === 'cd') { nl.spell = 'shadowburn'; nl.op = '<='; } else if (nl.t === 'var') { delete nl.spell; nl.name = Object.keys(ed.b.vars || {}).filter(function (k) { return ed.b.vars[k].cond; })[0] || ''; } else if (nl.t !== 'dot') { delete nl.spell; nl.op = nl.t === 'remaining' ? '>' : '<'; nl.v = nl.t === 'mana' || nl.t === 'bossHp' ? '35' : '10'; }
+      if (nl.t === 'aura') { delete nl.spell; nl.aura = 'shadowTrance'; nl.op = '>'; } else if (nl.t === 'cd') { nl.spell = 'shadowburn'; nl.op = '<='; } else if (nl.t === 'var') { delete nl.spell; nl.name = Object.keys(ed.b.vars || {}).filter(function (k) { return ed.b.vars[k].cond; })[0] || ''; }
+      else if (nl.t === 'refresh' || nl.t === 'paysOff') { nl.spell = 'corruption'; delete nl.op; delete nl.v; } else if (nl.t === 'known') { nl.spell = 'conflagrate'; delete nl.op; delete nl.v; }   // round 172
+      else if (nl.t === 'talent') { delete nl.spell; nl.talent = 'shadowAndFlame'; nl.op = '>='; nl.v = '1'; } else if (nl.t === 'setting') { delete nl.spell; delete nl.op; delete nl.v; nl.key = 'coe'; }
+      else if (nl.t === 'check') { delete nl.spell; delete nl.op; delete nl.v; nl.act = 'deathCoilFinisher'; } else if (nl.t === 'pet' || nl.t === 'manaNeed' || nl.t === 'freeMana') { delete nl.spell; delete nl.op; delete nl.v; }
+      else if (nl.t === 'minDot') { delete nl.spell; nl.op = '>'; nl.v = '4'; }
+      else if (nl.t !== 'dot') { delete nl.spell; nl.op = nl.t === 'remaining' ? '>' : '<'; nl.v = nl.t === 'mana' || nl.t === 'bossHp' ? '35' : '10'; }
       Object.keys(nl).forEach(function (k) { n[k] = nl[k]; }); }
     else n[f] = e.target.value;
     if (ruleEd.kind === 'rule') { ruleEd.spell = $('ruleSpell').value; ruleEd.name = $('ruleName').value; }
@@ -2419,7 +2545,7 @@
   function buildSig(b) {                                   // what decides a build's numbers (its name does not)
     var t = b.talents || {};
     return JSON.stringify([Object.keys(t).sort().map(function (k) { return k + t[k]; }), b.pet || null, b.sacrifice || null, b.oil, b.rotation,
-      b.timeline && b.timeline.length ? b.timeline : null, WL.cleanParams(b.params, b.rotation) || null]);
+      b.timeline && b.timeline.length ? b.timeline : null, WL.cleanParams(b.params, b.rotation) || null, b.rules || null, b.groups || null, b.vars || null, b.actWhen || null]);   // round 172: APL parts too
   }
   function quickFromSheet() {
     if (!ed.from || running || dirty) return null;
@@ -2532,10 +2658,10 @@
       '</div></div>';
     // one row per race: bar = DPS against the best race (full), from 0 (round 166, user)
     h += '<div><h3>Races <span class="meta">— click one for its damage breakdown</span></h3><div class="qraces">' + rows.map(function (r) {
-      var d = (r.dps / hi - 1) * 100, w = hi > 0 ? 100 * r.dps / hi : 100, R = WL.RACES[r.race];   // round 166: from 0, proportional to the %
+      var d = (r.dps / hi - 1) * 100, R = WL.RACES[r.race];
       return '<button type="button" class="qrace" data-qrace="' + r.race + '" aria-pressed="' + (r === sel) + '" title="' +
-        esc(R.name + ': ' + R.racials.map(function (y) { return y.name; }).join(', ') + ' — ±' + fmt(r.err, 1) + ' DPS. Bar: its DPS against the best race, from 0.') + '">' +
-        (icon('race_' + r.race, R.name) || '<span></span>') + '<span>' + esc(R.name) + '</span><span class="qbar"><i style="width:' + w.toFixed(1) + '%"></i></span>' +
+        esc(R.name + ': ' + R.racials.map(function (y) { return y.name; }).join(', ') + ' — ±' + fmt(r.err, 1) + ' DPS.') + '">' +
+        (icon('race_' + r.race, R.name) || '<span></span>') + '<span>' + esc(R.name) + '</span>' +   // round 172 (user): a number, no bar
         '<span class="n"><b>' + fmt(r.dps, 1) + '</b></span><span class="d" style="color:var(' + (r === bestM ? '--good' : '--bad') + ')">' + (r === bestM ? 'best' : d.toFixed(2) + '%') + '</span></button>';
     }).join('') + '</div></div>';
     // damage breakdown of the picked race (damage on extra targets counts toward its spell)
@@ -2698,7 +2824,7 @@
     if ((x = t.closest('[data-edrm]'))) { b.rotation.splice(+x.getAttribute('data-edrm'), 1); renderEditor(); return true; }
     if (ruleClick(t)) return true;                     // round 157: rules, groups, variables
     if (t.closest('#edAdd')) {   // new actions go in front of the filler so they can fire
-      var a = $('edAddAct').value, fi = b.rotation.map(function (k) { var A0 = WL.actionOf(k, b); return A0 && A0.filler; }).indexOf(true);
+      var a = $('edAddAct').value, fi = firstFiller(b);
       if (WL.ACTIONS[a].filler || fi < 0) b.rotation.push(a); else b.rotation.splice(fi, 0, a);
       renderEditor(); return true;
     }

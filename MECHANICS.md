@@ -792,11 +792,21 @@ The last entry is a filler that is always possible.
 | Searing Pain (filler) | Always (filler). |
 <!-- /gen:actions -->
 
-**APL** (build editor; "action priority list": your own rules, groups and variables). Besides the actions above, a priority list can hold
+**APL** (build editor; "action priority list"). The editor shows the priority twice, side by side: **Simple** (the actions
+above) and **Advanced (APL)** (the same list as lines "cast a spell if conditions"). Every action above has APL lines that
+check exactly what it checks (the sim compares them decision by decision in its tests); only multi-DoT, Shadow Bolt an
+extra target and the pet swaps have none (they pick their own target or swap the pet). Edit a line and it stays that action
+as long as it still matches it (its numbers and any extra condition are kept); otherwise it becomes an APL line of your own.
+A new APL line that matches an action is added as that action. Besides the actions above, a priority list can hold
 
 - **rules**: cast a spell when your conditions hold. A condition is a DoT's or a buff's time left, a cooldown's time
   left, the fight time left or gone, the boss's health %, your mana %, your Soul Shards or Demonic Brand's charges, compared
-  with a number; conditions combine with "all of", "any of" and "not". The spell is cast only when it is talented and off
+  with a number - or one of the actions' own checks: a DoT needs a recast (missing, or it runs out before the new cast lands,
+  and the end-of-fight check still wants it), a DoT still pays off, the shortest DoT's time left, you know a spell, points in
+  a talent, a demon is out, "Keep Curse of the Elements up" is on, the rest of the fight needs more mana than you have, free
+  mana is ready, and the whole check of Death Coil as the finisher, Searing Pain for Decimation and Life Tap for the pet.
+  A number can also be a spell's cast time now or the execute threshold. Comparisons are exact. Conditions combine with
+  "all of", "any of" and "not". The spell is cast only when it is talented and off
   cooldown; the rule checks nothing else (a DoT rule needs its own "time left" condition). A rule without a condition is a
   filler.
 - **groups**: a named list of actions, put in the list where you place the group.

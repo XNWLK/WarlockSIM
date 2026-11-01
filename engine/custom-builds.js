@@ -281,7 +281,8 @@ WL.ACTION_TALENTS = {
 WL.buildWithoutPoint = function (b, key) {
   var t = JSON.parse(JSON.stringify(b.talents || {})), notes = [];
   var c = { short: b.short, talents: t, pet: b.pet || null, sacrifice: b.sacrifice || null, oil: b.oil, rotation: (b.rotation || []).slice(),
-            timeline: b.timeline ? b.timeline.map(function (e) { return { t: e.t, k: e.k }; }) : undefined, params: b.params };
+            timeline: b.timeline ? b.timeline.map(function (e) { return { t: e.t, k: e.k }; }) : undefined, params: b.params,
+            rules: b.rules, groups: b.groups, vars: b.vars, actWhen: b.actWhen };   // round 172: the APL parts go with it
   if (!t[key]) return { build: c, notes: notes };
   if (--t[key] > 0) return { build: c, notes: notes };
   delete t[key];

@@ -320,22 +320,36 @@ WL.ACTIONS = {
 //   { t: 'fight', what: 'remaining' | 'elapsed' | 'bossHp', op, v }   fight seconds left / gone, boss health %
 //   { t: 'mana', op, v }         your mana in % of the maximum · { t: 'shards', op, v } · { t: 'brand', op, v } charges left
 //   { t: 'var', name }           a named condition of build.vars
-// op = '<', '<=', '>', '>=' or '='; v = a number, or { var: name } = a named number of build.vars ({ num: 12 }).
+// Round 172 (the APL view of the built-in actions): the checks those actions make, as conditions of their own —
+//   { t: 'refresh', spell }      the DoT needs a recast: missing, or runs out before the new cast lands, and still worth it
+//   { t: 'paysOff', spell }      the DoT still pays off before the fight ends (the end-of-fight check)
+//   { t: 'known', spell }        you know the spell (talent spells) · { t: 'talent', talent, op, v } points in a talent
+//   { t: 'pet' }                 a demon is out · { t: 'setting', key: 'coe' } "Keep Curse of the Elements up" is on
+//   { t: 'manaNeed' }            the rest of the fight needs more mana than you have (as lifeTapNeed)
+//   { t: 'freeMana' }            free mana is ready (Innervate, Mana Tide, a rune, a potion, a mana trinket)
+//   { t: 'minDot', op, v }       the shortest DoT this priority keeps up (as wrackDots)
+//   { t: 'check', act }          the whole check of a built-in action that has no shorter form (WL.APL_CHECKS)
+// op = '<', '<=', '>', '>=' or '='; v = a number, or { var: name } = a named number of build.vars ({ num: 12 }),
+// or (round 172) { cast: spell } = that spell's cast time now, { exec: 1 } = the execute threshold (Fight & pets).
 WL.RULE_SPELLS = Object.keys(WL.SPELLS).filter(function (k) { return k !== 'drainSoul' && k !== 'baneOfHavoc'; });
 WL.RULE_DOTS = ['corruption', 'immolate', 'siphonLife', 'baneOfAgony', 'baneOfDoom'];
 WL.RULE_AURAS = [['shadowTrance', 'Shadow Trance (Nightfall)'], ['decimation', 'Decimation'], ['isb', 'Improved Shadow Bolt on the boss'],
   ['coe', 'Curse of the Elements on the boss'], ['brand', 'Demonic Brand on the boss'], ['snfFire', 'Shadow and Flame (Fire)'], ['snfShadow', 'Shadow and Flame (Shadow)'],
   ['bloodFury', 'Blood Fury'], ['berserking', 'Berserking'], ['eureka', 'Eureka!'], ['powerInfusion', 'Power Infusion'], ['spPotion', 'Spellblasting potion']];
 WL.RULE_OPS = ['<', '<=', '>', '>=', '='];
-function ruleCmp(a, op, b) { return op === '<' ? a < b - 1e-9 : op === '<=' ? a <= b + 1e-9 : op === '>' ? a > b + 1e-9 : op === '>=' ? a >= b - 1e-9 : Math.abs(a - b) < 1e-6; }
-WL.ruleNum = function (v, build) {
+// Round 172: exact, like the built-in actions (a tolerance made a rule and its action disagree at an exact 60.000 s); '=' keeps one.
+function ruleCmp(a, op, b) { return op === '<' ? a < b : op === '<=' ? a <= b : op === '>' ? a > b : op === '>=' ? a >= b : Math.abs(a - b) < 1e-6; }
+WL.ruleNum = function (v, build, S) {
   if (v && typeof v === 'object' && v.var != null) { var x = ((build && build.vars) || {})[v.var]; return x && typeof x.num === 'number' ? x.num : NaN; }
+  if (v && typeof v === 'object' && v.cast != null) return !WL.SPELLS[v.cast] ? NaN : S ? S.castTime(v.cast) : 1;   // round 172 (S: in a fight; without it a stand-in for the checks)
+  if (v && typeof v === 'object' && v.exec) return S ? S.cfg.fight.executePct : 1;
+  if (v && typeof v === 'object') return NaN;
   return +v;
 };
 WL.ruleCond = function (n, S, build, depth) {
   if (!n) return true;
   depth = depth || 0; if (depth > 12) return false;                      // a variable that refers to itself
-  var b = build || S.build, val = function () { return WL.ruleNum(n.v, b); };
+  var b = build || S.build, val = function () { return WL.ruleNum(n.v, b, S); };
   switch (n.t) {
     case 'all': return (n.c || []).every(function (x) { return WL.ruleCond(x, S, b, depth + 1); });
     case 'any': return (n.c || []).some(function (x) { return WL.ruleCond(x, S, b, depth + 1); });
@@ -344,10 +358,21 @@ WL.ruleCond = function (n, S, build, depth) {
     case 'aura': return ruleCmp(S.buff(n.aura) ? S.buffs[n.aura] - S.t : 0, n.op, val());
     case 'cd': return ruleCmp(Math.max(0, (S.cds[n.spell] || 0) - S.t), n.op, val());
     case 'fight': return ruleCmp(n.what === 'elapsed' ? S.t : n.what === 'bossHp' ? S.targetHpPct : S.remaining, n.op, val());
-    case 'mana': return ruleCmp(100 * S.mana / S.maxMana, n.op, val());
+    case 'mana': return ruleCmp(S.mana, n.op, S.maxMana * val() / 100);   // round 172: the same sum as the Life Tap actions
     case 'shards': return ruleCmp(S.shards, n.op, val());
     case 'brand': return ruleCmp(S.buff('brand') ? S.brandCharges || 0 : 0, n.op, val());
     case 'var': { var x = ((b && b.vars) || {})[n.name]; return !!(x && x.cond) && WL.ruleCond(x.cond, S, b, depth + 1); }
+    // round 172: the built-in actions' own checks (each exactly as the action makes it)
+    case 'known': return !!S.has(n.spell);
+    case 'talent': return ruleCmp(((b && b.talents) || {})[n.talent] || 0, n.op, val());
+    case 'pet': return !!(b && b.pet);
+    case 'setting': return n.key === 'coe' && !!S.cfg.options.useCurseOfElements;
+    case 'refresh': return !!WL.SPELLS[n.spell] && dotNeeded(S, n.spell);
+    case 'paysOff': return !!WL.SPELLS[n.spell] && !!S.has(n.spell) && dotWorthOr(S, n.spell, 0, n.spell === 'baneOfAgony' ? S.remaining >= 12 : S.remaining - S.castTime(n.spell) >= WL.SPELLS[n.spell].tickEvery * 2);
+    case 'manaNeed': return !!S.manaNeedLeft && S.mana < S.manaNeedLeft();
+    case 'freeMana': return !!S.freeManaLevel && S.mana >= S.freeManaLevel() && S.freeManaLevel() > 0;
+    case 'minDot': return ruleCmp(WL.minDotLeft(S), n.op, val());
+    case 'check': return !!WL.APL_CHECKS[n.act] && WL.ACTIONS[n.act].pick(S) != null;
   }
   return false;
 };
@@ -359,36 +384,68 @@ WL.actionOf = function (key, build) {
     var base = WL.ACTIONS[key], w = build && build.actWhen && build.actWhen[key];
     if (!w) return base;
     var o = Object.create(base); o.when = w; o.baseLabel = base.label; o.label = base.label + ' — only when ' + WL.condText(w, build);
+    o.deep = WL.condDeep(w, build);                                   // round 172: see WL.condDeep
     if (base.filler) { o.filler = false; o.preFiller = true; }        // a filler with a condition can pass: the next filler below it is cast then
     o.pick = function (S) { return WL.ruleCond(w, S, build) ? base.pick(S) : null; };
     return o;
   }
   var m = /^rule:(\d+)$/.exec(key || ''), r = m && build && build.rules && build.rules[+m[1]];
   if (!r || WL.RULE_SPELLS.indexOf(r.spell) < 0) return null;
-  return { rule: r, label: WL.ruleText(r, build), filler: !r.when, pick: function (S) {
+  return { rule: r, label: WL.ruleText(r, build), filler: !r.when, deep: WL.condDeep(r.when, build), pick: function (S) {
     if (!S.has(r.spell) || !S.ready(r.spell)) return null;
     return WL.ruleCond(r.when, S, build) ? r.spell : null;
   } };
+};
+// Round 172: does a condition run the end-of-fight DoT check or a whole built-in check (refresh, paysOff, check)? The sim
+// asks the actions below a DoT what they would cast instead (to value the DoT); such a condition is not asked there — it
+// would start that DoT check again, without end.
+WL.condDeep = function (n, build, depth) {
+  if (!n || (depth || 0) > 12) return false;
+  if (n.t === 'refresh' || n.t === 'paysOff' || n.t === 'check') return true;
+  if (n.t === 'all' || n.t === 'any') return (n.c || []).some(function (x) { return WL.condDeep(x, build, (depth || 0) + 1); });
+  if (n.t === 'not') return WL.condDeep(n.c, build, (depth || 0) + 1);
+  if (n.t === 'var') { var x = ((build && build.vars) || {})[n.name]; return !!(x && x.cond) && WL.condDeep(x.cond, build, (depth || 0) + 1); }
+  return false;
 };
 // A condition / rule in words (for the page and the validator).
 WL.condText = function (n, build) {
   if (!n) return 'always';
   var sn = function (k) { return (WL.SPELLS[k] || {}).name || k; }, an = function (k) { var a = WL.RULE_AURAS.filter(function (x) { return x[0] === k; })[0]; return a ? a[1] : k; };
-  var v = function () { return n.v && typeof n.v === 'object' && n.v.var != null ? n.v.var : String(n.v); };
+  var v = function () { return WL.valText(n.v); }, u = function () { return n.v && typeof n.v === 'object' && n.v.var == null ? '' : ' s'; };
   switch (n.t) {
     case 'all': return (n.c || []).length ? '(' + n.c.map(function (x) { return WL.condText(x, build); }).join(' and ') + ')' : 'always';
     case 'any': return (n.c || []).length ? '(' + n.c.map(function (x) { return WL.condText(x, build); }).join(' or ') + ')' : 'never';
     case 'not': return 'not ' + WL.condText(n.c, build);
-    case 'dot': return sn(n.spell) + ' time left ' + n.op + ' ' + v() + ' s';
-    case 'aura': return an(n.aura) + ' time left ' + n.op + ' ' + v() + ' s';
-    case 'cd': return sn(n.spell) + ' cooldown ' + n.op + ' ' + v() + ' s';
+    case 'dot': return sn(n.spell) + ' time left ' + n.op + ' ' + v() + u();
+    case 'aura': return an(n.aura) + ' time left ' + n.op + ' ' + v() + u();
+    case 'cd': return sn(n.spell) + ' cooldown ' + n.op + ' ' + v() + u();
     case 'fight': return (n.what === 'elapsed' ? 'fight time gone' : n.what === 'bossHp' ? 'boss health %' : 'fight time left') + ' ' + n.op + ' ' + v() + (n.what === 'bossHp' ? '' : ' s');
     case 'mana': return 'mana % ' + n.op + ' ' + v();
     case 'shards': return 'Soul Shards ' + n.op + ' ' + v();
     case 'brand': return 'Demonic Brand charges ' + n.op + ' ' + v();
     case 'var': return n.name;
+    case 'known': return 'you know ' + sn(n.spell);
+    case 'talent': return ((WL.TALENT_BY_KEY[n.talent] || {}).name || n.talent) + ' points ' + n.op + ' ' + v();
+    case 'pet': return 'a demon is out';
+    case 'setting': return WL.APL_SETTINGS[n.key] || n.key;
+    case 'refresh': return sn(n.spell) + ' needs a recast';
+    case 'paysOff': return sn(n.spell) + ' still pays off';
+    case 'manaNeed': return 'the rest of the fight needs more mana than you have';
+    case 'freeMana': return 'free mana is ready';
+    case 'minDot': return 'shortest DoT time left ' + n.op + ' ' + v() + u();
+    case 'check': return WL.APL_CHECKS[n.act] || n.act;
   }
   return '?';
+};
+// A number of a condition in words (round 172: also a cast time, the execute threshold, and "_" for a number you fill in).
+WL.valText = function (x) {
+  if (x && typeof x === 'object') {
+    if (x.var != null) return x.var;
+    if (x.cast != null) return ((WL.SPELLS[x.cast] || {}).name || x.cast) + ' cast time';
+    if (x.exec) return 'the execute %';
+    if (x.param != null) return '_';
+  }
+  return String(x);
 };
 WL.ruleText = function (r, build) { return (r.name ? r.name + ': ' : '') + ((WL.SPELLS[r.spell] || {}).name || r.spell) + (r.when ? ' if ' + WL.condText(r.when, build) : ''); };
 // Faults in a rule's condition (unknown spell, aura, operator, variable, a number that is not one).
@@ -396,7 +453,7 @@ WL.condErrors = function (n, build, where, depth) {
   var out = [], b = build || {}; depth = depth || 0;
   if (!n) return out;
   if (depth > 12) return [where + ': the condition is nested too deep'];
-  var num = function () { var x = WL.ruleNum(n.v, b); if (!isFinite(x)) out.push(where + ': ' + (n.v && n.v.var != null ? 'no number named "' + n.v.var + '"' : 'a number is missing')); if (WL.RULE_OPS.indexOf(n.op) < 0) out.push(where + ': unknown comparison "' + n.op + '"'); };
+  var num = function () { var x = WL.ruleNum(n.v, b); if (!isFinite(x)) out.push(where + ': ' + (n.v && n.v.var != null ? 'no number named "' + n.v.var + '"' : n.v && n.v.cast != null ? 'unknown spell "' + n.v.cast + '"' : 'a number is missing')); if (WL.RULE_OPS.indexOf(n.op) < 0) out.push(where + ': unknown comparison "' + n.op + '"'); };
   switch (n.t) {
     case 'all': case 'any': (n.c || []).forEach(function (x) { out = out.concat(WL.condErrors(x, b, where, depth + 1)); }); break;
     case 'not': out = out.concat(WL.condErrors(n.c, b, where, depth + 1)); break;
@@ -406,10 +463,134 @@ WL.condErrors = function (n, build, where, depth) {
     case 'fight': if (['remaining', 'elapsed', 'bossHp'].indexOf(n.what) < 0) out.push(where + ': unknown fight value'); num(); break;
     case 'mana': case 'shards': case 'brand': num(); break;
     case 'var': { var x = (b.vars || {})[n.name]; if (!x || !x.cond) out.push(where + ': no condition named "' + n.name + '"'); break; }
+    case 'known': if (!WL.SPELLS[n.spell]) out.push(where + ': unknown spell "' + n.spell + '"'); break;
+    case 'refresh': case 'paysOff': if (WL.RULE_DOTS.indexOf(n.spell) < 0) out.push(where + ': "' + n.spell + '" is not a DoT'); break;
+    case 'talent': if (!WL.TALENT_BY_KEY[n.talent]) out.push(where + ': unknown talent "' + n.talent + '"'); num(); break;
+    case 'setting': if (!WL.APL_SETTINGS[n.key]) out.push(where + ': unknown setting "' + n.key + '"'); break;
+    case 'check': if (!WL.APL_CHECKS[n.act]) out.push(where + ': unknown check "' + n.act + '"'); break;
+    case 'pet': case 'manaNeed': case 'freeMana': break;
+    case 'minDot': num(); break;
     default: out.push(where + ': unknown condition');
   }
   return out;
 };
+// ---------- the APL view of the built-in actions (round 172, user: "convert the default priority rotation into APL's") ----------
+// Each built-in action as APL lines: cast `spell` when `when` holds — the same check the action makes (tests/test-round172.js
+// compares them decision by decision in real fights). { param: key } = a number of the build (build.params, e.g. Life Tap's
+// mana %). An action that picks its own target or swaps the pet has no single-spell form: { special: true }.
+WL.APL_CHECKS = { deathCoilFinisher: 'the filler would not land before the boss dies', searingPainDecimation: 'the next Soul Fire needs Decimation',
+  lifeTapPet: 'the pet is nearly out of mana and a whole Life Tap fits' };
+WL.APL_SETTINGS = { coe: '"Keep Curse of the Elements up" is on' };
+function aplAll() { var c = Array.prototype.slice.call(arguments); return c.length === 1 ? c[0] : { t: 'all', c: c }; }
+function aplTal(k) { return { t: 'talent', talent: k, op: '>=', v: 1 }; }
+function aplDot(k, op, v) { return { t: 'dot', spell: k, op: op, v: v }; }
+function aplAura(k, op, v) { return { t: 'aura', aura: k, op: op, v: v }; }
+function aplFight(w, op, v) { return { t: 'fight', what: w, op: op, v: v }; }
+var APL_NO_BANE = [aplDot('baneOfDoom', '<=', 0), aplDot('baneOfAgony', '<=', 0)];
+var APL_AGONY = { spell: 'baneOfAgony', when: aplAll(APL_NO_BANE[0], APL_NO_BANE[1], { t: 'paysOff', spell: 'baneOfAgony' }) };
+WL.APL_TEMPLATES = {
+  curseOfElements: [{ spell: 'curseOfElements', when: aplAll({ t: 'setting', key: 'coe' }, aplAura('coe', '<=', 0), aplFight('remaining', '>', 10)) }],
+  shadowTrance: [{ spell: 'shadowBolt', when: aplAura('shadowTrance', '>', 0) }],
+  bane: [{ spell: 'baneOfDoom', when: aplAll(APL_NO_BANE[0], APL_NO_BANE[1], aplFight('remaining', '>=', 60)) }, APL_AGONY],
+  baneOfAgony: [APL_AGONY],
+  corruption: [{ spell: 'corruption', when: { t: 'refresh', spell: 'corruption' } }],
+  siphonLife: [{ spell: 'siphonLife', when: { t: 'refresh', spell: 'siphonLife' } }],
+  // with "Conflagrate when Immolate is about to expire" in the list, a running Immolate waits for that Conflagrate
+  immolate: function (b) {
+    var r = { t: 'refresh', spell: 'immolate' };
+    if ((b.rotation || []).indexOf('conflagrateExpire') >= 0) r = aplAll(r, { t: 'not', c: aplAll({ t: 'known', spell: 'conflagrate' }, { t: 'cd', spell: 'conflagrate', op: '<=', v: 0 }, aplDot('immolate', '>', 0)) });
+    return [{ spell: 'immolate', when: r }];
+  },
+  conflagrate: [{ spell: 'conflagrate', when: aplDot('immolate', '>', 0) }],
+  conflagrateExpire: [{ spell: 'conflagrate', when: aplAll(aplDot('immolate', '>', 0), aplDot('immolate', '<=', 3)) }],
+  shadowburn: [{ spell: 'shadowburn', when: { t: 'shards', op: '>', v: 0 } }],
+  shadowburnSnF: [{ spell: 'shadowburn', when: aplAll(aplTal('shadowAndFlame'), { t: 'shards', op: '>', v: 0 }, aplAura('snfFire', '<=', 3)) }],
+  conflagrateSnF: [{ spell: 'conflagrate', when: aplAll(aplTal('shadowAndFlame'), aplDot('immolate', '>', 0), aplAura('snfShadow', '<=', 3)) }],
+  multiDot: [{ special: true }], shadowBoltSpread: [{ special: true }], swapToImp: [{ special: true }], swapToSuccubus: [{ special: true }],
+  isbUpkeep: [{ spell: 'shadowBolt', when: aplAll(aplTal('improvedShadowBolt'), aplAura('isb', '<=', { cast: 'shadowBolt' })) }],
+  deathCoil: [{ spell: 'deathCoil', when: { t: 'cd', spell: 'deathCoil', op: '<=', v: 0 } }],
+  deathCoilFinisher: [{ spell: 'deathCoil', when: { t: 'check', act: 'deathCoilFinisher' } }],
+  searingPainExecute: [{ spell: 'searingPain', when: aplFight('bossHp', '<', { exec: 1 }) }],
+  searingPainDecimation: [{ spell: 'searingPain', when: { t: 'check', act: 'searingPainDecimation' } }],
+  soulFire: [{ spell: 'soulFire', when: aplAura('decimation', '>', 0) }],
+  lifeTapPet: [{ spell: 'lifeTap', when: { t: 'check', act: 'lifeTapPet' } }],
+  lifeTapBelow: [{ spell: 'lifeTap', when: aplAll({ t: 'mana', op: '<', v: { param: 'pct' } }, aplFight('remaining', '>', { param: 'sec' })) }],
+  lifeTapNeed: [{ spell: 'lifeTap', when: aplAll({ t: 'mana', op: '<', v: { param: 'pct' } }, aplFight('remaining', '>', { param: 'sec' }), { t: 'not', c: { t: 'freeMana' } }, { t: 'manaNeed' }) }],
+  searingPainBrand: [{ spell: 'searingPain', when: aplAll(aplTal('demonicBrand'), { t: 'pet' }, { t: 'brand', op: '<=', v: 0 }) }],
+  soulFireShards: [{ spell: 'soulFire', when: { t: 'any', c: [aplAura('decimation', '>', 0), { t: 'shards', op: '>', v: 0 }] } }],
+  wrackDots: [{ spell: 'wrack', when: { t: 'minDot', op: '>', v: { param: 'sec' } } }],
+  wrack: [{ spell: 'wrack' }], shadowBolt: [{ spell: 'shadowBolt' }], incinerate: [{ spell: 'incinerate' }], drainLife: [{ spell: 'drainLife' }],
+  hellfire: [{ spell: 'hellfire' }], rainOfFire: [{ spell: 'rainOfFire' }], searingPain: [{ spell: 'searingPain' }],
+};
+// The template of an action (a fresh copy; { param } left in), or null.
+WL.aplTemplate = function (key, build) {
+  var t = WL.APL_TEMPLATES[key]; if (!t) return null;
+  return JSON.parse(JSON.stringify(typeof t === 'function' ? t(build || {}) : t));
+};
+function aplFill(n, p) {
+  if (!n || typeof n !== 'object') return n;
+  if (n.param != null) return p[n.param];
+  if (Array.isArray(n)) return n.map(function (x) { return aplFill(x, p); });
+  var o = {}; Object.keys(n).forEach(function (k) { o[k] = aplFill(n[k], p); }); return o;
+}
+// The APL lines of a priority entry as it runs in this build: the build's numbers filled in, and its extra condition
+// (build.actWhen) added to every line. null for an entry that is not a built-in action.
+WL.aplLines = function (key, build) {
+  var t = WL.aplTemplate(key, build); if (!t) return null;
+  var p = WL.ACTIONS[key] && WL.ACTIONS[key].params && WL.actionParams ? WL.actionParams(build, key) : {}, aw = build && build.actWhen && build.actWhen[key];
+  return t.map(function (l) {
+    if (l.special) return l;
+    var w = aplFill(l.when, p);
+    if (aw) w = w ? { t: 'all', c: aplConj(w).concat(aplConj(aw)) } : aw;
+    var o = { spell: l.spell }; if (w) o.when = w; return o;
+  });
+};
+function aplConj(w) { return !w ? [] : w.t === 'all' ? (w.c || []).slice() : [w]; }
+// Same condition? A { param } in the template takes any number in its range (the same one everywhere it appears).
+function aplEq(t, x, params, key) {
+  if (t && typeof t === 'object' && t.param != null) {
+    var P = ((WL.ACTIONS[key] || {}).params || []).filter(function (q) { return q.key === t.param; })[0];
+    if (typeof x !== 'number' || !P || !(x >= P.min && x <= P.max)) return false;
+    if (params[t.param] != null && params[t.param] !== x) return false;
+    params[t.param] = x; return true;
+  }
+  if (t === null || typeof t !== 'object') return t === x;
+  if (!x || typeof x !== 'object' || Array.isArray(t) !== Array.isArray(x)) return false;
+  var ka = Object.keys(t), kb = Object.keys(x);
+  if (ka.length !== kb.length) return false;
+  return ka.every(function (k) { return kb.indexOf(k) >= 0 && aplEq(t[k], x[k], params, key); });
+}
+// The simple action an APL line { spell, when } is, or null: { key, params (or null), extra (a condition, or null) }.
+// The line may have conditions of its own on top of the action's (they become build.actWhen; a filler with one can pass to the
+// next filler, like Wrack while the DoTs last) — not when the action is in the priority elsewhere (`others`: the other entries).
+// The match with the fewest extra conditions wins.
+WL.aplMatch = function (r, build, others) {
+  var conj = aplConj(r && r.when), best = null;
+  Object.keys(WL.APL_TEMPLATES).forEach(function (key) {
+    var T = WL.aplTemplate(key, build); if (!T || T.length !== 1 || T[0].special || T[0].spell !== r.spell) return;
+    var tc = aplConj(T[0].when), used = {}, params = {};
+    for (var i = 0; i < tc.length; i++) {
+      var hit = -1;
+      for (var j = 0; j < conj.length && hit < 0; j++) {
+        if (used[j]) continue;
+        var p2 = JSON.parse(JSON.stringify(params));
+        if (aplEq(tc[i], conj[j], p2, key)) { hit = j; params = p2; }
+      }
+      if (hit < 0) return;
+      used[hit] = 1;
+    }
+    var extra = conj.filter(function (x, j) { return !used[j]; });
+    var elsewhere = (others || []).indexOf(key) >= 0;
+    if (extra.length && elsewhere) return;
+    if (elsewhere && build && build.actWhen && build.actWhen[key]) return;   // the action there has a condition this line has not
+    if (elsewhere && Object.keys(params).length && JSON.stringify(WL.actionParams(build, key)) !== JSON.stringify(Object.assign({}, WL.actionParams(build, key), params))) return;
+    if (!best || extra.length < best.extra.length) best = { key: key, params: params, extra: extra };
+  });
+  if (!best) return null;
+  return { key: best.key, params: Object.keys(best.params).length ? best.params : null,
+    extra: !best.extra.length ? null : best.extra.length === 1 ? best.extra[0] : { t: 'all', c: best.extra } };
+};
+
 // Groups put in place (one level).
 WL.expandGroups = function (build, rot) {
   var g = (build && build.groups) || {}, out = [];

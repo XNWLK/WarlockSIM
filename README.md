@@ -62,7 +62,8 @@ Click a build for:
 
 ### Make your own builds
 - **Build editor:** click talents in the three trees, pick the pet out, the sacrificed pet and the weapon (Spellstone /
-  Firestone / oil), and arrange the spell priority with drag and drop.
+  Firestone / oil), and arrange the spell priority with drag and drop — as a simple list or, right next to it, as APL lines
+  ("cast a spell if conditions"); both show the same priority and stay in step.
 - Live checks that the build is valid (talent points, requirements, pet rules).
 - Mid-fight pet swap at execute (Demonic Sacrifice + Fel Domination + summon).
 - **Quick sim** a build on its own — DPS per race and the damage breakdown right next to the talent trees — or add it to

@@ -107,7 +107,9 @@
   .presetbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 12px; }
   .presetbar .qgroup { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
   .presetbar button { padding: 3px 10px; font-size: 12px; }
-  .presetbar select { max-width: min(300px, 100%); }
+  .presetbar { min-width: 0; max-width: 100%; }
+  .presetbar .qgroup { max-width: 100%; }
+  .presetbar select { min-width: 0; width: 300px; max-width: 100%; flex: 1 1 140px; }   /* round 172: fits a phone */
   .presetbar input[type=text] { width: 200px; max-width: 100%; }
   .ctlrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; border-top: 1px solid var(--line); padding-top: 7px; }
   .ctlrow .quickbar { border-top: 0; padding: 0; flex: 0 1 auto; }
@@ -717,6 +719,28 @@
   .tl-mana { fill: var(--c-hit); opacity: .35; }
   .tl-gcd { fill: var(--muted); opacity: .7; }
   .tlopts { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: -2px 0 6px; font-size: 12px; }
+  /* round 172: Simple | Advanced (APL) next to each other */
+  .edrots { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 14px; align-items: start; margin-top: 12px; }
+  .edcol { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; background: var(--surface); min-width: 0; }
+  .edcol > summary { font-weight: 600; cursor: pointer; font-size: 12.5px; }
+  .edcol > summary .meta { font-weight: 400; }
+  .edcol[open] > summary { margin-bottom: 6px; }
+  .edcol .edrot { margin-top: 0; }
+  .edcol > p.meta { margin: 0 0 6px; font-size: 11.5px; }
+  .edapl { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 3px; font-size: 12px; }
+  .edapl > li { display: flex; align-items: flex-start; gap: 6px; padding: 3px 4px; border-radius: 4px; background: var(--ground); }
+  .edapl > li.meta { background: none; }
+  .aplnum { flex: none; width: 18px; text-align: right; font: 600 11px/20px var(--mono); color: var(--muted); }
+  .apllines { flex: 1 1 auto; min-width: 0; display: grid; gap: 2px; }
+  .aplline { line-height: 20px; }
+  .aplline .ico { width: 16px; height: 16px; }
+  .aplif { color: var(--ink); }
+  .aplif i { font-style: normal; color: var(--accent); font-weight: 600; }
+  .aplline .resetbtn { padding: 0 6px; font-size: 11px; }
+  .aplbtns { flex: none; display: inline-flex; gap: 2px; }
+  .aplbtns button { padding: 1px 6px; font-size: 11px; }
+  .aplgrp { padding-left: 10px; border-left: 2px solid var(--line); }
+  .edchecks { margin-top: 10px; } .edchecks h2 { margin: 0 0 4px; }
   /* round 157: the rule editor */
   .edrules { margin-top: 8px; } .edrules summary { font-weight: 600; cursor: pointer; }
   .ruleform { border: 1px solid var(--line); border-radius: 6px; padding: 8px; margin: 8px 0; display: grid; gap: 6px; }
@@ -757,7 +781,8 @@
   .quick h3 .meta { text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 11px; }
   .quick .qfoot { margin: 0; font-size: 11px; }
   .qraces { display: grid; gap: 2px; }
-  .qrace { display: grid; grid-template-columns: 22px minmax(56px, 76px) minmax(40px, 1fr) 54px 58px; align-items: center; gap: 8px; width: 100%; padding: 3px 6px;
+  .qraces { max-width: 300px; }
+  .qrace { display: grid; grid-template-columns: 22px minmax(0, 1fr) 56px 58px; align-items: center; gap: 8px; width: 100%; padding: 2px 6px;   /* round 172: no bars */
            border: 1px solid transparent; border-radius: 4px; background: none; font: 500 12px var(--sans); text-align: left; cursor: pointer; }
   .qrace:hover { background: var(--sunk); }
   .qrace[aria-pressed=true] { border-color: var(--accent); background: var(--accent-soft); }
@@ -1168,20 +1193,6 @@
     <div class="edmain">
       <div class="edleft">
         <div id="edTrees" class="trees"></div>
-        <div class="edcols">
-          <div>
-            <h2>Priority (top = checked first)</h2>
-            <ol id="edRot" class="edrot"></ol>
-            <div class="btnrow"><select id="edAddAct" aria-label="Action to add"></select><button type="button" id="edAdd">Add to the priority</button></div>
-            <details class="edrules" id="edRulesBox" open><summary>APL</summary>
-              <p class="meta">A rule casts a spell when your conditions hold: DoT or buff time left, cooldowns, fight time, boss health, mana, Soul Shards, Demonic Brand charges — combined with "all of", "any of" and "not". A group is a list of actions you can put in the priority as one; a variable is a number or a condition with a name, used in your rules. A rule without a condition is a filler.</p>
-              <div id="edRules"></div></details>
-          </div>
-          <div>
-            <h2>Checks</h2>
-            <ul id="edErrs" class="ederrs"></ul>
-          </div>
-        </div>
       </div>
       <div class="edquick" aria-label="Quick sim of the build in the editor">
         <div class="cardhead">
@@ -1193,6 +1204,18 @@
         <div id="edPtsOut" role="status"></div>
       </div>
     </div>
+    <!-- Round 172 (user): the priority twice, next to each other — as a simple list and as APL lines. Both show the same list. -->
+    <div class="edrots">
+      <details class="edcol" id="edSimpleBox" open><summary>Simple <span class="meta">— the priority list, top = checked first</span></summary>
+        <ol id="edRot" class="edrot"></ol>
+        <div class="btnrow"><select id="edAddAct" aria-label="Action to add"></select><button type="button" id="edAdd">Add to the priority</button></div>
+      </details>
+      <details class="edcol edrules" id="edRulesBox" open><summary>Advanced (APL) <span class="meta">— the same priority as conditions</span></summary>
+        <p class="meta">Each line casts its spell when its conditions hold — the first line that can is cast. A simple action shows here as the lines that check exactly what it checks; edit a line and it stays that action as long as it still matches one (your numbers and extra conditions are kept), otherwise it becomes an APL line of your own. A new APL line that matches a simple action is added as that action.</p>
+        <ol id="edApl" class="edapl"></ol>
+        <div id="edRules"></div></details>
+    </div>
+    <div class="edchecks"><h2>Checks</h2><ul id="edErrs" class="ederrs"></ul></div>
     <label class="c tlon" for="edTlOn" title="Script the fight yourself: drag spells onto a timeline at the exact moment you want them cast. The priority above still runs: it fills every gap, recasts what misses and takes over when the timeline ends."><input id="edTlOn" type="checkbox"> Super advanced: fight timeline</label>
     <div id="edTl" class="tlbox" hidden>
       <div class="btnrow">

@@ -1140,6 +1140,8 @@ window.WL = window.WL || {};
       for (var i = (idx == null ? -1 : idx) + 1; i < ROT.length; i++) {
         var a = ACTS[i];
         if (!a || NOT_ALT[ROT[i]]) continue;
+        if (a.deep) continue;                                            // round 172: its condition runs this DoT check itself
+        if (a.rule && !(SPELLS[a.rule.spell] && (SPELLS[a.rule.spell].kind === 'direct' || SPELLS[a.rule.spell].kind === 'channel'))) continue;   // a rule for a DoT, curse or Life Tap
         var k = a.pick(S), s = k && SPELLS[k];
         if (s && table[k] && (s.kind === 'direct' || s.kind === 'channel')) return k;
       }
