@@ -2,7 +2,7 @@
 // threads, at most 32; 1–8 in rounds 76–78; the page itself only renders meanwhile). Falls back to the page's main thread (time-sliced, as before round 76) when workers cannot start — opened from
 // file://, blocked by the host, or no "ready" within a few seconds — or when a worker fails mid-run (its job is redone on
 // the page). Both paths call the same engine functions with the same seeds, so the numbers are identical.
-//   WL.SimPool.run(jobs, onResult(job, res), onDone())  — jobs: { kind: 'combo', build, race, cfg } → res = { r }
+//   WL.SimPool.run(jobs, onResult(job, res), onDone())  → { stop() } (round 177: no more jobs, no more callbacks) — jobs: { kind: 'combo', build, race, cfg } → res = { r }
 //                                                          or { kind: 'weight', build, race, cfg, n, stat } → res = { dps }
 //   WL.SimPool.mode()                                   — 'workers (N)' | 'page' | 'starting'
 //   WL.makeSimPool(workerUrl, size)                      — another pool (tests: a path relative to tests/, a missing file)
@@ -42,19 +42,21 @@ WL.makeSimPool = function (workerUrl, size) {
   }
 
   function run(jobs, onResult, onDone) {
+    var stopped = false;
     start(function () {
+      if (stopped) return;
       var next = 0, left = jobs.length;
       if (!left) { onDone(); return; }
-      function finish(j, res) { onResult(j, res); if (--left === 0) onDone(); }
+      function finish(j, res) { if (stopped) return; onResult(j, res); if (--left === 0) onDone(); }
       function slice() {                              // page fallback: 60 ms slices keep the page responsive
         var until = performance.now() + 60;
-        while (next < jobs.length && performance.now() < until) { var j = jobs[next++]; finish(j, runOnPage(j)); }
-        if (next < jobs.length) setTimeout(slice, 0);
+        while (!stopped && next < jobs.length && performance.now() < until) { var j = jobs[next++]; finish(j, runOnPage(j)); }
+        if (!stopped && next < jobs.length) setTimeout(slice, 0);
       }
       if (state !== 'ready') { slice(); return; }
       var id = 0;
       function feed(w) {
-        if (next >= jobs.length) { w.job = null; return; }
+        if (stopped || next >= jobs.length) { w.job = null; return; }
         var j = jobs[next++], k = ++id; w.job = { id: k, j: j };
         w.postMessage({ id: k, kind: j.kind, build: j.build, race: j.race, cfg: j.cfg, n: j.n, stat: j.stat });
       }
@@ -74,6 +76,7 @@ WL.makeSimPool = function (workerUrl, size) {
         feed(w);
       });
     });
+    return { stop: function () { stopped = true; } };   // a job already on a worker finishes there; its answer is dropped
   }
   function mode() { return state === 'ready' ? 'workers (' + workers.length + ')' : state === 'page' ? 'page' : 'starting'; }
   return { run: run, mode: mode, start: start };

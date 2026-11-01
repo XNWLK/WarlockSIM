@@ -7,7 +7,8 @@
     if (!src) { T.warn('index.html could not be read (file://)'); return; }
     var at = function (s) { return src.indexOf(s); };
     T.ok(at('id="buildPanel"') > at('</header>') && at('id="buildPanel"') < at('id="settings"'), 'the build list sits right under the header, above the settings');
-    T.ok(at('id="buildPanel"') < at('id="statbar"') && at('id="statbar"') < at('id="results"'), 'Sim! and the stat chips are in the build list\'s top row');
+    // Round 177 (user): Sim! and the stat chips moved into the Sim bar right above the build list (it stays at the top).
+    T.ok(at('id="simBar"') < at('id="statbar"') && at('id="statbar"') < at('id="buildPanel"') && at('id="buildPanel"') < at('id="results"'), 'Sim! and the stat chips sit right above the build list (the Sim bar)');
     T.ok(at('id="quickbar"') > at('id="buildPanel"') && at('id="quickbar"') < at('id="results"'), 'quick setup sits above the table');
     T.ok(at('id="steps"') < 0, 'the old steps strip is gone');
     T.ok(at('id="presetSel"') > at('id="charTitle"') && at('id="presetSel"') < at('id="settings"'), 'saved setups (presets) sit next to "Your character and the fight"');

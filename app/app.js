@@ -244,6 +244,7 @@
     var pend = running || dirty ? [] : pendingBuilds();                 // round 55: new builds with unchanged settings
     var noW = running || dirty || pend.length || !results.length ? [] : bestRaceJobs(WL.BUILDS).filter(function (x) { return !weights[x.b.key]; });   // round 66
     $('stale').hidden = running || !(dirty || pend.length || noW.length);
+    renderSimStatus();                                                  // round 177: the Sim bar's dot
     $('results').classList.toggle('stale', dirty && !running);
     $('staleMsg').innerHTML = dirty
       ? '<b>Settings changed since this run.</b> The results below are from the previous settings; Sim! reruns every build.'
@@ -252,10 +253,22 @@
       : '<b>' + pend.length + ' build' + (pend.length === 1 ? '' : 's') + ' not simulated yet:</b> ' + pend.map(function (b) { return esc(b.short); }).join(', ') +
         '. The settings are unchanged, so Sim! only simulates ' + (pend.length === 1 ? 'this build' : 'these') + ' and adds ' + (pend.length === 1 ? 'it' : 'them') + ' to the list.';
   }
+  // Advanced (APL) tabs (round 177)
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-apltab]'); if (!b) return;
+    aplTab = b.getAttribute('data-apltab'); if (ruleEd) ruleEd = null; renderRuleEd();
+  });
+  // Details tabs (round 177)
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-dtab]'); if (!b) return;
+    var box = b.closest('td') || document; dTab = b.getAttribute('data-dtab');
+    Array.prototype.forEach.call(box.querySelectorAll('[data-dtab]'), function (x) { x.setAttribute('aria-selected', x === b); });
+    Array.prototype.forEach.call(box.querySelectorAll('[data-dpanel]'), function (x) { x.hidden = x.getAttribute('data-dpanel') !== dTab; });
+  });
   // Settings tabs
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('.tabs [role=tab]');
-    if (!b) return;
+    if (!b || b.hasAttribute('data-dtab')) return;   // round 177: the details' tabs switch above
     Array.prototype.forEach.call(document.querySelectorAll('.tabs [role=tab]'), function (x) {
       var on = x === b; x.setAttribute('aria-selected', on); $(x.getAttribute('aria-controls')).hidden = !on;
     });
@@ -326,8 +339,9 @@
         (text ? '<div class="tt-body">' + para(text) + '</div>' : '') +
         '<div class="tt-rule">Simulated as: ' + esc(o.desc || '') + '</div>';
       var cnt = o.count != null ? ' <input id="bn_' + k + '" class="bcount" type="number" min="1" max="' + (o.maxCount || 5) + '" step="1" value="' + (o.count || 1) + '" title="How many (round 157)" aria-label="How many: ' + esc(o.name) + '">×' : '';
-      return '<label class="c" for="' + prefix + k + '"><input id="' + prefix + k + '" type="checkbox"' + (o.on ? ' checked' : '') + '> ' +
-        icon(iconKey, o.name, '', tip) + (isCon ? '' : '<span class="cls">' + esc(o.cls || '') + '</span>') + '<span>' + esc(o.name) + cnt + ' <span class="eff">' + esc(o.desc || '') + '</span></span></label>';
+      // Round 177 (user): a compact tile — icon and name; class, text and what the sim does are in the tooltip
+      return '<label class="c btile" for="' + prefix + k + '" data-tip="' + esc(tip) + '"><input id="' + prefix + k + '" type="checkbox"' + (o.on ? ' checked' : '') + '>' +
+        icon(iconKey, o.name) + '<span class="btn2">' + esc(o.name) + '</span>' + cnt + '</label>';
     }
     $('buffBoxes').innerHTML = Object.keys(cfg.buffs).map(function (k) { return box('b_', k, cfg.buffs[k]); }).join('');
     $('debuffBoxes').innerHTML = Object.keys(cfg.debuffs).map(function (k) { return box('d_', k, cfg.debuffs[k]); }).join('');
@@ -338,12 +352,16 @@
       if (!blk) groups.push(blk = { g: g, keys: [] });
       blk.keys.push(k);
     });
+    // Round 177 (user): one slot per group — click it, pick one (or none). The check boxes stay, hidden: readSettings and the
+    // settings codes read them as before.
     $('consBoxes').innerHTML = groups.map(function (blk) {
       var req = cfg.consumables[blk.keys[0]].requires;
-      return '<div class="cgroup checks"' + (req ? ' data-req="' + req + '"' : '') + '><h3>' + esc(CON_GROUPS[blk.g] || blk.g) +
-        (req ? ' <span class="reqnote">needs Engineering (Stats panel)</span>' : '') + '</h3>' +
-        blk.keys.map(function (k) { return box('c_', k, cfg.consumables[k]); }).join('') + '</div>';
+      return '<div class="cslot"' + (req ? ' data-req="' + req + '"' : '') + '><button type="button" class="cslotbtn" data-cslot="' + esc(blk.g) + '" aria-haspopup="true" aria-expanded="false"></button>' +
+        '<div class="cslotmenu" role="menu" hidden><button type="button" role="menuitem" data-cpick="' + esc(blk.g) + ':"><span class="cempty" aria-hidden="true"></span><span><b>None</b></span></button>' +
+        blk.keys.map(function (k) { var o = cfg.consumables[k]; return '<button type="button" role="menuitem" data-cpick="' + esc(blk.g) + ':' + k + '" data-tip="' + esc(conTip(k)) + '">' + icon('consumable_' + k, o.name) + '<span><b>' + esc(o.name) + '</b><span class="eff">' + esc(o.desc || '') + '</span></span></button>'; }).join('') + '</div>' +
+        '<span hidden>' + blk.keys.map(function (k) { return '<input id="c_' + k + '" type="checkbox"' + (cfg.consumables[k].on ? ' checked' : '') + ' aria-label="' + esc(cfg.consumables[k].name) + '">'; }).join('') + '</span></div>';
     }).join('');
+    renderConsSlots();
     $('t_race').innerHTML = WL.SIM_RACE_KEYS.map(function (r) { return '<option value="' + r + '">' + esc(WL.RACES[r].name) + (WL.RACES[r].baseline ? ' (baseline)' : '') + '</option>'; }).join('');
     $('bossArmor').value = cfg.combat.bossArmor;
     $('resShadow').value = cfg.combat.targetResist.shadow; $('resFire').value = cfg.combat.targetResist.fire;
@@ -354,6 +372,45 @@
     gbSync();                                             // gear builder on (a loaded code): its sums into the sheet
     armorNote(); renderTotals(); tabCounts(); renderCdTl(); advNote(); renderGear(); renderGearEdit();
   }
+  // Round 177: a consumable's tooltip (the slots and their lists) and the slots' faces from the check boxes.
+  function conTip(k) {
+    var o = cfg.consumables[k];
+    return '<div class="tt-name">' + esc(o.name) + '</div><div class="tt-meta">' + esc(o.cat || '') + (o.id ? ' · Wowhead item ' + o.id : '') + '</div>' +
+      (o.text ? '<div class="tt-body">' + para(o.text) + '</div>' : '') + '<div class="tt-rule">Simulated as: ' + esc(o.desc || '') + '</div>';
+  }
+  function renderConsSlots() {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-cslot]'), function (btn) {
+      var g = btn.getAttribute('data-cslot'), keys = Object.keys(cfg.consumables).filter(function (k) { return cfg.consumables[k].group === g; });
+      var on = keys.filter(function (k) { return $('c_' + k) && $('c_' + k).checked; })[0], o = on && cfg.consumables[on];
+      btn.innerHTML = (on ? icon('consumable_' + on, o.name) : '<span class="cempty" aria-hidden="true"></span>') +
+        '<span class="cslott"><span class="cslotg">' + esc(CON_GROUPS[g] || g) + '</span><span class="cslotv">' + (on ? esc(o.name) : 'None') + '</span></span>';
+      btn.classList.toggle('on', !!on);
+      if (on) btn.setAttribute('data-tip', conTip(on)); else btn.removeAttribute('data-tip');
+      btn.setAttribute('aria-label', (CON_GROUPS[g] || g) + ': ' + (on ? o.name : 'none') + ' — choose');
+    });
+  }
+  function closeConsMenus() { Array.prototype.forEach.call(document.querySelectorAll('.cslotmenu'), function (m) { m.hidden = true; }); Array.prototype.forEach.call(document.querySelectorAll('[data-cslot]'), function (b) { b.setAttribute('aria-expanded', 'false'); }); }
+  document.addEventListener('click', function (e) {
+    var t = e.target, b = t.closest && t.closest('[data-cslot]'), p = t.closest && t.closest('[data-cpick]');
+    if (b) {                                                 // open its list under the slot (fixed: the tabs card scrolls)
+      var m = b.parentNode.querySelector('.cslotmenu'), open = !m.hidden; closeConsMenus(); if (open) return;
+      var r = b.getBoundingClientRect(); m.hidden = false; b.setAttribute('aria-expanded', 'true');
+      m.style.left = Math.max(8, Math.min(r.left, window.innerWidth - m.offsetWidth - 8)) + 'px';
+      m.style.top = (r.bottom + m.offsetHeight + 8 > window.innerHeight ? Math.max(8, r.top - m.offsetHeight - 4) : r.bottom + 4) + 'px';
+      return;
+    }
+    if (p) {                                                 // pick: tick it (its group unticks the others) or untick the group
+      var v = p.getAttribute('data-cpick').split(':'), g = v[0], k = v[1], box;
+      closeConsMenus();
+      if (k) { box = $('c_' + k); box.checked = true; }
+      else { box = Object.keys(cfg.consumables).filter(function (x) { return cfg.consumables[x].group === g && $('c_' + x).checked; }).map(function (x) { return $('c_' + x); })[0]; if (!box) return; box.checked = false; }
+      box.dispatchEvent(new Event('change', { bubbles: true }));
+      renderConsSlots(); return;
+    }
+    if (!(t.closest && t.closest('.cslotmenu'))) closeConsMenus();
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeConsMenus(); });
+  window.addEventListener('scroll', closeConsMenus, true);   // the list stays where it was opened: close it on any scroll
   var CON_GROUPS = { flask: 'Flask', spElixir: 'Spell power elixir', shadowElixir: 'Shadow elixir', fireElixir: 'Fire elixir',
     intElixir: 'Intellect elixir', spiElixir: 'Spirit elixir', manaElixir: 'Mana regeneration elixir', zanza: 'Zanza', cortex: 'Cerebral Cortex',
     food: 'Food (well fed)', drink: 'Drink', stone: 'Weapon stone (stacks with an oil)', weapon: 'Weapon oil', potion: 'Potion (shared cooldown)', rune: 'Rune (own cooldown)',
@@ -361,7 +418,7 @@
   function tabCounts() {
     var on = function (o) { return Object.keys(o).filter(function (k) { return o[k].on; }).length; };
     $('cnt_cons').textContent = on(cfg.consumables);
-    Array.prototype.forEach.call(document.querySelectorAll('.cgroup[data-req]'), function (g) {   // dim items whose profession is off
+    Array.prototype.forEach.call(document.querySelectorAll('.cslot[data-req]'), function (g) {   // dim items whose profession is off (round 177: slots)
       g.classList.toggle('off', !(cfg.professions || {})[g.getAttribute('data-req')]);
     });
     var nb = on(cfg.buffs), nd = on(cfg.debuffs);
@@ -774,12 +831,32 @@
   // into the batch-compare card ("Add this run").
   function renderStatbar() {
     var g = runCfg.gear, f = runCfg.fight;
-    $('statbar').innerHTML =
-      '<span class="runbtn"><button class="primary" id="runBtn" type="button"' + (running ? ' disabled' : '') + '>' + (running ? 'Simming…' : 'Sim!') + '</button></span>' +   // round 169: Sim! first, on the build list
+    $('statbar').innerHTML =                                             // round 177: Sim! / Stop has its own place in the Sim bar
       chip('--c-sp', fmt(g.sp), 'spell power') + chip('--c-hit', fmt(g.hitPct, 1) + '%', 'hit') + chip('--c-crit', fmt(g.critPct, 1) + '%', 'crit') +
       chip('--c-fight', f.duration + ' s' + (f.durationVarPct ? ' ±' + f.durationVarPct + '%' : ''), (f.targets > 1 ? f.targets + ' targets · ' : '') + 'fight' + (WL.PRECAST_SPELLS.indexOf(f.precast) >= 0 ? ' · ' + esc(precastName(f.precast)) + ' precast' : '')) +
       '';
     $('addRunBtn').disabled = running || !results.length;
+    renderSimStatus();
+  }
+  // ---------- the Sim bar (round 177, user: "have it at the top") ----------
+  // While a run is on: a progress bar, how far, about how long, and the best DPS so far; else the last run's best build and
+  // whether it is up to date. simProg = { label, done, total, t0, best } during a run.
+  var simProg = null, stopCur = null;
+  function renderSimStatus() {
+    var box = $('simStatus'), btn = $('runBtn'); if (!box || !btn) return;
+    btn.textContent = running ? 'Stop' : 'Sim!'; btn.classList.toggle('stop', running);
+    btn.title = running ? 'Stop this run — the results stay as they were before it' : 'Simulate every build with these settings';
+    if (running && simProg) {
+      var P = simProg, f = P.total ? Math.min(1, P.done / P.total) : 0, el = (performance.now() - P.t0) / 1000, left = P.done >= Math.max(3, P.total / 10) && P.total > P.done ? el * (P.total - P.done) / P.done : 0;   // no guess from the first few
+      box.innerHTML = '<span class="simprog" role="progressbar" aria-label="' + esc(P.label) + '" aria-valuemin="0" aria-valuemax="' + P.total + '" aria-valuenow="' + P.done + '"><i style="width:' + (100 * f).toFixed(1) + '%"></i></span>' +
+        '<span>' + esc(P.label) + ' ' + P.done + ' / ' + P.total + (left > 0.5 ? ' · about ' + Math.ceil(left) + ' s left' : '') + '</span>' +
+        (P.best ? '<span class="simbest"><b>' + fmt(P.best, 1) + '</b> DPS <span class="meta">best so far</span></span>' : '');
+      return;
+    }
+    var top = results.length ? cmpBuilds()[0] : null;
+    if (!top) { box.innerHTML = '<span class="meta">No results yet — press Sim!</span>'; return; }
+    box.innerHTML = '<span class="simlast"><span class="meta">Last run</span> <b>' + fmt(top.dps, 1) + '</b> DPS <span class="meta">best: ' + esc(top.build.short) + ' (' + esc(WL.RACES[top.race].name) + ')</span></span>' +
+      (dirty ? '<span class="simdot stale">● Settings changed — Sim! to update</span>' : '<span class="simdot ok">● Up to date</span>');
   }
 
   // ---------- run ----------
@@ -803,6 +880,7 @@
     if (chartRunning) { $('runMeta').textContent = 'A chart is being drawn — press Sim! again when it is done.'; return; }   // one job list at a time on the worker pool
     // Snapshot of the build list: builds added/removed in the editor during a run only count from the next run.
     var builds = WL.BUILDS.slice(), keep = sameSettings(), todo = keep ? pendingBuilds() : builds;
+    var undo = { results: results.slice(), runCfg: runCfg, weights: weights, prevRun: prevRun }, phase = 'combos', hRun = null;   // round 177: Stop puts this back
     if (keep) {                                                          // drop rows / weights of removed builds
       var keys = builds.map(function (b) { return b.key; });
       results = results.filter(function (r) { return keys.indexOf(r.build.key) >= 0; });
@@ -817,10 +895,23 @@
     todo.forEach(function (b) { WL.SIM_RACE_KEYS.forEach(function (r) { combos.push({ kind: 'combo', b: b, build: b, race: r, cfg: runCfg }); }); });   // 5 races + "No race" baseline
     var nCombos = combos.length, out = keep ? results.slice() : [], base = out.length, done = 0, nWeights = 0, wDone = 0, t0 = performance.now();
     combos.forEach(function (j, k) { j.idx = base + k; });
-    running = true; dirty = false; showStale();
+    running = true; dirty = false;
+    simProg = { label: keep ? 'New builds' : 'Builds', done: 0, total: nCombos, t0: performance.now(), best: 0 };
+    showStale();
     $('quickMsg').textContent = '';                                     // its "press Sim!" is done
     renderStatbar();
+    stopCur = function () {                                              // round 177: Stop
+      if (hRun) hRun.stop(); stopCur = null; running = false; simProg = null;
+      var missing = 0;
+      if (phase === 'combos') { results = undo.results; runCfg = undo.runCfg; weights = undo.weights; prevRun = undo.prevRun; }
+      else missing = bestRaceJobs(builds).filter(function (x) { return !weights[x.b.key]; }).length;
+      dirty = !sameSettings();
+      renderStatbar(); render(); showStale(); renderCompareOptions(); renderGear();
+      $('runMeta').textContent = phase === 'combos' ? 'Stopped — the results below are those of the run before.'
+        : 'Stopped during the stat weights — ' + missing + ' build' + (missing === 1 ? ' has' : 's have') + ' none yet; Sim! measures ' + (missing === 1 ? 'it' : 'them') + '.';
+    };
     function progress() {
+      if (simProg) { if (done < nCombos) simProg.done = done; else { if (simProg.label !== 'Stat weights') simProg = { label: 'Stat weights', done: 0, total: 0, t0: performance.now(), best: simProg.best }; simProg.done = wDone; simProg.total = nWeights; } renderSimStatus(); }
       $('runMeta').textContent = (done < nCombos ? 'Simulating ' + (keep ? 'new builds ' : 'builds ') + done + ' / ' + nCombos
         : 'Stat weights ' + wDone + ' / ' + nWeights) + '… (' + WL.SimPool.mode() + ')';
     }
@@ -856,7 +947,7 @@
       return Object.keys(o.err).every(function (k) { return k === 'sp' || o.err[k] / sp <= t; });
     }
     function finished() {
-      running = false; dirty = !sameSettings();                          // settings edited during the run → stale
+      running = false; dirty = !sameSettings(); simProg = null; stopCur = null;   // settings edited during the run → stale
       renderStatbar(); render(); showStale(); renderCompareOptions(); renderGear();   // renderGear: item values use the new stat weights (round 148)
       openShared();                                                      // a share link's build (round 140)
       var secs = ((performance.now() - t0) / 1000).toFixed(1), how = WL.SimPool.mode() === 'page' ? '' : ' on ' + WL.SimPool.mode();   // e.g. "on workers (7)"
@@ -869,9 +960,9 @@
     }
     function runWeights(batch, only) {
       batch = batch || 0;
-      var wj = weightJobs(batch, only); nWeights += wj.length; progress();
+      var wj = weightJobs(batch, only); nWeights += wj.length; phase = 'weights'; progress();
       var pend = {};
-      WL.SimPool.run(wj, function (j, res) {
+      hRun = WL.SimPool.run(wj, function (j, res) {
         var a = j.acc; if (j.stat) a.by[j.stat] = res.dps; else a.base = res.dps;
         if (--a.left === 0) {
           var k = j.b.key; if (!batch) wAcc[k] = [];
@@ -885,8 +976,10 @@
       });
     }
     progress();
-    WL.SimPool.run(combos, function (j, res) {
-      out[j.idx] = WL.hydrateResult(res.r, j.b, runCfg); done++; progress();
+    hRun = WL.SimPool.run(combos, function (j, res) {
+      out[j.idx] = WL.hydrateResult(res.r, j.b, runCfg); done++;
+      if (j.race !== WL.BASELINE_RACE && simProg && res.r.dps > simProg.best) simProg.best = res.r.dps;   // the best so far, in the Sim bar
+      progress();
     }, function () {
       results = out.slice();                                            // combos done → show table, then stat weights
       render(); runWeights();
@@ -1013,6 +1106,16 @@
   }
   function baseKey(k) { var xt = /^x\d:(\w+)$/.exec(k); return xt ? xt[1] : k; }
   function colorOf(k) { k = baseKey(k); return COLORS[k] || (k.indexOf('item:') === 0 ? '#C9A227' : '#8A8F98'); }
+  // Round 177 (user: damage bars coloured by school): Shadow purple, Fire red, the pet's melee grey, items gold. Demonic Brand
+  // follows the pet (Imp: Fire, else Shadow), as in the engine.
+  function schoolOf(k, b) {
+    k = baseKey(k);
+    if (k === 'pet:firebolt') return 'fire'; if (k === 'pet:lashOfPain' || k === 'touchOfTheGrave') return 'shadow'; if (k === 'pet:melee') return 'phys';
+    if (k === 'pet:brand') return b && b.pet === 'imp' ? 'fire' : 'shadow';
+    if (k.indexOf('item:') === 0) return 'item';
+    return (WL.SPELLS[k] && WL.SPELLS[k].school) || 'phys';
+  }
+  function schoolColor(k, b) { return 'var(--sch-' + schoolOf(k, b) + ')'; }
   function iconKeyOf(k) { k = baseKey(k);
     if (k === 'demonicSacrifice' || k === 'felDomination') return 'talent_' + k;
     if (k.indexOf('summon:') === 0) return 'pet_' + k.slice(7);
@@ -1126,11 +1229,11 @@
         ico = '<span class="ico ico2" role="img" aria-label="Bane of Doom / Bane of Agony" data-tip="' + esc(tip) + '">' +
           '<img src="' + (WL.ICONS.baneOfDoom || '') + '" alt=""><img class="cut" src="' + (WL.ICONS.baneOfAgony || '') + '" alt=""></span>';
         bar = '<i class="pbar"><span class="pbarin" style="width:' + (100 * amt / max).toFixed(1) + '%">' + parts.map(function (p) {
-          return '<b style="width:' + (100 * p.amt / amt).toFixed(1) + '%;background:' + colorOf(p.k) + '"></b>'; }).join('') + '</span></i>';
+          return '<b style="width:' + (100 * p.amt / amt).toFixed(1) + '%;background:' + schoolColor(p.k, r.build) + (p.k === 'baneOfAgony' ? ';opacity:.6' : '') + '"></b>'; }).join('') + '</span></i>';   // round 177: by school
       } else {
         var tip1 = spellTipByKey(s) + '<div class="tt-rule">' + fmt(pct, 1) + '% of the damage · ' + fmt(amt / dur, 1) + ' DPS' + extra(s) + rule + '</div>';
         ico = icon(iconKeyOf(s), spellName(s), '', tip1);
-        bar = '<i class="pbar"><b style="width:' + (100 * amt / max).toFixed(1) + '%;background:' + colorOf(s) + '"></b></i>';
+        bar = '<i class="pbar"><b style="width:' + (100 * amt / max).toFixed(1) + '%;background:' + schoolColor(s, r.build) + '"></b></i>';
       }
       return '<span class="pd">' + ico + bar + '<span class="pct">' + (pct < 0.95 ? '<1' : Math.round(pct)) + '%</span></span>';
     };
@@ -1272,16 +1375,17 @@
   function detail(r) {
     var b = r.build, st = r.stats, top = best(), dur = (r.avgDuration || r.firstFight.duration);
     var total = Object.keys(r.bySpell).reduce(function (a, k) { return a + r.bySpell[k].dmg; }, 0);
-    var h = '<div class="dgrid">';
+    // Round 177 (user): headline numbers on top, the rest in tabs (dTab = the open one, kept while the page is open).
+    var h = '', T = { overview: '', damage: '', fight: '', mana: '', stats: '', build: '', log: '' };
     // edit a copy of this build / compare it with another one (round 44)
-    h += '<div class="wide dactions">' +
+    h += '<div class="dactions">' +
       '<button type="button" data-editcopy="' + esc(b.key) + '">' + (b.custom ? 'Edit this build' : 'Edit a copy in the build editor') + '</button>' +
       '<button type="button" data-cmp="' + esc(id(r)) + '">Compare with another build</button>' +
       '<button type="button" data-share="' + esc(id(r)) + '" title="Copies a link that opens the sim with the settings of this run and this build opened">Share this build</button></div>';
 
     // ---- row 1: summary · stat weights · races ----
     var exP = r.execPct != null ? r.execPct : 35, exGain = r.dpsPre ? (r.dpsExec / r.dpsPre - 1) * 100 : null;
-    h += '<div class="dcard"><h2>Summary</h2><div class="kv">' +
+    T.overview += '<div class="dcard"><h2>Summary</h2><div class="kv">' +
       kv('Mean DPS (' + fmt(r.iterations) + ' fights)', '<b>' + fmt(r.dps, 1) + '</b> ± ' + fmt(r.dpsErr, 1)) +
       (r.dpsPre != null ? kv('Above ' + exP + '% boss health', fmt(r.dpsPre, 1)) +
         kv('Execute (below ' + exP + '%)', fmt(r.dpsExec, 1) + ' <span style="color:var(' + (exGain >= 0 ? '--good' : '--bad') + ')">(' + (exGain >= 0 ? '+' : '') + exGain.toFixed(1) + '%)</span>') : '') +
@@ -1294,10 +1398,10 @@
       (b.pet ? kv('Pet out of mana (fight #1)', fmt(r.firstFight.petOomTime, 0) + ' s') : '') +
       (r.firstFight.swapAt != null ? kv('Pet swap (fight #1)', clock(r.firstFight.swapAt) + ' → ' + (PET_NAMES[(b.rotation.indexOf('swapToImp') >= 0 ? 'imp' : 'succubus')])) : '') +
       kv('Weapon stone', WL.OILS[b.oil].name) + '</div></div>';
-    h += weightsBlock(r);
+    T.overview += weightsBlock(r);
     var same = results.filter(function (x) { return x.build.key === b.key; }).sort(function (a, c) { return c.dps - a.dps; });
     var sameTop = same.filter(function (x) { return !isBase(x); })[0];
-    h += '<div class="dcard"><h2>Races for this build</h2><div class="kv">' + same.map(function (x) {
+    T.overview += '<div class="dcard"><h2>Races for this build</h2><div class="kv">' + same.map(function (x) {
       var rp = racePct(x), me = x.race === r.race;
       return '<span>' + (isBase(x) ? '<span class="norace">–</span>' : icon('race_' + x.race, WL.RACES[x.race].name)) + ' ' + (me ? '<b>' : '') + esc(WL.RACES[x.race].name) + (me ? '</b>' : '') +
         (isBase(x) ? ' <span class="meta">baseline</span>' : '') + '</span><span class="n">' + fmt(x.dps, 1) + ' <span class="meta">' + (x === sameTop ? 'best' : ((x.dps / sameTop.dps - 1) * 100).toFixed(2) + '%') + '</span>' +
@@ -1305,9 +1409,9 @@
     }).join('') + '</div><p class="meta">DPS · vs this build\'s best race · <span style="color:var(--good)">what the race adds</span> vs the no-race baseline.</p></div>';
 
     // ---- the fight: DoT chart, timeline ----
-    h += dotChartBlock(r);
-    h += dotEndBlock(r);
-    h += timelineBlock(r);
+    T.fight += dotChartBlock(r);
+    T.fight += dotEndBlock(r);
+    T.fight += timelineBlock(r);
 
     // ---- stats table: value + every source inline (round 45) ----
     var pctOf = function (m) { return (m - 1) * 100; };
@@ -1316,7 +1420,7 @@
       ['Hit chance %', st.hitPct, 'hitPct', 1], ['Crit % (before talents)', st.critPct, 'critPct', 2], ['Haste %', st.hastePct, 'hastePct', 1],
       ['Spell Pierce', st.pierce, 'pierce', 0], ['Spell Penetration', st.spellPen, 'spellPen', 0],
       ['Shadow damage (auras)', pctOf(st.mult.shadow), 'shadowDmgPct', 1, true], ['Fire damage (auras)', pctOf(st.mult.fire), 'fireDmgPct', 1, true], ['All damage (auras)', pctOf(st.mult.all), 'allDmgPct', 1, true]];
-    h += '<div class="wide"><h2>Stats used in the fight</h2><div class="scroll"><table class="stattab"><thead><tr><th>Stat</th><th class="n">Value</th><th>Where it comes from</th></tr></thead><tbody>' +
+    T.stats += '<div class="wide"><h2>Stats used in the fight</h2><div class="scroll"><table class="stattab"><thead><tr><th>Stat</th><th class="n">Value</th><th>Where it comes from</th></tr></thead><tbody>' +
       statRows.filter(function (s) { return !(s[4] || /Sp$|pierce|spellPen|haste/.test(s[2])) || Math.abs(s[1]) > 1e-9; }).map(function (s) {
         var src = st.breakdown.filter(function (x) { return x.stat === s[2]; }).map(function (x) {
           return '<span class="src">' + esc(x.source.replace(/ \[A\d+\]/g, '')) + ' <b>' + (x.value > 0 ? '+' : '') + fmt(x.value, Math.abs(x.value) < 10 && x.value % 1 ? 1 : 0) + (s[4] ? '%' : '') + '</b></span>';
@@ -1327,8 +1431,9 @@
 
     // ---- spells ----
     var keys = Object.keys(r.bySpell).sort(function (a, c) { return r.bySpell[c].dmg - r.bySpell[a].dmg; });
-    h += '<div class="wide"><h2>Spells (average per fight) <span class="meta" style="text-transform:none;letter-spacing:0;font-weight:400">— click a spell to see how its damage is calculated</span></h2><div class="scroll"><table><thead><tr>' +
-      '<th>Spell</th><th class="n">% dmg</th><th class="n">DPS</th><th class="n" title="Threat per second from this source. Pet damage is the pet\'s threat, not yours.">Threat/s</th>' +
+    var topDmg = keys.length ? r.bySpell[keys[0]].dmg : 0;             // round 177: the bars' full length
+    T.damage += '<div class="wide"><h2>Spells (average per fight) <span class="meta" style="text-transform:none;letter-spacing:0;font-weight:400">— click a spell to see how its damage is calculated</span></h2><div class="scroll"><table><thead><tr>' +
+      '<th>Spell</th><th title="Share of the damage; the bar is as long as the share, against the biggest source, coloured by school (Shadow purple, Fire red)">Damage done</th><th class="n">DPS</th><th class="n" title="Threat per second from this source. Pet damage is the pet\'s threat, not yours.">Threat/s</th>' +
       '<th class="n" title="Damage per execute time: damage ÷ seconds spent casting it (cast time, channel time, or the GCD for instants). DoTs count all their ticks.">DPET</th>' +
       '<th class="n">Casts</th><th class="n">Hits</th><th class="n">Ticks</th>' +
       '<th class="n">Crit %</th><th class="n">Miss %</th><th class="n" title="Average damage of one hit or tick, crits included (round 157)">Avg hit</th><th class="n">Dmg / cast</th><th class="n">Busy s</th></tr></thead><tbody>' +
@@ -1337,7 +1442,7 @@
         var mk = id(r) + '|' + k, mx = WL.explainSpell(r.build, r.race, runCfg, k, r.stats, r.table), mOpen = mx && !!mathOpen[mk];   // show the maths (round 138)
         return '<tr' + (mx ? ' class="mrow' + (mOpen ? ' open' : '') + '" data-math="' + esc(mk) + '" tabindex="0" aria-expanded="' + mOpen + '" title="' + (mOpen ? 'Hide' : 'Show') + ' how this is calculated"' : '') +
           '><td><span class="sw" style="background:' + colorOf(k) + '"></span>' + icon(iconKeyOf(k), spellName(k), '', spellTipByKey(k)) + ' ' + esc(spellName(k)) + (mx ? '<span class="mchev" aria-hidden="true"></span>' : '') + '</td>' +
-          '<td class="n">' + (total ? fmt(100 * x.dmg / total, 1) : '–') + '</td><td class="n">' + fmt(x.dmg / dur, 1) + '</td><td class="n">' + (x.threat ? fmt(x.threat / dur, 1) : '–') + '</td>' +
+          '<td class="dmgcell">' + (total && x.dmg > 0 ? '<span class="dmgbar"><i style="width:' + (100 * x.dmg / topDmg).toFixed(1) + '%;background:' + schoolColor(k, b) + '"></i></span><span class="n">' + fmt(100 * x.dmg / total, 1) + '%</span>' : '<span class="meta">–</span>') + '</td><td class="n">' + fmt(x.dmg / dur, 1) + '</td><td class="n">' + (x.threat ? fmt(x.threat / dur, 1) : '–') + '</td>' +
           '<td class="n">' + (x.castTime > 1e-9 && x.dmg ? fmt(x.dmg / x.castTime, 0) : '–') + '</td>' +
           '<td class="n">' + (x.casts ? fmt(x.casts, 1) : '–') + '</td><td class="n">' + (x.hits ? fmt(x.hits, 1) : '–') + '</td>' +
           '<td class="n">' + (x.ticks ? fmt(x.ticks, 1) : '–') + '</td><td class="n">' + (ev ? fmt(100 * crits / ev, 1) : '–') + '</td>' +
@@ -1348,13 +1453,13 @@
 
     // ---- talents ----
     // Talent trees laid out like the in-game calculator (7 rows × 4 columns); untaken talents are greyed out.
-    h += '<div class="wide"><h2>Talents · ' + split(b) + '</h2>' + treesHtml(b) + '</div>';
+    T.build += '<div class="wide"><h2>Talents · ' + split(b) + '</h2>' + treesHtml(b) + '</div>';
 
     // ---- smaller cards ----
     var rcd = WL.RACES[r.race].racials.filter(function (x) { return x.effect === 'cooldown'; })[0];
     var rotShown = shownRotation(b, runCfg), preAct = rotShown[0] === 'precastAuto' ? rotShown.shift() : null;
     var preSet = runCfg.fight.precast && WL.PRECAST_SPELLS.indexOf(runCfg.fight.precast) >= 0 ? runCfg.fight.precast : null;
-    h += '<div class="dcard"><h2>Rotation priority</h2><ol class="prio">' +
+    T.build += '<div class="dcard"><h2>Rotation priority</h2><ol class="prio">' +
       (preAct ? '<li>' + icon(actIcon(preAct, b), actLabel(preAct, b), '', actionTip(preAct, b)) + ' ' + esc(actLabel(preAct, b)) + ' <span class="meta">(set by Precast in Fight &amp; pets)</span></li>' : '') +
       (rcd ? '<li>' + icon(RACIAL_ICON[rcd.name], rcd.name, '', racialTip(rcd)) + ' ' + esc(rcd.name) + ': ' + esc(racialRule(rcd).replace(/^Used /, '')) + '</li>' : '') +
       rotShown.map(function (a) {
@@ -1370,19 +1475,19 @@
         ' s), cast before the priority and marked "timeline" in the log; the priority fills the gaps and takes over after it.</p>' : '') + '</div>';
     var others = {};
     results.forEach(function (x) { if (x.build.key !== b.key && !isBase(x) && (!others[x.build.key] || x.dps > others[x.build.key].dps)) others[x.build.key] = x; });
-    h += '<div class="dcard"><h2>This build vs the others</h2><div class="kv">' + Object.keys(others).map(function (k) { return others[k]; })
+    T.overview += '<div class="dcard"><h2>This build vs the others</h2><div class="kv">' + Object.keys(others).map(function (k) { return others[k]; })
       .sort(function (a, c) { return c.dps - a.dps; }).map(function (x) {
         var d = (r.dps / x.dps - 1) * 100;
         return '<span>' + buildName(x) + '</span><span class="n" style="color:var(' + (d >= 0 ? '--good' : '--bad') + ')">' + (d >= 0 ? '+' : '') + d.toFixed(2) + '%</span>';
       }).join('') + '</div></div>';
-    h += manaBlock(r) + histBlock(r) + uptimeBlock(r);
+    T.mana += manaBlock(r); T.overview += histBlock(r); T.fight += uptimeBlock(r);
 
     // ---- about the build (folded): a plain description, no research history (round 112, user) ----
-    if (b.notes) h += '<div class="wide"><details class="bd"><summary>About this build</summary><p class="meta notes">' + esc(b.notes) + '</p></details></div>';
+    if (b.notes) T.build += '<div class="wide"><details class="bd"><summary>About this build</summary><p class="meta notes">' + esc(b.notes) + '</p></details></div>';
 
     var mode = logMode[id(r)] || 'casts';
     var ev = r.log.filter(function (e) { return mode === 'all' || e.type === 'cast' || e.type === 'racial' || e.type === 'consumable' || e.type === 'clip' || e.type === 'miss' || e.type === 'skip' || e.type === 'pushback' || e.type === 'pushResist'; });
-    h += '<div class="wide"><h2>Rotation log · fight #1 (' + ev.length + ' events)</h2>' +
+    T.log += '<div class="wide"><h2>Rotation log · fight #1 (' + ev.length + ' events)</h2>' +
       '<div class="seg" role="group" aria-label="Log detail" style="margin-bottom:8px">' +
       '<button type="button" data-log="casts" data-id="' + esc(id(r)) + '" aria-pressed="' + (mode === 'casts') + '">Casts only</button>' +
       '<button type="button" data-log="all" data-id="' + esc(id(r)) + '" aria-pressed="' + (mode === 'all') + '">Every event</button></div>' +
@@ -1404,8 +1509,23 @@
           (e.resistPct ? '<span class="resisted" title="Partial resist (boss resistance): ' + e.resistPct + '% of this hit was resisted' + (e.resistDmg != null ? ' — ' + fmt(e.resistDmg) + ' damage lost' : '') + '">−' + e.resistPct + '% resisted' + (e.resistDmg != null ? ' (' + fmt(e.resistDmg) + ')' : '') + '</span>' : '') + '</td>' +
           '<td class="n">' + fmt(e.mana) + '</td><td class="meta">' + esc(note.join(' · ')) + '</td></tr>';
       }).join('') + '</tbody></table></div></div>';
-    return h + '</div>';
+    // the headline numbers (round 177): DPS, threat, casts per minute, time spent Life Tapping (a Warlock is never out of mana
+    // in the sim: it taps — so that is the mana number that tells)
+    var casts = Object.keys(r.bySpell).filter(function (k) { return !/^(pet:|item:|x\d:)/.test(k) && k !== 'touchOfTheGrave' && k !== 'pet:brand'; })
+      .reduce(function (n, k) { return n + (r.bySpell[k].casts || 0); }, 0), apm = dur > 0 ? casts / dur * 60 : 0, tap = (r.mana || {}).tapTimePct;
+    var tile = function (label, value, sub, tip) { return '<div class="kpi"' + (tip ? ' title="' + esc(tip) + '"' : '') + '><span class="kl">' + label + '</span><b>' + value + '</b>' + (sub ? '<span class="ks">' + sub + '</span>' : '') + '</div>'; };
+    h += '<div class="kpis">' + tile('DPS', fmt(r.dps, 1), '± ' + fmt(r.dpsErr, 1), 'Mean of ' + fmt(r.iterations) + ' fights, ± 95% range of that mean') +
+      (r.tps != null ? tile('Threat per second', fmt(r.tps, 1), fmt(100 * r.tps / r.dps, 0) + '% of the DPS') : '') +
+      tile('Casts per minute', fmt(apm, 1), fmt(casts, 0) + ' casts per fight', 'Your casts, Life Taps included (not the pet\'s)') +
+      (tap != null ? tile('Time Life Tapping', fmt(tap, 1) + '%', fmt(r.lifeTaps, 1) + ' taps per fight', 'Share of the fight spent on Life Tap — the Warlock never runs dry in the sim: it taps') : '') + '</div>';
+    var TABS = [['overview', 'Overview'], ['damage', 'Damage'], ['fight', 'DoTs & timeline'], ['mana', 'Mana & health'], ['stats', 'Stats'], ['build', 'Talents & rotation'], ['log', 'Log']];
+    if (!T[dTab]) dTab = 'overview';
+    h += '<div class="dtabs" role="tablist" aria-label="Details">' + TABS.map(function (x) {
+      return '<button type="button" role="tab" data-dtab="' + x[0] + '" aria-selected="' + (x[0] === dTab) + '">' + x[1] + '</button>'; }).join('') + '</div>';
+    TABS.forEach(function (x) { h += '<div class="dgrid dpanel" data-dpanel="' + x[0] + '"' + (x[0] === dTab ? '' : ' hidden') + '>' + T[x[0]] + '</div>'; });
+    return h;
   }
+  var dTab = 'overview';                                    // the details' open tab (round 177)
   // Show the maths (round 138, user): one damage source of a build, step by step with its own stats and the run's settings
   // (engine/explain.js). Opened by clicking its row in the details' spell table; which ones are open is kept per row.
   var mathOpen = {};
@@ -1425,7 +1545,7 @@
         var n = b.talents[t.key] || 0; pts += n;
         cells += '<div class="tcell' + (n ? (n === t.ranks ? ' max' : ' part') : ' off') + '" style="grid-row:' + (t.row + 1) + ';grid-column:' + (t.col + 1) + '">' + icon('talent_' + t.key, t.name + ' ' + n + '/' + t.ranks, '', talentTip(t, n)) + '<span class="rk">' + n + '/' + t.ranks + '</span>' + simMark(t) + '</div>';
       });
-      return '<div class="tree"><div class="thead">' + icon('tree_' + tr, WL.TREES[tr].name) + ' <b>' + WL.TREES[tr].name + '</b> <span class="meta">' + pts + '</span></div>' +
+      return '<div class="tree t-' + tr + '"><div class="thead">' + icon('tree_' + tr, WL.TREES[tr].name) + ' <b>' + WL.TREES[tr].name + '</b> <span class="meta">' + pts + '</span></div>' +   // t-<tree>: round 177
         '<div class="tgrid">' + cells + '</div></div>';
     }).join('') + '</div>';
   }
@@ -1974,6 +2094,16 @@
     $('t_race').value = WL.RACE_KEYS[0]; renderTotals(); markDirty();
     $('runMeta').textContent = 'Stats reset to the defaults — press Sim! to simulate.';
   }
+  // Round 177 (user: a "Restore defaults" button): every setting back to the default — stats, buffs, debuffs, consumables, fight
+  // and pets, options (cheat mode too); the gear builder is switched off (its items stay). Builds, presets and the layout stay.
+  function resetAll() {
+    if (!armed('resetAll')) return;
+    var D = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
+    Object.keys(D).forEach(function (k) { cfg[k] = D[k]; });
+    gb().on = false;
+    initSettings(); $('t_race').value = WL.RACE_KEYS[0]; renderTotals(); markDirty();
+    presetMsg('Every setting is back to the default. Press Sim!');
+  }
   // Right-hand tabs (buffs & debuffs, consumables, fight & pets). The Stats panel is left alone.
   function resetSide() {
     if (!armed('resetSide')) return;
@@ -2138,7 +2268,7 @@
           icon('talent_' + x.key, x.name + ' ' + n + '/' + x.ranks, '', talentTip(x, n)) + '<span class="rk">' + n + '/' + x.ranks + '</span>' + simMark(x) + '</div>';
       });
       total += pts;
-      return '<div class="tree"><div class="thead">' + icon('tree_' + tr, WL.TREES[tr].name) + ' <b>' + WL.TREES[tr].name + '</b> <span class="meta">' + pts + '</span>' +
+      return '<div class="tree t-' + tr + '"><div class="thead">' + icon('tree_' + tr, WL.TREES[tr].name) + ' <b>' + WL.TREES[tr].name + '</b> <span class="meta">' + pts + '</span>' +
         '<button type="button" class="treereset" data-edresettree="' + tr + '"' + (pts ? '' : ' disabled') + ' title="Remove every point in ' + WL.TREES[tr].name + '">Reset</button></div>' +
         '<div class="tgrid">' + cells + '</div></div>';
     }).join('');
@@ -2180,7 +2310,7 @@
   // ruleEd = what is being written: { kind: 'rule' | 'group' | 'var', idx (a rule being edited) | name, spell, name, tree, items, num }.
   // A condition tree in the form: { t: 'all' | 'any', c: [...] } or a leaf { t: <kind>, spell / aura / what, op, v (as typed) },
   // each with neg ("not"). It becomes the engine's form (WL.ruleCond) when saved.
-  var ruleEd = null;
+  var ruleEd = null, aplTab = 'list';                     // aplTab: round 177
   var COND_KINDS = [['dot', 'DoT time left (s)'], ['aura', 'Buff / debuff time left (s)'], ['cd', 'Cooldown left (s)'], ['remaining', 'Fight time left (s)'], ['elapsed', 'Fight time gone (s)'],
     ['bossHp', 'Boss health %'], ['mana', 'Mana %'], ['shards', 'Soul Shards'], ['brand', 'Demonic Brand charges'], ['var', 'A condition of yours'],
     // round 172: the checks the built-in actions make
@@ -2274,7 +2404,13 @@
     }).join('');
     h += '<datalist id="aplVals">' + ['Shadow Bolt cast time', 'Immolate cast time', 'Corruption cast time', 'Incinerate cast time', 'Soul Fire cast time', 'the execute %']
       .concat(Object.keys(b.vars || {}).filter(function (k) { return typeof b.vars[k].num === 'number'; })).map(function (x) { return '<option value="' + esc(x) + '">'; }).join('') + '</datalist>';
-    h += '<div class="btnrow"><button type="button" data-rulenew="rule">New APL line</button><button type="button" data-rulenew="act" title="Give one of the built-in actions in this priority list an extra condition">Condition on an action</button><button type="button" data-rulenew="group">New group</button><button type="button" data-rulenew="num">New number</button><button type="button" data-rulenew="cond">New named condition</button></div>';
+    // Round 177 (user: rotation sub-tabs): Priority list · Action groups · Variables; a form opens in its own tab.
+    if (R) aplTab = R.kind === 'group' ? 'groups' : R.kind === 'num' || R.kind === 'cond' ? 'vars' : 'list';
+    if ($('edApl')) $('edApl').hidden = aplTab !== 'list';
+    Array.prototype.forEach.call(document.querySelectorAll('[data-apltab]'), function (x) { x.setAttribute('aria-selected', x.getAttribute('data-apltab') === aplTab); });
+    h += '<div class="btnrow">' + (aplTab === 'list' ? '<button type="button" data-rulenew="rule">New APL line</button><button type="button" data-rulenew="act" title="Give one of the built-in actions in this priority list an extra condition">Condition on an action</button>'
+      : aplTab === 'groups' ? '<button type="button" data-rulenew="group">New group</button>'
+      : '<button type="button" data-rulenew="num">New number</button><button type="button" data-rulenew="cond">New named condition</button>') + '</div>';
     if (R) {
       h += '<div class="ruleform">';
       if (R.kind === 'rule') h += '<h4>' + (R.at != null ? 'Line ' + (R.at + 1) + (R.lines > 1 ? String.fromCharCode(97 + R.line) : '') + ' of the priority' : R.idx != null ? 'Your APL line ' + (R.idx + 1) : 'New APL line') + '</h4><div class="btnrow">Cast <select id="ruleSpell">' + ruleSpellOpts(R.spell) + '</select>' +
@@ -2300,8 +2436,10 @@
       return '<li>' + esc(WL.ACTIONS[k].label) + ' <b>only when</b> ' + esc(WL.condText(b.actWhen[k], b)) + (WL.expandGroups(b).indexOf(k) >= 0 ? '' : ' <span class="meta">(not in the priority)</span>') +
         ' <button type="button" class="resetbtn" data-acwedit="' + k + '">Edit</button><button type="button" class="resetbtn" data-acwdel="' + k + '">Delete</button></li>';
     }).join('');
-    h += (acw ? '<h4>Extra conditions on actions that are not in the priority</h4><ul class="rulelist">' + acw + '</ul>' : '');
-    h += (rules ? '<h4>Your APL lines that are not in the priority</h4><ul class="rulelist">' + rules + '</ul>' : '') + (groups ? '<h4>Your groups</h4><ul class="rulelist">' + groups + '</ul>' : '') + (vars ? '<h4>Your variables</h4><ul class="rulelist">' + vars + '</ul>' : '');
+    if (aplTab === 'list') h += (acw ? '<h4>Extra conditions on actions that are not in the priority</h4><ul class="rulelist">' + acw + '</ul>' : '');
+    if (aplTab === 'list') h += rules ? '<h4>Your APL lines that are not in the priority</h4><ul class="rulelist">' + rules + '</ul>' : '';
+    if (aplTab === 'groups') h += groups ? '<ul class="rulelist">' + groups + '</ul>' : '<p class="meta">No groups yet. A group is a list of actions you put in the priority as one entry — handy for a set you use in several places.</p>';
+    if (aplTab === 'vars') h += vars ? '<ul class="rulelist">' + vars + '</ul>' : '<p class="meta">No variables yet. A variable is a number (e.g. "Doom tick = 60") or a condition with a name, used in your APL lines by its name.</p>';
     box.innerHTML = h;
   }
   function ruleClick(t) {
@@ -2670,7 +2808,7 @@
     var keys = Object.keys(by).sort(function (a, z) { return by[z] - by[a]; }), max = keys.length ? by[keys[0]] : 1;
     h += '<div><h3>Damage breakdown · ' + esc(WL.RACES[sel.race].name) + ' <span class="meta">— share of the damage · DPS</span></h3><div class="qdmg">' + keys.map(function (k) {
       return (icon(iconKeyOf(k), spellName(k), '', spellTipByKey(k)) || '<span></span>') + '<span class="qn">' + esc(spellName(k)) + '</span>' +
-        '<span class="qbar"><i style="width:' + (100 * by[k] / max).toFixed(1) + '%;background:' + colorOf(k) + '"></i></span>' +
+        '<span class="qbar"><i style="width:' + (100 * by[k] / max).toFixed(1) + '%;background:' + schoolColor(k, ed.b) + '"></i></span>' +   // round 177: by school
         '<span class="n">' + fmt(100 * by[k] / total, 1) + '%</span><span class="n meta">' + fmt(by[k] / sel.dur, 1) + '</span>';
     }).join('') + '</div></div>';
     h += '<p class="meta qfoot">' + (q.sheet
@@ -2899,6 +3037,14 @@
       (userPresets.length ? '<optgroup label="Yours">' + opts(userPresets, 'u') + '</optgroup>' : '') +
       (userGear.length ? '<optgroup label="Your gear sets (gear only)">' + opts(userGear, 'g') + '</optgroup>' : '');
     if (sel) $('presetSel').value = sel;
+    // Round 177 (user): the presets as buttons — one click loads one; ✕ deletes one of yours.
+    var pill = function (p, v, kind) {
+      var label = kind === 'b' ? p.name.replace(/ \(.*$/, '') : p.name;
+      return '<span class="ppill' + (kind === 'u' ? ' mine' : kind === 'g' ? ' gear' : '') + '"><button type="button" data-pload="' + v + '" title="' + esc('Load: ' + p.name) + '">' + esc(label) + '</button>' +
+        (kind === 'b' ? '' : '<button type="button" class="pdel" data-pdel="' + v + '" aria-label="' + esc('Delete ' + p.name) + '" title="' + esc('Delete ' + p.name) + '">✕</button>') + '</span>';
+    };
+    $('presetPills').innerHTML = builtinPresets().map(function (p, i) { return pill(p, 'b' + i, 'b'); }).join('') +
+      userPresets.map(function (p, i) { return pill(p, 'u' + i, 'u'); }).join('') + userGear.map(function (p, i) { return pill(p, 'g' + i, 'g'); }).join('');
   }
   function presetMsg(s, bad) { $('presetMsg').textContent = s; $('presetMsg').style.color = bad ? 'var(--bad)' : ''; }   // round 169: the presets sit by the settings
   function selectedPreset() { var v = $('presetSel').value, i = +v.slice(1); return v[0] === 'b' ? builtinPresets()[i] : v[0] === 'g' ? userGear[i] : userPresets[i]; }
@@ -2924,7 +3070,7 @@
     var i = userPresets.map(function (p) { return p.name; }).indexOf(name), p = { name: name, code: WL.encodeSettings(cfg) };
     if (i >= 0) userPresets[i] = p; else userPresets.push(p);
     savePresets(); renderPresets('u' + (i >= 0 ? i : userPresets.length - 1)); $('presetName').value = '';
-    presetMsg((i >= 0 ? 'Updated' : 'Saved') + ' "' + name + '" with all current settings. It is in the Preset list, kept in this browser.');
+    presetMsg((i >= 0 ? 'Updated' : 'Saved') + ' "' + name + '" with all current settings: it is one of the preset buttons now, kept in this browser.');
   }
   function deletePreset() {
     var v = $('presetSel').value, i = +v.slice(1);
@@ -4049,13 +4195,16 @@
     if (t.closest('#shareClose')) { $('shareOut').hidden = true; return; }
     var shb = t.closest('button[data-share]');
     if (shb) { var shr = results.filter(function (x) { return id(x) === shb.getAttribute('data-share'); })[0]; if (shr) shareLink(shr); return; }
-    if (t.closest('#runBtn')) { if (batchRunning) return; stepsDone(); run(); return; }
+    if (t.closest('#runBtn')) { if (running) { if (stopCur) stopCur(); return; } if (batchRunning) return; stepsDone(); run(); return; }   // round 177: Stop while running
+    if (t.closest('#simToTop')) { $('buildPanel').scrollIntoView({ block: 'start', behavior: 'smooth' }); return; }
     if (t.closest('#resetSide')) { resetSide(); return; }
     if (t.closest('#resetStats')) { resetStats(); return; }
     if (t.closest('#editor') && editorClick(t, e)) return;
-    if (t.closest('#presetLoad')) { loadPreset(); return; }
+    var pv = t.closest('[data-pload]');                       // round 177: preset buttons
+    if (pv) { $('presetSel').value = pv.getAttribute('data-pload'); loadPreset(); return; }
+    if ((pv = t.closest('[data-pdel]'))) { $('presetSel').value = pv.getAttribute('data-pdel'); deletePreset(); return; }
     if (t.closest('#presetSave')) { savePreset(); return; }
-    if (t.closest('#presetDel')) { deletePreset(); return; }
+    if (t.closest('#resetAll')) { resetAll(); return; }
     if (t.closest('#addRunBtn')) { addRunToCompare(); return; }
     if (t.closest('#staleRun')) { if (!batchRunning) { stepsDone(); run(); } return; }
     if (t.closest('#cmpSwap')) {                                         // swap the builds and their races
@@ -4158,5 +4307,56 @@
       startUp();
     });
   } else startUp();
-  window.addEventListener('hashchange', function () { if (WL.shareFromHash(location.hash)) location.reload(); });   // a share link pasted into this tab
+  window.addEventListener('hashchange', function () { if (WL.shareFromHash(location.hash)) location.reload(); });
+
+  // ---------- the welcome tour (round 177, user) ----------
+  // The first visit shows a welcome card (Show me around / Skip); "Tour" at the top starts it again. Each step lights up one
+  // part of the page and says what it is for. ← → move, Esc closes. Done once: 'wfs.tour' in this browser.
+  var TOUR = [
+    [null, 'Welcome to Xn\'s Forever Warlock Sim', 'A short look around the page, from the build list to your own builds. Move with the buttons or the arrow keys, and skip it any time — "Tour" at the top starts it again.'],
+    ['#simBar', 'Sim!', 'Press Sim! to simulate every build with your settings. While it runs you see the progress and the best DPS so far, and Sim! becomes Stop. Afterwards: the last run, and whether it is still up to date with your settings. This bar stays at the top while you scroll.'],
+    ['#buildPanel', 'The builds', 'Every build with its best race, best first. Click a row for its details: headline numbers, the damage of each spell, DoTs and timeline, mana, stats, talents and the full log. Quick setup switches gear and buffs in one click; Rank for shows the builds for your race.'],
+    ['.charpanel', 'Your character and the fight', 'Your stats on the left; raid buffs, consumables and the fight on the right (hover anything for what it does). Presets load a whole setup in one click, "Save as preset" keeps yours, and "Restore all defaults" puts everything back.'],
+    ['#gearTop', 'Gear builder', 'Put on items and enchants instead of typing stats: switch it on and the sheet takes its sums.'],
+    ['#editor', 'Build editor', 'Make your own builds: talents, the priority as a simple list or as APL lines (they stay in step), and a quick sim of the build right next to it.'],
+    ['#compare', 'Compare and charts', 'Two builds side by side, charts of DPS by a stat or by fight length, what each buff is worth — and, further down, every build and race by fight length.'],
+    ['#layoutBtn', 'Your layout', 'Drag the boxes of the page where you want them — one arrangement for wide screens, one for narrower windows.'],
+  ];
+  var tourAt = -1;
+  function tourDone() { try { localStorage.setItem('wfs.tour', '1'); } catch (e) { /* page only */ } }
+  function tourEnd() { tourAt = -1; $('tourCard').hidden = true; $('tourSpot').hidden = true; tourDone(); }
+  function tourPlace() {
+    var st = TOUR[tourAt], card = $('tourCard'), spot = $('tourSpot'), el = st[0] && document.querySelector(st[0]);
+    if (el && !el.getClientRects().length) el = null;                 // hidden (e.g. an empty gear builder place): card in the middle
+    card.classList.toggle('center', !el);
+    if (!el) { spot.hidden = true; card.style.left = card.style.top = ''; return; }
+    var r = el.getBoundingClientRect(), pad = 6, top = Math.max(4, r.top - pad), h = Math.min(r.height + 2 * pad, window.innerHeight - top - 4);
+    spot.hidden = false; spot.style.left = (r.left - pad) + 'px'; spot.style.top = top + 'px'; spot.style.width = (r.width + 2 * pad) + 'px'; spot.style.height = h + 'px';
+    var cw = card.offsetWidth, ch = card.offsetHeight, below = top + h + 10, x = Math.max(8, Math.min(r.left, window.innerWidth - cw - 8));
+    var y = below + ch < window.innerHeight - 8 ? below : top - ch - 10 >= 8 ? top - ch - 10 : Math.max(8, window.innerHeight - ch - 8);
+    card.style.left = x + 'px'; card.style.top = y + 'px';
+  }
+  function tourShow(i) {
+    if (i < 0 || i >= TOUR.length) { tourEnd(); return; }
+    tourAt = i; var st = TOUR[i], el = st[0] && document.querySelector(st[0]);
+    $('tourTitle').textContent = st[1]; $('tourText').textContent = st[2];
+    $('tourStep').textContent = i ? i + ' / ' + (TOUR.length - 1) : '';
+    $('tourBack').hidden = i < 2; $('tourNext').textContent = !i ? 'Show me around' : i === TOUR.length - 1 ? 'Done' : 'Next';
+    $('tourSkip').textContent = i ? 'End tour' : 'Skip tour';
+    $('tourCard').hidden = false;
+    if (el && el.getClientRects().length && el.id !== 'simBar' && el.id !== 'layoutBtn') el.scrollIntoView({ block: el.offsetHeight > window.innerHeight * 0.6 ? 'start' : 'center' });
+    tourPlace(); $('tourNext').focus();
+  }
+  $('tourNext').addEventListener('click', function () { tourShow(tourAt + 1); });
+  $('tourBack').addEventListener('click', function () { tourShow(tourAt - 1); });
+  $('tourSkip').addEventListener('click', tourEnd);
+  $('tourLink').addEventListener('click', function (e) { e.preventDefault(); tourShow(1); });
+  document.addEventListener('keydown', function (e) {
+    if (tourAt < 0) return;
+    if (e.key === 'Escape') tourEnd(); else if (e.key === 'ArrowRight') tourShow(tourAt + 1); else if (e.key === 'ArrowLeft' && tourAt > 1) tourShow(tourAt - 1); else return;
+    e.preventDefault();
+  });
+  window.addEventListener('resize', function () { if (tourAt >= 0) tourPlace(); });
+  window.addEventListener('scroll', function () { if (tourAt >= 0) tourPlace(); }, true);
+  (function () { var seen = null; try { seen = localStorage.getItem('wfs.tour'); } catch (e) { seen = '1'; } if (!seen) setTimeout(function () { if (tourAt < 0) tourShow(0); }, 900); })();   // a share link pasted into this tab
 })();

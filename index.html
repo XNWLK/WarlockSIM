@@ -15,6 +15,8 @@
     --mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
     --display: 'Spectral', Georgia, 'Times New Roman', serif;
     --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;   /* chart series */
+    --sch-shadow: #7B4FD6; --sch-fire: #D44A2E; --sch-phys: #8A8F98; --sch-item: #C9A227;   /* damage by school (round 177) */
+    --tr-affliction: 76, 160, 90; --tr-demonology: 150, 92, 214; --tr-destruction: 226, 106, 42;   /* talent tree tints (r, g, b) */
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -23,6 +25,7 @@
       --ink: #ECE8F5; --muted: #A39CB8; --accent: #B393F0; --accent-soft: #2B2340; --good: #6CC592; --bad: #EE7B7B;
       --c-sp: #B393F0; --c-hit: #4CC7C9; --c-crit: #F29360; --c-haste: #6FA8F0; --c-int: #EA7DBB; --c-pierce: #8CCB64; --c-fight: #A39CB8;
       --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+      --sch-shadow: #9B76F2; --sch-fire: #EE6447;
     }
   }
   :root[data-theme="dark"] {
@@ -31,6 +34,7 @@
     --ink: #ECE8F5; --muted: #A39CB8; --accent: #B393F0; --accent-soft: #2B2340; --good: #6CC592; --bad: #EE7B7B;
     --c-sp: #B393F0; --c-hit: #4CC7C9; --c-crit: #F29360; --c-haste: #6FA8F0; --c-int: #EA7DBB; --c-pierce: #8CCB64; --c-fight: #A39CB8;
     --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+    --sch-shadow: #9B76F2; --sch-fire: #EE6447;
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scrollbar-gutter: stable; }   /* round 175: room for the scrollbar kept, so opening a card never shifts the page sideways */   /* no mobile font boosting next to wide tables */
@@ -737,6 +741,90 @@
   .tl-mana { fill: var(--c-hit); opacity: .35; }
   .tl-gcd { fill: var(--muted); opacity: .7; }
   .tlopts { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: -2px 0 6px; font-size: 12px; }
+  /* round 177: damage bars by school; talent trees in their own colour */
+  td.dmgcell { min-width: 150px; white-space: nowrap; }
+  .dmgbar { display: inline-block; vertical-align: middle; width: 110px; height: 9px; border-radius: 3px; background: var(--sunk); overflow: hidden; margin-right: 6px; }
+  .dmgbar i { display: block; height: 100%; border-radius: 3px; }
+  .tree.t-affliction { --tr: var(--tr-affliction); } .tree.t-demonology { --tr: var(--tr-demonology); } .tree.t-destruction { --tr: var(--tr-destruction); }
+  .tree[class*="t-"] { background: linear-gradient(170deg, rgba(var(--tr), .26), rgba(var(--tr), .06) 55%, rgba(var(--tr), .14)), var(--surface); border-color: rgba(var(--tr), .55); }
+  .tree[class*="t-"] .thead b { color: rgb(var(--tr)); }
+  /* round 177: the welcome tour */
+  .tourspot { position: fixed; z-index: 70; border-radius: 8px; box-shadow: 0 0 0 3px var(--accent), 0 0 0 9999px rgba(8, 6, 14, .6); pointer-events: none; transition: all .2s; }
+  .tourspot[hidden], .tourcard[hidden] { display: none; }
+  .tourcard { position: fixed; z-index: 71; width: min(380px, calc(100vw - 24px)); background: var(--surface); color: var(--ink); border: 1px solid var(--accent);
+              border-radius: 8px; padding: 12px 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, .45); display: grid; gap: 8px; }
+  .tourcard.center { left: 50% !important; top: 50% !important; transform: translate(-50%, -50%); }
+  .tourhead { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .tourhead b { font: 600 15px var(--display); }
+  .tourcard p { margin: 0; font-size: 12.5px; line-height: 1.5; }
+  .tourcard .tourgap { flex: 1; }
+  /* round 177: buffs and debuffs as compact tiles; consumables as slots */
+  #buffBoxes, #debuffBoxes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); gap: 3px 6px; }
+  .btile { position: relative; display: flex; align-items: center; gap: 6px; padding: 3px 6px; border: 1px solid transparent; border-radius: 4px; cursor: pointer; min-width: 0; }
+  .btile > input[type=checkbox] { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+  .btile .ico { width: 20px; height: 20px; flex: none; cursor: pointer; }
+  .btile .btn2 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .btile:hover { background: var(--sunk); }
+  .btile:has(> input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+  .btile:not(:has(> input:checked)) { color: var(--muted); }
+  .btile:not(:has(> input:checked)) .ico { filter: grayscale(1); opacity: .45; }
+  .btile:has(> input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .btile input.bcount { margin-left: auto; }
+  .cslots { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(210px, 100%), 1fr)); gap: 6px; }
+  .cslot { min-width: 0; }
+  .cslot.off { opacity: .45; }
+  .cslotbtn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 4px 8px; text-align: left; font-weight: 500; background: var(--sunk); }
+  .cslotbtn.on { border-color: var(--accent); background: var(--accent-soft); }
+  .cslotbtn .ico, .cslotmenu .ico, .cempty { width: 28px; height: 28px; flex: none; }
+  .cempty { display: inline-block; border: 1px dashed var(--line); border-radius: 4px; }
+  .cslott { display: grid; min-width: 0; }
+  .cslotg { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cslotv { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cslotbtn:not(.on) .cslotv { color: var(--muted); }
+  .cslotmenu { position: fixed; z-index: 60; width: min(340px, calc(100vw - 16px)); max-height: 340px; overflow: auto; display: grid; gap: 2px; padding: 4px;
+               background: var(--surface); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
+  .cslotmenu[hidden] { display: none; }
+  .cslotmenu button { display: flex; align-items: center; gap: 8px; text-align: left; border: 0; background: none; padding: 4px 6px; font-weight: 500; }
+  .cslotmenu button:hover, .cslotmenu button:focus-visible { background: var(--accent-soft); }
+  .cslotmenu button > span { display: grid; min-width: 0; }
+  .cslotmenu .eff { font-size: 11px; color: var(--muted); }
+  /* round 177: a build's details — headline numbers, then tabs */
+  .detail .dactions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; margin-bottom: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+  .kpi { display: grid; justify-items: center; gap: 1px; padding: 8px 10px; text-align: center; }
+  .kpi + .kpi { border-left: 1px solid var(--line); }
+  .kpi .kl { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+  .kpi b { font: 700 22px/1.1 var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
+  .kpi:first-child b { color: var(--accent); }
+  .kpi .ks { font-size: 11px; color: var(--muted); }
+  .dtabs { display: flex; flex-wrap: wrap; gap: 2px; margin: 0 0 10px; border-bottom: 1px solid var(--line); }
+  .dtabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; color: var(--muted); font-weight: 500; padding: 6px 10px; margin-bottom: -1px; }
+  .dtabs button[aria-selected=true] { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+  .dpanel[hidden] { display: none; }
+  /* round 177: preset pills, restore all defaults */
+  .ppills { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+  .ppill { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; background: var(--sunk); overflow: hidden; }
+  .ppill > button { border: 0; border-radius: 0; background: none; padding: 2px 10px; font: 600 11.5px var(--sans); color: var(--ink); }
+  .ppill > button:hover { background: var(--accent-soft); color: var(--accent); }
+  .ppill > button.pdel { padding: 2px 7px 2px 4px; color: var(--muted); font-weight: 400; }
+  .ppill > button.pdel:hover { color: var(--bad); background: none; }
+  .ppill.mine { border-color: var(--accent); }
+  .ppill.gear > button:first-child::after { content: " (gear)"; color: var(--muted); font-weight: 400; }
+  .charhead #resetAll { margin-left: auto; }
+  /* round 177: the Sim bar — stays at the top of the window */
+  html { scroll-padding-top: 64px; }   /* a box scrolled into view is not hidden under the bar */
+  .simbar { position: sticky; top: 0; z-index: 30; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 6px 10px;
+            background: var(--surface); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 4px 14px rgba(0, 0, 0, .2); }
+  .simbar .simgo { padding: 6px 20px; font-size: 13.5px; min-width: 84px; }
+  .simbar .simgo.stop { background: var(--bad); border-color: var(--bad); }
+  .simstatus { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; flex: 1 1 340px; min-width: 0; font-size: 12px; }
+  .simlast b, .simbest b { font: 700 16px var(--mono); color: var(--accent); font-variant-numeric: tabular-nums; }
+  .simdot { font-weight: 600; } .simdot.ok { color: var(--good); } .simdot.stale { color: var(--c-crit); }
+  .simprog { display: block; flex: 0 1 220px; min-width: 80px; height: 8px; border-radius: 4px; background: var(--sunk); overflow: hidden; }
+  .simprog i { display: block; height: 100%; border-radius: 4px; background: var(--accent); transition: width .2s; }
+  .simbar .statbar { background: none; border: 0; padding: 0; gap: 5px; }
+  .simbar .chip { padding: 2px 7px; }
+  @media (max-width: 700px) { .simbar .statbar, #simToTop, .simlast > .meta:last-child, .simbest .meta { display: none; } .simbar { gap: 4px 10px; padding: 5px 8px; } .simstatus { flex-basis: 0; flex-grow: 1; } .simbar .simgo { min-width: 0; padding: 6px 14px; } }   /* phones: the button and the run only, one line */
   /* round 176: the layout editor */
   .layoutdlg { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); padding: 0; width: min(780px, calc(100vw - 32px)); }
   .layoutdlg::backdrop { background: rgba(10, 8, 16, .55); }
@@ -978,6 +1066,8 @@
       <a class="twitchbtn" href="https://www.twitch.tv/ascalontv" target="_blank" rel="noopener" title="Xn's live stream: come by with questions, or just to say hi"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 1 1.5 3.5v10h3V15h1.7l1.6-1.5h2.5L13.5 10V1h-11zm9.8 8.4-2 1.9H7.8L6.2 12.8v-1.5H4.1V2.2h8.2v7.2zM10.6 4.5h-1.2v3.4h1.2V4.5zm-3.2 0H6.2v3.4h1.2V4.5z"/></svg>Twitch</a>
       <a class="discordbtn" href="https://discord.gg/uepKAsY" target="_blank" rel="noopener" title="Xn's Discord server: questions, ideas and bug reports"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 3.2A12.3 12.3 0 0 0 10.4 2.3l-.4.8a11.4 11.4 0 0 0-4 0l-.4-.8a12.3 12.3 0 0 0-3.1.9C.6 6.1.1 8.9.3 11.7a12.4 12.4 0 0 0 3.8 1.9l.8-1.3a8 8 0 0 1-1.3-.6l.3-.2a8.8 8.8 0 0 0 7.6 0l.3.2a8 8 0 0 1-1.3.6l.8 1.3a12.4 12.4 0 0 0 3.8-1.9c.3-3.3-.5-6-2.3-8.5zM5.6 10.1c-.7 0-1.3-.7-1.3-1.5s.6-1.5 1.3-1.5 1.3.7 1.3 1.5-.6 1.5-1.3 1.5zm4.8 0c-.7 0-1.3-.7-1.3-1.5s.6-1.5 1.3-1.5 1.3.7 1.3 1.5-.6 1.5-1.3 1.5z"/></svg>Discord</a>
       <nav class="toplinks" aria-label="Project links">
+        <a href="#" id="tourLink" title="A short look around the page">Tour</a>
+        <span class="sep" aria-hidden="true">·</span>
         <a href="https://github.com/XNWLK/WarlockSIM" target="_blank" rel="noopener">GitHub</a>
         <span class="sep" aria-hidden="true">·</span>
         <a href="https://github.com/XNWLK/WarlockSIM/blob/main/MECHANICS.md" target="_blank" rel="noopener" title="The rule book: every formula, and what each talent, spell, pet, racial, buff and consumable does in the sim, with worked examples">How it's calculated</a>
@@ -991,6 +1081,13 @@
     </div>
   </header>
 
+  <!-- Round 177 (user: the Sim panel "at the top"): Sim! / Stop, the run's progress or the last run, the stats used; stays in view. -->
+  <div class="simbar" id="simBar" role="region" aria-label="Simulate">
+    <button class="primary simgo" id="runBtn" type="button">Sim!</button>
+    <div class="simstatus" id="simStatus" aria-live="polite"></div>
+    <div class="statbar" id="statbar" aria-label="Stats used for this simulation"></div>
+    <button type="button" class="resetbtn" id="simToTop" title="Back to the build list">Builds ↑</button>
+  </div>
   <!-- Round 173 / 174 (user: use the room of wide screens; place things by what they belong to): from 2350 px wide, left = what
        the sim shows (builds, compare, charts, fight lengths), right = what you put in (your character and the fight, gear builder,
        build editor, import / export). Narrower, .cols / .colmain / .colside step aside (display: contents) and it all stacks as
@@ -1000,7 +1097,6 @@
   <section class="panel buildpanel" id="buildPanel" aria-labelledby="buildsTitle">
     <div class="runbar">
       <h2 id="buildsTitle">Builds</h2>
-      <div class="statbar" id="statbar" aria-label="Stats used for this simulation"></div>
       <div class="meta" id="runMeta">Starting…</div>
     </div>
     <div class="stale" id="stale" role="status" hidden>
@@ -1080,15 +1176,15 @@
   <div class="charhead">
     <h2 class="parth" id="charTitle">Your character and the fight</h2>
     <div class="presetbar" id="presetBar" aria-label="Saved setups">
-      <span class="qgroup"><label class="meta" for="presetSel">Preset</label>
-        <select id="presetSel"></select>
-        <button type="button" id="presetLoad" title="Load the selected preset: a whole setup (stats, buffs, debuffs, consumables, fight and pet settings)">Load</button>
-        <button type="button" id="presetDel" title="Delete the selected preset (only your own)">Delete</button></span>
+      <!-- round 177 (user): one click loads a preset; ✕ deletes one of yours -->
+      <span class="meta">Presets</span><span class="ppills" id="presetPills" role="group" aria-label="Presets: click to load"></span>
+      <select id="presetSel" hidden aria-hidden="true"></select>
       <span class="qgroup">
         <input id="presetName" type="text" placeholder="Name for your current settings" aria-label="Name for a new preset" maxlength="40">
         <button type="button" id="presetSave" title="Save everything you have set — stats, buffs, debuffs, consumables, fight and pet settings — under this name. Kept in this browser.">Save as preset</button></span>
       <span class="meta" id="presetMsg" role="status"></span>
     </div>
+    <button type="button" id="resetAll" class="resetbtn" data-label="Restore all defaults" data-armed="Click again: every setting back to the default" title="Stats, buffs, debuffs, consumables, fight and pet settings, cheat mode — all back to the defaults (your builds, presets and layout stay)">Restore all defaults</button>
   </div>
   <section class="setup" id="settings" aria-label="Stats and fight settings">
     <div class="card statcard">
@@ -1129,9 +1225,9 @@
       </div>
 
       <div class="pane" role="tabpanel" id="pane_cons" aria-labelledby="tab_cons" hidden>
-        <p class="meta">One per group; ticking an item unticks the others in its group. The weapon stone and a weapon oil stack.
+        <p class="meta">One per group: click a slot to choose (hover for what it does). The weapon stone and a weapon oil stack. Explosives need Engineering (Stats panel).
           Mana potions and runes are used when at least their amount is missing; the Spellblasting potion follows "Pop cooldowns" (Fight &amp; pets).</p>
-        <div id="consBoxes" class="congrid"></div>
+        <div id="consBoxes" class="cslots"></div>
       </div>
 
       <div class="pane" role="tabpanel" id="pane_fight" aria-labelledby="tab_fight" hidden>
@@ -1261,6 +1357,7 @@
       </details>
       <details class="edcol edrules" id="edRulesBox" open><summary>Advanced (APL) <span class="meta">— the same priority as conditions</span></summary>
         <p class="meta">Each line casts its spell when its conditions hold — the first line that can is cast. A simple action shows here as the lines that check exactly what it checks; edit a line and it stays that action as long as it still matches one (your numbers and extra conditions are kept), otherwise it becomes an APL line of your own. A new APL line that matches a simple action is added as that action.</p>
+        <div class="dtabs apltabs" role="tablist" aria-label="Advanced (APL)"><button type="button" role="tab" data-apltab="list" aria-selected="true">Priority list</button><button type="button" role="tab" data-apltab="groups" aria-selected="false">Action groups</button><button type="button" role="tab" data-apltab="vars" aria-selected="false">Variables</button></div>
         <ol id="edApl" class="edapl"></ol>
         <div id="edRules"></div></details>
     </div>
@@ -1327,6 +1424,14 @@
     <div class="scroll"><table id="batchOut" class="batchout"></table></div>
   </details>
   </div>
+  </div>
+  <!-- Round 177 (user): the welcome tour — a card on the first visit, then one step per part of the page (app/app.js). -->
+  <div class="tourspot" id="tourSpot" hidden></div>
+  <div class="tourcard" id="tourCard" role="dialog" aria-modal="false" aria-labelledby="tourTitle" hidden>
+    <div class="tourhead"><b id="tourTitle"></b><span class="meta" id="tourStep"></span></div>
+    <p id="tourText"></p>
+    <div class="btnrow"><button type="button" id="tourSkip" class="resetbtn">Skip tour</button><span class="tourgap"></span>
+      <button type="button" id="tourBack">Back</button><button type="button" id="tourNext" class="primary">Next</button></div>
   </div>
   <!-- Round 176 (user): the layout editor — tiles stand in for the boxes of the page; app/app.js keeps them and the page in step. -->
   <dialog id="layoutDlg" class="layoutdlg" aria-labelledby="layoutTitle"><div class="lyin">

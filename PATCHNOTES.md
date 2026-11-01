@@ -3,6 +3,21 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v156
+- **Sim bar at the top**: Sim! stays in view while you scroll. While a run is on it shows the progress, about how long is
+  left and the best DPS so far, and Sim! becomes **Stop** (the results go back to the run before). Afterwards: the last run's
+  best build and whether it is still up to date with your settings.
+- **Presets are buttons**: one click loads one; your own have a ✕ to delete them.
+- **Restore all defaults** (next to "Your character and the fight"): every setting back to the default in two clicks.
+- **Buffs and debuffs** are a compact grid of icon and name (lit when on); hover one for what it does. **Consumables** are one
+  slot per group: click it and pick one.
+- **A build's details** start with its headline numbers — DPS, threat per second, casts per minute and the time spent Life
+  Tapping — and the rest sits in tabs: Overview, Damage, DoTs & timeline, Mana & health, Stats, Talents & rotation, Log.
+- **Damage bars by school** (Shadow purple, Fire red), and a damage bar per spell in the details.
+- **Talent trees** in their own colour.
+- **Build editor**: Advanced (APL) has tabs — Priority list, Action groups, Variables.
+- **Welcome tour**: a short look around the page on your first visit; "Tour" at the top starts it again.
+
 ## v155
 - **Layout editor** (the Layout button at the top): drag the boxes of the page where you want them — Builds, Compare, Charts,
   Racials by fight length, Your character and the fight, the gear builder, the build editor, Import / output. One arrangement
