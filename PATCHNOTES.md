@@ -17,6 +17,8 @@ What each version added or changed, newest first. Version = the version of the
 - **Talent trees** in their own colour.
 - **Build editor**: Advanced (APL) has tabs — Priority list, Action groups, Variables.
 - **Welcome tour**: a short look around the page on your first visit; "Tour" at the top starts it again.
+- Steadier page: switching a build's tabs no longer shifts the build list's columns; "Settings changed" no longer makes the
+  Sim bar or the results table bigger; switching the gear builder on no longer adds a line to the Stats box (a badge says it).
 
 ## v155
 - **Layout editor** (the Layout button at the top): drag the boxes of the page where you want them — Builds, Compare, Charts,

@@ -243,9 +243,9 @@
   function showStale() {
     var pend = running || dirty ? [] : pendingBuilds();                 // round 55: new builds with unchanged settings
     var noW = running || dirty || pend.length || !results.length ? [] : bestRaceJobs(WL.BUILDS).filter(function (x) { return !weights[x.b.key]; });   // round 66
-    $('stale').hidden = running || !(dirty || pend.length || noW.length);
+    $('stale').hidden = running || dirty || !(pend.length || noW.length);   // round 178: "settings changed" is in the Sim bar (the list kept jumping)
     renderSimStatus();                                                  // round 177: the Sim bar's dot
-    $('results').classList.toggle('stale', dirty && !running);
+    $('results').classList.toggle('old', dirty && !running);   // round 178: was 'stale' — the notice box's class, it padded the table
     $('staleMsg').innerHTML = dirty
       ? '<b>Settings changed since this run.</b> The results below are from the previous settings; Sim! reruns every build.'
       : noW.length ? '<b>' + noW.length + ' shown build' + (noW.length === 1 ? '' : 's') + ' without stat weights:</b> ' + noW.map(function (x) { return esc(x.b.short); }).join(', ') +
@@ -856,7 +856,7 @@
     var top = results.length ? cmpBuilds()[0] : null;
     if (!top) { box.innerHTML = '<span class="meta">No results yet — press Sim!</span>'; return; }
     box.innerHTML = '<span class="simlast"><span class="meta">Last run</span> <b>' + fmt(top.dps, 1) + '</b> DPS <span class="meta">best: ' + esc(top.build.short) + ' (' + esc(WL.RACES[top.race].name) + ')</span></span>' +
-      (dirty ? '<span class="simdot stale">● Settings changed — Sim! to update</span>' : '<span class="simdot ok">● Up to date</span>');
+      (dirty ? '<span class="simdot warn">● Settings changed — Sim! to update</span>' : '<span class="simdot ok">● Up to date</span>');
   }
 
   // ---------- run ----------
@@ -1333,7 +1333,7 @@
         '<td class="n dps" title="Mean of ' + fmt(r.iterations) + ' fights; ± = 95% confidence of the mean"><b>' + fmt(r.dps, 1) + '</b><span class="err">±' + fmt(r.dpsErr, 1) + '</span>' + refTag(r) + dpsBar(r.dps, top) + '</td>' +
         '<td class="n delta ' + (Math.abs(d) < 1e-9 ? 'best' : 'neg') + '">' + (Math.abs(d) < 1e-9 ? 'best' : d.toFixed(2) + '%') + '</td>' +
         raceCell(r) + weightCells(b) + '</tr>';
-      if (isOpen) h += '<tr class="detail"><td colspan="' + ncols() + '">' + detail(r) + '</td></tr>';
+      if (isOpen) h += '<tr class="detail"><td colspan="' + ncols() + '"><div class="dwrap">' + detail(r) + '</div></td></tr>';
       if (rOpen) others.forEach(function (x) { h += raceRow(x, r, top); });
       return h;
     }).join('') + hiddenNote();
@@ -1348,7 +1348,7 @@
       '<td></td><td class="meta rvs">' + (dB > 0 ? '+' : '') + dB.toFixed(2) + '% vs ' + esc(WL.RACES[bestOfBuild.race].name) + '</td>' +
       '<td class="n dps"><b>' + fmt(x.dps, 1) + '</b><span class="err">±' + fmt(x.dpsErr, 1) + '</span>' + refTag(x) + dpsBar(x.dps, top) + '</td>' +
       '<td class="n delta ' + (d > 0 ? 'best' : 'neg') + '">' + (d > 0 ? '+' : '') + d.toFixed(2) + '%</td>' + raceCell(x) + '<td colspan="' + STATS.length + '"></td></tr>';
-    if (isOpen) h += '<tr class="detail"><td colspan="' + ncols() + '">' + detail(x) + '</td></tr>';
+    if (isOpen) h += '<tr class="detail"><td colspan="' + ncols() + '"><div class="dwrap">' + detail(x) + '</div></td></tr>';
     return h;
   }
   // What the race adds (racials + stat offsets): this row vs the same build's "No race" baseline row (round 28).
@@ -3551,7 +3551,7 @@
   // the field you are typing in). The crit option is off (the sum is the sheet before talents).
   function gbSync() {
     var g = gb(); $('o_critAll').disabled = !!g.on;
-    $('gbNote').hidden = !g.on;
+    $('gbNote').hidden = !g.on;                                       // round 178: a badge in the header line (no extra line)
     if (!g.on) return;
     var r = WL.gearSheet(g, cfg);
     WL.GEAR_STAT_KEYS.forEach(function (k) {

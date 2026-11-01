@@ -495,7 +495,7 @@
            padding: 7px 10px; border-radius: 4px; border: 1px solid var(--c-crit); background: var(--sunk); font-size: 12px; }
   .stale[hidden] { display: none; }
   .stale b { color: var(--c-crit); }
-  #results.stale > tbody { opacity: .5; transition: opacity .2s; }
+  #results.old > tbody { opacity: .5; transition: opacity .2s; }
   /* one row per build; the other races underneath */
   .racecell { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; white-space: nowrap; }
   .racecell > * { flex: none; }
@@ -790,6 +790,9 @@
   .cslotmenu .eff { font-size: 11px; color: var(--muted); }
   /* round 177: a build's details — headline numbers, then tabs */
   .detail .dactions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .dwrap { width: 0; min-width: 100%; }   /* round 178: the details' content does not size the table's columns (rows jumped per tab) */
+  .gbbadge { font-size: 11px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 999px; padding: 1px 8px; cursor: help; }
+  .gbbadge[hidden] { display: none; }
   .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; margin-bottom: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
   .kpi { display: grid; justify-items: center; gap: 1px; padding: 8px 10px; text-align: center; }
   .kpi + .kpi { border-left: 1px solid var(--line); }
@@ -817,9 +820,15 @@
             background: var(--surface); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 4px 14px rgba(0, 0, 0, .2); }
   .simbar .simgo { padding: 6px 20px; font-size: 13.5px; min-width: 84px; }
   .simbar .simgo.stop { background: var(--bad); border-color: var(--bad); }
-  .simstatus { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; flex: 1 1 340px; min-width: 0; font-size: 12px; }
+  /* round 178: always one line — the status has a fixed share of the bar and trims itself, so its text never changes the bar */
+  .simbar { flex-wrap: nowrap; }
+  .simstatus { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px 12px; flex: 1 1 420px; min-width: 0; font-size: 12px; white-space: nowrap; overflow: hidden; }
+  .simstatus > * { flex: none; }
+  .simstatus > .simlast { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .simbar .statbar { flex: none; flex-wrap: nowrap; }
+  .simbar > button { flex: none; }
   .simlast b, .simbest b { font: 700 16px var(--mono); color: var(--accent); font-variant-numeric: tabular-nums; }
-  .simdot { font-weight: 600; } .simdot.ok { color: var(--good); } .simdot.stale { color: var(--c-crit); }
+  .simdot { font-weight: 600; } .simdot.ok { color: var(--good); } .simdot.warn { color: var(--c-crit); }   /* not "stale": that class is the old notice box (round 178) */
   .simprog { display: block; flex: 0 1 220px; min-width: 80px; height: 8px; border-radius: 4px; background: var(--sunk); overflow: hidden; }
   .simprog i { display: block; height: 100%; border-radius: 4px; background: var(--accent); transition: width .2s; }
   .simbar .statbar { background: none; border: 0; padding: 0; gap: 5px; }
@@ -1189,7 +1198,7 @@
   <section class="setup" id="settings" aria-label="Stats and fight settings">
     <div class="card statcard">
       <div class="cardhead">
-        <h2>Stats</h2>
+        <h2>Stats</h2> <span class="gbbadge" id="gbNote" hidden title="Gear builder on: each Sheet (gear) value is a naked character plus your items in the gear builder; what you type here is added on top.">Sheet = gear builder</span>
         <button type="button" id="resetStats" class="resetbtn" title="Reset gear values, race, the crit option and Engineering to the defaults. Buffs, consumables and fight settings (right panel) are not touched.">Reset to defaults</button>
       </div>
       <div class="totbar">
@@ -1197,7 +1206,6 @@
         <label class="c" for="o_critAll"><input id="o_critAll" type="checkbox"> Sheet crit % already includes talents, racials &amp; oil</label>
         <label class="c" for="o_eng" title="Engineering unlocks the explosives in the Consumables tab. No other profession has a DPS effect for a Warlock in Forever."><input id="o_eng" type="checkbox"> Engineering (explosives)</label>
       </div>
-      <p class="meta gbnote" id="gbNote" hidden>Gear builder on: each Sheet (gear) value = a naked character + your items (<a href="#gear">Gear builder</a>, bottom of the page). What you type here is added on top.</p>
       <div class="scroll"><table class="tot" id="totalTable"></table></div>
       <p class="meta"><b>Sheet (gear)</b> = your character sheet with gear only (editable). <b>Total</b> = race base + gear + raid buffs +
         consumables + weapon oil + passive racials (read-only; the per-build Spellstone / Firestone is not included). Talents differ per build and are shown in each build's details.
