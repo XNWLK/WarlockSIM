@@ -37,7 +37,7 @@
     T.ok(has('class="dmgcell"', app) && has('Damage done', app), 'the details\' spell table has a damage bar per spell');
     T.ok(has('.tree.t-affliction') && has('.tree.t-demonology') && has('.tree.t-destruction') && has("'<div class=\"tree t-' + tr + '\">", app), 'talent trees in their own colour');
     T.group('a build\'s details');
-    T.ok(has("tile('DPS'", app) && has("tile('Threat per second'", app) && has("tile('Casts per minute'", app) && has("tile('Time Life Tapping'", app), 'headline numbers: DPS, threat, casts per minute, time Life Tapping');
+    T.ok(has("tile('DPS'", app) && has("tile('Threat per second'", app) && has("tile('Casts per minute'", app) && has("tile('Dmg split'", app), 'headline numbers: DPS, threat, casts per minute, the damage split (round 183: was the time Life Tapping)');
     T.ok(['overview', 'damage', 'fight', 'mana', 'stats', 'build', 'log'].every(function (k) { return has("['" + k + "', ", app); }) && has('data-dpanel=', app), 'seven tabs: Overview, Damage, DoTs & timeline, Mana & health, Stats, Talents & rotation, Log');
     T.group('build editor');
     T.ok(has('data-apltab="list"') && has('data-apltab="groups"') && has('data-apltab="vars"'), 'Advanced (APL): Priority list · Action groups · Variables');

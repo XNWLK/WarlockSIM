@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v158
+- A build's fourth headline number is now the **damage split** — how much of the damage is yours and how much your pet's
+  (e.g. "You 77% · Pet 23%", with the pet's DPS under it). It replaces the time spent Life Tapping.
+
 ## v157
 - **Racials by fight length** has a **Targets** choice: 1 (as before), 2 or 3. With 2 or 3 targets every build keeps its DoTs
   on every target and Bane of Havoc works as usual. Shipped for the default settings; "Redo with my settings" runs the chosen

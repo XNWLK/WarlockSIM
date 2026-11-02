@@ -1517,12 +1517,16 @@
     // the headline numbers (round 177): DPS, threat, casts per minute, time spent Life Tapping (a Warlock is never out of mana
     // in the sim: it taps — so that is the mana number that tells)
     var casts = Object.keys(r.bySpell).filter(function (k) { return !/^(pet:|item:|x\d:)/.test(k) && k !== 'touchOfTheGrave' && k !== 'pet:brand'; })
-      .reduce(function (n, k) { return n + (r.bySpell[k].casts || 0); }, 0), apm = dur > 0 ? casts / dur * 60 : 0, tap = (r.mana || {}).tapTimePct;
+      .reduce(function (n, k) { return n + (r.bySpell[k].casts || 0); }, 0), apm = dur > 0 ? casts / dur * 60 : 0;
+    // Round 183 (user): the damage split — your pet's share of the total (its attacks, spells and Demonic Brand's bonus hits)
+    var petDmg = Object.keys(r.bySpell).filter(function (k) { return baseKey(k).indexOf('pet:') === 0; }).reduce(function (n, k) { return n + (r.bySpell[k].dmg || 0); }, 0);
+    var petPct = total > 0 ? 100 * petDmg / total : 0;
     var tile = function (label, value, sub, tip) { return '<div class="kpi"' + (tip ? ' title="' + esc(tip) + '"' : '') + '><span class="kl">' + label + '</span><b>' + value + '</b>' + (sub ? '<span class="ks">' + sub + '</span>' : '') + '</div>'; };
     h += '<div class="kpis">' + tile('DPS', fmt(r.dps, 1), '± ' + fmt(r.dpsErr, 1), 'Mean of ' + fmt(r.iterations) + ' fights, ± 95% range of that mean') +
       (r.tps != null ? tile('Threat per second', fmt(r.tps, 1), fmt(100 * r.tps / r.dps, 0) + '% of the DPS') : '') +
       tile('Casts per minute', fmt(apm, 1), fmt(casts, 0) + ' casts per fight', 'Your casts, Life Taps included (not the pet\'s)') +
-      (tap != null ? tile('Time Life Tapping', fmt(tap, 1) + '%', fmt(r.lifeTaps, 1) + ' taps per fight', 'Share of the fight spent on Life Tap — the Warlock never runs dry in the sim: it taps') : '') + '</div>';
+      tile('Dmg split', 'You ' + fmt(100 - petPct, 0) + '% · Pet ' + fmt(petPct, 0) + '%', b.pet ? fmt(petDmg / dur, 1) + ' DPS from the ' + (PET_NAMES[b.pet] || 'pet') : 'no pet out',
+        'Share of the total damage: yours (spells, DoTs, items, racials) and your pet\'s (its attacks and spells, and Demonic Brand\'s bonus hits)') + '</div>';
     var TABS = [['overview', 'Overview'], ['damage', 'Damage'], ['fight', 'DoTs & timeline'], ['mana', 'Mana & health'], ['stats', 'Stats'], ['build', 'Talents & rotation'], ['log', 'Log']];
     if (!T[dTab]) dTab = 'overview';
     h += '<div class="dtabs" role="tablist" aria-label="Details">' + TABS.map(function (x) {
