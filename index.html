@@ -814,6 +814,26 @@
   .ppill.mine { border-color: var(--accent); }
   .ppill.gear > button:first-child::after { content: " (gear)"; color: var(--muted); font-weight: 400; }
   .charhead #resetAll { margin-left: auto; }
+  /* round 179 (user: saving a preset pushed the page): the row keeps one line — the message has its own slot, trimmed (whole on
+     hover); many preset buttons scroll sideways instead of wrapping */
+  .charhead { flex-wrap: nowrap; min-width: 0; }
+  .charpanel { grid-template-columns: minmax(0, 1fr); }   /* the row may not widen the panel */
+  .charhead > .parth, .charhead > #resetAll { flex: none; }
+  .charhead .presetbar { flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; }
+  .charhead .presetbar > .meta:first-child, .charhead .presetbar .qgroup { flex: none; flex-wrap: nowrap; }
+  .charhead .ppills { flex: 0 1 auto; min-width: 0; max-width: 38%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }   /* leaves the message room */
+  .charhead .presetbar input[type=text] { width: 170px; }
+  .charhead .ppills::-webkit-scrollbar { display: none; }
+  .charhead .ppill { flex: none; }
+  #presetMsg { flex: 1 1 0; min-width: 60px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  @media (max-width: 999px) {   /* narrow: a fixed grid — title + Restore, the preset buttons (sideways), name + Save, the message line */
+    .charhead { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; align-items: center; }
+    .charhead > .parth { grid-column: 1; grid-row: 1; } .charhead > #resetAll { grid-column: 2; grid-row: 1; margin: 0; }
+    .charhead .presetbar { grid-column: 1 / -1; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 8px; align-items: center; }
+    .charhead .ppills { grid-column: 2; max-width: none; }
+    .charhead .presetbar .qgroup { grid-column: 1 / -1; }
+    #presetMsg { grid-column: 1 / -1; min-height: 1.4em; }
+  }
   /* round 177: the Sim bar — stays at the top of the window */
   html { scroll-padding-top: 64px; }   /* a box scrolled into view is not hidden under the bar */
   .simbar { position: sticky; top: 0; z-index: 30; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 6px 10px;

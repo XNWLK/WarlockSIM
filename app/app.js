@@ -2102,7 +2102,7 @@
     Object.keys(D).forEach(function (k) { cfg[k] = D[k]; });
     gb().on = false;
     initSettings(); $('t_race').value = WL.RACE_KEYS[0]; renderTotals(); markDirty();
-    presetMsg('Every setting is back to the default. Press Sim!');
+    presetMsg('Defaults restored — press Sim!', false, 'Every setting is back to the default (stats, buffs, debuffs, consumables, fight and pets, cheat mode; the gear builder is off). Press Sim!');
   }
   // Right-hand tabs (buffs & debuffs, consumables, fight & pets). The Stats panel is left alone.
   function resetSide() {
@@ -3046,7 +3046,7 @@
     $('presetPills').innerHTML = builtinPresets().map(function (p, i) { return pill(p, 'b' + i, 'b'); }).join('') +
       userPresets.map(function (p, i) { return pill(p, 'u' + i, 'u'); }).join('') + userGear.map(function (p, i) { return pill(p, 'g' + i, 'g'); }).join('');
   }
-  function presetMsg(s, bad) { $('presetMsg').textContent = s; $('presetMsg').style.color = bad ? 'var(--bad)' : ''; }   // round 169: the presets sit by the settings
+  function presetMsg(s, bad, full) { $('presetMsg').textContent = s; $('presetMsg').title = full || s; $('presetMsg').style.color = bad ? 'var(--bad)' : ''; }   // round 179: trimmed in its slot, whole on hover   // round 169: the presets sit by the settings
   function selectedPreset() { var v = $('presetSel').value, i = +v.slice(1); return v[0] === 'b' ? builtinPresets()[i] : v[0] === 'g' ? userGear[i] : userPresets[i]; }
   function loadPreset() {
     var p = selectedPreset(); if (!p) return;
@@ -3056,25 +3056,25 @@
         readSettings();
         Object.keys(p.gear).forEach(function (k) { if (k in cfg.gear) cfg.gear[k] = p.gear[k]; });   // round 152: an old set's Agility is ignored
         initSettings(); $('t_race').value = race; renderTotals(); markDirty();
-        presetMsg('Loaded the gear of "' + p.name + '" (' + gearText(cfg.gear) + '); buffs, consumables and fight settings are unchanged. Press Sim!');
+        presetMsg('Loaded the gear of "' + p.name + '" — press Sim!', false, 'Loaded the gear of "' + p.name + '" (' + gearText(cfg.gear) + '); buffs, consumables and fight settings are unchanged. Press Sim!');
         return;
       }
       var o = WL.decodeSettings(p.code); WL.applySettings(cfg, o); initSettings(); $('t_race').value = race; renderTotals(); markDirty();
-      presetMsg('Loaded "' + p.name + '": ' + WL.describeSettings(o) + '. Press Sim!');
+      presetMsg('Loaded "' + p.name.replace(/ \(.*$/, '') + '" — press Sim!', false, 'Loaded "' + p.name + '": ' + WL.describeSettings(o) + '. Press Sim!');
     } catch (e) { presetMsg(e.message, true); }
   }
   function savePreset() {
     readSettings();
     var name = ($('presetName').value || '').trim();
-    if (!name) { presetMsg('Type a name for the preset first (the box left of "Save as preset").', true); return; }
+    if (!name) { presetMsg('Type a name first', true, 'Type a name for the preset first (the box left of "Save as preset").'); return; }
     var i = userPresets.map(function (p) { return p.name; }).indexOf(name), p = { name: name, code: WL.encodeSettings(cfg) };
     if (i >= 0) userPresets[i] = p; else userPresets.push(p);
     savePresets(); renderPresets('u' + (i >= 0 ? i : userPresets.length - 1)); $('presetName').value = '';
-    presetMsg((i >= 0 ? 'Updated' : 'Saved') + ' "' + name + '" with all current settings: it is one of the preset buttons now, kept in this browser.');
+    presetMsg((i >= 0 ? 'Updated' : 'Saved') + ' "' + name + '"', false, (i >= 0 ? 'Updated' : 'Saved') + ' "' + name + '" with all current settings: it is one of the preset buttons now, kept in this browser.');
   }
   function deletePreset() {
     var v = $('presetSel').value, i = +v.slice(1);
-    if (v[0] === 'b') { presetMsg('Built-in presets cannot be deleted.', true); return; }
+    if (v[0] === 'b') { presetMsg('Built-in: cannot be deleted', true); return; }
     var p;
     if (v[0] === 'g') { p = userGear.splice(i, 1)[0]; try { localStorage.setItem('wfs.gearSets', JSON.stringify(userGear)); } catch (e) { /* page only */ } }
     else { p = userPresets.splice(i, 1)[0]; savePresets(); }
