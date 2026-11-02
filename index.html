@@ -824,6 +824,12 @@
   .charhead .ppills { flex: 0 1 auto; min-width: 0; max-width: 38%; flex-wrap: nowrap; overflow: hidden; }   /* round 180: no hidden scrolling — what does not fit is behind "+N more" */
   .charhead .presetbar input[type=text] { width: 170px; }
   .ppill > button:first-child { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }   /* long names trimmed, whole on hover */
+  .pdrop { flex: none; border-radius: 999px; padding: 3px 12px; font: 600 12px var(--sans); color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent); }
+  .pmhead { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; padding: 6px 8px 2px; }
+  .pmnone { margin: 0; padding: 2px 8px 4px; font-size: 11.5px; }
+  .pmsave { display: flex; gap: 6px; padding: 6px 4px 2px; margin-top: 4px; border-top: 1px solid var(--line); }
+  .pmsave input[type=text] { flex: 1 1 auto; min-width: 0; width: auto; }
+  .pmsave button { padding: 3px 12px; }
   .pmore { flex: none; border-radius: 999px; padding: 2px 10px; font: 600 11.5px var(--sans); color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent); }
   .pmore[hidden], .ppill[hidden] { display: none; }
   .pmenu { position: fixed; z-index: 60; width: min(320px, calc(100vw - 16px)); max-height: 360px; overflow: auto; display: grid; gap: 2px; padding: 4px;
@@ -1215,13 +1221,11 @@
   <div class="charhead">
     <h2 class="parth" id="charTitle">Your character and the fight</h2>
     <div class="presetbar" id="presetBar" aria-label="Saved setups">
-      <!-- round 177 (user): one click loads a preset; ✕ deletes one of yours -->
-      <span class="meta">Presets</span><span class="ppills" id="presetPills" role="group" aria-label="Presets: click to load"></span>
+      <!-- round 181 (user: "just have all presets be a dropdown"): one button, one list — load (click), delete (✕), save (bottom) -->
+      <button type="button" class="pdrop" id="presetMore" aria-haspopup="true" aria-expanded="false" title="Load, save or delete a whole setup">Presets ▾</button>
       <select id="presetSel" hidden aria-hidden="true"></select>
-      <div class="pmenu" id="presetMenu" role="menu" aria-label="All presets" hidden></div>
-      <span class="qgroup">
-        <input id="presetName" type="text" placeholder="Name for your current settings" aria-label="Name for a new preset" maxlength="40">
-        <button type="button" id="presetSave" title="Save everything you have set — stats, buffs, debuffs, consumables, fight and pet settings — under this name. Kept in this browser.">Save as preset</button></span>
+      <div class="pmenu" id="presetMenu" role="menu" aria-label="Presets" hidden><div id="presetList"></div>
+        <div class="pmsave"><input id="presetName" type="text" placeholder="Name for your current settings" aria-label="Name for a new preset" maxlength="40"><button type="button" id="presetSave" class="primary" title="Save everything you have set — stats, buffs, debuffs, consumables, fight and pet settings — under this name. Kept in this browser.">Save</button></div></div>
       <span class="meta" id="presetMsg" role="status"></span>
     </div>
     <button type="button" id="resetAll" class="resetbtn" data-label="Restore all defaults" data-armed="Click again: every setting back to the default" title="Stats, buffs, debuffs, consumables, fight and pet settings, cheat mode — all back to the defaults (your builds, presets and layout stay)">Restore all defaults</button>

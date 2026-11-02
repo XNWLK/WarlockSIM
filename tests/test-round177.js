@@ -29,7 +29,8 @@
     T.ok(has("results = undo.results; runCfg = undo.runCfg; weights = undo.weights; prevRun = undo.prevRun;", app), 'Stop during the builds puts the run before back');
     T.ok(has('best so far', app) && has("' s left'", app) && has('Up to date', app) && has('Settings changed', app), 'progress (left, best so far) and the last run (up to date or not)');
     T.group('presets and defaults');
-    T.ok(has('id="presetPills"') && has('data-pload=', app) && has('data-pdel=', app), 'presets are buttons: one click loads, ✕ deletes your own');
+    // Round 181 (user: "just have all presets be a dropdown"): one Presets ▾ list — click loads, ✕ deletes, save at its bottom.
+    T.ok(has('id="presetMore"') && has('id="presetList"') && has('data-pload=', app) && has('data-pdel=', app) && has('class="pmsave"'), 'presets: one dropdown — click loads, ✕ deletes your own, save at the bottom');
     T.ok(has('id="resetAll"') && has("if (!armed('resetAll')) return;", app), '"Restore all defaults" (two clicks)');
     T.group('damage by school, trees in colour');
     T.ok(has("function schoolOf(k, b)", app) && has("return b && b.pet === 'imp' ? 'fire' : 'shadow';", app) && has('--sch-shadow:') && has('--sch-fire:'), 'damage bars by school; Demonic Brand follows the pet');

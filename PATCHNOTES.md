@@ -7,7 +7,8 @@ What each version added or changed, newest first. Version = the version of the
 - **Sim bar at the top**: Sim! stays in view while you scroll. While a run is on it shows the progress, about how long is
   left and the best DPS so far, and Sim! becomes **Stop** (the results go back to the run before). Afterwards: the last run's
   best build and whether it is still up to date with your settings.
-- **Presets are buttons**: one click loads one; your own have a ✕ to delete them.
+- **Presets in one list**: the "Presets ▾" button opens every preset — click one to load it, ✕ deletes one of yours, and the
+  bottom of the list saves your current settings under a name (Enter works too).
 - **Restore all defaults** (next to "Your character and the fight"): every setting back to the default in two clicks.
 - **Buffs and debuffs** are a compact grid of icon and name (lit when on); hover one for what it does. **Consumables** are one
   slot per group: click it and pick one.
@@ -20,8 +21,7 @@ What each version added or changed, newest first. Version = the version of the
 - Steadier page: switching a build's tabs no longer shifts the build list's columns; "Settings changed" no longer makes the
   Sim bar or the results table bigger; switching the gear builder on no longer adds a line to the Stats box (a badge says it);
   saving, loading or deleting a preset no longer pushes the page — its message has a place of its own (hover it for the whole
-  text). Presets that do not fit in their row are behind "+N more ▾", a list of all of them to load or delete; long preset
-  names are trimmed (whole name on hover).
+  text).
 
 ## v155
 - **Layout editor** (the Layout button at the top): drag the boxes of the page where you want them — Builds, Compare, Charts,

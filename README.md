@@ -42,7 +42,7 @@ Click a build for:
 ### Your setup
 - **Stats:** spell power (also Shadow / Fire only), hit, crit, haste, Intellect, Spirit, Stamina, MP5, Spell Pierce;
   a **quick setup** bar above the build list switches between starter and hit-capped gear, and between the default and the
-  maximum set of buffs and consumables; **presets** (one click each, save your own) and **Restore all defaults** sit next to
+  maximum set of buffs and consumables; **presets** (one "Presets ▾" list: load, save, delete) and **Restore all defaults** sit next to
   "Your character and the fight". Buffs are a compact grid; consumables one slot per group.
 - **Raid buffs:** Arcane Intellect, Mark of the Wild, Fortitude, Divine Spirit, Kings, Wisdom, Mana Spring (+ Restorative
   Totems), Mana Tide, Innervate, Moonkin aura, Power Infusion.

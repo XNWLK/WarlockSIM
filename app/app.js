@@ -3037,36 +3037,17 @@
       (userPresets.length ? '<optgroup label="Yours">' + opts(userPresets, 'u') + '</optgroup>' : '') +
       (userGear.length ? '<optgroup label="Your gear sets (gear only)">' + opts(userGear, 'g') + '</optgroup>' : '');
     if (sel) $('presetSel').value = sel;
-    // Round 177 (user): the presets as buttons — one click loads one; ✕ deletes one of yours.
-    var pill = function (p, v, kind) {
+    // Round 181 (user: "just have all presets be a dropdown"): the list behind "Presets ▾" — load with a click, ✕ deletes one of
+    // yours; saving is at the bottom of the same list.
+    var row = function (p, v, kind) {
       var label = kind === 'b' ? p.name.replace(/ \(.*$/, '') : p.name;
-      return '<span class="ppill' + (kind === 'u' ? ' mine' : kind === 'g' ? ' gear' : '') + '"><button type="button" data-pload="' + v + '" title="' + esc('Load: ' + p.name) + '">' + esc(label) + '</button>' +
-        (kind === 'b' ? '' : '<button type="button" class="pdel" data-pdel="' + v + '" aria-label="' + esc('Delete ' + p.name) + '" title="' + esc('Delete ' + p.name) + '">✕</button>') + '</span>';
+      return '<div class="pmrow"><button type="button" role="menuitem" data-pload="' + v + '" title="' + esc('Load: ' + p.name) + '">' + esc(label) + '</button>' +
+        (kind === 'b' ? '' : '<button type="button" class="pdel" data-pdel="' + v + '" aria-label="' + esc('Delete ' + p.name) + '" title="' + esc('Delete ' + p.name) + '">✕</button>') + '</div>';
     };
-    var all = builtinPresets().map(function (p, i) { return [p, 'b' + i, 'b']; }).concat(userPresets.map(function (p, i) { return [p, 'u' + i, 'u']; }), userGear.map(function (p, i) { return [p, 'g' + i, 'g']; }));
-    $('presetPills').innerHTML = all.map(function (x) { return pill(x[0], x[1], x[2]); }).join('') +
-      '<button type="button" class="pmore" id="presetMore" aria-haspopup="true" aria-expanded="false" hidden></button>';
-    // Round 180: the list behind "+N more" — every preset, to load or delete
-    $('presetMenu').innerHTML = all.map(function (x) {
-      var p = x[0], label = x[2] === 'b' ? p.name.replace(/ \(.*$/, '') : p.name + (x[2] === 'g' ? ' (gear)' : '');
-      return '<div class="pmrow"><button type="button" data-pload="' + x[1] + '" title="' + esc('Load: ' + p.name) + '">' + esc(label) + '</button>' +
-        (x[2] === 'b' ? '' : '<button type="button" class="pdel" data-pdel="' + x[1] + '" aria-label="' + esc('Delete ' + p.name) + '" title="' + esc('Delete ' + p.name) + '">✕</button>') + '</div>';
-    }).join('');
-    fitPills();
+    $('presetList').innerHTML = '<div class="pmhead">Built-in</div>' + builtinPresets().map(function (p, i) { return row(p, 'b' + i, 'b'); }).join('') +
+      '<div class="pmhead">Yours</div>' + (userPresets.length ? userPresets.map(function (p, i) { return row(p, 'u' + i, 'u'); }).join('') : '<p class="meta pmnone">None yet — save your current settings below.</p>') +
+      (userGear.length ? '<div class="pmhead">Your gear sets (gear only)</div>' + userGear.map(function (p, i) { return row(p, 'g' + i, 'g'); }).join('') : '');
   }
-  // Round 180: as many preset buttons as fit in their strip; the rest behind "+N more ▾" (built-in ones stay in front).
-  function fitPills() {
-    var strip = $('presetPills'), more = $('presetMore'); if (!strip || !more) return;
-    var pills = Array.prototype.slice.call(strip.querySelectorAll('.ppill'));
-    pills.forEach(function (p) { p.hidden = false; }); more.hidden = true;
-    if (!strip.clientWidth || strip.scrollWidth <= strip.clientWidth + 1) return;
-    more.hidden = false;
-    for (var i = pills.length - 1; i >= 0 && strip.scrollWidth > strip.clientWidth + 1; i--) pills[i].hidden = true;
-    var n = pills.filter(function (p) { return p.hidden; }).length;
-    more.textContent = '+' + n + ' more ▾'; more.title = 'All ' + pills.length + ' presets: load or delete';
-  }
-  window.addEventListener('resize', function () { fitPills(); });
-  if (window.ResizeObserver) new ResizeObserver(function () { fitPills(); }).observe(document.querySelector('.charhead'));   // the layout editor or the columns change its width too
   function closePresetMenu() { if ($('presetMenu')) $('presetMenu').hidden = true; if ($('presetMore')) $('presetMore').setAttribute('aria-expanded', 'false'); }
   document.addEventListener('click', function (e) {
     var t = e.target, m = $('presetMenu'); if (!m) return;
@@ -3077,10 +3058,13 @@
       m.style.top = (r.bottom + m.offsetHeight + 8 > window.innerHeight ? Math.max(8, r.top - m.offsetHeight - 4) : r.bottom + 4) + 'px';
       return;
     }
-    if (t.closest && t.closest('#presetMenu [data-pload]')) { closePresetMenu(); return; }   // the load itself: the preset click handler
+    if (t.closest && t.closest('#presetMenu [data-pload]')) { setTimeout(closePresetMenu, 0); return; }   // the load itself: the preset click handler (a save closes it when it worked)
     if (!(t.closest && t.closest('#presetMenu'))) closePresetMenu();
   });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closePresetMenu(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closePresetMenu();
+    if (e.key === 'Enter' && e.target && e.target.id === 'presetName') { e.preventDefault(); savePreset(); }   // Enter saves
+  });
   window.addEventListener('scroll', closePresetMenu, true);
   function presetMsg(s, bad, full) { $('presetMsg').textContent = s; $('presetMsg').title = full || s; $('presetMsg').style.color = bad ? 'var(--bad)' : ''; }   // round 179: trimmed in its slot, whole on hover   // round 169: the presets sit by the settings
   function selectedPreset() { var v = $('presetSel').value, i = +v.slice(1); return v[0] === 'b' ? builtinPresets()[i] : v[0] === 'g' ? userGear[i] : userPresets[i]; }
@@ -3102,11 +3086,11 @@
   function savePreset() {
     readSettings();
     var name = ($('presetName').value || '').trim();
-    if (!name) { presetMsg('Type a name first', true, 'Type a name for the preset first (the box left of "Save as preset").'); return; }
+    if (!name) { presetMsg('Type a name first', true, 'Type a name for the preset first (the box at the bottom of the Presets list).'); return; }
     var i = userPresets.map(function (p) { return p.name; }).indexOf(name), p = { name: name, code: WL.encodeSettings(cfg) };
     if (i >= 0) userPresets[i] = p; else userPresets.push(p);
-    savePresets(); renderPresets('u' + (i >= 0 ? i : userPresets.length - 1)); $('presetName').value = '';
-    presetMsg((i >= 0 ? 'Updated' : 'Saved') + ' "' + name + '"', false, (i >= 0 ? 'Updated' : 'Saved') + ' "' + name + '" with all current settings: it is one of the preset buttons now, kept in this browser.');
+    savePresets(); renderPresets('u' + (i >= 0 ? i : userPresets.length - 1)); $('presetName').value = ''; closePresetMenu();   // round 181
+    presetMsg((i >= 0 ? 'Updated' : 'Saved') + ' "' + name + '"', false, (i >= 0 ? 'Updated' : 'Saved') + ' "' + name + '" with all current settings: it is in the Presets list now, kept in this browser.');
   }
   function deletePreset() {
     var v = $('presetSel').value, i = +v.slice(1);
