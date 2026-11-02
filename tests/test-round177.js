@@ -1,4 +1,4 @@
-// Round 177 tests (user picked these from another sim's layout): the Sim bar at the top (Sim! / Stop, progress, last run),
+// Round 177 tests (layout ideas Xn picked): the Sim bar at the top (Sim! / Stop, progress, last run),
 // preset buttons, "Restore all defaults", damage bars by school, tree-coloured talent trees, headline numbers and tabs in a
 // build's details, sub-tabs in Advanced (APL), compact buffs and consumable slots, the welcome tour.
 (function () {
