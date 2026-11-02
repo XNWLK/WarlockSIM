@@ -3043,9 +3043,45 @@
       return '<span class="ppill' + (kind === 'u' ? ' mine' : kind === 'g' ? ' gear' : '') + '"><button type="button" data-pload="' + v + '" title="' + esc('Load: ' + p.name) + '">' + esc(label) + '</button>' +
         (kind === 'b' ? '' : '<button type="button" class="pdel" data-pdel="' + v + '" aria-label="' + esc('Delete ' + p.name) + '" title="' + esc('Delete ' + p.name) + '">✕</button>') + '</span>';
     };
-    $('presetPills').innerHTML = builtinPresets().map(function (p, i) { return pill(p, 'b' + i, 'b'); }).join('') +
-      userPresets.map(function (p, i) { return pill(p, 'u' + i, 'u'); }).join('') + userGear.map(function (p, i) { return pill(p, 'g' + i, 'g'); }).join('');
+    var all = builtinPresets().map(function (p, i) { return [p, 'b' + i, 'b']; }).concat(userPresets.map(function (p, i) { return [p, 'u' + i, 'u']; }), userGear.map(function (p, i) { return [p, 'g' + i, 'g']; }));
+    $('presetPills').innerHTML = all.map(function (x) { return pill(x[0], x[1], x[2]); }).join('') +
+      '<button type="button" class="pmore" id="presetMore" aria-haspopup="true" aria-expanded="false" hidden></button>';
+    // Round 180: the list behind "+N more" — every preset, to load or delete
+    $('presetMenu').innerHTML = all.map(function (x) {
+      var p = x[0], label = x[2] === 'b' ? p.name.replace(/ \(.*$/, '') : p.name + (x[2] === 'g' ? ' (gear)' : '');
+      return '<div class="pmrow"><button type="button" data-pload="' + x[1] + '" title="' + esc('Load: ' + p.name) + '">' + esc(label) + '</button>' +
+        (x[2] === 'b' ? '' : '<button type="button" class="pdel" data-pdel="' + x[1] + '" aria-label="' + esc('Delete ' + p.name) + '" title="' + esc('Delete ' + p.name) + '">✕</button>') + '</div>';
+    }).join('');
+    fitPills();
   }
+  // Round 180: as many preset buttons as fit in their strip; the rest behind "+N more ▾" (built-in ones stay in front).
+  function fitPills() {
+    var strip = $('presetPills'), more = $('presetMore'); if (!strip || !more) return;
+    var pills = Array.prototype.slice.call(strip.querySelectorAll('.ppill'));
+    pills.forEach(function (p) { p.hidden = false; }); more.hidden = true;
+    if (!strip.clientWidth || strip.scrollWidth <= strip.clientWidth + 1) return;
+    more.hidden = false;
+    for (var i = pills.length - 1; i >= 0 && strip.scrollWidth > strip.clientWidth + 1; i--) pills[i].hidden = true;
+    var n = pills.filter(function (p) { return p.hidden; }).length;
+    more.textContent = '+' + n + ' more ▾'; more.title = 'All ' + pills.length + ' presets: load or delete';
+  }
+  window.addEventListener('resize', function () { fitPills(); });
+  if (window.ResizeObserver) new ResizeObserver(function () { fitPills(); }).observe(document.querySelector('.charhead'));   // the layout editor or the columns change its width too
+  function closePresetMenu() { if ($('presetMenu')) $('presetMenu').hidden = true; if ($('presetMore')) $('presetMore').setAttribute('aria-expanded', 'false'); }
+  document.addEventListener('click', function (e) {
+    var t = e.target, m = $('presetMenu'); if (!m) return;
+    if (t.closest && t.closest('#presetMore')) {
+      if (!m.hidden) { closePresetMenu(); return; }
+      var r = t.closest('#presetMore').getBoundingClientRect(); m.hidden = false; t.closest('#presetMore').setAttribute('aria-expanded', 'true');
+      m.style.left = Math.max(8, Math.min(r.left, window.innerWidth - m.offsetWidth - 8)) + 'px';
+      m.style.top = (r.bottom + m.offsetHeight + 8 > window.innerHeight ? Math.max(8, r.top - m.offsetHeight - 4) : r.bottom + 4) + 'px';
+      return;
+    }
+    if (t.closest && t.closest('#presetMenu [data-pload]')) { closePresetMenu(); return; }   // the load itself: the preset click handler
+    if (!(t.closest && t.closest('#presetMenu'))) closePresetMenu();
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closePresetMenu(); });
+  window.addEventListener('scroll', closePresetMenu, true);
   function presetMsg(s, bad, full) { $('presetMsg').textContent = s; $('presetMsg').title = full || s; $('presetMsg').style.color = bad ? 'var(--bad)' : ''; }   // round 179: trimmed in its slot, whole on hover   // round 169: the presets sit by the settings
   function selectedPreset() { var v = $('presetSel').value, i = +v.slice(1); return v[0] === 'b' ? builtinPresets()[i] : v[0] === 'g' ? userGear[i] : userPresets[i]; }
   function loadPreset() {

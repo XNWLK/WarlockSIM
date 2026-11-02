@@ -821,16 +821,26 @@
   .charhead > .parth, .charhead > #resetAll { flex: none; }
   .charhead .presetbar { flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; }
   .charhead .presetbar > .meta:first-child, .charhead .presetbar .qgroup { flex: none; flex-wrap: nowrap; }
-  .charhead .ppills { flex: 0 1 auto; min-width: 0; max-width: 38%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }   /* leaves the message room */
+  .charhead .ppills { flex: 0 1 auto; min-width: 0; max-width: 38%; flex-wrap: nowrap; overflow: hidden; }   /* round 180: no hidden scrolling — what does not fit is behind "+N more" */
   .charhead .presetbar input[type=text] { width: 170px; }
-  .charhead .ppills::-webkit-scrollbar { display: none; }
+  .ppill > button:first-child { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }   /* long names trimmed, whole on hover */
+  .pmore { flex: none; border-radius: 999px; padding: 2px 10px; font: 600 11.5px var(--sans); color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent); }
+  .pmore[hidden], .ppill[hidden] { display: none; }
+  .pmenu { position: fixed; z-index: 60; width: min(320px, calc(100vw - 16px)); max-height: 360px; overflow: auto; display: grid; gap: 2px; padding: 4px;
+           background: var(--surface); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
+  .pmenu[hidden] { display: none; }
+  .pmrow { display: flex; align-items: center; }
+  .pmrow > button { border: 0; background: none; text-align: left; padding: 4px 8px; font-weight: 500; }
+  .pmrow > button:first-child { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pmrow > button:first-child:hover { background: var(--accent-soft); color: var(--accent); }
+  .pmrow > .pdel { color: var(--muted); } .pmrow > .pdel:hover { color: var(--bad); }
   .charhead .ppill { flex: none; }
   #presetMsg { flex: 1 1 0; min-width: 60px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   @media (max-width: 999px) {   /* narrow: a fixed grid — title + Restore, the preset buttons (sideways), name + Save, the message line */
     .charhead { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; align-items: center; }
     .charhead > .parth { grid-column: 1; grid-row: 1; } .charhead > #resetAll { grid-column: 2; grid-row: 1; margin: 0; }
     .charhead .presetbar { grid-column: 1 / -1; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 8px; align-items: center; }
-    .charhead .ppills { grid-column: 2; max-width: none; }
+    .charhead .ppills { grid-column: 2; max-width: none; flex-wrap: nowrap; overflow: hidden; }
     .charhead .presetbar .qgroup { grid-column: 1 / -1; }
     #presetMsg { grid-column: 1 / -1; min-height: 1.4em; }
   }
@@ -1208,6 +1218,7 @@
       <!-- round 177 (user): one click loads a preset; ✕ deletes one of yours -->
       <span class="meta">Presets</span><span class="ppills" id="presetPills" role="group" aria-label="Presets: click to load"></span>
       <select id="presetSel" hidden aria-hidden="true"></select>
+      <div class="pmenu" id="presetMenu" role="menu" aria-label="All presets" hidden></div>
       <span class="qgroup">
         <input id="presetName" type="text" placeholder="Name for your current settings" aria-label="Name for a new preset" maxlength="40">
         <button type="button" id="presetSave" title="Save everything you have set — stats, buffs, debuffs, consumables, fight and pet settings — under this name. Kept in this browser.">Save as preset</button></span>

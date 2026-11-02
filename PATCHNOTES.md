@@ -20,7 +20,8 @@ What each version added or changed, newest first. Version = the version of the
 - Steadier page: switching a build's tabs no longer shifts the build list's columns; "Settings changed" no longer makes the
   Sim bar or the results table bigger; switching the gear builder on no longer adds a line to the Stats box (a badge says it);
   saving, loading or deleting a preset no longer pushes the page — its message has a place of its own (hover it for the whole
-  text), and many preset buttons scroll sideways.
+  text). Presets that do not fit in their row are behind "+N more ▾", a list of all of them to load or delete; long preset
+  names are trimmed (whole name on hover).
 
 ## v155
 - **Layout editor** (the Layout button at the top): drag the boxes of the page where you want them — Builds, Compare, Charts,
