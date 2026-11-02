@@ -545,12 +545,16 @@
   // ---------- by fight length (round 166, user: "a table breaking down the builds by race and time frame") ----------
   // Shipped: data/length-table.js (default settings, tools/gen-length-table.js). "Redo with my settings" runs the same
   // jobs on the worker pool: every built-in build × race × 60 / 120 / 180 / 240 / 300 s.
-  var lenData = null, lenRunning = false, lenCmp = 'best';   // lenCmp: what the % compare with — 'best' race, 'base' (no race), '180' (s)
+  // lenData[n]: your own run for n targets (round 182: a targets drop-down, user — 2 and 3 with multi-DoT on)
+  var lenData = {}, lenRunning = false, lenTargets = 1, lenCmp = 'best';   // lenCmp: what the % compare with — 'best' race, 'base' (no race), '180' (s)
   $('lenCmp').addEventListener('change', function () { lenCmp = $('lenCmp').value; renderLen(); });
+  $('lenTargets').addEventListener('change', function () { lenTargets = +$('lenTargets').value || 1; renderLen(); });   // round 182
   function renderLen() {
-    var T = lenData || WL.LENGTH_TABLE; if (!T) { $('lenMsg').textContent = 'No table yet: press Redo with my settings.'; $('lenTable').innerHTML = ''; return; }
+    var S = WL.LENGTH_TABLE, own = lenData[lenTargets];
+    var T = own || (S && (lenTargets === 1 ? S : S.targets && S.targets[lenTargets] ? Object.assign({}, S, { rows: S.targets[lenTargets] }) : null));
+    if (!T) { $('lenMsg').textContent = 'No table yet: press Redo with my settings.'; $('lenTable').innerHTML = ''; return; }
     var D = T.durations, keys = WL.BUILDS.filter(function (b) { return !b.custom; }).map(function (b) { return b.key; });
-    $('lenMsg').textContent = (lenData ? 'Your settings' : 'Default settings') + ', ' + fmt(T.iterations) + ' fights per cell (each ± ' + T.varPct + '% long), seed ' + T.seed + '. The best race of each build at each length is marked; next to each DPS its difference in % (choose against what above); -- marks the reference itself.' + (lenData ? '' : ' Your own settings: Redo with my settings.');
+    $('lenMsg').textContent = (lenTargets > 1 ? lenTargets + ' targets, your DoTs on every one (multi-DoT; Bane of Havoc for the builds that have it) · ' : '1 target · ') + (own ? 'Your settings' : 'Default settings') + ', ' + fmt(T.iterations) + ' fights per cell (each ± ' + T.varPct + '% long), seed ' + T.seed + '. The best race of each build at each length is marked; next to each DPS its difference in % (choose against what above); -- marks the reference itself.' + (own ? '' : ' Your own settings: Redo with my settings.');
     var h = '<thead><tr><th>Build / race</th>' + D.map(function (d) { return '<th>' + d + ' s</th>'; }).join('') + '</tr></thead><tbody>';
     keys.forEach(function (bk) {
       // not WL.findBuild: that one is the test page's (the round 157 mistake again)
@@ -579,14 +583,15 @@
   }
   $('lenRun').addEventListener('click', function () {
     if (lenRunning) return; readSettings(); lenRunning = true; $('lenRun').disabled = true;
-    var D = [60, 120, 180, 240, 300], jobs = [], c0 = JSON.parse(JSON.stringify(cfg));
+    var D = [60, 120, 180, 240, 300], jobs = [], c0 = JSON.parse(JSON.stringify(cfg)), nT = lenTargets;
+    c0.fight.targets = nT; c0.fight.multiDot = nT > 1;                  // round 182: the drop-down's target count
     WL.BUILDS.filter(function (b) { return !b.custom; }).forEach(function (b) { WL.SIM_RACE_KEYS.forEach(function (race) { D.forEach(function (d) {
       var c = JSON.parse(JSON.stringify(c0)); c.fight.duration = d; jobs.push({ kind: 'combo', build: b, race: race, cfg: c, d: d });
     }); }); });
     var got = 0, out = {};
     WL.SimPool.run(jobs, function (j, res) { out[j.build.key + '|' + j.race + '|' + j.d] = res.r.dps; got++; $('lenMsg').textContent = 'Simulating ' + got + ' / ' + jobs.length + ' …'; }, function () {
       var rows = []; WL.BUILDS.filter(function (b) { return !b.custom; }).forEach(function (b) { WL.SIM_RACE_KEYS.forEach(function (race) { rows.push({ build: b.key, race: race, dps: D.map(function (d) { return Math.round(10 * out[b.key + '|' + race + '|' + d]) / 10; }) }); }); });
-      lenData = { durations: D, iterations: c0.fight.iterations, varPct: c0.fight.durationVarPct, seed: c0.fight.seed, rows: rows };
+      lenData[nT] = { durations: D, iterations: c0.fight.iterations, varPct: c0.fight.durationVarPct, seed: c0.fight.seed, rows: rows };
       lenRunning = false; $('lenRun').disabled = false; renderLen();
     });
   });

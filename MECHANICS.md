@@ -874,7 +874,8 @@ and no dodge; every swing that is not a glancing blow crits), to try streaks of 
 is on; these are not real numbers.
 
 **Racials by fight length** (the last box on the page): every built-in build and race at 60, 120, 180, 240 and 300 s, made with the
-default settings and shipped with the page, or redone with your own settings.
+default settings and shipped with the page, or redone with your own settings - for 1, 2 or 3 targets (2 and 3: your DoTs on
+every target, as "Keep DoTs on the extra targets"; Bane of Havoc as usual).
 
 **The builds on the sheet**
 

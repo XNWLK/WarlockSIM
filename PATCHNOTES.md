@@ -3,6 +3,11 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v157
+- **Racials by fight length** has a **Targets** choice: 1 (as before), 2 or 3. With 2 or 3 targets every build keeps its DoTs
+  on every target and Bane of Havoc works as usual. Shipped for the default settings; "Redo with my settings" runs the chosen
+  number of targets. At 3 targets Destro Incinerate Succubus catches up with Demo Pact Shadow Bolt.
+
 ## v156
 - **Sim bar at the top**: Sim! stays in view while you scroll. While a run is on it shows the progress, about how long is
   left and the best DPS so far, and Sim! becomes **Stop** (the results go back to the run before). Afterwards: the last run's
