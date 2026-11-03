@@ -203,7 +203,7 @@ window.WL = window.WL || {};
       var tbase = s.tickBase + s.tickCoef * e.sp, what = s.kind === 'hybrid' ? 'burn tick' : 'tick', once = e.ticks === 1;
       var g1 = group([['Shadow Mastery', sm], ['Agonizing Flames', agf],
         ['Improved Corruption', bk === 'corruption' ? tv('improvedCorruption', 'dmgPct') : 0], ['Improved Bane of Agony', bk === 'baneOfAgony' ? tv('improvedBaneOfAgony', 'dmgPct') : 0],
-        ['Improved Drains', s.drain ? tv('improvedDrains', 'dmgPct') : 0]], e.op22);
+        ['Improved Drains', s.drain && !s.noImprovedDrains ? tv('improvedDrains', 'dmgPct') : 0]], e.op22);
       step(once ? 'Base' : 'Base of one ' + what, s.tickBase + ' + ' + s.tickCoef + ' × ' + f(e.sp), f(tbase));
       if (e.op22) step('Talents' + (g1.n > 1 ? ' (they add up)' : ''), g1.text, x2(g1.mult));
       if (auras.length && s.base == null) step('Auras' + (auras.length > 1 ? ' (each multiplies)' : ''), auraText(auras), '× ' + f(am, 4));

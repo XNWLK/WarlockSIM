@@ -20,6 +20,8 @@
 //            crit roll; radius = yards around the caster (range 0) or around the aimed spot. effectSpell = the triggered
 //            spell that deals the damage (where the value and SP mod come from) (round 100, A79)
 //   noAgonizingFlames  the talent's spell data does not list this spell (A79)
+//   noImprovedDrains   a drain that Improved Drains does not raise (Wrack, Forever patch notes of 2026-11-03)
+//   patch              changed by a Forever patch after the archived Wowhead data (the raw cross-check skips its numbers)
 //   projectile  travels to the target: lands fight.travelMs after the cast (round 39, A65)
 //   healthCost  health the spell costs you (Life Tap) · selfDamage  every tick also hits you for its base damage (Hellfire)
 //   leech       share of the damage dealt that you get back as health · threatMult  threat per damage (default 1)   (round 119)
@@ -68,7 +70,7 @@ WL.SPELLS = {
   drainSoul:    { id: 11675,   name: 'Drain Soul',     school: 'shadow', tree: 'affliction',  kind: 'channel', drain: true,
                   tickBase: 84, tickCoef: 0.10, tickEvery: 3, duration: 15, cast: 0, cost: 290, range: 30 },
   wrack:        { id: 1316697, name: 'Wrack',          school: 'shadow', tree: 'affliction',  kind: 'channel', drain: true,
-                  tickBase: 36, tickCoef: 0.143, tickEvery: 1, duration: 6, cast: 0, cost: 200, range: 30, talent: 'wrack',
+                  tickBase: 86, tickCoef: 0.286, tickEvery: 1, duration: 6, cast: 0, cost: 200, range: 30, talent: 'wrack', noImprovedDrains: true, patch: '2026-11-03',   // 2026-11-03 patch: 36 + 0.143 → 86 + 0.286 per s; Improved Drains no longer counts [A108]
                   debuffPct: 10, debuffSpells: ['corruption', 'baneOfAgony', 'siphonLife', 'baneOfDoom'] },   // [A18]
   deathCoil:    { id: 17926,   name: 'Death Coil',     school: 'shadow', tree: 'affliction',  kind: 'direct',
                   base: 454, coef: 0.214, cast: 0, cost: 600, range: 30, cd: 120, projectile: true, leech: 1 },

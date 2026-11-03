@@ -16,8 +16,9 @@
     var V = [['shadowBolt', 'base', 252, 11661], ['immolate', 'base', 147, 11668], ['immolate', 'tickBase', 53, 11668],
       ['corruption', 'tickBase', 58, 11672], ['incinerate', 'base', 218], ['searingPain', 'base', 115], ['conflagrate', 'base', 283],
       ['shadowburn', 'base', 267], ['soulFire', 'base', 432], ['baneOfAgony', 'tickBase', 47], ['baneOfDoom', 'tickBase', 1743],
-      ['siphonLife', 'tickBase', 42], ['drainLife', 'tickBase', 52], ['drainSoul', 'tickBase', 85], ['wrack', 'tickBase', 37],
+      ['siphonLife', 'tickBase', 42], ['drainLife', 'tickBase', 52], ['drainSoul', 'tickBase', 85],
       ['deathCoil', 'base', 455]];
+    T.eq(WL.SPELLS.wrack.tickBase + ' + ' + WL.SPELLS.wrack.tickCoef, '86 + 0.286', 'Wrack 86 + 0.286 × SP per second (patch of 2026-11-03; was 36 + 0.143, Value 37 − 1)');
     V.forEach(function (v) {
       var s = WL.SPELLS[v[0]];
       T.eq(s[v[1]], v[2] - 1, v[0] + '.' + v[1] + ' = ' + (v[2] - 1) + ' (Value ' + v[2] + ' − 1)');

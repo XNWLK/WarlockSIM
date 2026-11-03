@@ -24,7 +24,8 @@
     // Corruption 10 = +20%; the Demonic Sacrifice aura (×1.15) multiplies.
     T.near(co.tickDmg, (57 + 0.2 * 721) * 1.15 * (1 + 0.10 + 0.10), 1e-9, 'Corruption tick = 201.2 × DS 1.15 × (1 + SM 10% + ImpCorr 10%)');
     var wr = t.wrack;
-    T.near(wr.tickDmg, (36 + 0.143 * 721) * 1.15 * (1 + 0.10 + 0.20), 1e-9, 'Wrack tick = DS × (1 + SM 10% + Improved Drains 20%)');
+    T.near(wr.tickDmg, (86 + 0.286 * 721) * 1.15 * (1 + 0.10), 1e-9, 'Wrack tick = (86 + 0.286 × SP) × DS × (1 + SM 10%) — Improved Drains no longer counts (patch of 2026-11-03)');
+    T.near(t.drainLife.tickDmg, (51 + 0.10 * 721) * 1.15 * (1 + 0.10 + 0.20), 1e-9, '… but still raises Drain Life: × (1 + SM 10% + Improved Drains 20%)');
     T.near(wr.critMult, 2.0, 1e-12, 'Wrack crit mult 2.0 (Pandemic)');
     T.near(t.baneOfAgony.tickDmg, (46 + 0.133 * 721) * 1.15 * (1 + 0.10 + 0.10), 1e-9, 'BoA avg tick = DS × (1 + SM 10% + Improved BoA 10%)');
     T.near(t.immolate.critMult, 1.5, 1e-12, 'Immolate crit mult 1.5');

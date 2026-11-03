@@ -36,7 +36,7 @@
     var slIn = sl.filter(function (e) { return during(e.t); }), slOut = sl.filter(function (e) { return !during(e.t); });
     T.ok(slIn.length > 0 && slIn.every(function (e) { return e.dmg === Math.round((41 + 0.05 * sp) * 1.10); }), 'Siphon Life ticks during Wrack = ' + Math.round((41 + 0.05 * sp) * 1.10) + ' (× 1.10; ' + slIn.length + ' ticks)');
     T.ok(slOut.length > 0 && slOut.every(function (e) { return e.dmg === Math.round(41 + 0.05 * sp); }), 'Siphon Life ticks outside Wrack = ' + Math.round(41 + 0.05 * sp) + ' (' + slOut.length + ' ticks)');
-    T.ok(ticks('wrack').every(function (e) { return e.dmg === Math.round(36 + 0.143 * sp); }), 'Wrack ticks = 36 + 0.143 × SP = ' + Math.round(36 + 0.143 * sp));
+    T.ok(ticks('wrack').every(function (e) { return e.dmg === Math.round(86 + 0.286 * sp); }), 'Wrack ticks = 86 + 0.286 × SP = ' + Math.round(86 + 0.286 * sp) + ' (patch of 2026-11-03)');
     T.eq(WL.SPELLS.wrack.debuffSpells.slice().sort().join(','), 'baneOfAgony,baneOfDoom,corruption,siphonLife', 'affected spells: Corruption, Bane of Agony, Siphon Life, Bane of Doom (round 118)');
 
     T.group('reference builds (user, round 65); shown by default (round 66)');

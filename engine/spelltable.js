@@ -66,7 +66,7 @@ WL.buildSpellTable = function (build, stats, cfg) {
     var op22 = sm + agf
       + (key === 'corruption' ? tv('improvedCorruption', 'dmgPct') : 0)
       + (key === 'baneOfAgony' ? tv('improvedBaneOfAgony', 'dmgPct') : 0)
-      + (s.drain ? tv('improvedDrains', 'dmgPct') : 0);
+      + (s.drain && !s.noImprovedDrains ? tv('improvedDrains', 'dmgPct') : 0);   // not Wrack (2026-11-03 patch)
     e.op0 = op0 / 100; e.op22 = op22 / 100;                   // kept for the live additive effects (Decimation, Eureka!)
     e.directMult = aura * (1 + e.op0);
     e.periodicMult = aura * (1 + e.op22);

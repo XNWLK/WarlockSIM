@@ -3,6 +3,14 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v159
+- **Forever patch notes of 3 November** (the last before launch):
+  - **Wrack** deals far more: 86 + 28.6% of your spell power every second (was 36 + 14.3%).
+  - **Improved Drains** no longer raises Wrack (Drain Life and Drain Soul still).
+  - **Shadow and Flame** gives +4 / 8 / 12 / 16 / 20% (was 2 to 10%).
+  - **Salvation** is gone from the raid buffs (the Paladin spell was removed). Old settings codes with it still load.
+- Destruction – Incinerate, Succubus gains about 7.4%, Wrack Succubus about 2.8%; the other builds do not change.
+
 ## v158
 - A build's fourth headline number is now the **damage split** — how much of the damage is yours and how much your pet's
   (e.g. "You 77% · Pet 23%", with the pet's DPS under it). It replaces the time spent Life Tapping.

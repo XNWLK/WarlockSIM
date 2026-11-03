@@ -99,8 +99,7 @@
     T.group('totems and Salvation');
     ['windfuryTotem', 'flametongueTotem', 'tranquilAir'].forEach(function (k) { T.ok(!WL.DEFAULT_CONFIG.buffs[k], k + ' is gone'); });
     T.ok(Object.keys(WL.DEFAULT_CONFIG.buffs).every(function (k) { return !WL.DEFAULT_CONFIG.buffs[k].excl; }), 'no raid buff clashes with another any more');
-    T.eq(WL.DEFAULT_CONFIG.buffs.blessingOfSalvation.name, 'Salvation', 'Blessing of Salvation is now Salvation');
-    T.ok(!WL.DEFAULT_CONFIG.buffs.blessingOfSalvation.group, '… and nothing to not stack with');
+    T.ok(!WL.DEFAULT_CONFIG.buffs.blessingOfSalvation, 'Salvation (Blessing of Salvation until 2026-10-16) is gone since the patch of 2026-11-03');
     T.ok(/spell crit \(raid\)/.test(WL.DEFAULT_CONFIG.buffs.moonkinAura.desc), 'Moonkin aura: spell crit, raid-wide', WL.DEFAULT_CONFIG.buffs.moonkinAura.desc);
     var c2 = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)), snap = JSON.parse(JSON.stringify(WL.settingsSnapshot(c2)));
     snap.buffs = snap.buffs.concat(['windfuryTotem', 'flametongueTotem', 'tranquilAir']); snap.gear.weaponIsSword = true;

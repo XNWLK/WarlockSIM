@@ -28,7 +28,7 @@ const TALENT_NOTES = {
   improvedCorruption: 'Shortens Corruption\'s 2 s cast (instant at 5 points) and adds to Corruption\'s periodic talent group.',
   grimReach: 'No effect on damage: the boss is always in range. The longer range (Affliction spells) is only listed.',
   soulHarvesting: 'Not simulated: it needs an enemy dying under your Drain Soul.',
-  improvedDrains: 'Adds to the periodic talent group of Drain Life, Drain Soul and Wrack.',
+  improvedDrains: 'Adds to the periodic talent group of Drain Life and Drain Soul (not Wrack).',
   improvedBaneOfAgony: 'Adds to Bane of Agony\'s periodic talent group.',
   felConcentration: 'Only matters when "Take a hit every (s)" is set: chance to ignore the pushback on Drain Life, Drain Soul and Wrack.',
   amplifyCurse: 'Used with every Bane of Agony cast while its 3-minute cooldown is ready (off the global cooldown). Every tick of that Bane of Agony is multiplied by 1.5 after everything else (talents, auras, curse, crit). Never used on Bane of Doom.',

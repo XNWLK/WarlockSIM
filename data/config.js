@@ -99,7 +99,7 @@ WL.DEFAULT_CONFIG = {
     manaSpring:       { on: false, id: 10497, name: 'Mana Spring Totem',             cls: 'Shaman',  desc: '10 mana every 2 s (25 MP5)', mp5: 25 },
     restorativeTotems:{ on: false, id: 16187, name: 'Restorative Totems (on Mana Spring)', cls: 'Shaman', desc: 'Mana Spring +25%', mp5: 6.25, requires: 'manaSpring' },
     // Patch 2026-10-16 (user): Windfury Totem and Flametongue Totem only affect players now, so they no longer help your demon
-    // — both removed (rounds 124–148 they did). Tranquil Air Totem removed too (every Paladin has Salvation now). [A93]
+    // — both removed (rounds 124–148 they did). Tranquil Air Totem removed too (every Paladin had Salvation then; Salvation itself is gone since 2026-11-03). [A93]
     // Round 152 (user): demons crit with your spell crit only, so Agility does nothing — Grace of Air Totem and Scroll of
     // Agility IV removed (rounds 75–151 they raised the melee crit the Succubus inherited). [A95]
     manaTide:         { on: false, id: 17359, name: 'Mana Tide Totem',               cls: 'Shaman',  desc: '290 mana every 3 s for 12 s, once, when you drop below 50% mana', tide: { amount: 290, every: 3, ticks: 4 } },
@@ -115,8 +115,7 @@ WL.DEFAULT_CONFIG = {
     darkInspiration:  { on: false, id: 1326168, name: 'Dark Inspiration',            cls: 'Priest',  desc: '+15% Spirit (a Shadow Priest in your party; assumed up the whole fight)', spiPct: 15 },
     bloodPact:        { on: false, id: 11767, name: 'Blood Pact (another Warlock)',   cls: 'Warlock', desc: '+42 Stamina (another Warlock\'s Imp in your party)', sta: 42 },
     // Threat reduction (round 119, user). Classic value — the tooltip is not in the archived Forever data [A84]. Patch
-    // 2026-10-16: Blessing of Salvation is now "Salvation", which no longer takes up a blessing (same key, old codes still load).
-    blessingOfSalvation: { on: false, id: 1038, name: 'Salvation',                   cls: 'Paladin', desc: '−30% threat', threatPct: 30 },
+    // Salvation: removed from the game in the patch of 2026-11-03 (was a −30% threat raid buff, off by default).
     powerInfusion:    { on: false, id: 10060, name: 'Power Infusion',                cls: 'Priest',  desc: '+20% spell damage for 15 s (3 min cooldown per Priest); cast on you when you pop your cooldowns', spellDmgPct: 20, duration: 15, cd: 180, count: 1, maxCount: 5 },   // count = Priests giving you theirs (round 157)
   },
   // Consumables (data/consumables.js, loaded before this file). Only the per-build weapon oil is on by default. [A57]

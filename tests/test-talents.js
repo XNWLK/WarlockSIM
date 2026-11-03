@@ -37,11 +37,11 @@
     var c = det(); c.fight.duration = 60;
     var sb = 251 + 0.857 * 700, immoTick = 52 + 0.13 * 700;          // SB R9 / Immolate R7, Value − 1 (round 42)
     var r1 = WL.simulateOnce(tb(['immolate', 'conflagrate', 'shadowBolt'], { conflagrate: 1, shadowAndFlame: 5 }), 'human', c, { log: true });
-    T.eq(uniq(hits(r1, 'shadowBolt')).join(','), String(Math.round(sb * 1.10)), 'after Conflagrate every Shadow Bolt hits for ×1.10');
+    T.eq(uniq(hits(r1, 'shadowBolt')).join(','), String(Math.round(sb * 1.20)), 'after Conflagrate every Shadow Bolt hits for ×1.20 (5/5 = 20% since the patch of 2026-11-03)');
     T.eq(uniq(hits(r1, 'immolate', 'tick')).join(','), String(Math.round(immoTick)), 'Conflagrate does NOT buff Fire (Immolate ticks unchanged)');
     T.eq(r1.log.filter(function (e) { return e.type === 'consume'; }).length, 0, 'S&F 5/5: Conflagrate never consumes Immolate');
     var r2 = WL.simulateOnce(tb(['immolate', 'shadowburn', 'shadowBolt'], { shadowburn: 1, shadowAndFlame: 5 }), 'human', c, { log: true });
-    T.eq(uniq(hits(r2, 'immolate', 'tick')).join(','), String(Math.round(immoTick * 1.10)), 'after Shadowburn every Immolate tick is ×1.10');
+    T.eq(uniq(hits(r2, 'immolate', 'tick')).join(','), String(Math.round(immoTick * 1.20)), 'after Shadowburn every Immolate tick is ×1.20');
     T.eq(uniq(hits(r2, 'shadowBolt')).join(','), String(Math.round(sb)), 'Shadowburn does NOT buff Shadow (Shadow Bolt unchanged)');
     T.eq(r2.log.filter(function (e) { return e.type === 'refund'; }).length, r2.bySpell.shadowburn.hits, 'S&F 5/5: every Shadowburn refunds its Soul Shard');
   });

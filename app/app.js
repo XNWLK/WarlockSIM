@@ -1134,7 +1134,7 @@
     'dot:baneOfAgony': ['Bane of Agony', 'baneOfAgony', 'boss'], 'dot:baneOfDoom': ['Bane of Doom', 'baneOfDoom', 'boss'],
     'dot:siphonLife': ['Siphon Life', 'siphonLife', 'boss'],
     shadowTrance: ['Shadow Trance (Nightfall)', 'shadowTrance', 'you'], decimation: ['Decimation', 'talent_decimation', 'you'],
-    snfShadow: ['Shadow and Flame: Shadow +10%', 'talent_shadowAndFlame', 'you'], snfFire: ['Shadow and Flame: Fire +10%', 'talent_shadowAndFlame', 'you'],
+    snfShadow: ['Shadow and Flame: more Shadow damage', 'talent_shadowAndFlame', 'you'], snfFire: ['Shadow and Flame: more Fire damage', 'talent_shadowAndFlame', 'you'],
     eureka: ['Eureka!', 'racial_eureka', 'you'], bloodFury: ['Blood Fury', 'racial_bloodFury', 'you'], berserking: ['Berserking', 'racial_berserking', 'you'],
     spPotion: ['Spellblasting Potion', 'consumable_majorSpellblasting', 'you'], powerInfusion: ['Power Infusion', 'buff_powerInfusion', 'you'],
   };
@@ -1396,7 +1396,7 @@
         kv('Execute (below ' + exP + '%)', fmt(r.dpsExec, 1) + ' <span style="color:var(' + (exGain >= 0 ? '--good' : '--bad') + ')">(' + (exGain >= 0 ? '+' : '') + exGain.toFixed(1) + '%)</span>') : '') +
       kv('Median · worst – best fight', fmt(r.dpsMedian, 1) + ' · ' + fmt(r.dpsMin, 0) + ' – ' + fmt(r.dpsMax, 0)) +
       kv('vs best overall', ((r.dps / top - 1) * 100).toFixed(2) + '%') + kv('Life Taps per fight', fmt(r.lifeTaps, 1)) +
-      (r.tps != null ? '<span title="Threat you generate per second: your damage (Searing Pain counts double, less with Demonic Brand), reduced by Suppression and Salvation. Your pet\'s damage is the pet\'s threat.">Threat per second</span><span class="n">' +
+      (r.tps != null ? '<span title="Threat you generate per second: your damage (Searing Pain counts double, less with Demonic Brand), reduced by Suppression. Your pet\'s damage is the pet\'s threat.">Threat per second</span><span class="n">' +
         fmt(r.tps, 1) + ' <span class="meta">' + fmt(100 * r.tps / r.dps, 0) + '% of the DPS</span></span>' : '') +
       (r.clipped > 0.05 ? kv('Channels clipped per fight', fmt(r.clipped, 1)) : '') +
       (r.pushback && (r.pushback.n > 0.05 || r.pushback.resisted > 0.05) ? kv('Pushbacks per fight', fmt(r.pushback.n, 1) + ' · ' + fmt(r.pushback.time, 1) + ' s lost' + (r.pushback.resisted > 0.05 ? ' · ' + fmt(r.pushback.resisted, 1) + ' resisted' : '')) : '') +   // round 78

@@ -181,7 +181,7 @@ together inside their group, and the group is applied once.
 | Group | Talents in it |
 |---|---|
 | Direct (hits) | Shadow Mastery (Shadow spells) · Agonizing Flames (Destruction spells except Hellfire) · Aftermath (Immolate's hit) · Decimation (Shadow Bolt and Searing Pain while the boss is below 35%) · Eureka! (+10% for a cast that finishes while it is up) |
-| Periodic (DoT and channel ticks) | Shadow Mastery (Shadow spells) · Agonizing Flames (Destruction spells except Hellfire) · Improved Corruption · Improved Bane of Agony · Improved Drains · Eureka! (+10%, channel ticks while it is up) |
+| Periodic (DoT and channel ticks) | Shadow Mastery (Shadow spells) · Agonizing Flames (Destruction spells except Hellfire) · Improved Corruption · Improved Bane of Agony · Improved Drains (Drain Life and Drain Soul) · Eureka! (+10%, channel ticks while it is up) |
 
 Example: Corruption with 5/5 Improved Corruption and 5/5 Shadow Mastery gets × (1 + 10% + 10%) = × 1.20, not
 1.10 × 1.10 = 1.21.
@@ -195,7 +195,7 @@ Example: Corruption with 5/5 Improved Corruption and 5/5 Shadow Mastery gets × 
 | Soul Link | +3% | everything, while a demon is out |
 | Curse of the Elements | +10% | everything on a target that has the curse |
 | Improved Shadow Bolt | +4 to 20% | your Shadow damage on a target that has the debuff |
-| Shadow and Flame | +2 to 10% | Shadow for 20 s after a Conflagrate, Fire for 20 s after a Shadowburn |
+| Shadow and Flame | +4 to 20% | Shadow for 20 s after a Conflagrate, Fire for 20 s after a Shadowburn |
 | Power Infusion | +20% | everything, for 15 s |
 | Wrack | +10% | the ticks of Corruption, Bane of Agony, Siphon Life and Bane of Doom while you channel Wrack |
 | Soul Siphon | up to +36% | the ticks of Drain Life, Drain Soul and Wrack |
@@ -272,7 +272,7 @@ The examples use the build **Demo Pact Shadow Bolt Succubus** as an Undead with 
 Build **Destro Incinerate Succubus**, Undead, default settings; Fire spell power 500 + 21 Major Firestone = 521. No auras: this build has no Demonology points.
 - Immolate's hit: (146 + 0.2 × 521) × (1 + 10% Agonizing Flames + 50% Aftermath) = 250.2 × 1.60 = **400.3**. The two talents add to 60%; they do not multiply to 65%.
 - Immolate's burn, per tick: (52 + 0.13 × 521) × (1 + 10% Agonizing Flames) = **131.7**; 5 ticks.
-- Incinerate: (217 + 0.714 × 521) × 1.10 Agonizing Flames = 647.9; × 1.25 with Immolate on the boss × 1.10 curse × 1.10 Shadow and Flame (after a Shadowburn) = **979.9**; a crit (16.29%) deals × 2.
+- Incinerate: (217 + 0.714 × 521) × 1.10 Agonizing Flames = 647.9; × 1.25 with Immolate on the boss × 1.10 curse × 1.20 Shadow and Flame (after a Shadowburn) = **1,069**; a crit (16.29%) deals × 2.
 
 #### 9. Resistance before the curse, and Spell Pierce
 - Before Curse of the Elements is up the boss has 24 level resistance: on average 6% of each hit or tick is resisted - 76% of them lose 0%, 24% of them lose 25%.
@@ -306,7 +306,7 @@ tooltip says 246 to 274). A spell's "family" decides which talents count it as a
 | Siphon Life | Shadow | Affliction | 10 ticks of 41 + 0.05 × SP, one every 3 s | instant | 365 | — | 30 yd |
 | Drain Life | Shadow | Affliction | 5 ticks of 51 + 0.1 × SP, one every 1 s | channel, 5 s | 300 | — | 20 yd |
 | Drain Soul | Shadow | Affliction | 5 ticks of 84 + 0.1 × SP, one every 3 s | channel, 15 s | 290 | — | 30 yd |
-| Wrack | Shadow | Affliction | 6 ticks of 36 + 0.143 × SP, one every 1 s | channel, 6 s | 200 | — | 30 yd |
+| Wrack | Shadow | Affliction | 6 ticks of 86 + 0.286 × SP, one every 1 s | channel, 6 s | 200 | — | 30 yd |
 | Death Coil | Shadow | Affliction | 454 + 0.214 × SP | instant | 600 | 120 s | 30 yd |
 | Curse of the Elements | Shadow | Affliction | — | instant | 200 | — | 30 yd |
 | Life Tap | Shadow | Affliction | — | instant | 430 health | — | self |
@@ -369,7 +369,7 @@ Every talent of the three trees. "Talent group" and "aura" are explained in sect
 | Improved Corruption | 5 | Corruption cast −0.4 / 0.8 / 1.2 / 1.6 / 2 s; Corruption damage +2 / 4 / 6 / 8 / 10% | Shortens Corruption's 2 s cast (instant at 5 points) and adds to Corruption's periodic talent group. |
 | Grim Reach | 2 | range +10 / 20% | No effect on damage: the boss is always in range. The longer range (Affliction spells) is only listed. |
 | Soul Harvesting | 2 | — | Not simulated: it needs an enemy dying under your Drain Soul. |
-| Improved Drains | 3 | drain damage +7 / 13 / 20% | Adds to the periodic talent group of Drain Life, Drain Soul and Wrack. |
+| Improved Drains | 3 | drain damage +7 / 13 / 20% | Adds to the periodic talent group of Drain Life and Drain Soul (not Wrack). |
 | Improved Bane of Agony | 2 | Bane of Agony damage +5 / 10% | Adds to Bane of Agony's periodic talent group. |
 | Fel Concentration | 3 | pushback ignored 23 / 47 / 70% | Only matters when "Take a hit every (s)" is set: chance to ignore the pushback on Drain Life, Drain Soul and Wrack. |
 | Amplify Curse | 1 | Bane of Agony +50% | Used with every Bane of Agony cast while its 3-minute cooldown is ready (off the global cooldown). Every tick of that Bane of Agony is multiplied by 1.5 after everything else (talents, auras, curse, crit). Never used on Bane of Doom. |
@@ -428,7 +428,7 @@ Every talent of the three trees. "Talent group" and "aura" are explained in sect
 | Pyroclasm | 2 | — | Not simulated (stuns). |
 | Bane of Havoc | 1 | — | Only with 2 or 3 targets: Bane of Havoc sits on target 2, and 15% of everything you (not your demon) deal to the other targets is dealt to it as well. |
 | Fire and Brimstone | 3 | Conflagrate crit +8 / 17 / 25% | Adds to Conflagrate's crit chance. |
-| Shadow and Flame | 5 | Shadow / Fire damage +2 / 4 / 6 / 8 / 10%; chance 20 / 40 / 60 / 80 / 100% | A landed Conflagrate gives this much more Shadow damage for 20 s, a landed Shadowburn this much more Fire damage for 20 s (auras: they multiply). Second values: the chance that Conflagrate does not consume Immolate, and that Shadowburn refunds its soul shard. |
+| Shadow and Flame | 5 | Shadow / Fire damage +4 / 8 / 12 / 16 / 20%; chance 20 / 40 / 60 / 80 / 100% | A landed Conflagrate gives this much more Shadow damage for 20 s, a landed Shadowburn this much more Fire damage for 20 s (auras: they multiply). Second values: the chance that Conflagrate does not consume Immolate, and that Shadowburn refunds its soul shard. |
 | Incinerate | 1 | — | Gives the spell Incinerate. |
 <!-- /gen:talents-destruction -->
 
@@ -650,7 +650,7 @@ Demons, explosives and Touch of the Grave are never resisted and get nothing fro
 The sim reports your threat per second; it does not check it against a tank.
 
 ```
-threat = damage × (1 − Suppression 4% per point) × (1 − Salvation 30%) × spell factor
+threat = damage × (1 − Suppression 4% per point) × spell factor
 ```
 
 - Spell factor: 2 for Searing Pain, lowered by Demonic Brand's 17 / 33 / 50%; 1 for everything else.
@@ -681,7 +681,6 @@ threat = damage × (1 − Suppression 4% per point) × (1 − Salvation 30%) × 
 | Atiesh aura (Druid) | Druid | off | 11 mana every 5 s (a Druid in your party holds Atiesh) |
 | Dark Inspiration | Priest | off | +15% Spirit (a Shadow Priest in your party; assumed up the whole fight) |
 | Blood Pact (another Warlock) | Warlock | off | +42 Stamina (another Warlock's Imp in your party) |
-| Salvation | Paladin | off | −30% threat |
 | Power Infusion | Priest | off | +20% spell damage for 15 s (3 min cooldown per Priest); cast on you when you pop your cooldowns |
 <!-- /gen:buffs -->
 
@@ -765,8 +764,8 @@ The last entry is a filler that is always possible.
 | Conflagrate on cooldown while Immolate is up | Conflagrate is off cooldown and Immolate is on the boss. |
 | Conflagrate only when Immolate is about to expire (≤ 3 s left) | Conflagrate is off cooldown and Immolate has at most 3 s left. |
 | Shadowburn on cooldown (needs a Soul Shard) | Shadowburn is off cooldown. |
-| Shadowburn only to keep Shadow and Flame (Fire +10%) up (≤ 3 s left) | Shadow and Flame is talented, Shadowburn is off cooldown, and its Fire buff is missing or has at most 3 s left. |
-| Conflagrate only to keep Shadow and Flame (Shadow +10%) up (≤ 3 s left) | Shadow and Flame is talented, Conflagrate is off cooldown, Immolate is on the boss, and the Shadow buff is missing or has at most 3 s left. |
+| Shadowburn only to keep Shadow and Flame (Fire bonus) up (≤ 3 s left) | Shadow and Flame is talented, Shadowburn is off cooldown, and its Fire buff is missing or has at most 3 s left. |
+| Conflagrate only to keep Shadow and Flame (Shadow bonus) up (≤ 3 s left) | Shadow and Flame is talented, Conflagrate is off cooldown, Immolate is on the boss, and the Shadow buff is missing or has at most 3 s left. |
 | Keep Curse of the Elements and DoTs on the extra targets (multi-DoT) | With 2 or 3 targets: on each extra target, first your Curse of the Elements (if the option is on), then Corruption, Siphon Life, Bane of Agony and Immolate when missing or about to run out. No Bane of Agony on the Bane of Havoc target. Added by itself right above the filler when "Multi-DoT the extra targets" is ticked. |
 | Shadow Bolt an extra target that has your DoTs but no Improved Shadow Bolt | With 2 or 3 targets and Improved Shadow Bolt: a Shadow Bolt at an extra target that carries one of your DoTs and whose own Improved Shadow Bolt is missing or runs out before the bolt lands. |
 | Shadow Bolt (max rank) to keep Improved Shadow Bolt up on the boss | Improved Shadow Bolt is talented and the debuff on the boss is missing or runs out within one Shadow Bolt cast. |
@@ -936,7 +935,7 @@ every target, as "Keep DoTs on the extra targets"; Bane of Havoc as usual).
 - How much damage Spell Pierce adds below 0 resistance.
 - Which consumables exclude each other.
 - Values taken from Classic because Forever's are not known: base stats of a level-60 Warlock, boss armor (3,731),
-  Salvation (30%), Concentration Aura (35%), the Atiesh auras (+33 spell power, +2% spell crit, 11 MP5), Blood Pact (+42 Stamina).
+  Concentration Aura (35%), the Atiesh auras (+33 spell power, +2% spell crit, 11 MP5), Blood Pact (+42 Stamina).
 - Dark Inspiration (+15% Spirit from a Shadow Priest) is taken as up the whole fight.
 
 **Simplified**

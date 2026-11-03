@@ -65,6 +65,7 @@
     Object.keys(BOOK).forEach(function (key) {
       var s = BOOK[key], g = gath[s.id];
       if (!g) { T.warn(key + ' (' + s.id + ') not in raw ability list', 'talent-rank spell; verified via research/wowhead_spell_details.md'); return; }
+      if (s.patch) { T.eq(g.name_enus, s.name, key + ' (patch ' + s.patch + ') name matches raw id ' + s.id); return; }   // values newer than the archive (round 184)
       T.eq(g.name_enus, s.name, key + ' name matches raw id ' + s.id);
       var d = g.description_enus, expect = [];
       if (s.kind === 'direct' || s.kind === 'hybrid') expect.push(+(s.coef * 100).toFixed(1));

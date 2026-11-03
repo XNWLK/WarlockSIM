@@ -71,7 +71,7 @@ WL.TALENTS = [
   { key: 'pyroclasm',           tree: 'destruction', wid: 105878, name: 'Pyroclasm',            row: 4, col: 0, ranks: 2, req: 'intensity', reqQty: 3, v: {} },
   { key: 'baneOfHavoc',         tree: 'destruction', wid: 105876, name: 'Bane of Havoc',        row: 4, col: 1, ranks: 1, v: {} },
   { key: 'fireAndBrimstone',    tree: 'destruction', wid: 105877, name: 'Fire and Brimstone',   row: 4, col: 2, ranks: 3, req: 'conflagrate', reqQty: 1, v: { conflagCritPct: [8, 17, 25] } },
-  { key: 'shadowAndFlame',      tree: 'destruction', wid: 105875, name: 'Shadow and Flame',     row: 5, col: 2, ranks: 5, v: { schoolPct: [2, 4, 6, 8, 10], procPct: [20, 40, 60, 80, 100] } },
+  { key: 'shadowAndFlame',      tree: 'destruction', wid: 105875, name: 'Shadow and Flame',     row: 5, col: 2, ranks: 5, v: { schoolPct: [4, 8, 12, 16, 20], procPct: [20, 40, 60, 80, 100] }, patch: '2026-11-03' },   // 2026-11-03 patch: 4–20% (was 2–10%)
   { key: 'incinerate',          tree: 'destruction', wid: 105874, name: 'Incinerate',           row: 6, col: 1, ranks: 1, req: 'baneOfHavoc', reqQty: 1, v: {} },
 ];
 

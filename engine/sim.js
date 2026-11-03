@@ -234,7 +234,7 @@ window.WL = window.WL || {};
     function healthOk(k) { var s = SPELLS[k]; return !s || !s.selfDamage || S.health + healsDue(S.t + s.duration) > selfTick(k) * table[k].ticks; }
     // ---------- threat (round 119, user) [A84] ----------
     // 1 damage = 1 threat, Searing Pain twice that ("a high amount of threat"; less with Demonic Brand), all of it reduced by
-    // Suppression (4% per point) and by Salvation (they multiply; Tranquil Air Totem until round 149). Your pet's damage is the
+    // Suppression (4% per point) and by threat buffs (none left: Tranquil Air Totem until round 149, Salvation until round 184). Your pet's damage is the
     // pet's threat, not yours. Not counted: threat from healing yourself, from mana gains and from applying curses.
     // Threat buffs of one `group` do not stack (round 125, user: Blessing of Salvation / Tranquil Air Totem; none share one now).
     var THREAT_BUFFS = (function () {
