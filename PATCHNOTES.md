@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v160
+- **Wrack Succubus: Wrack is the main filler now.** It channels Wrack whenever Corruption, Bane of Agony and Siphon Life all
+  have at least 4 s left, and Shadow Bolt only fills the gaps (it no longer keeps Improved Shadow Bolt up on its own).
+  With the stronger Wrack of the 3 November patch: about +5.9% (598.6 → 634.1, Undead), Wrack cast about 18 times a fight
+  instead of 3.
+
 ## v159
 - **Forever patch notes of 3 November** (the last before launch):
   - **Wrack** deals far more: 86 + 28.6% of your spell power every second (was 36 + 14.3%).

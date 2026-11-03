@@ -78,8 +78,9 @@
     own.forEach(function (b) {
       // Round 168 (user): the builds on the sheet use lifeTapNeed with the same numbers (the hidden ones keep lifeTapBelow).
       var k = WL.RETIRED_BUILDS.indexOf(b) >= 0 ? 'lifeTapBelow' : 'lifeTapNeed', p = WL.actionParams(b, k);
-      var fi = b.rotation.map(function (a) { var A = WL.actionOf(a, b); return !!(A && (A.filler || A.preFiller)); }).indexOf(true);
-      T.ok(fi > 0 && b.rotation[fi - 1] === k && b.rotation.indexOf(k) === b.rotation.lastIndexOf(k), b.short + ': the action sits right above the filler, once');
+      // Round 185: right above the LAST filler (Wrack Succubus: Wrack is a filler with a condition high up, Shadow Bolt the last one).
+      var fi = b.rotation.map(function (a) { var A = WL.actionOf(a, b); return !!(A && (A.filler || A.preFiller)); }).lastIndexOf(true);
+      T.ok(fi > 0 && b.rotation[fi - 1] === k && b.rotation.indexOf(k) === b.rotation.lastIndexOf(k), b.short + ': the action sits right above the (last) filler, once');
       T.eq(p.pct + '/' + p.sec, WANT[b.key], b.short + ': ' + WL.actionLabel(b, k));
       T.eq(WL.validateBuild(b).join(' | '), '', b.short + ': still a legal build');
       T.eq(JSON.stringify(WL.decodeBuild(WL.encodeBuild(b)).params), JSON.stringify(b.params), b.short + ': its build code carries the numbers');

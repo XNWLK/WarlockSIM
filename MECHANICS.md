@@ -910,7 +910,7 @@ every target, as "Keep DoTs on the extra targets"; Bane of Havoc as usual).
 - Succubus out, nothing sacrificed, Major Spellstone.
 - Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 3/5, Improved Bane of Agony 2/2, Amplify Curse 1/1, Pandemic 3/3, Malevolence 5/5, Nightfall 2/2, Siphon Life 1/1, Soul Siphon 3/3, Shadow Mastery 5/5, Wrack 1/1.
 - Destruction: Improved Shadow Bolt 5/5, Bane 5/5, Ruin 5/5, Agonizing Flames 3/3.
-- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Agony if no Bane (never Bane of Doom) · 3. Corruption if missing/expiring · 4. Siphon Life if missing/expiring · 5. Curse of the Elements if missing · 6. Immolate if missing/expiring · 7. Shadow Bolt (max rank) to keep Improved Shadow Bolt up on the boss · 8. Shadow Bolt (max rank) if Shadow Trance (Nightfall) is up · 9. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 60% mana, more than 25 s left) · 10. Wrack (filler channel) · 11. Shadow Bolt (filler).
+- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Agony if no Bane (never Bane of Doom) · 3. Corruption if missing/expiring · 4. Curse of the Elements if missing · 5. Immolate if missing/expiring · 6. Wrack (filler channel) · 7. Shadow Bolt (max rank) if Shadow Trance (Nightfall) is up · 8. Siphon Life if missing/expiring · 9. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 60% mana, more than 25 s left) · 10. Shadow Bolt (filler).
 <!-- /gen:builds -->
 
 ---

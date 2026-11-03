@@ -90,14 +90,14 @@ WL.BUILDS = [
   {
     key: 'wrack_succubus', short: 'Wrack Succubus',
     name: 'Wrack Succubus – Affliction (Wrack) / Destruction (Improved Shadow Bolt), Succubus out',
-    notes: '33/0/18. Deep Affliction with Wrack as the filler: while it channels, Corruption and Bane of Agony deal 10% more. Suppression, Improved Corruption, Improved Life Tap, Pandemic, Amplify Curse, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon and Improved Bane of Agony, with Bane, Improved Shadow Bolt, Ruin and Agonizing Flames on the Destruction side; a Shadow Bolt keeps Improved Shadow Bolt up whenever it is about to run out. Succubus out, Bane of Agony only (never Bane of Doom).',
+    notes: '33/0/18. Deep Affliction with Wrack as the filler: while it channels, Corruption and Bane of Agony deal 10% more. Suppression, Improved Corruption, Improved Life Tap, Pandemic, Amplify Curse, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon and Improved Bane of Agony, with Bane, Improved Shadow Bolt, Ruin and Agonizing Flames on the Destruction side. Wrack is the main filler: it channels whenever Corruption, Bane of Agony and Siphon Life all have at least 4 s left, and Shadow Bolt fills the gaps (Shadow Trance procs, and while a DoT needs refreshing soon). Succubus out, Bane of Agony only (never Bane of Doom).',
     talents: {
       suppression: 5, improvedCorruption: 3, improvedLifeTap: 2, pandemic: 3, amplifyCurse: 1, malevolence: 5, siphonLife: 1, nightfall: 2,
       shadowMastery: 5, soulSiphon: 3, wrack: 1, improvedBaneOfAgony: 2,
       improvedShadowBolt: 5, bane: 5, ruin: 5, agonizingFlames: 3,   // round 149 follow-up (user: "adopt both", search +3.54%): −2 Improved Corruption +1 Amplify Curse +1 Ruin, −3 Improved Drains +3 Agonizing Flames.   // round 149 (user; patch 2026-10-16: Malediction gone): −5 Malediction +2 Improved Life Tap +3 Ruin
     },
     pet: 'succubus', sacrifice: null, oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'baneOfAgony', 'corruption', 'siphonLife', 'curseOfElements', 'immolate', 'isbUpkeep', 'shadowTrance', 'lifeTapNeed', 'wrack', 'shadowBolt'],   // round 82/83: + ISB upkeep; round 168: Shadow Bolt when Wrack waits
+    rotation: ['deathCoilFinisher', 'baneOfAgony', 'corruption', 'curseOfElements', 'immolate', 'wrack', 'shadowTrance', 'siphonLife', 'lifeTapNeed', 'shadowBolt'],   // round 185 (user: Wrack the main filler; patch 2026-11-03): Wrack above Shadow Trance, ISB upkeep removed, Siphon Life after Shadow Trance (+5.9%); round 168: Shadow Bolt when Wrack waits
     // Round 168 (user: "2 yes"): Wrack only while Corruption, Bane of Agony and Siphon Life all have at least 4 s left (+2.0%, 10,000 fights).
     actWhen: { wrack: { t: 'all', c: [{ t: 'dot', spell: 'corruption', op: '>=', v: 4 }, { t: 'dot', spell: 'baneOfAgony', op: '>=', v: 4 }, { t: 'dot', spell: 'siphonLife', op: '>=', v: 4 }] } },
     params: { lifeTapNeed: { pct: 60, sec: 25 } },   // round 168 (user): Life Tap only when the rest of the fight needs it and no free mana is ready, same numbers (default settings ±0.00%, max buffs +0.1 … +5.9%). Round 105 (user): Life Tap below 60% mana with more than 25 s left, +0.21% (10,000 fights)

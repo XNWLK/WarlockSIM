@@ -23,7 +23,7 @@
   });
   T.run('round 168: Wrack Succubus, pre-pull Soul Fire', function () {
     var w = sheet('wrack_succubus');
-    T.ok(w.actWhen && w.actWhen.wrack && w.rotation[w.rotation.length - 1] === 'shadowBolt' && w.rotation[w.rotation.length - 2] === 'wrack', 'Wrack with its condition, Shadow Bolt below it');
+    T.ok(w.actWhen && w.actWhen.wrack && w.rotation[w.rotation.length - 1] === 'shadowBolt' && w.rotation.indexOf('wrack') >= 0 && w.rotation.indexOf('wrack') < w.rotation.length - 1, 'Wrack with its condition, Shadow Bolt below it (round 185: Wrack higher up, the main filler)');
     T.eq(WL.validateBuild(w).length, 0, 'a legal build');
     var A = WL.actionOf('wrack', w);
     T.ok(A && A.preFiller && !A.filler && /only when/.test(A.label), 'Wrack with a condition is a filler that can pass (Shadow Bolt then): ' + A.label);
