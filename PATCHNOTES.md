@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v162
+- New chart: **Build Scaling** — every build's DPS from gear level 0 (no spell power, hit, crit or haste) to level 7
+  (2000 spell power, 17% hit, 30% crit, 20% haste) in even steps, all builds in one chart. It also says where one build's
+  line passes another's.
+- Wrack DS no longer casts Siphon Life (the talent stays: Wrack needs it).
+
 ## v161
 - **Builds:** SM Ruin is gone. Wrack Succubus is replaced by **Wrack DS** (35/11/5: deep Affliction with Wrack, the Imp
   sacrificed, no demon out), and **Incinerate DS** is new (7/11/33: Incinerate with the Succubus sacrificed). Five builds.

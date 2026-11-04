@@ -873,6 +873,10 @@ Undead) only bring their stats.
 and no dodge; every swing that is not a glancing blow crits), to try streaks of luck. The results say "cheat mode" while it
 is on; these are not real numbers.
 
+**Build Scaling** (Charts): every build at gear levels 0 to 7 — level 0 has no spell power, hit, crit (character sheet), haste or
+Spell Pierce on the sheet, level 7 has 2000 spell power, 17% hit, 30% crit and 20% haste, and each level in between adds the same
+amount of each; everything else stays as you have set it. 1,000 fights per point, each build with the race it is listed with.
+
 **Racials by fight length** (the last box on the page): every built-in build and race at 60, 120, 180, 240 and 300 s, made with the
 default settings and shipped with the page, or redone with your own settings - for 1, 2 or 3 targets (2 and 3: your DoTs on
 every target, as "Keep DoTs on the extra targets"; Bane of Havoc as usual).
@@ -913,7 +917,7 @@ every target, as "Keep DoTs on the extra targets"; Bane of Havoc as usual).
 - Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 5/5, Improved Bane of Agony 2/2, Amplify Curse 1/1, Pandemic 3/3, Malevolence 5/5, Nightfall 2/2, Siphon Life 1/1, Soul Siphon 3/3, Shadow Mastery 5/5, Wrack 1/1.
 - Demonology: Demonic Embrace 5/5, Demonic Aegis 2/2, Fel Vitality 3/3, Demonic Sacrifice 1/1.
 - Destruction: Improved Shadow Bolt 5/5.
-- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Shadow Bolt (max rank) if Shadow Trance (Nightfall) is up · 4. Corruption if missing/expiring · 5. Siphon Life if missing/expiring · 6. Curse of the Elements if missing · 7. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 40% mana, more than 25 s left) — only when time since you last spent mana >= 6 s · 8. Wrack (filler channel).
+- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Shadow Bolt (max rank) if Shadow Trance (Nightfall) is up · 4. Corruption if missing/expiring · 5. Curse of the Elements if missing · 6. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 40% mana, more than 25 s left) — only when time since you last spent mana >= 6 s · 7. Wrack (filler channel).
 <!-- /gen:builds -->
 
 ---

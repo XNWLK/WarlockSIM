@@ -81,7 +81,8 @@ Click a build for:
 - **Compare two builds** side by side, each with the race you pick: a verdict (how big the gap is and whether it is
   clear), numbers, stats, damage per source, time spent per spell, uptimes, races, talents, priority and DPS spread.
 - **Charts:** DPS by a stat (where does more hit, crit or haste stop helping?) and DPS by fight length (which build
-  wins short and long fights), for one build or all of them.
+  wins short and long fights), for one build or all of them, and **Build Scaling** (every build's DPS from no gear to 2000
+  spell power, capped hit, 30% crit and 20% haste).
 - **Rank arrows** show which builds moved up or down after you change your settings.
 - **Health and threat:** Life Tap and Hellfire cost health, you set how much healing you get, and every build shows its
   threat per second (with Salvation as a raid buff).

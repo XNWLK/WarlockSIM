@@ -3339,6 +3339,16 @@
     { k: 'pierce', name: 'Spell Pierce', axis: 'Spell Pierce on your gear', pts: chRange(0, 100, 10), unit: '' },
   ];
   var CH_LEN = [30, 45, 60, 90, 120, 150, 180, 240, 300], CH_MAX = 8, CH_FIGHTS = 400;
+  // Build Scaling (round 187, user): DPS by gear level. Level 0 = no spell power, hit, crit, haste or Spell Pierce on the
+  // sheet; the last level = the user's top end (17% hit = the cap); the levels between step every stat up evenly. Intellect,
+  // Spirit, Stamina and everything else stay as set.
+  var CH_SCALE = { levels: 7, max: { sp: 2000, hitPct: 17, critPct: 30, hastePct: 20, pierce: 0 } };
+  function scaleGear(lv) { var f = lv / CH_SCALE.levels, o = {}; Object.keys(CH_SCALE.max).forEach(function (k) { o[k] = +(CH_SCALE.max[k] * f).toFixed(k === 'sp' || k === 'pierce' ? 0 : 2); }); return o; }
+  function scaleText(lv, short) {
+    var g = scaleGear(lv), parts = [fmt(g.sp) + ' SP', fmt(g.hitPct, g.hitPct % 1 ? 1 : 0) + '% hit', fmt(g.critPct, g.critPct % 1 ? 1 : 0) + '% crit', fmt(g.hastePct, g.hastePct % 1 ? 1 : 0) + '% haste'];
+    if (CH_SCALE.max.pierce) parts.push(fmt(g.pierce) + ' Spell Pierce');
+    return short ? parts[0] : parts.join(' · ');
+  }
   var chart = null, chartRunning = false;
   function chMsg(s, bad) { $('chMsg').textContent = s; $('chMsg').style.color = bad ? 'var(--bad)' : ''; }
   function chOptions() {
@@ -3418,10 +3428,10 @@
     if (chartRunning || running || batchRunning || quickRunning) { chMsg('Wait for the current run to finish.', true); return; }
     readSettings();
     if ($('chKind').value === 'buffs') { runBuffChart(); return; }
-    var kind = $('chKind').value, st = CH_STATS.filter(function (s) { return s.k === $('chStat').value; })[0] || CH_STATS[1];
-    var cur = kind === 'len' ? cfg.fight.duration : (cfg.gear[st.k] || 0);
-    var xs = (kind === 'len' ? CH_LEN : st.pts).slice();
-    if (xs.indexOf(cur) < 0) xs.push(cur);
+    var kind = $('chKind').value, st = CH_STATS.filter(function (s) { return s.k === $('chStat').value; })[0] || CH_STATS[1], scale = kind === 'scale';
+    var cur = kind === 'len' ? cfg.fight.duration : scale ? CH_SCALE.levels : (cfg.gear[st.k] || 0);
+    var xs = (kind === 'len' ? CH_LEN : scale ? chRange(0, CH_SCALE.levels, 1) : st.pts).slice();
+    if (!scale && xs.indexOf(cur) < 0) xs.push(cur);
     xs.sort(function (a, z) { return a - z; });
     var pick = $('chBuild').value, by = runByRace(), order = WL.BUILDS.slice().sort(function (a, z) { return (listedDps(by[z.key] || {}) || 0) - (listedDps(by[a.key] || {}) || 0); });
     var builds = pick ? WL.BUILDS.filter(function (b) { return b.key === pick; }) : order.slice(0, CH_MAX);
@@ -3432,10 +3442,10 @@
       used[slot] = 1;
       return { b: b, race: mr ? mr.race : (myRace || 'human'), slot: slot, y: [] };
     });
-    var n = Math.min(cfg.fight.iterations, CH_FIGHTS), jobs = [], done = 0, t0 = performance.now();
+    var n = scale ? cfg.fight.iterations : Math.min(cfg.fight.iterations, CH_FIGHTS), jobs = [], done = 0, t0 = performance.now();   // Build Scaling: lines lie close together, so the full number of fights
     xs.forEach(function (x, xi) {
       var c = JSON.parse(JSON.stringify(cfg));
-      if (kind === 'len') c.fight.duration = x; else c.gear[st.k] = x;
+      if (kind === 'len') c.fight.duration = x; else if (scale) Object.assign(c.gear, scaleGear(x)); else c.gear[st.k] = x;
       series.forEach(function (s, si) { jobs.push({ kind: 'weight', build: s.b, race: s.race, cfg: c, n: n, stat: null, si: si, xi: xi }); });
     });
     chartRunning = true; $('chRun').disabled = true; chMsg('Simulating 0 / ' + jobs.length + ' points…');
@@ -3443,7 +3453,7 @@
       series[j.si].y[j.xi] = res.dps; chMsg('Simulating ' + (++done) + ' / ' + jobs.length + ' points…');
     }, function () {
       chartRunning = false; $('chRun').disabled = false;
-      chart = { kind: kind, st: st, xs: xs, cur: cur, series: series, n: n, dur: cfg.fight.duration, gear: gearText(cfg.gear) };
+      chart = { kind: kind, st: st, xs: xs, cur: cur, noCur: scale, series: series, n: n, dur: cfg.fight.duration, gear: gearText(cfg.gear) };
       chMsg(jobs.length + ' points × ' + fmt(n) + ' fights in ' + ((performance.now() - t0) / 1000).toFixed(1) + ' s.');
       renderChart();
     });
@@ -3458,8 +3468,8 @@
     // drawn at the width it has on the page (340 … 1100 px), so the text keeps its size on a phone; redrawn when the window changes
     var cw = $('chOut').clientWidth || 960, W = Math.max(340, Math.min(1100, cw)), H = W < 620 ? 300 : 400;
     C.w = cw;
-    var len = C.kind === 'len', unit = len ? ' s' : C.st.unit, S = C.series, direct = S.length <= 4 && W >= 620;
-    var L = 56, R = direct ? 190 : 18, T = 22, B = 44, pw = W - L - R, ph = H - T - B;
+    var len = C.kind === 'len', sc = C.kind === 'scale', unit = len ? ' s' : sc ? '' : C.st.unit, S = C.series, direct = S.length <= 4 && W >= 620;
+    var L = 56, R = direct ? 190 : 18, T = 22, B = sc ? 58 : 44, pw = W - L - R, ph = H - T - B;
     var all = []; S.forEach(function (s) { s.y.forEach(function (v) { all.push(v); }); });
     var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
     if (lo < 0.4 * hi) lo = 0;
@@ -3473,13 +3483,14 @@
       if (i % every && x !== C.cur) return;
       if (x !== C.cur && (X(x) - lastTick < 30 || Math.abs(X(x) - X(C.cur)) < 30)) return;   // your value always gets its label; neighbours make room
       lastTick = X(x);
-      g += '<line class="axis" x1="' + X(x).toFixed(1) + '" x2="' + X(x).toFixed(1) + '" y1="' + (T + ph) + '" y2="' + (T + ph + 4) + '"/><text x="' + X(x).toFixed(1) + '" y="' + (T + ph + 17) + '" text-anchor="middle">' + fmt(x, x % 1 ? 1 : 0) + '</text>';
+      g += '<line class="axis" x1="' + X(x).toFixed(1) + '" x2="' + X(x).toFixed(1) + '" y1="' + (T + ph) + '" y2="' + (T + ph + 4) + '"/><text x="' + X(x).toFixed(1) + '" y="' + (T + ph + 17) + '" text-anchor="middle">' + fmt(x, x % 1 ? 1 : 0) + '</text>' +
+        (sc ? '<text x="' + X(x).toFixed(1) + '" y="' + (T + ph + 30) + '" text-anchor="middle">' + esc(scaleText(x, true)) + '</text>' : '');   // round 187: the spell power of each gear level under its number
     });
     g += '<line class="axis" x1="' + L + '" x2="' + (L + pw) + '" y1="' + (T + ph) + '" y2="' + (T + ph) + '"/>' +
-      '<text class="axl" x="' + (L + pw / 2) + '" y="' + (H - 6) + '" text-anchor="middle">' + esc(len ? 'Fight length (s)' : C.st.axis) + '</text>' +
+      '<text class="axl" x="' + (L + pw / 2) + '" y="' + (H - 6) + '" text-anchor="middle">' + esc(len ? 'Fight length (s)' : sc ? 'Gear level (0 = no spell power, hit, crit or haste; ' + CH_SCALE.levels + ' = ' + scaleText(CH_SCALE.levels) + ')' : C.st.axis) + '</text>' +
       '<text class="axl" x="' + L + '" y="12" text-anchor="start">DPS</text>' +
-      '<line class="cur" x1="' + X(C.cur).toFixed(1) + '" x2="' + X(C.cur).toFixed(1) + '" y1="' + T + '" y2="' + (T + ph) + '"/>' +
-      '<text class="axl" x="' + X(C.cur).toFixed(1) + '" y="12" text-anchor="' + (X(C.cur) > L + pw - 60 ? 'end' : X(C.cur) < L + 60 ? 'start' : 'middle') + '">' + (len ? 'your setting' : 'your gear') + ': ' + fmt(C.cur, C.cur % 1 ? 1 : 0) + unit + '</text>';
+      (C.noCur ? '' : '<line class="cur" x1="' + X(C.cur).toFixed(1) + '" x2="' + X(C.cur).toFixed(1) + '" y1="' + T + '" y2="' + (T + ph) + '"/>' +
+      '<text class="axl" x="' + X(C.cur).toFixed(1) + '" y="12" text-anchor="' + (X(C.cur) > L + pw - 60 ? 'end' : X(C.cur) < L + 60 ? 'start' : 'middle') + '">' + (len ? 'your setting' : 'your gear') + ': ' + fmt(C.cur, C.cur % 1 ? 1 : 0) + unit + '</text>');
     S.forEach(function (s) {
       var col = 'var(--s' + s.slot + ')';
       g += '<polyline class="ln" style="stroke:' + col + '" points="' + C.xs.map(function (x, i) { return X(x).toFixed(1) + ',' + Y(s.y[i]).toFixed(1); }).join(' ') + '"/>' +
@@ -3492,20 +3503,25 @@
     }
     g += '<line class="xh" id="chXh" y1="' + T + '" y2="' + (T + ph) + '" x1="0" x2="0" visibility="hidden"/><rect id="chHit" x="' + L + '" y="' + T + '" width="' + pw + '" height="' + ph + '" fill="transparent"/>';
     var ci = C.xs.indexOf(C.cur), near = ci < C.xs.length - 1 ? ci : ci - 1;       // slope at your value: the step after it (the last point: the step before)
-    var title = len ? 'DPS by fight length' : 'DPS by ' + C.st.name;
-    var cap = 'Each point is ' + fmt(C.n) + ' simulated fights with ' + (len ? 'that fight length (± your length variation)' : 'that much ' + C.st.name + ' on your gear') + ' and everything else as you have set it; the same fights are used at every point. ' +
-      'Every build is drawn with the race it is listed with. The dashed line is your current ' + (len ? 'fight length' : 'value') + '. The DPS axis ' + (lo > 0 ? 'does not start at 0.' : 'starts at 0.') +
+    var title = len ? 'DPS by fight length' : sc ? 'Build Scaling' : 'DPS by ' + C.st.name;
+    var cross = [];                              // Build Scaling: where one build's line passes another's
+    if (sc) S.forEach(function (a, ai) { S.forEach(function (z, zi) {
+      if (zi <= ai) return;
+      for (var i = 0; i + 1 < C.xs.length; i++) { var d0 = a.y[i] - z.y[i], d1 = a.y[i + 1] - z.y[i + 1], m0 = 0.004 * a.y[i], m1 = 0.004 * a.y[i + 1]; if (d0 * d1 < 0 && Math.abs(d0) > m0 && Math.abs(d1) > m1) cross.push((d1 > 0 ? a : z).b.short + ' passes ' + (d1 > 0 ? z : a).b.short + ' between levels ' + C.xs[i] + ' and ' + C.xs[i + 1]); }
+    }); });
+    var cap = 'Each point is ' + fmt(C.n) + ' simulated fights with ' + (len ? 'that fight length (± your length variation)' : sc ? 'that gear level instead of your sheet\'s spell power, hit, crit (character sheet), haste and Spell Pierce' : 'that much ' + C.st.name + ' on your gear') + ' and everything else as you have set it; the same fights are used at every point. ' +
+      'Every build is drawn with the race it is listed with. ' + (C.noCur ? 'Each level adds the same amount of every stat: ' + scaleText(1) + '. ' + (cross.length ? cross.join('; ') + '. ' : S.length > 1 ? 'No line clearly crosses another. ' : '') + (S.length > 1 ? 'Lines closer than about 0.4% can swap places by chance. ' : '') : 'The dashed line is your current ' + (len ? 'fight length' : 'value') + '. ') + 'The DPS axis ' + (lo > 0 ? 'does not start at 0.' : 'starts at 0.') +
       (!$('chBuild').value && WL.BUILDS.length > CH_MAX ? ' Only the best ' + CH_MAX + ' builds are drawn.' : '');
     var legend = S.length > 1 ? '<div class="chlegend">' + S.slice().sort(function (a, z) { return z.y[ci] - a.y[ci]; }).map(function (s) {
       return '<span class="it"><i style="background:var(--s' + s.slot + ')"></i>' + esc(s.b.short) + ' <span class="meta">' + esc(WL.RACES[s.race].name) + '</span></span>'; }).join('') + '</div>' : '';
     var table = '<details class="chtable"' + (S.length <= 2 ? ' open' : '') + '><summary>Table of values</summary><div class="scroll"><table><thead><tr><th>Build</th>' +
-      C.xs.map(function (x) { return '<th class="n' + (x === C.cur ? ' curcol' : '') + '">' + fmt(x, x % 1 ? 1 : 0) + unit + '</th>'; }).join('') +
-      (len ? '' : '<th class="n" title="The DPS gained per point between your value and the next point of the chart">DPS per 1' + (unit || '') + ' at your value</th>') + '</tr></thead><tbody>' +
+      C.xs.map(function (x) { return '<th class="n' + (x === C.cur && !C.noCur ? ' curcol' : '') + '"' + (sc ? ' title="' + esc(scaleText(x)) + '"' : '') + '>' + (sc ? 'Level ' : '') + fmt(x, x % 1 ? 1 : 0) + unit + '</th>'; }).join('') +
+      (len ? '' : sc ? '<th class="n" title="DPS at the top level compared with level 1">Level 1 → ' + C.xs[C.xs.length - 1] + '</th>' : '<th class="n" title="The DPS gained per point between your value and the next point of the chart">DPS per 1' + (unit || '') + ' at your value</th>') + '</tr></thead><tbody>' +
       S.slice().sort(function (a, z) { return z.y[ci] - a.y[ci]; }).map(function (s) {
         var slope = near >= 0 && C.xs.length > 1 ? (s.y[near + 1] - s.y[near]) / (C.xs[near + 1] - C.xs[near]) : null;
         return '<tr><td class="bname"><span class="sw" style="background:var(--s' + s.slot + ')"></span>' + esc(s.b.short) + ' <span class="meta">' + esc(WL.RACES[s.race].name) + '</span></td>' +
-          C.xs.map(function (x, i) { return '<td class="n' + (x === C.cur ? ' curcol' : '') + '">' + fmt(s.y[i], 1) + '</td>'; }).join('') +
-          (len ? '' : '<td class="n">' + (slope == null ? '–' : fmt(slope, slope < 1 ? 3 : 2)) + '</td>') + '</tr>';
+          C.xs.map(function (x, i) { return '<td class="n' + (x === C.cur && !C.noCur ? ' curcol' : '') + '">' + fmt(s.y[i], 1) + '</td>'; }).join('') +
+          (len ? '' : sc ? '<td class="n">×' + fmt(s.y[s.y.length - 1] / (s.y[1] || 1), 2) + '</td>' : '<td class="n">' + (slope == null ? '–' : fmt(slope, slope < 1 ? 3 : 2)) + '</td>') + '</tr>';
       }).join('') + '</tbody></table></div></details>';
     $('chOut').innerHTML = '<h2>' + esc(title) + (S.length === 1 ? ' · ' + esc(S[0].b.short) + ' (' + esc(WL.RACES[S[0].race].name) + ')' : '') + '</h2>' + legend +
       '<div class="chwrap"><svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(title) + ': line chart, values in the table below">' + g + '</svg><div class="chtip" id="chTip" hidden></div></div>' +
@@ -3515,7 +3531,8 @@
       var r = svg.getBoundingClientRect(), mx = (ev.clientX - r.left) / r.width * W, bi = 0, bd = 1e9;
       C.xs.forEach(function (x, i) { var d = Math.abs(X(x) - mx); if (d < bd) { bd = d; bi = i; } });
       var px = X(C.xs[bi]); xh.setAttribute('x1', px); xh.setAttribute('x2', px); xh.setAttribute('visibility', 'visible');
-      tip.innerHTML = '<b class="h">' + esc((len ? 'Fight length ' : cap1(C.st.name) + ' ') + fmt(C.xs[bi], C.xs[bi] % 1 ? 1 : 0) + unit) + (C.xs[bi] === C.cur ? ' <span class="meta">(yours)</span>' : '') + '</b>' +
+      tip.innerHTML = '<b class="h">' + esc(sc ? 'Gear level ' + C.xs[bi] : (len ? 'Fight length ' : cap1(C.st.name) + ' ') + fmt(C.xs[bi], C.xs[bi] % 1 ? 1 : 0) + unit) + (C.xs[bi] === C.cur && !C.noCur ? ' <span class="meta">(yours)</span>' : '') + '</b>' +
+        (sc ? '<div class="meta">' + esc(scaleText(C.xs[bi])) + '</div>' : '') +
         S.slice().sort(function (a, z) { return z.y[bi] - a.y[bi]; }).map(function (s) { return '<div><i style="background:var(--s' + s.slot + ')"></i><span>' + esc(s.b.short) + '</span><em>' + fmt(s.y[bi], 1) + '</em></div>'; }).join('');
       tip.hidden = false;
       var wr = wrap.getBoundingClientRect(), tx = px / W * r.width + 14, tw = tip.offsetWidth;

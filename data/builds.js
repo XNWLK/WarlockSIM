@@ -91,7 +91,7 @@ WL.BUILDS = [
   {
     key: 'wrack_ds', short: 'Wrack DS',
     name: 'Wrack DS – Affliction (Wrack), Imp sacrificed',
-    notes: '35/11/5. Deep Affliction with Wrack as the filler and the Imp sacrificed for +15% Shadow (Demonic Sacrifice): no demon in the fight. While Wrack channels, Corruption, Siphon Life and both Banes deal 10% more. Life Tap comes right after a full Wrack, when the 5-second rule is already over, and only when the rest of the fight needs the mana. Suppression, Improved Corruption, Improved Life Tap, Pandemic, Amplify Curse, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon and Improved Bane of Agony; Demonic Embrace, Fel Vitality and Demonic Aegis lead to Demonic Sacrifice; Improved Shadow Bolt for the Shadow Trance bolts.',
+    notes: '35/11/5. Deep Affliction with Wrack as the filler and the Imp sacrificed for +15% Shadow (Demonic Sacrifice): no demon in the fight. While Wrack channels, Corruption and both Banes deal 10% more. Life Tap comes right after a full Wrack, when the 5-second rule is already over, and only when the rest of the fight needs the mana. Suppression, Improved Corruption, Improved Life Tap, Pandemic, Amplify Curse, Malevolence, Siphon Life (needed for Wrack; not cast), Nightfall, Shadow Mastery, Soul Siphon and Improved Bane of Agony; Demonic Embrace, Fel Vitality and Demonic Aegis lead to Demonic Sacrifice; Improved Shadow Bolt for the Shadow Trance bolts.',
     talents: {
       suppression: 5, improvedCorruption: 5, improvedLifeTap: 2, pandemic: 3, amplifyCurse: 1, malevolence: 5, siphonLife: 1, nightfall: 2,
       shadowMastery: 5, soulSiphon: 3, wrack: 1, improvedBaneOfAgony: 2,
@@ -102,7 +102,10 @@ WL.BUILDS = [
     // Round 186 (user: find the best rotation global by global): the user's order + Siphon Life after Corruption (+0.3%), Life Tap
     // below 40% (was 60%) and only right after a full Wrack — 6 s after the last mana spent, when Spirit regeneration starts at
     // once (+0.7%); 664.9 → 672.8 Undead, 10,000 fights. The decision search found nothing else that repeats (04_EXPLORATION §63).
-    rotation: ['deathCoilFinisher', 'bane', 'shadowTrance', 'corruption', 'siphonLife', 'curseOfElements', 'lifeTapNeed', 'wrack'],
+    // Round 187 (user: "remove siphon life from wrack DS. it might be good at the default values but becomes worse very quickly"):
+    // Siphon Life taken out of the priority (talent kept: Wrack needs it). Measured: +3.6% at gear level 0, +0.6% at the default
+    // gear, +0.3% at levels 4–7 (Build Scaling levels, 10,000 fights) — its share shrinks with gear; the user's call.
+    rotation: ['deathCoilFinisher', 'bane', 'shadowTrance', 'corruption', 'curseOfElements', 'lifeTapNeed', 'wrack'],
     actWhen: { lifeTapNeed: { t: 'fsr', op: '>=', v: 6 } },
     params: { lifeTapNeed: { pct: 40, sec: 25 } },
   },
