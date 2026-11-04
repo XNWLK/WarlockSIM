@@ -64,7 +64,7 @@
     T.eq(rtc.log.filter(function (e) { return e.type === 'clip'; }).length, 0, 'a timeline channel runs to its end (not clipped by the priority)');
 
     T.group('checks and build code');
-    var b = JSON.parse(JSON.stringify(WL.BUILDS.filter(function (x) { return x.key === 'sm_ruin_classic'; })[0]));
+    var b = JSON.parse(JSON.stringify(WL.findBuild('sm_ruin_classic')));
     b.timeline = [{ t: 0, k: 'curseOfElements' }, { t: 1, k: 'immolate' }, { t: 5, k: 'baneOfDoom' }, { t: 20, k: 'baneOfDoom' }, { t: 400, k: 'shadowBolt' }];
     var ch = WL.checkTimeline(b, WL.DEFAULT_CONFIG).map(function (x) { return x.msg; }).join(' | ');
     T.ok(/overlaps the previous spell/.test(ch), 'an overlap is reported');

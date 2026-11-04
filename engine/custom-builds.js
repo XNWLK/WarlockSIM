@@ -265,6 +265,41 @@ WL.editorActions = function () {
   return Object.keys(WL.ACTIONS).filter(function (k) { return k !== 'soulFireShards'; });
 };
 
+// Round 186 (user: adding Wrack in the Simple list gave it a bunch of APL conditions): an action added in the Simple list
+// is the plain action. An extra condition (build.actWhen) left on an action that is no longer in the list — e.g. from a
+// loaded build whose Wrack waited for the DoTs — is dropped. If the action is still in the list with a condition (one
+// action, one condition), the new entry is the plain action's lines as APL lines of its own. Goes above the first filler
+// (or a filler with a condition) unless it is a filler itself. Returns { keys: the entries added, rule: true if APL lines }.
+WL.actionsInUse = function (b) {
+  var out = WL.expandGroups(b, b.rotation || []);
+  Object.keys(b.groups || {}).forEach(function (g) { (b.groups[g] || []).forEach(function (x) { out.push(x); }); });
+  return out;
+};
+WL.dropUnusedActWhen = function (b) {
+  if (!b.actWhen) return;
+  var used = WL.actionsInUse(b);
+  Object.keys(b.actWhen).forEach(function (k) { if (used.indexOf(k) < 0) delete b.actWhen[k]; });
+  if (!Object.keys(b.actWhen).length) delete b.actWhen;
+};
+WL.addAction = function (b, key) {
+  var keys = [key], rule = false;
+  b.rotation = b.rotation || [];
+  if (b.actWhen && b.actWhen[key]) {
+    if (WL.actionsInUse(b).indexOf(key) < 0) WL.dropUnusedActWhen(b);
+    else {
+      var plain = Object.assign({}, b); delete plain.actWhen;
+      var L = WL.aplLines(key, plain);
+      if (L && L.length && L.every(function (l) { return !l.special; })) {
+        b.rules = b.rules || []; rule = true;
+        keys = L.map(function (l) { b.rules.push(l); return 'rule:' + (b.rules.length - 1); });
+      }
+    }
+  }
+  var fi = b.rotation.map(function (y) { var A = WL.actionOf(y, b); return !!(A && (A.filler || A.preFiller)); }).indexOf(true);
+  if (WL.ACTIONS[key].filler || fi < 0) b.rotation.push.apply(b.rotation, keys); else b.rotation.splice.apply(b.rotation, [fi, 0].concat(keys));
+  return { keys: keys, rule: rule };
+};
+
 // ---------- talent point value (round 148, user): the build with one point fewer in one talent ----------
 // Priority actions that need a talent (or several) to do anything — the same rules as WL.validateBuild's checks.
 WL.ACTION_TALENTS = {

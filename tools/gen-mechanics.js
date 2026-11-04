@@ -244,11 +244,8 @@ B.consumables = (function () {
   }));
 })();
 
-function actionLabel(b, a) {
-  const A = WL.ACTIONS[a], p = (b.params || {})[a] || {};
-  let i = 0;
-  return A.label.replace(/_/g, () => { const q = A.params[i++]; return p[q.key] != null ? p[q.key] : q.def; });
-}
+// Round 186: the engine's own label — with the build's numbers and any extra condition on the action ("— only when …").
+function actionLabel(b, a) { return WL.actionLabel(b, a); }
 B.builds = WL.BUILDS.map(b => {
   const pts = { affliction: 0, demonology: 0, destruction: 0 }, names = { affliction: [], demonology: [], destruction: [] };
   Object.keys(b.talents).forEach(k => { const t = WL.TALENT_BY_KEY[k]; pts[t.tree] += b.talents[k]; });

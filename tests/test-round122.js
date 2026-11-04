@@ -9,7 +9,7 @@
     T.ok(!!b && WL.RETIRED_BUILDS.indexOf(b) >= 0, 'it is kept as a test fixture');
     T.eq(WL.validateBuild(b).join(' | '), '', 'the fixture is a legal build');
     T.ok(b.pet === 'imp' && b.sacrifice === 'succubus' && b.rotation[b.rotation.length - 1] === 'shadowBolt', 'unchanged: Imp out, Succubus sacrificed, Shadow Bolt filler');
-    T.eq(WL.RETIRED_BUILDS.length, 8, 'eight fixtures: five from round 110, this one and those of rounds 160 and 166');
+    T.eq(WL.RETIRED_BUILDS.length, 10, 'ten fixtures: five from round 110, this one and those of rounds 160, 166 and 186 (two)');
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     T.ok(WL.simulate(b, 'undead', c, { iterations: 20, log: false }).dps > 0, 'it still simulates');
     T.ok(WL.decodeBuild(WL.encodeBuild(b)).rotation.join(',') === b.rotation.join(','), 'and still travels in a build code (a code made from it earlier keeps loading)');

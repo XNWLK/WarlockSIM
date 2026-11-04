@@ -2,7 +2,7 @@
 // for its DoTs; pre-pull Soul Fire is an option, off by default.
 (function () {
   function det(f) { var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)); c.fight.durationVarPct = 0; if (f) f(c); return c; }
-  function sheet(k) { return JSON.parse(JSON.stringify(WL.BUILDS.filter(function (b) { return b.key === k; })[0])); }
+  function sheet(k) { return JSON.parse(JSON.stringify(WL.findBuild(k))); }   // round 186: also the builds taken off the sheet
   function taps(r) { return r.log.filter(function (e) { return e.type === 'cast' && e.spell === 'lifeTap'; }).length; }
   T.run('round 168: Life Tap when the rest of the fight needs it', function () {
     var A = WL.ACTIONS.lifeTapNeed;

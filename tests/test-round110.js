@@ -3,15 +3,15 @@
 (function () {
   T.run('round 110: smaller build list, elixir crit', function () {
     T.group('builds on the sheet');
-    var GONE = ['aff_pact_fire', 'demo_pact_succ_fire', 'aff_pact_succ_drain', 'aff_succ_sb', 'ds_ruin_classic', 'demo_pact_imp_sb', 'aff_pact_succ_sb', 'destro_incin_imp'];
+    var GONE = ['aff_pact_fire', 'demo_pact_succ_fire', 'aff_pact_succ_drain', 'aff_succ_sb', 'ds_ruin_classic', 'demo_pact_imp_sb', 'aff_pact_succ_sb', 'destro_incin_imp', 'sm_ruin_classic', 'wrack_succubus'];
     var own = WL.BUILDS.filter(function (b) { return !b.custom; }).map(function (b) { return b.key; });
-    T.eq(own.join(','), 'demo_pact_succ_sb,demo_pact_fire,destro_incin_succ,sm_ruin_classic,wrack_succubus', 'five builds remain, in the same order (round 122: Demo Pact Shadow Bolt Imp went too; round 160: Aff Pact Shadow Bolt Succubus; round 166: Destro Incinerate Imp)');
+    T.eq(own.join(','), 'demo_pact_succ_sb,demo_pact_fire,destro_incin_succ,destro_incin_ds,wrack_ds', 'five builds remain, in the same order (round 186: SM Ruin and Wrack Succubus off, Incinerate DS and Wrack DS on; round 122: Demo Pact Shadow Bolt Imp went too; round 160: Aff Pact Shadow Bolt Succubus; round 166: Destro Incinerate Imp)');
     GONE.forEach(function (k) {
       T.ok(own.indexOf(k) < 0, k + ' is off the sheet');
       var b = WL.findBuild(k);
       T.ok(!!b && WL.RETIRED_BUILDS.indexOf(b) >= 0 && WL.validateBuild(b).length === 0, k + ' is kept as a legal test fixture');
     });
-    T.ok(WL.findBuild('sm_ruin_classic') === WL.BUILDS.filter(function (b) { return b.key === 'sm_ruin_classic'; })[0], 'WL.findBuild returns a build of the sheet first');
+    T.ok(WL.findBuild('wrack_ds') === WL.BUILDS.filter(function (b) { return b.key === 'wrack_ds'; })[0], 'WL.findBuild returns a build of the sheet first');
     if (WL.DEFAULT_RESULTS) {
       T.eq(WL.DEFAULT_RESULTS.keys.filter(function (k) { return GONE.indexOf(k) >= 0; }).length, 0, 'the shipped default results hold no row of a removed build');
       T.eq(WL.DEFAULT_RESULTS.results.length, own.length * WL.SIM_RACE_KEYS.length, 'shipped default results: ' + own.length + ' builds × ' + WL.SIM_RACE_KEYS.length + ' race rows');

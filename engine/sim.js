@@ -536,6 +536,35 @@ window.WL = window.WL || {};
     var HAV_T = HAV ? 2 : 0;
     var ROT = WL.effectiveRotation(build, cfg);
     var ACTS = ROT.map(function (k) { return WL.actionOf(k, build); });   // round 157: built-in actions and the build's rules
+    // Decision search (round 186, user: "find the perfect rotation global to global"; tools/explore-oracle.js). Off unless
+    // opt.ctl is given. Every decision is numbered: 'd' = a free decision (the priority list is asked), 'c' = a tick of a
+    // running channel (keep channelling or clip). ctl.observe(info) sees each one; ctl.at / ctl.key replaces decision
+    // number ctl.at with ctl.key ('continue' keeps a channel going) and from there on every dice stream is reseeded
+    // with ctl.seed, so the fights of different choices share their dice after the branch. Everything else: the priority.
+    var CTL = opt.ctl || null, ctlN = 0, ctlPending = null;
+    function ctlReseed() {
+      if (CTL.seed == null) return;
+      var s = CTL.seed >>> 0;
+      R.hit = WL.makeRng(s ^ 0x1B873593); R.crit = WL.makeRng(s ^ 0x85EBCA6B); R.proc = WL.makeRng(s ^ 0xC2B2AE35); R.vuln = WL.makeRng(s ^ 0x27D4EB2F);
+      R.pet = WL.makeRng(s ^ 0x165667B1); R.jow = WL.makeRng(s ^ 0x3C6EF372); R.push = WL.makeRng(s ^ 0x61C88647);
+    }
+    function ctlLegal(k) {
+      if (k === 'lifeTap') return canTap() && S.mana < stats.maxMana - EPS;
+      if (!table[k] || !S.has(k) || !S.ready(k) || !canCastNow(k) || !healthOk(k)) return false;
+      if (k === 'conflagrate' && !(S.dotLeft('immolate') > 0)) return false;
+      if (k === 'soulFire' && !S.buff('decimation') && !(S.shards > 0)) return false;
+      return S.mana >= effectiveCost(k);
+    }
+    function ctlIdx(k) { for (var i = 0; i < ACTS.length; i++) if (ROT[i] === k || (ACTS[i] && ACTS[i].filler && ACTS[i].pick(S) === k)) return i; return ROT.length; }
+    function ctlAct(k) {                                                  // the forced choice of a free decision
+      if (k === 'lifeTap') { lifeTap(); return; }
+      if (SPELLS[k].kind !== 'utility' && S.mana >= discountedCost(k)) popActives(k);
+      startCast(k, 0, false, ctlIdx(k));
+    }
+    function ctlInfo(kind, base) {
+      var legal = (CTL.cands || []).filter(function (k) { return k !== base && ctlLegal(k) && !(kind === 'c' && S.channel && k === S.channel.key); });
+      return { n: ctlN, kind: kind, t: S.t, base: base, legal: legal, S: S, lastSpend: S.lastSpend, spendAt: S.spendAt };
+    }
     // Fight timeline (round 70, user; A73): an optional list of spells at fixed start times, built in the editor's
     // "super advanced" mode. A due entry is cast before the priority; the priority fills the gaps (only casts that end before
     // the next entry is due) and takes over after the timeline ends; a timeline cast that misses gives the priority one
@@ -1243,7 +1272,14 @@ window.WL = window.WL || {};
       if (explosives.length && useExplosive()) return;
       if (TL && !TL.turn && timelineStep()) return;
       var fit = TL && !TL.turn && TL.wake != null ? TL.wake : null;       // a gap before the next timeline entry
+      if (CTL && ctlPending) { var pk = ctlPending; ctlPending = null; ctlAct(pk); return; }   // the choice made at a channel tick
       var p = pickAction(null, fit);
+      if (CTL) {                                                           // decision search (round 186)
+        var baseK = !p ? null : p.key.indexOf('swap:') === 0 ? p.key : S.mana < effectiveCost(p.key) ? 'lifeTap' : p.key;
+        if (CTL.observe) CTL.observe(ctlInfo('d', baseK));
+        var dn = ctlN++;
+        if (dn === CTL.at) { ctlReseed(); if (CTL.key !== baseK) { if (!ctlLegal(CTL.key)) { res.ctlIllegal = true; } else { ctlAct(CTL.key); return; } } }
+      }
       if (TL && TL.turn) TL.turn = false;                                  // the priority's one turn after a timeline miss
       if (!p && TL && TL.wake != null && TL.wake > S.t + EPS) { res.idle += TL.wake - S.t; scheduleDecide(TL.wake); return; }
       // Life Tap while moving (round 62, user; A71): when movement leaves nothing castable (moving: only instants; just before
@@ -1394,6 +1430,16 @@ window.WL = window.WL || {};
         if (S.t >= S.gcdReady - EPS && !c.tl) {
           var idx = c.idx != null ? c.idx : ROT.indexOf(ev.key);   // the action that started it (round 106: an action's key need not be the spell's)
           var higher = pickAction(idx >= 0 ? idx : ROT.length);
+          if (CTL) {                                                       // decision search (round 186): keep channelling or clip for another spell
+            var cBase = higher ? (S.mana < effectiveCost(higher.key) ? 'lifeTap' : higher.key) : 'continue';
+            if (CTL.observe) CTL.observe(ctlInfo('c', cBase));
+            var cn = ctlN++;
+            if (cn === CTL.at) {
+              ctlReseed();
+              if (CTL.key === 'continue') higher = null;
+              else if (CTL.key !== cBase) { if (ctlLegal(CTL.key)) { higher = { key: CTL.key }; ctlPending = CTL.key; } else res.ctlIllegal = true; }
+            }
+          }
           if (higher) {
             S.channel = null; res.clipped++;
             row(ev.key).castTime -= (c.end - S.t);

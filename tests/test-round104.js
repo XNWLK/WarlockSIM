@@ -16,7 +16,7 @@
   function run(b) { return WL.simulateOnce(b, 'human', det(), { seed: 1, duration: DUR, log: true }); }
   // Every Life Tap of a fight: when, and the mana right before it.
   function taps(r) { return r.log.filter(function (e) { return e.type === 'cast' && e.spell === 'lifeTap'; }).map(function (e) { return { t: e.t, before: e.mana - e.gain }; }); }
-  function shipped(k) { return JSON.parse(JSON.stringify(WL.BUILDS.filter(function (x) { return x.key === k; })[0])); }
+  function shipped(k) { return JSON.parse(JSON.stringify(WL.findBuild(k))); }   // round 186: also the builds taken off the sheet
   // A built-in build as it was before round 105: without the action and its numbers.
   function bare(k) { var b = shipped(k); b.rotation = b.rotation.filter(function (a) { return a !== 'lifeTapBelow'; }); delete b.params; return b; }
 
@@ -71,13 +71,14 @@
 
     T.group('built-in builds (round 105, user: the best setting found, on every build)');
     var WANT = { demo_pact_succ_sb: '80/45', aff_pact_succ_sb: '80/45', demo_pact_succ_fire: '70/45', demo_pact_fire: '80/45', destro_incin_succ: '50/25', aff_pact_fire: '80/45',
-      demo_pact_imp_sb: '60/10', aff_pact_succ_drain: '60/10', destro_incin_imp: '40/60', aff_succ_sb: '60/10', sm_ruin_classic: '40/25', ds_ruin_classic: '50/25', wrack_succubus: '60/25' };
+      demo_pact_imp_sb: '60/10', aff_pact_succ_drain: '60/10', destro_incin_imp: '40/60', aff_succ_sb: '60/10', sm_ruin_classic: '40/25', ds_ruin_classic: '50/25', wrack_succubus: '60/25',
+      destro_incin_ds: '50/25', wrack_ds: '40/25' };   // round 186: two new builds (Wrack DS: the decision search's 40%)
     // Rounds 110 / 122: six of them were taken off the sheet (tests/retired-builds.js); their settings are still checked.
     var own = WL.BUILDS.filter(function (b) { return !b.custom; }).concat(WL.RETIRED_BUILDS);
     T.eq(own.length, Object.keys(WANT).length, own.length + ' builds: ' + (own.length - WL.RETIRED_BUILDS.length) + ' on the sheet + ' + WL.RETIRED_BUILDS.length + ' taken off it since');
     own.forEach(function (b) {
       // Round 168 (user): the builds on the sheet use lifeTapNeed with the same numbers (the hidden ones keep lifeTapBelow).
-      var k = WL.RETIRED_BUILDS.indexOf(b) >= 0 ? 'lifeTapBelow' : 'lifeTapNeed', p = WL.actionParams(b, k);
+      var k = b.rotation.indexOf('lifeTapNeed') >= 0 ? 'lifeTapNeed' : 'lifeTapBelow', p = WL.actionParams(b, k);   // round 186: SM Ruin / Wrack Succubus went off the sheet with lifeTapNeed
       // Round 185: right above the LAST filler (Wrack Succubus: Wrack is a filler with a condition high up, Shadow Bolt the last one).
       var fi = b.rotation.map(function (a) { var A = WL.actionOf(a, b); return !!(A && (A.filler || A.preFiller)); }).lastIndexOf(true);
       T.ok(fi > 0 && b.rotation[fi - 1] === k && b.rotation.indexOf(k) === b.rotation.lastIndexOf(k), b.short + ': the action sits right above the (last) filler, once');

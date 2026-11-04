@@ -8,7 +8,7 @@
     if (mod) mod(c);
     return c;
   }
-  function sm() { return JSON.parse(JSON.stringify(WL.BUILDS.filter(function (b) { return b.key === 'sm_ruin_classic'; })[0])); }
+  function sm() { return JSON.parse(JSON.stringify(WL.findBuild('sm_ruin_classic'))); }
 
   T.run('round 157: rules, groups and variables', function () {
     T.group('conditions');

@@ -12,7 +12,7 @@
     T.ok(WL.BUILDS.every(function (b) { return b.rotation.every(function (a) { return WL.ACTIONS[a]; }); }), 'every shipped build uses existing actions only');
 
     T.group('old build codes still load');
-    var old = JSON.parse(JSON.stringify(WL.BUILDS.filter(function (x) { return x.key === 'sm_ruin_classic'; })[0]));
+    var old = JSON.parse(JSON.stringify(WL.findBuild('sm_ruin_classic')));
     var fi = old.rotation.indexOf('shadowBolt');
     old.rotation.splice(fi, 1, 'isbUpkeepR2', 'shadowBoltR2LowMana', 'shadowBoltR2');
     old.timeline = [{ t: 0, k: 'shadowBoltR2' }, { t: 5, k: 'corruption' }];

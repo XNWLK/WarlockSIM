@@ -19,6 +19,8 @@
 // Round 160 (user): Aff Pact Shadow Bolt Succubus taken off too (Demo Pact Shadow Bolt Succubus does the same job) — six builds
 // remain; it joined the fixtures. "SM Ruin (classic)" is now "SM Ruin" (key unchanged).
 // Round 166 (user: "delete destro incinerate imp because it performs worse than succubus"): five builds remain; it joined the fixtures.
+// Round 186 (user): SM Ruin deleted; Wrack Succubus replaced by Wrack DS (the user's code, Imp sacrificed); Incinerate DS added
+// (the user's code, Succubus sacrificed). Five builds; SM Ruin and Wrack Succubus joined the fixtures.
 //
 // Round 16 (2026-09-24): list re-derived after pet spell power 100% → 15% (A26/A49) and Succubus melee 40 → 100 DPS
 // (A46). Full search + point-shift hill-climb + rotation search at the new defaults: docs/04_EXPLORATION.md section 8.
@@ -72,34 +74,36 @@ WL.BUILDS = [
     rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'immolate', 'corruption', 'conflagrate', 'shadowburn', 'lifeTapNeed', 'incinerate'],
     params: { lifeTapNeed: { pct: 50, sec: 25 } },   // round 168 (user): Life Tap only when the rest of the fight needs it and no free mana is ready, same numbers (default settings ±0.00%, max buffs +0.1 … +5.9%). Round 105 (user): Life Tap below 50% mana with more than 25 s left, +0.36% (10,000 fights)
   },
-  // ---- Reference builds (round 65, user): classic layouts. Round 66: every build is shown by default (no cut-off), so they
-  //      need no special flag; anyone can pin any build (📌) to keep it shown when a cut-off is set. ----
   {
-    key: 'sm_ruin_classic', short: 'SM Ruin',   // round 160 (user): was 'SM Ruin (classic)'; the key stays
-    name: 'SM Ruin – Affliction / Destruction, Succubus out, Shadow Bolt',
-    notes: '30/0/21. The classic Shadow Mastery / Ruin layout: Suppression, Improved Corruption, Improved Life Tap, Pandemic, Amplify Curse, Improved Bane of Agony, Malevolence, Nightfall, Siphon Life and Shadow Mastery with Bane, Improved Shadow Bolt, Cataclysm, Ruin and Agonizing Flames. No Demonology, so nothing is sacrificed: the Succubus is out. Shadow Bolt filler, instant Shadow Bolts on Shadow Trance.',
+    key: 'destro_incin_ds', short: 'Incinerate DS',
+    name: 'Destruction – Incinerate, Succubus sacrificed',
+    notes: '7/11/33. Incinerate with Shadow and Flame, Conflagrate and Shadowburn, and the Succubus sacrificed for +15% Fire (Demonic Sacrifice): no demon in the fight. Demonic Embrace, Fel Vitality and Demonic Aegis lead to Demonic Sacrifice; Suppression and Improved Corruption on the Affliction side. With a second target, Bane of Havoc copies part of your damage to it.',
     talents: {
-      suppression: 5, improvedCorruption: 4, improvedLifeTap: 2, pandemic: 3, amplifyCurse: 1, improvedBaneOfAgony: 2, malevolence: 5, nightfall: 2,
-      siphonLife: 1, shadowMastery: 5,   // round 149 (user; patch 2026-10-16: Malediction gone): −5 Malediction +2 Improved Corruption +1 Amplify Curse +2 Improved Bane of Agony
-      bane: 5, improvedShadowBolt: 5, cataclysm: 3, ruin: 5, agonizingFlames: 3,   // round 82/83: −3 Improved Corruption +3 Cataclysm
+      suppression: 5, improvedCorruption: 2,
+      demonicEmbrace: 5, felVitality: 3, demonicAegis: 2, demonicSacrifice: 1,
+      bane: 5, cataclysm: 3, aftermath: 5, ruin: 5, shadowburn: 1, agonizingFlames: 3, conflagrate: 1,
+      baneOfHavoc: 1, fireAndBrimstone: 3, shadowAndFlame: 5, incinerate: 1,
     },
-    pet: 'succubus', sacrifice: null, oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'bane', 'corruption', 'shadowTrance', 'siphonLife', 'curseOfElements', 'immolate', 'lifeTapNeed', 'shadowBolt'],
-    params: { lifeTapNeed: { pct: 40, sec: 25 } },   // round 168 (user): Life Tap only when the rest of the fight needs it and no free mana is ready, same numbers (default settings ±0.00%, max buffs +0.1 … +5.9%). Round 105 (user): Life Tap below 40% mana with more than 25 s left, +0.23% (10,000 fights)
+    pet: null, sacrifice: 'succubus', oil: 'firestone',
+    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'immolate', 'corruption', 'conflagrate', 'shadowburn', 'lifeTapNeed', 'incinerate'],
+    params: { lifeTapNeed: { pct: 50, sec: 25 } },
   },
   {
-    key: 'wrack_succubus', short: 'Wrack Succubus',
-    name: 'Wrack Succubus – Affliction (Wrack) / Destruction (Improved Shadow Bolt), Succubus out',
-    notes: '33/0/18. Deep Affliction with Wrack as the filler: while it channels, Corruption and Bane of Agony deal 10% more. Suppression, Improved Corruption, Improved Life Tap, Pandemic, Amplify Curse, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon and Improved Bane of Agony, with Bane, Improved Shadow Bolt, Ruin and Agonizing Flames on the Destruction side. Wrack is the main filler: it channels whenever Corruption, Bane of Agony and Siphon Life all have at least 4 s left, and Shadow Bolt fills the gaps (Shadow Trance procs, and while a DoT needs refreshing soon). Succubus out, Bane of Agony only (never Bane of Doom).',
+    key: 'wrack_ds', short: 'Wrack DS',
+    name: 'Wrack DS – Affliction (Wrack), Imp sacrificed',
+    notes: '35/11/5. Deep Affliction with Wrack as the filler and the Imp sacrificed for +15% Shadow (Demonic Sacrifice): no demon in the fight. While Wrack channels, Corruption, Siphon Life and both Banes deal 10% more. Life Tap comes right after a full Wrack, when the 5-second rule is already over, and only when the rest of the fight needs the mana. Suppression, Improved Corruption, Improved Life Tap, Pandemic, Amplify Curse, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon and Improved Bane of Agony; Demonic Embrace, Fel Vitality and Demonic Aegis lead to Demonic Sacrifice; Improved Shadow Bolt for the Shadow Trance bolts.',
     talents: {
-      suppression: 5, improvedCorruption: 3, improvedLifeTap: 2, pandemic: 3, amplifyCurse: 1, malevolence: 5, siphonLife: 1, nightfall: 2,
+      suppression: 5, improvedCorruption: 5, improvedLifeTap: 2, pandemic: 3, amplifyCurse: 1, malevolence: 5, siphonLife: 1, nightfall: 2,
       shadowMastery: 5, soulSiphon: 3, wrack: 1, improvedBaneOfAgony: 2,
-      improvedShadowBolt: 5, bane: 5, ruin: 5, agonizingFlames: 3,   // round 149 follow-up (user: "adopt both", search +3.54%): −2 Improved Corruption +1 Amplify Curse +1 Ruin, −3 Improved Drains +3 Agonizing Flames.   // round 149 (user; patch 2026-10-16: Malediction gone): −5 Malediction +2 Improved Life Tap +3 Ruin
+      demonicEmbrace: 5, felVitality: 3, demonicAegis: 2, demonicSacrifice: 1,
+      improvedShadowBolt: 5,
     },
-    pet: 'succubus', sacrifice: null, oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'baneOfAgony', 'corruption', 'curseOfElements', 'immolate', 'wrack', 'shadowTrance', 'siphonLife', 'lifeTapNeed', 'shadowBolt'],   // round 185 (user: Wrack the main filler; patch 2026-11-03): Wrack above Shadow Trance, ISB upkeep removed, Siphon Life after Shadow Trance (+5.9%); round 168: Shadow Bolt when Wrack waits
-    // Round 168 (user: "2 yes"): Wrack only while Corruption, Bane of Agony and Siphon Life all have at least 4 s left (+2.0%, 10,000 fights).
-    actWhen: { wrack: { t: 'all', c: [{ t: 'dot', spell: 'corruption', op: '>=', v: 4 }, { t: 'dot', spell: 'baneOfAgony', op: '>=', v: 4 }, { t: 'dot', spell: 'siphonLife', op: '>=', v: 4 }] } },
-    params: { lifeTapNeed: { pct: 60, sec: 25 } },   // round 168 (user): Life Tap only when the rest of the fight needs it and no free mana is ready, same numbers (default settings ±0.00%, max buffs +0.1 … +5.9%). Round 105 (user): Life Tap below 60% mana with more than 25 s left, +0.21% (10,000 fights)
+    pet: null, sacrifice: 'imp', oil: 'spellstone',
+    // Round 186 (user: find the best rotation global by global): the user's order + Siphon Life after Corruption (+0.3%), Life Tap
+    // below 40% (was 60%) and only right after a full Wrack — 6 s after the last mana spent, when Spirit regeneration starts at
+    // once (+0.7%); 664.9 → 672.8 Undead, 10,000 fights. The decision search found nothing else that repeats (04_EXPLORATION §63).
+    rotation: ['deathCoilFinisher', 'bane', 'shadowTrance', 'corruption', 'siphonLife', 'curseOfElements', 'lifeTapNeed', 'wrack'],
+    actWhen: { lifeTapNeed: { t: 'fsr', op: '>=', v: 6 } },
+    params: { lifeTapNeed: { pct: 40, sec: 25 } },
   },
 ];

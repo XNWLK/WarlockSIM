@@ -467,6 +467,21 @@
   .tcell.off .ico { filter: grayscale(1); opacity: .35; }
   .tcell .rk { position: absolute; right: -6px; bottom: -4px; font: 600 9px var(--mono); padding: 0 3px; border-radius: 3px; background: var(--ink); color: var(--surface); }
   .tcell.off .rk { background: var(--sunk); color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); }   /* round 84: 0/N shown, muted */
+  /* round 186 (user): arrows from a prerequisite talent to the talent that needs it, behind the icons (icon = 32 px in a 34 px cell) */
+  .tarrow { position: relative; pointer-events: none; --ta: rgba(var(--tr, 150, 140, 170), .42); }
+  .tarrow.on { --ta: rgb(var(--tr, 150, 140, 170)); }
+  .tarrow::before, .tarrow::after { content: ''; position: absolute; }
+  .tarrow::before { background: var(--ta); border-radius: 1px; }
+  .tarrow.on::before { box-shadow: 0 0 4px rgba(var(--tr, 150, 140, 170), .65); }
+  .tarrow::after { width: 0; height: 0; border: 0 solid transparent; }
+  .tarrow.down::before { left: 15px; width: 2px; top: 32px; bottom: 38px; }
+  .tarrow.down::after { left: 11px; bottom: 34px; border-width: 5px 5px 0; border-top-color: var(--ta); }
+  .tarrow.right::before { top: 15px; height: 2px; left: 32px; right: 38px; }
+  .tarrow.right::after { top: 11px; right: 34px; border-width: 5px 0 5px 5px; border-left-color: var(--ta); }
+  .tarrow.left::before { top: 15px; height: 2px; left: 38px; right: 34px; }
+  .tarrow.left::after { top: 11px; left: 32px; border-width: 5px 5px 5px 0; border-right-color: var(--ta); }
+  .tarrow.bend.right::before { right: 17px; } .tarrow.bend.left::before { left: 15px; } .tarrow.bend:not(.down)::after { display: none; }
+  .tarrow.bend.down::before { top: 15px; }   /* the turn: sideways along the prerequisite's row, then down */
   .ico[data-tip] { cursor: help; }
   #tip { position: fixed; z-index: 50; max-width: 320px; pointer-events: none; background: var(--surface); color: var(--ink);
          border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-size: 12px; line-height: 1.4;
@@ -1172,7 +1187,7 @@
     </div>
     <div class="scroll"><table id="results"><thead><tr>
       <th>#</th><th>Build</th><th title="The race the build is listed with: its best race, or your race if you picked one in Rank for (above the table). The +4 races pill shows the other races and the no-race baseline; Show all races opens them for every build.">Race</th><th>Pets</th>
-      <th title="Your damaging spells in priority order (left = checked first) with their share of the total damage (bar length relative to the build's biggest source); Bane of Doom and Bane of Agony share one split icon (one Bane per target). Pet, Demonic Brand, Touch of the Grave and explosives after the divider. Curses, Life Tap and racial cooldowns are in the details' full priority list.">Spells &amp; damage</th>
+      <th title="Your damaging spells in priority order (left = checked first) with their share of the total damage (bar length relative to the build's biggest source); Bane of Doom and Bane of Agony share one split icon (one Bane per target). Pet, Demonic Brand, Touch of the Grave and explosives after the divider. Spells under 1% of the damage are left out here (the details list them all). Curses, Life Tap and racial cooldowns are in the details' full priority list.">Spells &amp; damage</th>
       <th class="n dpsh">DPS</th><th class="n wrap2">vs best</th>
       <th class="n wrap2" title="What the race adds: DPS change vs the same build with no race (Human base stats, no racials).">vs no race</th>
       <th class="w" style="--c:var(--c-sp)" title="DPS per 1 spell power">SP<span class="sub">DPS per 1</span></th>
@@ -1422,6 +1437,7 @@
     </div>
     <div class="btnrow">
       <button type="button" id="edSave" class="primary">Add to the sheet</button>
+      <button type="button" id="edSaveNew" hidden title="Adds the build in the editor as a new build, with its own name; the build you opened stays as it is">Add to the sheet</button>
       <button type="button" id="edNew">New build</button>
       <button type="button" id="edCopy">Copy build code</button>
       <button type="button" id="edWowhead" title="A link to this build's talents in the Wowhead Forever talent calculator, copied to the clipboard">Wowhead talent link</button>

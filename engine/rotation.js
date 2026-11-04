@@ -328,6 +328,8 @@ WL.ACTIONS = {
 //   { t: 'manaNeed' }            the rest of the fight needs more mana than you have (as lifeTapNeed)
 //   { t: 'freeMana' }            free mana is ready (Innervate, Mana Tide, a rune, a potion, a mana trinket)
 //   { t: 'minDot', op, v }       the shortest DoT this priority keeps up (as wrackDots)
+//   { t: 'fsr', op, v }          seconds since you last spent mana (round 186; the 5-second rule: Spirit regenerates from 5 s on,
+//                                not while you channel; a cast being cast counts as spending now)
 //   { t: 'check', act }          the whole check of a built-in action that has no shorter form (WL.APL_CHECKS)
 // op = '<', '<=', '>', '>=' or '='; v = a number, or { var: name } = a named number of build.vars ({ num: 12 }),
 // or (round 172) { cast: spell } = that spell's cast time now, { exec: 1 } = the execute threshold (Fight & pets).
@@ -372,6 +374,7 @@ WL.ruleCond = function (n, S, build, depth) {
     case 'manaNeed': return !!S.manaNeedLeft && S.mana < S.manaNeedLeft();
     case 'freeMana': return !!S.freeManaLevel && S.mana >= S.freeManaLevel() && S.freeManaLevel() > 0;
     case 'minDot': return ruleCmp(WL.minDotLeft(S), n.op, val());
+    case 'fsr': return ruleCmp(S.spendAt != null ? 0 : S.t - S.lastSpend, n.op, val());   // nothing spent yet: Infinity
     case 'check': return !!WL.APL_CHECKS[n.act] && WL.ACTIONS[n.act].pick(S) != null;
   }
   return false;
@@ -433,6 +436,7 @@ WL.condText = function (n, build) {
     case 'manaNeed': return 'the rest of the fight needs more mana than you have';
     case 'freeMana': return 'free mana is ready';
     case 'minDot': return 'shortest DoT time left ' + n.op + ' ' + v() + u();
+    case 'fsr': return 'time since you last spent mana ' + n.op + ' ' + v() + u();
     case 'check': return WL.APL_CHECKS[n.act] || n.act;
   }
   return '?';
@@ -469,7 +473,7 @@ WL.condErrors = function (n, build, where, depth) {
     case 'setting': if (!WL.APL_SETTINGS[n.key]) out.push(where + ': unknown setting "' + n.key + '"'); break;
     case 'check': if (!WL.APL_CHECKS[n.act]) out.push(where + ': unknown check "' + n.act + '"'); break;
     case 'pet': case 'manaNeed': case 'freeMana': break;
-    case 'minDot': num(); break;
+    case 'minDot': case 'fsr': num(); break;
     default: out.push(where + ': unknown condition');
   }
   return out;

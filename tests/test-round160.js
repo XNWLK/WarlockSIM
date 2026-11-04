@@ -6,7 +6,7 @@
     var gone = WL.findBuild('aff_pact_succ_sb');
     T.ok(!!gone && WL.RETIRED_BUILDS.indexOf(gone) >= 0 && WL.validateBuild(gone).length === 0, 'kept as a legal test fixture');
     var sm = WL.findBuild('sm_ruin_classic');
-    T.ok(WL.BUILDS.indexOf(sm) >= 0 && sm.short === 'SM Ruin' && /^SM Ruin – /.test(sm.name), 'SM Ruin: same key, new name (' + sm.short + ')');
+    T.ok(WL.RETIRED_BUILDS.indexOf(sm) >= 0 && sm.short === 'SM Ruin' && /^SM Ruin – /.test(sm.name), 'SM Ruin: same key, new name (' + sm.short + '); off the sheet since round 186, kept as a fixture');
     T.ok(own.every(function (b) { return !/classic/i.test(b.short + ' ' + b.name); }), 'no build on the sheet is called "classic"');
     var code = WL.encodeBuild(sm), back = WL.decodeBuild(code);
     T.ok(back && JSON.stringify(back.talents) === JSON.stringify(sm.talents), 'SM Ruin build codes still work');

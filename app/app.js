@@ -163,6 +163,8 @@
   function talentTip(t, n) {
     var txt = (WL.TALENT_TEXT || {})[t.key] || [];
     var h = '<div class="tt-name">' + esc(t.name) + '</div><div class="tt-meta">Rank ' + n + '/' + t.ranks + ' · ' + WL.TREES[t.tree].name + '</div>';
+    var rq = t.req && WL.TALENT_BY_KEY[t.req];                            // round 186: what the arrow into it means
+    if (rq) h += '<div class="tt-meta">Requires ' + (t.reqQty || 1) + ' point' + ((t.reqQty || 1) === 1 ? '' : 's') + ' in ' + esc(rq.name) + '</div>';
     h += n ? '<div class="tt-body">' + para(txt[n - 1] || '') + '</div>' : '<div class="tt-body tt-dim">' + para(txt[0] || '') + '</div>';
     if (n && n < t.ranks) h += '<div class="tt-next">Next rank:</div><div class="tt-body tt-dim">' + para(txt[n] || '') + '</div>';
     if (!n) h += '<div class="tt-next">Not taken in this build</div>';
@@ -1191,6 +1193,7 @@
   // left, Agony bottom right), their damage added together; the bar shows both parts in their own colours.
   var ACTION_DMG = { havocAuto: ['baneOfHavoc'], precastAuto: [] };   // the precast takes no slot of its own: its spell keeps its place in the priority
   var OWN_SLOTS = 8;
+  var PRIO_MIN_PCT = 1;                                    // round 186: smallest share (%) of the damage shown in "Spells & damage"
   function prioDamage(r, dur) {
     var b = r.build, byBase = {}, total = 0;
     Object.keys(r.bySpell).forEach(function (k) {
@@ -1219,6 +1222,10 @@
     // Round 73 (user): Death Coil is shown last among your own spells (it only finishes the fight), keeping its priority number.
     var mineAll = own.filter(function (s) { return s !== 'deathCoil'; }).concat(mine, own.indexOf('deathCoil') >= 0 ? ['deathCoil'] : []);
     var slots = own.concat(mine, other), max = Math.max.apply(null, slots.map(amount));
+    // Round 186 (user): spells (yours or the pet's) under PRIO_MIN_PCT of the damage are left out of this preview; the
+    // details' tables still list every spell. Priority numbers stay those of the full list.
+    var big = function (s) { return 100 * amount(s) / total >= PRIO_MIN_PCT; };
+    mineAll = mineAll.filter(big); other = other.filter(big);
     var extra = function (k) {                        // damage on the extra targets, for the tooltip
       var xs = Object.keys(r.bySpell).filter(function (x) { return x !== k && baseKey(x) === k && r.bySpell[x].dmg > 0; });
       return xs.length ? ' (incl. ' + xs.map(function (x) { return spellName(x).replace(/^.*\(/, '').replace(')', '') + ' ' + fmt(r.bySpell[x].dmg / dur, 1); }).join(', ') + ')' : '';
@@ -1546,6 +1553,19 @@
       x.notes.map(function (t) { return '<p class="meta">' + esc(t) + '</p>'; }).join('') +
       '<p class="meta">All the rules: <a href="https://github.com/XNWLK/WarlockSIM/blob/main/MECHANICS.md" target="_blank" rel="noopener">How it\'s calculated</a>.</p></div>';
   }
+  // Round 186 (user): arrows from a prerequisite talent to the talent that needs it, as in the game. Grid items behind the
+  // icons: straight down the column (or sideways in a row; else sideways along the prerequisite's row, then down). Lit once
+  // the prerequisite has the points the talent needs.
+  function talentArrows(tr, tal) {
+    return WL.TALENTS.filter(function (x) { return x.tree === tr && x.req && WL.TALENT_BY_KEY[x.req]; }).map(function (x) {
+      var r = WL.TALENT_BY_KEY[x.req], on = (tal[r.key] || 0) >= (x.reqQty || 1) ? ' on' : '', side = x.col > r.col ? 'right' : 'left';
+      var lo = Math.min(r.col, x.col) + 1, hi = Math.max(r.col, x.col) + 2;
+      if (r.col === x.col) return '<i class="tarrow down' + on + '" data-arrow="' + r.key + '>' + x.key + '" style="grid-column:' + (x.col + 1) + ';grid-row:' + (r.row + 1) + '/' + (x.row + 2) + '"></i>';
+      if (r.row === x.row) return '<i class="tarrow ' + side + on + '" data-arrow="' + r.key + '>' + x.key + '" style="grid-row:' + (x.row + 1) + ';grid-column:' + lo + '/' + hi + '"></i>';
+      return '<i class="tarrow ' + side + ' bend' + on + '" style="grid-row:' + (r.row + 1) + ';grid-column:' + lo + '/' + hi + '"></i>' +
+        '<i class="tarrow down bend' + on + '" data-arrow="' + r.key + '>' + x.key + '" style="grid-column:' + (x.col + 1) + ';grid-row:' + (r.row + 1) + '/' + (x.row + 2) + '"></i>';
+    }).join('');
+  }
   // A build's three talent trees, read-only (details and compare; the editor draws its own clickable ones).
   function treesHtml(b) {
     return '<div class="trees">' + ['affliction', 'demonology', 'destruction'].map(function (tr) {
@@ -1555,7 +1575,7 @@
         cells += '<div class="tcell' + (n ? (n === t.ranks ? ' max' : ' part') : ' off') + '" style="grid-row:' + (t.row + 1) + ';grid-column:' + (t.col + 1) + '">' + icon('talent_' + t.key, t.name + ' ' + n + '/' + t.ranks, '', talentTip(t, n)) + '<span class="rk">' + n + '/' + t.ranks + '</span>' + simMark(t) + '</div>';
       });
       return '<div class="tree t-' + tr + '"><div class="thead">' + icon('tree_' + tr, WL.TREES[tr].name) + ' <b>' + WL.TREES[tr].name + '</b> <span class="meta">' + pts + '</span></div>' +   // t-<tree>: round 177
-        '<div class="tgrid">' + cells + '</div></div>';
+        '<div class="tgrid">' + talentArrows(tr, b.talents) + cells + '</div></div>';
     }).join('') + '</div>';
   }
   // W4: average uptime of every tracked buff / debuff over all fights.
@@ -1857,7 +1877,7 @@
   function editFromResults(key) {
     var src = WL.BUILDS.filter(function (b) { return b.key === key; })[0]; if (!src) return;
     edStart(src); $('editor').open = true;
-    edMsg(src.custom ? 'Editing "' + src.short + '" — press "Update on the sheet" when done.' : 'Loaded a copy of "' + src.short + '" — change it and press "Add to the sheet".');
+    edMsg(src.custom ? 'Editing "' + src.short + '" — press "Update on the sheet" when done, or "Add to the sheet" to keep it as a second build.' : 'Loaded a copy of "' + src.short + '" — change it and press "Add to the sheet".');
     $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   // Compare two builds (round 44; round 110, user: one entry per build + a race list per side instead of one entry per
@@ -2279,7 +2299,7 @@
       total += pts;
       return '<div class="tree t-' + tr + '"><div class="thead">' + icon('tree_' + tr, WL.TREES[tr].name) + ' <b>' + WL.TREES[tr].name + '</b> <span class="meta">' + pts + '</span>' +
         '<button type="button" class="treereset" data-edresettree="' + tr + '"' + (pts ? '' : ' disabled') + ' title="Remove every point in ' + WL.TREES[tr].name + '">Reset</button></div>' +
-        '<div class="tgrid">' + cells + '</div></div>';
+        '<div class="tgrid">' + talentArrows(tr, t) + cells + '</div></div>';
     }).join('');
     $('edPts').textContent = split(b) + ' · ' + total + ' / 51 points';
     $('edResetAll').disabled = !total;
@@ -2307,7 +2327,9 @@
     $('edErrs').innerHTML = errs.length ? errs.map(function (e) { return '<li>' + esc(e) + '</li>'; }).join('') : '<li class="ok">Legal build — ready to add.</li>';
     $('edSave').disabled = !!errs.length;
     $('edSave').textContent = ed.editing ? 'Update on the sheet' : 'Add to the sheet';
-    if (!quickRunning) renderQuickOut();                                 // marks an older quick sim as out of date
+    // Round 186 (user): a build of yours being edited can also go on the sheet as a second, separate build.
+    $('edSaveNew').hidden = !ed.editing; $('edSaveNew').disabled = !!errs.length;
+    if (!quickRunning) renderQuickOut();                                // marks an older quick sim as out of date
     $('edList').innerHTML = customBuilds().map(function (c) {
       return '<li><b>' + split(c) + ' ' + esc(c.short) + '</b><button type="button" data-edit="' + esc(c.key) + '">Edit</button><button type="button" data-edremove="' + esc(c.key) + '">Remove</button></li>';
     }).join('') + heldCustoms.map(function (h) {
@@ -2323,7 +2345,7 @@
   var COND_KINDS = [['dot', 'DoT time left (s)'], ['aura', 'Buff / debuff time left (s)'], ['cd', 'Cooldown left (s)'], ['remaining', 'Fight time left (s)'], ['elapsed', 'Fight time gone (s)'],
     ['bossHp', 'Boss health %'], ['mana', 'Mana %'], ['shards', 'Soul Shards'], ['brand', 'Demonic Brand charges'], ['var', 'A condition of yours'],
     // round 172: the checks the built-in actions make
-    ['refresh', 'DoT needs a recast'], ['paysOff', 'DoT still pays off'], ['minDot', 'Shortest DoT time left (s)'], ['known', 'You know the spell'], ['talent', 'Talent points'],
+    ['refresh', 'DoT needs a recast'], ['paysOff', 'DoT still pays off'], ['minDot', 'Shortest DoT time left (s)'], ['fsr', 'Time since you last spent mana (s)'], ['known', 'You know the spell'], ['talent', 'Talent points'],
     ['pet', 'A demon is out'], ['setting', 'A setting is on'], ['manaNeed', 'The rest of the fight needs more mana'], ['freeMana', 'Free mana is ready'], ['check', 'A built-in check']];
   var COND_NOVAL = { refresh: 1, paysOff: 1, known: 1, pet: 1, setting: 1, manaNeed: 1, freeMana: 1, check: 1, var: 1 };   // kinds without a comparison
   function condFromEngine(n) {
@@ -2616,6 +2638,7 @@
       else if (nl.t === 'talent') { delete nl.spell; nl.talent = 'shadowAndFlame'; nl.op = '>='; nl.v = '1'; } else if (nl.t === 'setting') { delete nl.spell; delete nl.op; delete nl.v; nl.key = 'coe'; }
       else if (nl.t === 'check') { delete nl.spell; delete nl.op; delete nl.v; nl.act = 'deathCoilFinisher'; } else if (nl.t === 'pet' || nl.t === 'manaNeed' || nl.t === 'freeMana') { delete nl.spell; delete nl.op; delete nl.v; }
       else if (nl.t === 'minDot') { delete nl.spell; nl.op = '>'; nl.v = '4'; }
+      else if (nl.t === 'fsr') { delete nl.spell; nl.op = '>='; nl.v = '5'; }   // round 186
       else if (nl.t !== 'dot') { delete nl.spell; nl.op = nl.t === 'remaining' ? '>' : '<'; nl.v = nl.t === 'mana' || nl.t === 'bossHp' ? '35' : '10'; }
       Object.keys(nl).forEach(function (k) { n[k] = nl[k]; }); }
     else n[f] = e.target.value;
@@ -2632,9 +2655,28 @@
     renderEditor();
   }
   function edMsg(s, bad) { $('edMsg').textContent = s; $('edMsg').style.color = bad ? 'var(--bad)' : ''; }
-  function edSave() {
+  // Round 186 (user): asNew = "Add to the sheet" while editing a build of yours — the edited build becomes a new, separate
+  // build (a name already on the sheet gets " (2)", " (3)", …) and the build you opened stays unchanged.
+  function freeBuildName(name) {
+    var used = WL.BUILDS.map(function (x) { return x.short; });
+    if (used.indexOf(name) < 0) return name;
+    var base = name.replace(/ \(\d+\)$/, ''), n = 2, s;
+    var cut = function () {                               // names are at most 40 characters: a long one loses its last word(s)
+      var lim = 40 - s.length; if (base.length <= lim) return base + s;
+      return (base.slice(0, lim + 1).replace(/\s+\S*$/, '') || base.slice(0, lim)) + s;
+    };
+    do { s = ' (' + n++ + ')'; } while (used.indexOf(cut()) >= 0);
+    return cut();
+  }
+  function edSave(asNew) {
     var b = ed.b; if (WL.validateBuild(b).length || timelineErrors().length) return;
-    if (ed.editing) {
+    if (asNew && ed.editing) {
+      var from = WL.BUILDS.filter(function (x) { return x.key === ed.editing; })[0];
+      b.short = freeBuildName(b.short);
+      var c2 = makeCustom(b), keys = WL.BUILDS.map(function (x) { return x.key; });
+      while (keys.indexOf(c2.key) >= 0) c2.key += 'b';
+      WL.BUILDS.push(c2); ed.editing = c2.key; ed.from = c2.key;
+    } else if (ed.editing) {
       var i = WL.BUILDS.map(function (x) { return x.key; }).indexOf(ed.editing);
       WL.BUILDS[i] = makeCustom(b, ed.editing);
       results = results.filter(function (r) { return r.build.key !== ed.editing; });
@@ -2644,7 +2686,8 @@
       if (ed.held) { heldCustoms = heldCustoms.filter(function (h) { return h.key !== ed.held; }); ed.held = null; }   // fixed: it joins the sheet
     }
     saveCustoms(); edOptions(); renderEditor(); render(); showStale();   // a build change does not invalidate the other rows (round 55)
-    edMsg('Saved "' + b.short + '" — press Sim! to simulate it' + (sameSettings() ? ' (settings unchanged: only this build is simulated)' : '') +
+    edMsg((from ? 'Added "' + b.short + '" as a new build ("' + from.short + '" is unchanged)' : 'Saved "' + b.short + '"') +
+      ' — press Sim! to simulate it' + (sameSettings() ? ' (settings unchanged: only this build is simulated)' : '') +
       '. Custom builds are always shown, whatever the cut-off.');
   }
   function edRemove(key) {
@@ -2968,19 +3011,21 @@
     if (t.closest('#edResetAll')) { b.talents = {}; renderEditor(); edMsg('All talents reset.'); return true; }
     if ((x = t.closest('[data-edup]'))) { var i = +x.getAttribute('data-edup'); b.rotation.splice(i - 1, 0, b.rotation.splice(i, 1)[0]); renderEditor(); return true; }
     if ((x = t.closest('[data-eddown]'))) { var j = +x.getAttribute('data-eddown'); b.rotation.splice(j + 1, 0, b.rotation.splice(j, 1)[0]); renderEditor(); return true; }
-    if ((x = t.closest('[data-edrm]'))) { b.rotation.splice(+x.getAttribute('data-edrm'), 1); renderEditor(); return true; }
+    if ((x = t.closest('[data-edrm]'))) { b.rotation.splice(+x.getAttribute('data-edrm'), 1); WL.dropUnusedActWhen(b); renderEditor(); return true; }   // round 186: its condition goes with it
     if (ruleClick(t)) return true;                     // round 157: rules, groups, variables
     if (t.closest('#edAdd')) {   // new actions go in front of the filler so they can fire
-      var a = $('edAddAct').value, fi = firstFiller(b);
-      if (WL.ACTIONS[a].filler || fi < 0) b.rotation.push(a); else b.rotation.splice(fi, 0, a);
-      renderEditor(); return true;
+      var a = $('edAddAct').value, added = WL.addAction(b, a);         // round 186 (user): always the plain action
+      renderEditor();
+      if (added.rule) edMsg('"' + simpleName(a) + '" is already in the list with a condition of its own, so the new one was added as a plain line in the advanced list.');
+      return true;
     }
     if (t.closest('#edLoadFrom')) { var src = WL.BUILDS.filter(function (y) { return y.key === $('edFrom').value; })[0]; edStart(src || null); edMsg(src ? 'Loaded "' + src.short + '".' : 'Empty build.'); return true; }
     if (t.closest('#edNew')) { edStart(null); edMsg('Empty build.'); return true; }
     if (t.closest('#edSave')) { edSave(); return true; }
+    if (t.closest('#edSaveNew')) { edSave(true); return true; }          // round 186: a second version of the build
     if (t.closest('#edPoints')) { talentPoints(); return true; }
     if (t.closest('#edQuick')) { quickSim(); return true; }
-    if ((x = t.closest('[data-edit]'))) { edStart(WL.BUILDS.filter(function (y) { return y.key === x.getAttribute('data-edit'); })[0]); edMsg('Editing — press "Update on the sheet" when done.'); return true; }
+    if ((x = t.closest('[data-edit]'))) { edStart(WL.BUILDS.filter(function (y) { return y.key === x.getAttribute('data-edit'); })[0]); edMsg('Editing — press "Update on the sheet" when done, or "Add to the sheet" to keep it as a second build.'); return true; }
     if ((x = t.closest('[data-edremove]'))) { edRemove(x.getAttribute('data-edremove')); return true; }
     if ((x = t.closest('[data-edheld]'))) {
       var hk = x.getAttribute('data-edheld'), hb = heldCustoms.filter(function (h) { return h.key === hk; })[0]; if (!hb) return true;
@@ -3036,8 +3081,12 @@
     Object.keys(self.buffs).forEach(function (k) { self.buffs[k].on = false; });
     Object.keys(self.debuffs).forEach(function (k) { self.debuffs[k].on = k === 'sunderArmor' || k === 'faerieFire'; });
     var onNames = function (o) { return Object.keys(o).filter(function (k) { return o[k].on; }).map(function (k) { return o[k].name.replace(/ [×(].*$/, ''); }); };
+    // Round 186 (user): "Full buffs" is back as a preset — the default gear and fight with the quick setup's "max" buffs,
+    // debuffs and consumables (every raid buff, the boss debuffs that stack, the best consumable of each group).
+    var full = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)); applySidePreset(full, 'max');
     return [{ name: 'Default (' + onNames(d.buffs).length + ' raid buffs; ' + onNames(d.debuffs).join(', ') + ')', code: WL.encodeSettings(d), builtin: true },
-            { name: 'Self-buffed (no raid buffs; Sunder Armor + Faerie Fire only)', code: WL.encodeSettings(self), builtin: true }];
+            { name: 'Self-buffed (no raid buffs; Sunder Armor + Faerie Fire only)', code: WL.encodeSettings(self), builtin: true },
+            { name: 'Full buffs (every raid buff, the boss debuffs that stack and the best consumable of each kind)', code: WL.encodeSettings(full), builtin: true }];
   }
   function savePresets() { try { localStorage.setItem('wfs.presets', JSON.stringify(userPresets)); } catch (e) { /* page only */ } }
   function renderPresets(sel) {

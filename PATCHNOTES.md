@@ -3,6 +3,22 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v161
+- **Builds:** SM Ruin is gone. Wrack Succubus is replaced by **Wrack DS** (35/11/5: deep Affliction with Wrack, the Imp
+  sacrificed, no demon out), and **Incinerate DS** is new (7/11/33: Incinerate with the Succubus sacrificed). Five builds.
+- **Wrack DS rotation, tested decision by decision:** at every spell of sample fights the sim tried every other spell you
+  could cast (and Life Tap, and keeping Wrack going) and played the rest of the fight out over a thousand times. What it
+  found, turned into the priority: Siphon Life is kept up, and Life Tap comes right after a full Wrack — Wrack spends its
+  mana when it starts, so when it ends the 5 seconds are over and your Spirit regenerates during the Life Taps — and only
+  when the rest of the fight needs the mana (below 40%). About +1.2% on every race.
+- The other four builds were tested the same way; their priorities were already the best a priority list can do.
+- New condition for your own rules: **time since you last spent mana**.
+- **Full buffs** preset: every raid buff and the best consumable of each kind, next to Default and Self-buffed.
+- **Spells & damage** leaves out spells under 1% of the damage.
+- Build editor: **Add to the sheet** next to Update, to keep the original and add the changed build as a second one.
+- Adding Wrack (or any action) in the Simple list now adds just that action, without conditions left over from before.
+- Talent trees show **arrows** from a talent to the one it unlocks.
+
 ## v160
 - **Wrack Succubus: Wrack is the main filler now.** It channels Wrack whenever Corruption, Bane of Agony and Siphon Life all
   have at least 4 s left, and Shadow Bolt only fills the gaps (it no longer keeps Improved Shadow Bolt up on its own).

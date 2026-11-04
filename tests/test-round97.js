@@ -24,7 +24,7 @@
     T.ok(A && !A.filler && /about to expire/.test(A.label), 'priority action "' + (A && A.label) + '"');
     T.eq(WL.CONFLAG_EXPIRE_S, 3, '"about to expire" = at most 3 s left (one Immolate tick interval)');
     T.ok(WL.editorActions().indexOf('conflagrateExpire') >= 0, 'offered in the build editor');
-    var lb = JSON.parse(JSON.stringify(WL.BUILDS.filter(function (x) { return x.key === 'sm_ruin_classic'; })[0]));
+    var lb = JSON.parse(JSON.stringify(WL.findBuild('sm_ruin_classic')));
     lb.rotation.splice(lb.rotation.length - 1, 0, 'conflagrateExpire');
     T.ok(WL.validateBuild(lb).some(function (e) { return /Conflagrate/.test(e); }), 'the editor refuses it without the Conflagrate talent');
     var ok = JSON.parse(JSON.stringify(WL.findBuild('destro_incin_imp')));   // a fixture since round 166

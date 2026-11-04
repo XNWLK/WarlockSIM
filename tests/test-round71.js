@@ -43,7 +43,7 @@
     T.eq(casts(rb, 'deathCoil').length, 2, 'with "on cooldown" too: 0 and 120 s, nothing left for the end (ready at 240 s)');
 
     T.group('editor');
-    var ok = JSON.parse(JSON.stringify(WL.BUILDS.filter(function (x) { return x.key === 'sm_ruin_classic'; })[0]));
+    var ok = JSON.parse(JSON.stringify(WL.findBuild('sm_ruin_classic')));
     ok.rotation = ['deathCoilFinisher', 'deathCoil'].concat(ok.rotation.filter(function (a) { return a !== 'deathCoilFinisher'; }));
     T.eq(WL.validateBuild(ok).join(' | '), '', 'both Death Coil actions are legal in SM Ruin (classic)');
     T.eq(WL.decodeBuild(WL.encodeBuild(ok)).rotation.join(','), ok.rotation.join(','), 'and survive a build-code round trip');

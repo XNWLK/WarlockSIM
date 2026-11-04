@@ -42,8 +42,8 @@
     T.group('reference builds (user, round 65); shown by default (round 66)');
     var want = { sm_ruin_classic: '30/0/21', wrack_succubus: '33/0/18' };   // round 149: Malediction's points moved (patch 2026-10-16), then the search after it   // DS Ruin (22/11/18) taken off the sheet in round 110   // SM Ruin 33/0/18 until round 83
     Object.keys(want).forEach(function (k) {
-      var bb = WL.BUILDS.filter(function (x) { return x.key === k; })[0];
-      T.ok(!!bb && !('pinned' in bb), k + ' is on the sheet (no built-in pin flag since round 66)');
+      var bb = WL.findBuild(k);   // round 186 (user): both off the sheet, kept as fixtures
+      T.ok(!!bb && !('pinned' in bb) && WL.RETIRED_BUILDS.indexOf(bb) >= 0, k + ' is kept as a fixture (no built-in pin flag since round 66)');
       if (!bb) return;
       var s = { affliction: 0, demonology: 0, destruction: 0 };
       Object.keys(bb.talents).forEach(function (t) { s[WL.TALENT_BY_KEY[t].tree] += bb.talents[t]; });

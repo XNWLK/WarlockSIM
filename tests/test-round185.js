@@ -3,7 +3,7 @@
 (function () {
   T.run('round 185: Wrack is the main filler of Wrack Succubus', function () {
     T.group('Wrack Succubus priority');
-    var b = WL.BUILDS.filter(function (x) { return x.key === 'wrack_succubus'; })[0], r = b.rotation;
+    var b = WL.findBuild('wrack_succubus'), r = b.rotation;
     T.eq(r.join(','), 'deathCoilFinisher,baneOfAgony,corruption,curseOfElements,immolate,wrack,shadowTrance,siphonLife,lifeTapNeed,shadowBolt',
       'Wrack above Shadow Trance, no ISB upkeep, Siphon Life after Shadow Trance, Shadow Bolt last');
     T.ok(b.actWhen && b.actWhen.wrack && b.actWhen.wrack.c.length === 3 && b.actWhen.wrack.c.every(function (x) { return x.op === '>=' && x.v === 4; }),

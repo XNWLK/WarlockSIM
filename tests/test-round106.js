@@ -22,7 +22,7 @@
     var ap = r.log.filter(function (e) { return e.type === 'apply' && e.spell === k && e.t <= t + 1e-6; }).pop();
     return ap ? Math.max(0, ap.t + WL.SPELLS[k].duration - t) : 0;
   }
-  function shipped(k) { return JSON.parse(JSON.stringify(WL.BUILDS.filter(function (x) { return x.key === k; })[0])); }
+  function shipped(k) { return JSON.parse(JSON.stringify(WL.findBuild(k))); }   // round 186: also the builds taken off the sheet
 
   T.run('round 106: Wrack while the DoTs have time left', function () {
     T.group('the action');
