@@ -3348,13 +3348,16 @@
   // Spirit grow too (default: the default gear's Int and Spirit per spell power, at 2000 SP: 148 / 54 per 500 → about 600 /
   // 200); each build with its listed race or its best race at each level; a dashed line at your gear's level; DPS or % of
   // the best build at each level.
-  var CH_SCALE_DEF = { levels: 7, max: { sp: 2000, hitPct: 17, critPct: 30, hastePct: 20, pierce: 0, int: 600, spi: 200 }, intSpi: true, race: 'listed' };
+  // Round 191 (user: "make the chart scale with stamina too … important for undead"): Stamina grows with Intellect and Spirit
+  // (the default gear's 160 per 500 SP → 640 at 2000 SP); the switch now covers all three.
+  var CH_SCALE_DEF = { levels: 7, max: { sp: 2000, hitPct: 17, critPct: 30, hastePct: 20, pierce: 0, int: 600, spi: 200, sta: 640 }, intSpi: true, race: 'listed' };
   var CH_SCALE = JSON.parse(JSON.stringify(CH_SCALE_DEF));
   try { var scSaved = JSON.parse(localStorage.getItem('wfs.scale') || 'null'); if (scSaved && scSaved.max) { Object.keys(CH_SCALE.max).forEach(function (k) { var v = +scSaved.max[k]; if (isFinite(v) && v >= 0) CH_SCALE.max[k] = v; }); CH_SCALE.intSpi = scSaved.intSpi !== false; CH_SCALE.race = scSaved.race === 'best' ? 'best' : 'listed'; } } catch (e) { /* no storage */ }
-  var SC_INPUTS = { sp: 'scSp', hitPct: 'scHit', critPct: 'scCrit', hastePct: 'scHaste', pierce: 'scPierce', int: 'scInt', spi: 'scSpi' };
+  var SC_INPUTS = { sp: 'scSp', hitPct: 'scHit', critPct: 'scCrit', hastePct: 'scHaste', pierce: 'scPierce', int: 'scInt', spi: 'scSpi', sta: 'scSta' };
+  var SC_BASE = { int: 1, spi: 1, sta: 1 };                // the stats under the "Intellect, Spirit and Stamina grow too" switch
   function scaleFill() {
     Object.keys(SC_INPUTS).forEach(function (k) { $(SC_INPUTS[k]).value = CH_SCALE.max[k]; });
-    $('scIntSpi').checked = CH_SCALE.intSpi; $('scInt').disabled = $('scSpi').disabled = !CH_SCALE.intSpi; $('scRace').value = CH_SCALE.race;
+    $('scIntSpi').checked = CH_SCALE.intSpi; $('scInt').disabled = $('scSpi').disabled = $('scSta').disabled = !CH_SCALE.intSpi; $('scRace').value = CH_SCALE.race;
   }
   function scaleSave() { try { localStorage.setItem('wfs.scale', JSON.stringify({ max: CH_SCALE.max, intSpi: CH_SCALE.intSpi, race: CH_SCALE.race })); } catch (e) { /* no storage */ } }
   function scaleRead() {                         // a box left empty or not a number keeps the value it had
@@ -3365,14 +3368,14 @@
   // The sheet values of gear level lv (def: the settings a drawn chart was made with). Int / Spirit only when they grow too.
   function scaleGear(lv, def) {
     def = def || CH_SCALE; var f = lv / def.levels, o = {};
-    Object.keys(def.max).forEach(function (k) { if ((k === 'int' || k === 'spi') && !def.intSpi) return; o[k] = +(def.max[k] * f).toFixed(k === 'hitPct' || k === 'critPct' || k === 'hastePct' ? 2 : 0); });
+    Object.keys(def.max).forEach(function (k) { if (SC_BASE[k] && !def.intSpi) return; o[k] = +(def.max[k] * f).toFixed(k === 'hitPct' || k === 'critPct' || k === 'hastePct' ? 2 : 0); });
     return o;
   }
   function scaleText(lv, short, def) {
     def = def || CH_SCALE; var g = scaleGear(lv, def), p = function (v) { return fmt(v, v % 1 ? 1 : 0); };
     var parts = [fmt(g.sp) + ' SP', p(g.hitPct) + '% hit', p(g.critPct) + '% crit', p(g.hastePct) + '% haste'];
     if (def.max.pierce) parts.push(fmt(g.pierce) + ' Spell Pierce');
-    if (def.intSpi && (def.max.int || def.max.spi)) parts.push(fmt(g.int) + ' Int', fmt(g.spi) + ' Spirit');
+    if (def.intSpi && (def.max.int || def.max.spi || def.max.sta)) parts.push(fmt(g.int) + ' Int', fmt(g.spi) + ' Spirit', fmt(g.sta || 0) + ' Stamina');
     return short ? parts[0] : parts.join(' · ');
   }
   // Your gear's level: the mean of how far each stat of the top level your sheet has (spell power, hit, crit, haste, and Spell
@@ -3572,7 +3575,7 @@
       raceSeg.push(s.b.short + ': ' + seg.join(', '));
     });
     var cap = (C.shipped === 'default' ? 'Shipped with the page for the default settings (the same numbers as Draw chart with them). ' : C.shipped === 'other' ? 'Made with the default settings, not yours: press Draw chart to redo it with your settings. ' : '') +
-      'Each point is ' + fmt(C.n) + ' simulated fights with ' + (len ? 'that fight length (± your length variation)' : sc ? 'that gear level instead of your sheet\'s spell power, hit, crit (character sheet), haste, Spell Pierce' + (C.sc.intSpi ? ', Intellect and Spirit' : '') : 'that much ' + C.st.name + ' on your gear') + ' and everything else as you have set it; the same fights are used at every point. ' +
+      'Each point is ' + fmt(C.n) + ' simulated fights with ' + (len ? 'that fight length (± your length variation)' : sc ? 'that gear level instead of your sheet\'s spell power, hit, crit (character sheet), haste, Spell Pierce' + (C.sc.intSpi ? ', Intellect, Spirit and Stamina' : '') : 'that much ' + C.st.name + ' on your gear') + ' and everything else as you have set it; the same fights are used at every point. ' +
       (sc && C.sc.race === 'best' ? 'Every build is drawn with its best race at each level (all five simulated): ' + raceSeg.join('; ') + '. ' : 'Every build is drawn with the race it is listed with. ') +
       (sc && C.you != null ? 'The dashed line is your gear: about level ' + fmt(C.you, 1) + ' (the mean of how much of the top level\'s spell power, hit, crit and haste your sheet has). ' : '') +
       (rel ? 'Each line is a build\'s DPS as a % of the best build at that level. ' : '') +
@@ -4451,7 +4454,7 @@
   $('compare').addEventListener('toggle', function () { if ($('compare').open) renderCompare(); });
   $('charts').addEventListener('toggle', function () { if ($('charts').open) chOptions(); });   // the build list follows the sheet
   $('chKind').addEventListener('change', chOptions);
-  $('scIntSpi').addEventListener('change', function () { $('scInt').disabled = $('scSpi').disabled = !$('scIntSpi').checked; });   // round 188
+  $('scIntSpi').addEventListener('change', function () { $('scInt').disabled = $('scSpi').disabled = $('scSta').disabled = !$('scIntSpi').checked; });   // round 188
   var chResize = null, chRedraw = function () {                         // the chart is drawn at the page's width: redraw it when that changes
     clearTimeout(chResize);
     chResize = setTimeout(function () { var w = $('chOut').clientWidth; if (chart && w && Math.abs(w - chart.w) > 4) renderChart(); }, 150);

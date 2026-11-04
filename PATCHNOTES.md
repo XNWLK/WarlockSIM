@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v166
+- Three builds have shorter names: **Shadow Demo** (was Demo Pact Shadow Bolt Succubus), **Fire Demo** (was Demo Pact Fire
+  Imp) and **Incinerate Pandemic** (was Destro Incinerate Succubus).
+- **Build Scaling**: Stamina now grows with the gear levels too (640 at the top level), next to Intellect and Spirit. It
+  matters for Undead: Touch of the Grave hits for a share of your maximum health.
+
 ## v165
 - **Spells & damage** lists the spells by their share of the damage, largest first (was: the priority order).
 

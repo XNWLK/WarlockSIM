@@ -13,7 +13,8 @@ const root = path.resolve(__dirname, '..');
 // The chart's own rule (app/app.js scaleGear): a level's sheet values; hit / crit / haste to 2 decimals, the rest whole.
 function scaleGear(lv, def) {
   const f = lv / def.levels, o = {};
-  Object.keys(def.max).forEach(k => { if ((k === 'int' || k === 'spi') && !def.intSpi) return; o[k] = +(def.max[k] * f).toFixed(k === 'hitPct' || k === 'critPct' || k === 'hastePct' ? 2 : 0); });
+  Object.keys(def.max).forEach(k => { if ((k === 'int' || k === 'spi' || k === 'sta') && !def.intSpi) return;   // round 191: Stamina too
+    o[k] = +(def.max[k] * f).toFixed(k === 'hitPct' || k === 'critPct' || k === 'hastePct' ? 2 : 0); });
   return o;
 }
 

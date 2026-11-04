@@ -221,7 +221,7 @@ Pandemic names. No spell gets both: Ruin covers Destruction spells, Pandemic cov
 ## 4. Worked examples
 
 <!-- gen:examples -->
-The examples use the build **Demo Pact Shadow Bolt Succubus** as an Undead with the default gear, raid buffs and boss debuffs. Every number below is checked against the sim's own value when this document is generated.
+The examples use the build **Shadow Demo** as an Undead with the default gear, raid buffs and boss debuffs. Every number below is checked against the sim's own value when this document is generated.
 
 #### 1. The character's stats
 - Intellect: (110 base − 2 Undead + 148 gear + 31 Arcane Intellect / Brilliance + 16 Mark / Gift of the Wild) × 1.10 Blessing of Kings = **333.3**
@@ -269,7 +269,7 @@ The examples use the build **Demo Pact Shadow Bolt Succubus** as an Undead with 
 430 + 253 Spirit = **683 mana** for 430 health and one global cooldown (this build has no Improved Life Tap; with 2/2 it would be 819.6).
 
 #### 8. Talents of one group add up: Immolate and Incinerate
-Build **Destro Incinerate Succubus**, Undead, default settings; Fire spell power 500 + 21 Major Firestone = 521. No auras: this build has no Demonology points.
+Build **Incinerate Pandemic**, Undead, default settings; Fire spell power 500 + 21 Major Firestone = 521. No auras: this build has no Demonology points.
 - Immolate's hit: (146 + 0.2 × 521) × (1 + 10% Agonizing Flames + 50% Aftermath) = 250.2 × 1.60 = **400.3**. The two talents add to 60%; they do not multiply to 65%.
 - Immolate's burn, per tick: (52 + 0.13 × 521) × (1 + 10% Agonizing Flames) = **131.7**; 5 ticks.
 - Incinerate: (217 + 0.714 × 521) × 1.10 Agonizing Flames = 647.9; × 1.25 with Immolate on the boss × 1.10 curse × 1.20 Shadow and Flame (after a Shadowburn) = **1,069**; a crit (16.29%) deals × 2.
@@ -875,8 +875,8 @@ is on; these are not real numbers.
 
 **Build Scaling** (Charts): every build at gear levels 0 to 7 — level 0 has no spell power, hit, crit (character sheet), haste or
 Spell Pierce on the sheet, level 7 has 2000 spell power, 17% hit, 30% crit and 20% haste, and each level in between adds the same
-amount of each (the top level can be typed in). Intellect and Spirit grow too (600 and 200 at the top level) unless you switch
-that off; everything else stays as you have set it. 1,000 fights per point, each build with the race it is listed with or with
+amount of each (the top level can be typed in). Intellect, Spirit and Stamina grow too (600, 200 and 640 at the top level; Stamina matters for Undead's Touch of
+the Grave) unless you switch that off; everything else stays as you have set it. 1,000 fights per point, each build with the race it is listed with or with
 its best race at each level. Your gear's level (the dashed line) is the mean of how much of the top level's spell power, hit,
 crit and haste your sheet has. The chart shows DPS or each build as a % of the best build at that level. The page opens with
 this chart for the default settings (shipped with the page, the same numbers as drawing it).
@@ -888,21 +888,21 @@ every target, as "Keep DoTs on the extra targets"; Bane of Havoc as usual).
 **The builds on the sheet**
 
 <!-- gen:builds -->
-### Demo Pact Shadow Bolt Succubus (2/31/18)
+### Shadow Demo (2/31/18)
 - Succubus out, Imp sacrificed, Major Spellstone.
 - Affliction: Suppression 1/5, Improved Corruption 1/5.
 - Demonology: Unholy Power 5/5, Fel Vitality 3/3, Demonic Energies 2/2, Improved Sayaad 3/3, Demonic Sacrifice 1/1, Master Summoner 2/2, Decimation 2/2, Demonic Brand 3/3, Soul Link 1/1, Demonic Knowledge 3/3, Master Demonologist 5/5, Demonic Pact 1/1.
 - Destruction: Improved Shadow Bolt 5/5, Bane 5/5, Ruin 5/5, Agonizing Flames 3/3.
 - Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Curse of the Elements if missing · 4. Searing Pain to (re)apply Demonic Brand when it is down · 5. Immolate if missing/expiring · 6. Corruption if missing/expiring · 7. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 80% mana, more than 45 s left) · 8. Shadow Bolt (filler).
 
-### Demo Pact Fire Imp (2/31/18)
+### Fire Demo (2/31/18)
 - Imp out, Succubus sacrificed, Major Firestone.
 - Affliction: Suppression 1/5, Improved Corruption 1/5.
 - Demonology: Improved Imp 3/3, Unholy Power 5/5, Fel Vitality 3/3, Demonic Energies 2/2, Demonic Sacrifice 1/1, Master Summoner 2/2, Decimation 2/2, Demonic Brand 3/3, Soul Link 1/1, Demonic Knowledge 3/3, Master Demonologist 5/5, Demonic Pact 1/1.
 - Destruction: Bane 5/5, Aftermath 5/5, Ruin 5/5, Agonizing Flames 3/3.
 - Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Searing Pain to (re)apply Demonic Brand when it is down · 3. Life Tap to feed the pet (Demonic Energies) when it is nearly out of mana · 4. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 5. Curse of the Elements if missing · 6. Immolate if missing/expiring · 7. Soul Fire while Decimation buff is up · 8. Corruption if missing/expiring · 9. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 80% mana, more than 45 s left) · 10. Searing Pain (filler).
 
-### Destro Incinerate Succubus (14/4/33)
+### Incinerate Pandemic (14/4/33)
 - Succubus out, nothing sacrificed, Major Firestone.
 - Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 3/5, Amplify Curse 1/1, Pandemic 3/3.
 - Demonology: Unholy Power 4/5.

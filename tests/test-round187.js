@@ -10,13 +10,13 @@
     T.ok(/<option value="scale"(?: selected)?>Build Scaling \(DPS by gear level\)<\/option>/.test(html), 'a chart type "Build Scaling" in the Chart list');
     T.ok(/Build Scaling · what each buff is worth<\/summary>/.test(html), 'named in the folded Charts title');
     var m = /var CH_SCALE_DEF = (\{[^;]*\});/.exec(app), S = m ? JSON.parse(m[1].replace(/'/g, '"').replace(/(\w+):/g, '"$1":')) : null;   // round 188: the defaults
-    T.ok(!!S && S.levels === 7 && S.max.sp === 2000 && S.max.hitPct === 17 && S.max.critPct === 30 && S.max.hastePct === 20 && S.max.pierce === 0 && S.max.int === 600 && S.max.spi === 200 && S.intSpi === true && S.race === 'listed',
-      'levels 0 … 7, top level 2000 SP / 17% hit / 30% crit / 20% haste / no Spell Pierce; Intellect 600 and Spirit 200 grow too (round 188); listed races');
+    T.ok(!!S && S.levels === 7 && S.max.sp === 2000 && S.max.hitPct === 17 && S.max.critPct === 30 && S.max.hastePct === 20 && S.max.pierce === 0 && S.max.int === 600 && S.max.spi === 200 && S.max.sta === 640 && S.intSpi === true && S.race === 'listed',
+      'levels 0 … 7, top level 2000 SP / 17% hit / 30% crit / 20% haste / no Spell Pierce; Intellect 600, Spirit 200 and Stamina 640 (round 191) grow too (round 188); listed races');
     T.ok(/else if \(scale\) Object\.assign\(c\.gear, scaleGear\(x, SC\)\)/.test(app), 'each level sets those sheet values; everything else stays as set');
     T.ok(/var n = scale \? cfg\.fight\.iterations : /.test(app), 'the full number of fights per point (the lines lie close together)');
 
     T.group('round 188: the five ideas');
-    ['scSp', 'scHit', 'scCrit', 'scHaste', 'scPierce', 'scIntSpi', 'scInt', 'scSpi', 'scRace', 'scDef'].forEach(function (id) { T.ok(html.indexOf('id="' + id + '"') >= 0, 'a box for the top level: #' + id); });
+    ['scSp', 'scHit', 'scCrit', 'scHaste', 'scPierce', 'scIntSpi', 'scInt', 'scSpi', 'scSta', 'scRace', 'scDef'].forEach(function (id) { T.ok(html.indexOf('id="' + id + '"') >= 0, 'a box for the top level: #' + id); });
     T.ok(/localStorage\.setItem\('wfs\.scale'/.test(app), 'the top level is kept in this browser');
     T.ok(/if \(races\) races\.forEach\(function \(rk\)/.test(app) && /s\.raceAt\[xi\] = bk/.test(app), 'best race at each level: every race simulated, the highest kept');
     T.ok(/you: scale \? scaleYou\(cfg\.gear, SC\)/.test(app) && /'your gear ≈ level '/.test(app), 'a dashed line at your gear\'s level');

@@ -6,7 +6,7 @@
   T.run('round 186: Wrack DS, Incinerate DS, time since mana spent, decision search', function () {
     T.group('the sheet');
     var own = WL.BUILDS.filter(function (b) { return !b.custom; });
-    T.eq(own.map(function (b) { return b.short; }).join(' | '), 'Demo Pact Shadow Bolt Succubus | Demo Pact Fire Imp | Destro Incinerate Succubus | Incinerate DS | Wrack DS', 'five builds');
+    T.eq(own.map(function (b) { return b.short; }).join(' | '), 'Shadow Demo | Fire Demo | Incinerate Pandemic | Incinerate DS | Wrack DS', 'five builds (round 191: three renamed)');
     ['sm_ruin_classic', 'wrack_succubus'].forEach(function (k) { var b = WL.findBuild(k); T.ok(!!b && WL.RETIRED_BUILDS.indexOf(b) >= 0, k + ' is a test fixture now'); });
     var split = function (b) { var s = { affliction: 0, demonology: 0, destruction: 0 }; Object.keys(b.talents).forEach(function (t) { s[WL.TALENT_BY_KEY[t].tree] += b.talents[t]; }); return s.affliction + '/' + s.demonology + '/' + s.destruction; };
     var w = WL.findBuild('wrack_ds'), d = WL.findBuild('destro_incin_ds');

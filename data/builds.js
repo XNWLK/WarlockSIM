@@ -34,7 +34,7 @@ window.WL = window.WL || {};
 
 WL.BUILDS = [
   {
-    key: 'demo_pact_succ_sb', short: 'Demo Pact Shadow Bolt Succubus',
+    key: 'demo_pact_succ_sb', short: 'Shadow Demo',   // round 191 (user): was 'Demo Pact Shadow Bolt Succubus'; the key stays
     name: 'Demonology – Pact, Succubus out, Shadow Bolt',
     notes: '2/31/18. Imp sacrificed (+15% Shadow, kept by Demonic Pact) with the Succubus out: Master Demonologist gives +10% Shadow to you and to her, and she adds Lash of Pain, melee and the Demonic Brand bonus. Searing Pain keeps Demonic Brand up, Shadow Bolt is the filler with 5/5 Improved Shadow Bolt, Death Coil finishes the fight.',
     talents: {
@@ -48,7 +48,7 @@ WL.BUILDS = [
     params: { lifeTapNeed: { pct: 80, sec: 45 } },   // round 168 (user): Life Tap only when the rest of the fight needs it and no free mana is ready, same numbers (default settings ±0.00%, max buffs +0.1 … +5.9%). Round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.59% (10,000 fights)
   },
   {
-    key: 'demo_pact_fire', short: 'Demo Pact Fire Imp',
+    key: 'demo_pact_fire', short: 'Fire Demo',   // round 191 (user): was 'Demo Pact Fire Imp'; the key stays
     name: 'Demonology – Pact, Imp out, Fire',
     notes: '2/31/18. Succubus sacrificed (+15% Fire, kept by Demonic Pact) with the Imp out: Master Demonologist gives +10% Fire to you and to the Imp. Searing Pain is the filler and keeps Demonic Brand up by itself; Soul Fire is cast in the execute phase (Decimation). Aftermath and Agonizing Flames strengthen Immolate and Searing Pain, and Life Tap also refills the Imp (Demonic Energies).',
     talents: {
@@ -62,7 +62,7 @@ WL.BUILDS = [
     params: { lifeTapNeed: { pct: 80, sec: 45 } },   // round 168 (user): Life Tap only when the rest of the fight needs it and no free mana is ready, same numbers (default settings ±0.00%, max buffs +0.1 … +5.9%). Round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.95% (10,000 fights)
   },
   {
-    key: 'destro_incin_succ', short: 'Destro Incinerate Succubus',
+    key: 'destro_incin_succ', short: 'Incinerate Pandemic',   // round 191 (user): was 'Destro Incinerate Succubus'; the key stays
     name: 'Destruction – Incinerate, Succubus out',
     notes: '14/4/33. Incinerate with Shadow and Flame, Conflagrate and Shadowburn; the Affliction points go to Suppression, Improved Corruption, Pandemic, Improved Life Tap and Amplify Curse. Four points in Unholy Power make the Succubus hit harder; she fights on her own (melee and Lash of Pain). With a second target, Bane of Havoc copies part of your damage to it.',
     talents: {
