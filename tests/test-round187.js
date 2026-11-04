@@ -7,7 +7,7 @@
     try { var z = new XMLHttpRequest(); z.open('GET', '../index.html', false); z.send(); html = z.responseText; } catch (e) { /* file:// */ }
     if (!app || !html) { T.warn('app.js / index.html could not be read (file://)'); return; }
     T.group('the chart');
-    T.ok(/<option value="scale">Build Scaling \(DPS by gear level\)<\/option>/.test(html), 'a chart type "Build Scaling" in the Chart list');
+    T.ok(/<option value="scale"(?: selected)?>Build Scaling \(DPS by gear level\)<\/option>/.test(html), 'a chart type "Build Scaling" in the Chart list');
     T.ok(/Build Scaling · what each buff is worth<\/summary>/.test(html), 'named in the folded Charts title');
     var m = /var CH_SCALE_DEF = (\{[^;]*\});/.exec(app), S = m ? JSON.parse(m[1].replace(/'/g, '"').replace(/(\w+):/g, '"$1":')) : null;   // round 188: the defaults
     T.ok(!!S && S.levels === 7 && S.max.sp === 2000 && S.max.hitPct === 17 && S.max.critPct === 30 && S.max.hastePct === 20 && S.max.pierce === 0 && S.max.int === 600 && S.max.spi === 200 && S.intSpi === true && S.race === 'listed',

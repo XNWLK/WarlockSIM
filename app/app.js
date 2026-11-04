@@ -3569,7 +3569,8 @@
       for (var i = 1; i <= C.xs.length; i++) if (i === C.xs.length || s.raceAt[i] !== s.raceAt[st0]) { seg.push(WL.RACES[s.raceAt[st0]].name + ' (' + (i - 1 > st0 ? 'levels ' + C.xs[st0] + '–' + C.xs[i - 1] : 'level ' + C.xs[st0]) + ')'); st0 = i; }
       raceSeg.push(s.b.short + ': ' + seg.join(', '));
     });
-    var cap = 'Each point is ' + fmt(C.n) + ' simulated fights with ' + (len ? 'that fight length (± your length variation)' : sc ? 'that gear level instead of your sheet\'s spell power, hit, crit (character sheet), haste, Spell Pierce' + (C.sc.intSpi ? ', Intellect and Spirit' : '') : 'that much ' + C.st.name + ' on your gear') + ' and everything else as you have set it; the same fights are used at every point. ' +
+    var cap = (C.shipped === 'default' ? 'Shipped with the page for the default settings (the same numbers as Draw chart with them). ' : C.shipped === 'other' ? 'Made with the default settings, not yours: press Draw chart to redo it with your settings. ' : '') +
+      'Each point is ' + fmt(C.n) + ' simulated fights with ' + (len ? 'that fight length (± your length variation)' : sc ? 'that gear level instead of your sheet\'s spell power, hit, crit (character sheet), haste, Spell Pierce' + (C.sc.intSpi ? ', Intellect and Spirit' : '') : 'that much ' + C.st.name + ' on your gear') + ' and everything else as you have set it; the same fights are used at every point. ' +
       (sc && C.sc.race === 'best' ? 'Every build is drawn with its best race at each level (all five simulated): ' + raceSeg.join('; ') + '. ' : 'Every build is drawn with the race it is listed with. ') +
       (sc && C.you != null ? 'The dashed line is your gear: about level ' + fmt(C.you, 1) + ' (the mean of how much of the top level\'s spell power, hit, crit and haste your sheet has). ' : '') +
       (rel ? 'Each line is a build\'s DPS as a % of the best build at that level. ' : '') +
@@ -4349,7 +4350,7 @@
   // ---------- events ----------
   document.addEventListener('click', function (e) {
     var t = e.target;
-    if (t.closest('#chRun')) { runChart(); return; }
+    if (t.closest('#chRun')) { runChart(); return; }   // (a drawn chart replaces the shipped one: chart.shipped is not set by runChart)
     if (t.closest('#scDef')) { CH_SCALE = JSON.parse(JSON.stringify(CH_SCALE_DEF)); scaleSave(); scaleFill(); chMsg('Top level back to its default: ' + scaleText(CH_SCALE.levels) + '.'); return; }   // round 188
     var chr = t.closest('[data-chrel]'); if (chr && chart && chart.kind === 'scale') { chart.rel = chr.getAttribute('data-chrel') === '1'; renderChart(); return; }
     if (t.closest('#shareBtn')) { shareLink(null); return; }
@@ -4462,7 +4463,24 @@
   // (loaded above) have no shipped results — the run then simulates only those.
   // Round 140: a share link ("#share=…") is read first — its settings are loaded, then the page starts as usual and opens
   // the build the link names. The link is taken out of the address afterwards, so a reload keeps what you change.
-  function startUp() { if (!useShipped() || pendingBuilds().length) run(); else openShared(); }
+  // Round 189 (user: "make this setup the default so people see this when they go to the sim"): the Charts box opens on Build
+  // Scaling in the % view with the chart shipped for the default settings (data/default-scaling.js, tools/gen-scaling.js).
+  // With other settings it is still shown, marked as the default settings' chart; Draw chart redoes it with yours.
+  function shippedScaling() {
+    var D = WL.DEFAULT_SCALING; if (!D || chart) return false;
+    var builtins = WL.BUILDS.filter(function (b) { return !b.custom; });
+    if (JSON.stringify(builtins) !== D.builds) return false;            // the built-in builds changed since it was made
+    var same = JSON.stringify(snapNoCut(cfg)) === D.settings, used = {};
+    var series = D.series.map(function (x) {
+      var b = builtins.filter(function (y) { return y.key === x.key; })[0], slot = chSlot(b);
+      while (used[slot]) slot = slot % CH_MAX + 1; used[slot] = 1;
+      return { b: b, race: x.race, slot: slot, y: x.y.slice() };
+    });
+    chart = { kind: 'scale', st: CH_STATS[1], xs: D.xs.slice(), cur: D.def.levels, noCur: true, series: series, n: D.n, dur: cfg.fight.duration, gear: gearText(cfg.gear),
+      sc: JSON.parse(JSON.stringify(D.def)), you: scaleYou(cfg.gear, D.def), rel: true, shipped: same ? 'default' : 'other' };
+    renderChart(); return true;
+  }
+  function startUp() { var sh = useShipped(); shippedScaling(); if (!sh || pendingBuilds().length) run(); else openShared(); }
   var shareCode = WL.shareFromHash(location.hash);
   if (shareCode) {
     WL.decodeShare(shareCode).then(applyShare).catch(function (e) { shareNote(e.message + ' The page opened with its usual settings.', true); }).then(function () {

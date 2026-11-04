@@ -76,4 +76,6 @@ function runJobs(jobs) {
     ' stat weights in ' + ((Date.now() - t0) / 1000).toFixed(1) + ' s');
   // The tables and worked examples of MECHANICS.md come from the same data and engine files: refresh them in the same step.
   require('child_process').execFileSync(process.execPath, [path.join(__dirname, 'gen-mechanics.js')], { stdio: 'inherit' });
+  // Round 189: the shipped Build Scaling chart uses each build's best race from these results — refresh it too.
+  require('child_process').execFileSync(process.execPath, [path.join(__dirname, 'gen-scaling.js')], { stdio: 'inherit' });
 })();

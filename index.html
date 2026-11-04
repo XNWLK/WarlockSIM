@@ -1213,13 +1213,13 @@
     </div>
     <div id="cmpOut"></div>
   </details>
-  <details class="card toolcard" id="charts">
+  <details class="card toolcard" id="charts" open>
     <summary>Charts — DPS by a stat · DPS by fight length · Build Scaling · what each buff is worth</summary>
     <div class="chartbar">
       <label class="c" for="chKind">Chart <select id="chKind">
         <option value="stat">DPS by a stat</option>
         <option value="len">DPS by fight length</option>
-        <option value="scale">Build Scaling (DPS by gear level)</option>
+        <option value="scale" selected>Build Scaling (DPS by gear level)</option>
         <option value="buffs">What each raid buff and debuff is worth</option>
       </select></label>
       <label class="c" for="chStat" id="chStatLbl">Stat <select id="chStat"></select></label>
@@ -1581,6 +1581,7 @@
 <script src="app/sim-pool.js"></script>
 <script src="data/default-results.js"></script>
 <script src="data/length-table.js"></script>
+<script src="data/default-scaling.js"></script>
 <script src="data/items.js"></script>
 <script src="data/item-db.js"></script>
 <script src="app/gear-builder.js"></script>

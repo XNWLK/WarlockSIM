@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v164
+- The page now opens with the **Build Scaling** chart in view (% of the best build at each gear level, with your gear
+  marked) — shown at once, made with the default settings; Draw chart redoes it with yours.
+
 ## v163
 - **Build Scaling** chart, more options:
   - **DPS or % of the best build** at each level — the % view shows clearly which build leads where.
