@@ -3,6 +3,14 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v163
+- **Build Scaling** chart, more options:
+  - **DPS or % of the best build** at each level — the % view shows clearly which build leads where.
+  - A dashed line shows **where your gear is** (about level 1.5 with the default gear).
+  - The **top level can be typed in** (spell power, hit, crit, haste, Spell Pierce, Intellect, Spirit); kept in your browser.
+  - **Intellect and Spirit grow too** (600 and 200 at the top level), or stay as on your sheet.
+  - Each build with the race it is listed with, or with **its best race at each level** (the chart says where that changes).
+
 ## v162
 - New chart: **Build Scaling** — every build's DPS from gear level 0 (no spell power, hit, crit or haste) to level 7
   (2000 spell power, 17% hit, 30% crit, 20% haste) in even steps, all builds in one chart. It also says where one build's

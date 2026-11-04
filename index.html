@@ -1043,6 +1043,9 @@
   .chtip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .chtip em { font: 600 12px var(--mono); font-style: normal; }
   .chlegend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; }
+  #chScaleBar input[type=number] { width: 72px; }   /* Build Scaling: the top level (round 188) */
+  .chrel { display: flex; gap: 6px; align-items: center; font-size: 12px; margin: 2px 0 6px; }
+  .chrel button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
   .chlegend span.it { display: inline-flex; align-items: center; gap: 6px; }
   .chtable > summary { cursor: pointer; color: var(--accent); font-size: 12px; }
   .chtable td, .chtable th { font-size: 11.5px; }
@@ -1223,6 +1226,19 @@
       <label class="c" for="chBuild">Builds <select id="chBuild"></select></label>
       <button type="button" id="chRun" class="primary" title="Simulates the chosen builds again at every point of the chart, with your current settings">Draw chart</button>
       <span class="meta" id="chMsg" role="status"></span>
+    </div>
+    <div class="chartbar" id="chScaleBar" hidden>
+      <span class="meta" title="What the highest gear level has; level 0 has none of it, the levels between go up in even steps">Top level:</span>
+      <label class="c" for="scSp">Spell power <input id="scSp" type="number" min="0" step="50"></label>
+      <label class="c" for="scHit">Hit % <input id="scHit" type="number" min="0" step="1"></label>
+      <label class="c" for="scCrit" title="Spell crit on the character sheet">Crit % <input id="scCrit" type="number" min="0" step="1"></label>
+      <label class="c" for="scHaste">Haste % <input id="scHaste" type="number" min="0" step="1"></label>
+      <label class="c" for="scPierce">Spell Pierce <input id="scPierce" type="number" min="0" step="5"></label>
+      <label class="c" for="scIntSpi" title="Off: Intellect and Spirit stay as they are on your sheet at every level"><input type="checkbox" id="scIntSpi"> Intellect and Spirit grow too</label>
+      <label class="c" for="scInt">Int <input id="scInt" type="number" min="0" step="10"></label>
+      <label class="c" for="scSpi">Spirit <input id="scSpi" type="number" min="0" step="10"></label>
+      <label class="c" for="scRace">Race <select id="scRace"><option value="listed">as each build is listed</option><option value="best">the best race at each level (slower)</option></select></label>
+      <button type="button" id="scDef" title="2000 spell power, 17% hit, 30% crit, 20% haste, no Spell Pierce; Intellect 600 and Spirit 200, growing too">Default top level</button>
     </div>
     <div id="chOut"><p class="meta chcap">Pick a chart and press Draw chart. <b>DPS by a stat</b> shows how a build's damage grows as one stat on your gear goes up, with everything else as you have set it — for example where more hit stops helping. <b>DPS by fight length</b> shows which build is ahead in short and in long fights. <b>What each raid buff and debuff is worth</b> measures, for one build, what you lose without each one you have on and what you would gain with each one you have off.</p></div>
   </details>

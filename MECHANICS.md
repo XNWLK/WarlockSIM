@@ -875,7 +875,10 @@ is on; these are not real numbers.
 
 **Build Scaling** (Charts): every build at gear levels 0 to 7 — level 0 has no spell power, hit, crit (character sheet), haste or
 Spell Pierce on the sheet, level 7 has 2000 spell power, 17% hit, 30% crit and 20% haste, and each level in between adds the same
-amount of each; everything else stays as you have set it. 1,000 fights per point, each build with the race it is listed with.
+amount of each (the top level can be typed in). Intellect and Spirit grow too (600 and 200 at the top level) unless you switch
+that off; everything else stays as you have set it. 1,000 fights per point, each build with the race it is listed with or with
+its best race at each level. Your gear's level (the dashed line) is the mean of how much of the top level's spell power, hit,
+crit and haste your sheet has. The chart shows DPS or each build as a % of the best build at that level.
 
 **Racials by fight length** (the last box on the page): every built-in build and race at 60, 120, 180, 240 and 300 s, made with the
 default settings and shipped with the page, or redone with your own settings - for 1, 2 or 3 targets (2 and 3: your DoTs on
