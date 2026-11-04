@@ -22,7 +22,7 @@ pet, racial, raid buff and consumable does in the sim, with worked examples.
 - Every build × race simulated 1,000 times (adjustable), each fight ±10% in length, with a fixed random seed so results
   are reproducible.
 - One row per build with its best race; expand it to see the other races and a "no race" baseline (what the race adds).
-- **Spells & damage** column: your damaging spells in priority order, each with its share of the build's damage, then
+- **Spells & damage** column: your damaging spells, largest first, each with its share of the build's damage, then
   the pet, Demonic Brand, Touch of the Grave and explosives.
 - DPS with error margin, gap to the best build, and **stat weights** for spell power, hit, crit, haste and Intellect
   (shown as the spell power they are worth; Spell Pierce in the details).

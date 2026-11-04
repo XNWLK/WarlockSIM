@@ -1226,6 +1226,8 @@
     // details' tables still list every spell. Priority numbers stay those of the full list.
     var big = function (s) { return 100 * amount(s) / total >= PRIO_MIN_PCT; };
     mineAll = mineAll.filter(big); other = other.filter(big);
+    // Round 190 (user): ordered by their share of the damage (largest first), not by the priority; the tooltip keeps the priority #.
+    var byAmt = function (x, y) { return amount(y) - amount(x); }; mineAll.sort(byAmt); other.sort(byAmt);
     var extra = function (k) {                        // damage on the extra targets, for the tooltip
       var xs = Object.keys(r.bySpell).filter(function (x) { return x !== k && baseKey(x) === k && r.bySpell[x].dmg > 0; });
       return xs.length ? ' (incl. ' + xs.map(function (x) { return spellName(x).replace(/^.*\(/, '').replace(')', '') + ' ' + fmt(r.bySpell[x].dmg / dur, 1); }).join(', ') + ')' : '';
