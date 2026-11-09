@@ -32,10 +32,10 @@ const COLLECT = `(async () => {
   function arr(t, from) { const s = t.indexOf('[', from); let d = 0, e = s; for (; e < t.length; e++) { const c = t[e]; if (c === '[') d++; else if (c === ']') { d--; if (!d) break; } } return Function('return ' + t.slice(s, e + 1))(); }
   const pause = ms => new Promise(r => setTimeout(r, ms));
   async function page(p) {                                         // refused (403): wait a minute and try again, up to 5 times
-    for (let k = 0; ; k++) {
+    for (let k = 0; ; k++) {                                       // round 193: a "Human Verification" page (status 405) is a refusal too
       await pause(700); const r = await fetch(p);
-      if (r.status !== 403) return r.text();
-      if (k >= 5) throw new Error('Wowhead keeps refusing ' + p + ': wait a while and run COLLECT again (what was read is kept)');
+      if (r.status !== 403 && r.status !== 405) { const t = await r.text(); if (!/<title>Human Verification/.test(t)) return t; }
+      if (k >= 5) throw new Error('Wowhead keeps refusing ' + p + ' (human check: open any wowhead.com/forever page, answer it, run COLLECT again; what was read is kept)');
       await pause(60000);
     }
   }

@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v167
+- **Gear builder**: the item list is updated from Wowhead Forever (November 9): 235 new items, 96 changed, 11 that are no
+  longer in the game removed; 2,278 items a Warlock can wear.
+
 ## v166
 - Three builds have shorter names: **Shadow Demo** (was Demo Pact Shadow Bolt Succubus), **Fire Demo** (was Demo Pact Fire
   Imp) and **Incinerate Pandemic** (was Destro Incinerate Succubus).
