@@ -91,7 +91,7 @@ WL.BUILDS = [
   {
     key: 'wrack_ds', short: 'Wrack DS',
     name: 'Wrack DS – Affliction (Wrack), Imp sacrificed',
-    notes: '35/11/5. Deep Affliction with Wrack as the filler and the Imp sacrificed for +15% Shadow (Demonic Sacrifice): no demon in the fight. While Wrack channels, Corruption and both Banes deal 10% more. Life Tap comes right after a full Wrack, when the 5-second rule is already over, and only when the rest of the fight needs the mana. Suppression, Improved Corruption, Improved Life Tap, Pandemic, Amplify Curse, Malevolence, Siphon Life (needed for Wrack; not cast), Nightfall, Shadow Mastery, Soul Siphon and Improved Bane of Agony; Demonic Embrace, Fel Vitality and Demonic Aegis lead to Demonic Sacrifice; Improved Shadow Bolt for the Shadow Trance bolts.',
+    notes: '35/11/5. Deep Affliction with Wrack as the filler and the Imp sacrificed for +15% Shadow (Demonic Sacrifice): no demon in the fight. While Wrack channels, Corruption, Bane of Agony and Siphon Life tick twice as often, and those three are what Soul Siphon counts, so all three are kept up (Bane of Agony, never Bane of Doom). Life Tap comes right after a full Wrack, when the 5-second rule is already over, and only when the rest of the fight needs the mana. Suppression, Improved Corruption, Improved Life Tap, Pandemic, Amplify Curse, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon and Improved Bane of Agony; Demonic Embrace, Fel Vitality and Demonic Aegis lead to Demonic Sacrifice; Improved Shadow Bolt for the Shadow Trance bolts.',
     talents: {
       suppression: 5, improvedCorruption: 5, improvedLifeTap: 2, pandemic: 3, amplifyCurse: 1, malevolence: 5, siphonLife: 1, nightfall: 2,
       shadowMastery: 5, soulSiphon: 3, wrack: 1, improvedBaneOfAgony: 2,
@@ -105,7 +105,10 @@ WL.BUILDS = [
     // Round 187 (user: "remove siphon life from wrack DS. it might be good at the default values but becomes worse very quickly"):
     // Siphon Life taken out of the priority (talent kept: Wrack needs it). Measured: +3.6% at gear level 0, +0.6% at the default
     // gear, +0.3% at levels 4–7 (Build Scaling levels, 10,000 fights) — its share shrinks with gear; the user's call.
-    rotation: ['deathCoilFinisher', 'bane', 'shadowTrance', 'corruption', 'curseOfElements', 'lifeTapNeed', 'wrack'],
+    // Patch of 2026-11-10 (Soul Siphon counts only Corruption, Bane of Agony and Siphon Life; Wrack makes them tick twice as fast):
+    // Bane of Agony instead of Bane of Doom and Siphon Life back in: +16.6% over the old priority at the default gear,
+    // +17 to +21% at Build Scaling levels 0-7 (3,000 fights, Undead).
+    rotation: ['deathCoilFinisher', 'baneOfAgony', 'shadowTrance', 'corruption', 'siphonLife', 'curseOfElements', 'lifeTapNeed', 'wrack'],
     actWhen: { lifeTapNeed: { t: 'fsr', op: '>=', v: 6 } },
     params: { lifeTapNeed: { pct: 40, sec: 25 } },
   },

@@ -1495,7 +1495,7 @@
     if (b.notes) T.build += '<div class="wide"><details class="bd"><summary>About this build</summary><p class="meta notes">' + esc(b.notes) + '</p></details></div>';
 
     var mode = logMode[id(r)] || 'casts';
-    var ev = r.log.filter(function (e) { return mode === 'all' || e.type === 'cast' || e.type === 'racial' || e.type === 'consumable' || e.type === 'clip' || e.type === 'miss' || e.type === 'skip' || e.type === 'pushback' || e.type === 'pushResist'; });
+    var ev = r.log.filter(function (e) { return mode === 'all' || e.type === 'cast' || e.type === 'racial' || e.type === 'consumable' || e.type === 'clip' || e.type === 'recast' || e.type === 'miss' || e.type === 'skip' || e.type === 'pushback' || e.type === 'pushResist'; });
     T.log += '<div class="wide"><h2>Rotation log · fight #1 (' + ev.length + ' events)</h2>' +
       '<div class="seg" role="group" aria-label="Log detail" style="margin-bottom:8px">' +
       '<button type="button" data-log="casts" data-id="' + esc(id(r)) + '" aria-pressed="' + (mode === 'casts') + '">Casts only</button>' +
@@ -1507,8 +1507,9 @@
         if (e.precast != null) note.push('precast: its ' + e.precast.toFixed(2) + ' s cast ended as the fight started');
         else if (e.castTime != null) note.push(e.castTime ? e.castTime.toFixed(2) + ' s cast' : 'instant');
         if (e.timeline) note.push('timeline'); if (e.trance) note.push('Shadow Trance'); if (e.moving) note.push('while moving'); if (e.eureka) note.push('Eureka!');
-        if (e.n) note.push('tick ' + e.n + '/' + e.of); if (e.gain) note.push('+' + e.gain + ' mana');
+        if (e.n) note.push('tick ' + e.n + (e.of ? '/' + e.of : '') + (e.part != null ? ' (part ' + e.part + ')' : '')); if (e.gain) note.push('+' + e.gain + ' mana');
         if (e.for) note.push('for ' + spellName(e.for));
+        if (e.type === 'recast') note.push('cast again: its ' + e.left + ' s left go on in the new one'); if (e.carry) note.push('+' + e.carry + ' s from the one before');
         if (e.delay) note.push('cast +' + e.delay.toFixed(2) + ' s'); if (e.cut) note.push('channel −' + e.cut.toFixed(2) + ' s'); if (e.type === 'pushResist') note.push('no pushback (' + e.pct + '% chance)');   // round 78
         if (e.type === 'skip') note.push('not recast: ' + e.left + ' s left, would add ' + fmt(e.value) + ' < ' + fmt(e.cost) + ' from ' + spellName(e.filler));
         return '<tr class="' + cls + '"><td class="n">' + clock(e.t) + '</td><td>' + esc(e.type) + '</td>' +
@@ -1656,7 +1657,7 @@
   });
   function timelineBlock(r) {
     var ff = r.firstFight, log = r.log || [], D = ff.duration, rowH = 16, gap = 4, lanes = [];
-    var casts = [], clips = log.filter(function (e) { return e.type === 'clip'; });
+    var casts = [], clips = log.filter(function (e) { return e.type === 'clip' || e.type === 'recast'; });
     log.forEach(function (e) {
       if (e.type !== 'cast') return;
       // off-GCD instants (gcd 0: Bane of Havoc, Demonic Sacrifice, Fel Domination) are drawn as a thin marker

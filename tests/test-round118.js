@@ -15,14 +15,14 @@
   function tb(rot, talents) { return { key: 't118', short: 't', name: 't', notes: '', talents: talents || {}, pet: null, sacrifice: null, oil: 'none', rotation: rot }; }
 
   T.run('round 118: Wrack on Doom / Siphon Life, level resistance, soul shards', function () {
-    T.group('Wrack: +10% on Bane of Doom while it channels');
+    T.group('Wrack (patch of 2026-11-10): Bane of Doom is not affected while it channels');
     var doom = function (rot) {
       var r = WL.simulateOnce(tb(rot, { wrack: 1 }), 'human', det(), { seed: 3, duration: 70, log: true });
       return r.log.filter(function (e) { return e.type === 'tick' && e.spell === 'baneOfDoom'; })[0];
     };
     var dW = doom(['bane', 'wrack']), dS = doom(['bane', 'shadowBolt']);
     T.ok(dW && dS && Math.abs(dW.t - dS.t) < 1e-6, 'Bane of Doom explodes at ' + (dW ? dW.t.toFixed(1) : '?') + ' s in both fights');
-    T.ok(Math.abs(dW.dmg - 1.10 * dS.dmg) <= 1, 'with Wrack channelling it deals × 1.10: ' + dW.dmg + ' vs ' + dS.dmg + ' with a Shadow Bolt filler');
+    T.ok(dW.dmg === dS.dmg, 'with Wrack channelling it deals the same: ' + dW.dmg + ' vs ' + dS.dmg + ' with a Shadow Bolt filler');
 
     T.group('level resistance: on, and Curse of the Elements removes it');
     var D = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));

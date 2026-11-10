@@ -3,6 +3,16 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v169
+- **Forever patch of November 10:** Wrack deals 30% less damage (60.2 + 0.2002 × spell power per tick). It no
+  longer makes your DoTs deal 10% more: while you channel it, Corruption, Bane of Agony and Siphon Life tick **twice as
+  often** instead, and still last as long; when one runs out between two ticks it deals a smaller last tick for the part
+  built up. More Corruption ticks also mean more Nightfall procs. Casting Wrack again while it channels keeps the ticks it
+  had left.
+- **Forever patch of November 10:** Soul Siphon counts only Corruption, Bane of Agony and Siphon Life (no longer Bane of
+  Doom or Curse of the Elements).
+- **Wrack DS** keeps Bane of Agony instead of Bane of Doom and casts Siphon Life again.
+
 ## v168
 - The build list no longer draws a bar under each DPS number: the builds are so close that the bars hardly differ. The
   "vs best" column shows the difference.

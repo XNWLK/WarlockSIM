@@ -81,7 +81,7 @@ allows it.
 | Movement | From the first interval on, every "Move every" seconds you move for the set time. While moving only instants can be cast, and no cast or channel is started that would run into the next movement phase. Option: Life Tap while moving when nothing else can be cast. |
 | Take a hit every (s) | You take a hit at this interval (the first at a random moment of the first interval). While casting, the cast is pushed back by 1.0 s, then 0.8, 0.6, 0.4 and 0.2 s for later hits on the same cast (0.2 s for every hit after that), never to more than a full cast from that moment. While channelling, the channel loses 25% of its full duration per hit. Intensity (Destruction spells), Fel Concentration (Drain Life, Drain Soul, Wrack) and Concentration Aura (35%, all spells) add up to a chance of at most 100% to ignore a hit. |
 | Precast | A spell with a cast bar that you start before the pull so that it finishes as the fight timer starts. It lands at second 0, its cast time is not fight time, its mana is already spent and its cooldown runs from second 0. What is left of its global cooldown is carried into the fight. No cooldowns are used for it. |
-| Targets (2 or 3) | Extra targets live for the whole fight and carry none of the boss's debuffs: each needs its own Curse of the Elements and its own Improved Shadow Bolt. Your own buffs still apply there. Wrack's and Soul Siphon's bonuses only work on the boss. |
+| Targets (2 or 3) | Extra targets live for the whole fight and carry none of the boss's debuffs: each needs its own Curse of the Elements and its own Improved Shadow Bolt. Your own buffs still apply there. Wrack's faster ticks and Soul Siphon's bonus only work on the boss. |
 | Multi-DoT | Keeps your curse and DoTs on the extra targets too (see the "multi-DoT" priority action). |
 
 ---
@@ -197,12 +197,21 @@ Example: Corruption with 5/5 Improved Corruption and 5/5 Shadow Mastery gets × 
 | Improved Shadow Bolt | +4 to 20% | your Shadow damage on a target that has the debuff |
 | Shadow and Flame | +4 to 20% | Shadow for 20 s after a Conflagrate, Fire for 20 s after a Shadowburn |
 | Power Infusion | +20% | everything, for 15 s |
-| Wrack | +10% | the ticks of Corruption, Bane of Agony, Siphon Life and Bane of Doom while you channel Wrack |
 | Soul Siphon | up to +36% | the ticks of Drain Life, Drain Soul and Wrack |
 | Immolate on the target | +25% | Incinerate |
 
 **Improved Sayaad** raises only the *base* of Lash of Pain (the number before the spell power part), not the whole hit.
 **Amplify Curse** multiplies every tick of its Bane of Agony by 1.5, after everything else.
+
+**Wrack** makes your Corruption, Bane of Agony and Siphon Life on the boss tick twice as often while you channel it,
+without making them shorter: every DoT has a timer to its next tick that runs at double speed during Wrack. Starting
+Wrack 1 s after a Corruption tick makes the next one come 1 s later instead of 2. Outside Wrack the normal pace returns.
+Each tick deals the normal amount, so a DoT that is up during Wrack deals more ticks in total. When the DoT runs out
+between two ticks, the part of a tick that has built up is dealt as a last, smaller tick: half-way to the next tick
+deals half a tick. Bane of Agony's ticks grow with the time since it was cast (the weak ticks of its first 8 s, the
+strong ones of its last 8 s), however fast they come. More Corruption ticks also mean more chances for Nightfall.
+Casting Wrack again while it channels cuts nothing short: the ticks the running Wrack has left are added to the new
+one, and the DoTs keep their faster pace.
 
 **Resist roll.** See section 11. At the default settings nothing is resisted once Curse of the Elements is on the boss.
 
@@ -306,7 +315,7 @@ tooltip says 246 to 274). A spell's "family" decides which talents count it as a
 | Siphon Life | Shadow | Affliction | 10 ticks of 41 + 0.05 × SP, one every 3 s | instant | 365 | — | 30 yd |
 | Drain Life | Shadow | Affliction | 5 ticks of 51 + 0.1 × SP, one every 1 s | channel, 5 s | 300 | — | 20 yd |
 | Drain Soul | Shadow | Affliction | 5 ticks of 84 + 0.1 × SP, one every 3 s | channel, 15 s | 290 | — | 30 yd |
-| Wrack | Shadow | Affliction | 6 ticks of 86 + 0.286 × SP, one every 1 s | channel, 6 s | 200 | — | 30 yd |
+| Wrack | Shadow | Affliction | 6 ticks of 60.2 + 0.2002 × SP, one every 1 s | channel, 6 s | 200 | — | 30 yd |
 | Death Coil | Shadow | Affliction | 454 + 0.214 × SP | instant | 600 | 120 s | 30 yd |
 | Curse of the Elements | Shadow | Affliction | — | instant | 200 | — | 30 yd |
 | Life Tap | Shadow | Affliction | — | instant | 430 health | — | self |
@@ -330,7 +339,7 @@ tooltip says 246 to 274). A spell's "family" decides which talents count it as a
 - **Siphon Life.** A DoT that heals you for the damage it deals.
 - **Drain Life.** Channel; heals you for the damage it deals.
 - **Drain Soul.** Listed because talents name it. No priority action casts it.
-- **Wrack.** Channel. While it runs, the ticks of your Corruption, Bane of Agony, Siphon Life and Bane of Doom deal 10% more. It counts as a drain for Improved Drains, Soul Siphon, Fel Concentration and Nightfall.
+- **Wrack.** Channel. While it runs, your Corruption, Bane of Agony and Siphon Life on the target tick twice as often; they still last as long. It counts as a drain for Soul Siphon, Fel Concentration and Nightfall.
 - **Death Coil.** Heals you for the damage it deals. Projectile.
 - **Curse of the Elements.** Has to hit. On the target for 5 minutes: it takes 10% more damage from your spells, your demon's spells and your explosives, and its resistance drops by 75 (which removes the level resistance).
 - **Life Tap.** Instant, one global cooldown: 430 health become (430 + Spirit) mana, more with Improved Life Tap. It does not restart the 5-second rule.
@@ -378,7 +387,7 @@ Every talent of the three trees. "Talent group" and "aura" are explained in sect
 | Nightfall | 2 | chance per tick 2 / 4% | Every tick of Corruption, Drain Soul, Drain Life and Wrack has this chance to give Shadow Trance for 10 s: your next Shadow Bolt has no cast time (it still costs its mana and a global cooldown). |
 | Curse of Exhaustion | 1 | — | Not simulated (a movement slow). |
 | Siphon Life | 1 | — | Gives the spell Siphon Life. |
-| Soul Siphon | 3 | per effect +4 / 8 / 12%; maximum +12 / 24 / 36% | Multiplies the ticks of Drain Life, Drain Soul and Wrack by 1 + this much for each of these on the target: Corruption, Bane of Agony, Bane of Doom, Siphon Life, Curse of the Elements - up to the maximum. A multiplier of its own. |
+| Soul Siphon | 3 | per effect +4 / 8 / 12%; maximum +12 / 24 / 36% | Multiplies the ticks of Drain Life, Drain Soul and Wrack by 1 + this much for each of these on the target: Corruption, Bane of Agony, Siphon Life - up to the maximum. A multiplier of its own. |
 | Shadow Mastery | 5 | Shadow damage +2 / 4 / 6 / 8 / 10% | Adds to the direct and the periodic talent group of every Shadow spell of yours. Not applied to Touch of the Grave or to pets. |
 | Wrack | 1 | — | Gives the spell Wrack. |
 <!-- /gen:talents-affliction -->
@@ -821,7 +830,7 @@ can be opened there (Wowhead talent link).
 
 **DoTs at the end of the fight.** A DoT that can still run its full duration is always recast. When it cannot, the sim
 adds up what the recast would still bring - the ticks that land in time, Immolate's hit, and what the DoT makes possible
-(Incinerate's 25%, a Conflagrate, Nightfall procs, Soul Siphon, Wrack's bonus) - and compares it with what the next
+(Incinerate's 25%, a Conflagrate, Nightfall procs, Soul Siphon, the faster ticks under Wrack) - and compares it with what the next
 damaging action below it in the list would do in the same time. It is recast only if it wins. With the option switched
 off, the plain rule applies: recast while at least 2 ticks fit (Bane of Agony: while 12 s are left).
 
@@ -921,7 +930,7 @@ every target, as "Keep DoTs on the extra targets"; Bane of Havoc as usual).
 - Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 5/5, Improved Bane of Agony 2/2, Amplify Curse 1/1, Pandemic 3/3, Malevolence 5/5, Nightfall 2/2, Siphon Life 1/1, Soul Siphon 3/3, Shadow Mastery 5/5, Wrack 1/1.
 - Demonology: Demonic Embrace 5/5, Demonic Aegis 2/2, Fel Vitality 3/3, Demonic Sacrifice 1/1.
 - Destruction: Improved Shadow Bolt 5/5.
-- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Shadow Bolt (max rank) if Shadow Trance (Nightfall) is up · 4. Corruption if missing/expiring · 5. Curse of the Elements if missing · 6. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 40% mana, more than 25 s left) — only when time since you last spent mana >= 6 s · 7. Wrack (filler channel).
+- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Agony if no Bane (never Bane of Doom) · 3. Shadow Bolt (max rank) if Shadow Trance (Nightfall) is up · 4. Corruption if missing/expiring · 5. Siphon Life if missing/expiring · 6. Curse of the Elements if missing · 7. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 40% mana, more than 25 s left) — only when time since you last spent mana >= 6 s · 8. Wrack (filler channel).
 <!-- /gen:builds -->
 
 ---

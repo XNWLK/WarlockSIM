@@ -15,14 +15,14 @@
   function table(b, c) { return WL.buildSpellTable(b, WL.computeStats(b, 'human', c), c); }
 
   T.run('round 184: Forever patch notes of 2026-11-03', function () {
-    T.group('Wrack: 86 + 28.6% of spell power every second (was 36 + 14.3%)');
+    T.group('Wrack: 60.2 + 20.02% of spell power every second (patch of 2026-11-10: 70% of 86 + 28.6%)');
     var c = det(), w = WL.SPELLS.wrack;
-    T.ok(w.tickBase === 86 && w.tickCoef === 0.286 && w.tickEvery === 1 && w.duration === 6, 'data: 86 + 0.286 × SP per 1 s tick, 6 s');
+    T.ok(w.tickBase === 60.2 && w.tickCoef === 0.2002 && w.tickEvery === 1 && w.duration === 6, 'data: 60.2 + 0.2002 × SP per 1 s tick, 6 s (patch of 2026-11-10: 70%)');
     var plain = table(tb(['wrack'], { siphonLife: 1, wrack: 1 }), c);
-    T.near(plain.wrack.tickDmg, 86 + 0.286 * plain.wrack.sp, 1e-9, 'no talents: one tick = 86 + 0.286 × ' + plain.wrack.sp + ' = ' + (86 + 0.286 * plain.wrack.sp).toFixed(1));
+    T.near(plain.wrack.tickDmg, 60.2 + 0.2002 * plain.wrack.sp, 1e-9, 'no talents: one tick = 60.2 + 0.2002 × ' + plain.wrack.sp + ' = ' + (60.2 + 0.2002 * plain.wrack.sp).toFixed(1));
     var r = WL.simulateOnce(tb(['wrack'], { siphonLife: 1, wrack: 1 }), 'human', c, { duration: 30, log: true, seed: 1 });
     var ticks = r.log.filter(function (e) { return e.type === 'tick' && e.spell === 'wrack'; });
-    T.ok(ticks.length > 20 && ticks.every(function (e) { return e.dmg === Math.round(86 + 0.286 * plain.wrack.sp); }), 'every tick in a fight hits for that (' + ticks.length + ' ticks)');
+    T.ok(ticks.length > 20 && ticks.every(function (e) { return e.dmg === Math.round(60.2 + 0.2002 * plain.wrack.sp); }), 'every tick in a fight hits for that (' + ticks.length + ' ticks)');
 
     T.group('Improved Drains: Drain Life and Drain Soul, no longer Wrack');
     var t0 = table(tb(['wrack'], { siphonLife: 1, wrack: 1 }), c), t3 = table(tb(['wrack'], { siphonLife: 1, wrack: 1, improvedDrains: 3 }), c);

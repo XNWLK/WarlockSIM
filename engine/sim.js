@@ -7,7 +7,8 @@ window.WL = window.WL || {};
   // ---------- tiny binary heap ----------
   function Heap() { this.a = []; this.seq = 0; }
   Heap.prototype.push = function (ev) {
-    ev.seq = this.seq++; var a = this.a; a.push(ev); var i = a.length - 1;
+    ev.seq = ev.seqAt != null ? ev.seqAt : this.seq++; var a = this.a;   // seqAt: a place in the order kept for it (Wrack, patch of 2026-11-10)
+    a.push(ev); var i = a.length - 1;
     while (i > 0) { var p = (i - 1) >> 1; if (less(a[i], a[p])) { var x = a[i]; a[i] = a[p]; a[p] = x; i = p; } else break; }
   };
   Heap.prototype.pop = function () {
@@ -97,6 +98,22 @@ window.WL = window.WL || {};
     // Cheat mode (round 166, user): a ticked spell always hits / always crits. The dice are still thrown, so every other
     // roll stays where it was. Keys: spell keys, 'pet:firebolt', 'pet:lashOfPain', 'pet:melee'.
     var CH = (cfg.options && cfg.options.cheat) || {}, CHH = CH.hit || {}, CHC = CH.crit || {};
+    // Wrack (patch of 2026-11-10): while you channel it, the DoTs in dotSpeedSpells tick dotSpeedPct faster on the boss; their
+    // duration stays, and a sped-up DoT that ends between two ticks deals the part of a tick it has built up (Xn: "it will
+    // tick for 100, and then tick for 50"). Internal options for measuring (not on the page): wrackLastTick 'lost' = only
+    // whole ticks (as every other DoT here); wrackMode 'damage' = the same gain as extra damage instead of speed (a check
+    // of the speed model); wrackMode
+    // 'share' = normal tick times, each tick deals dotSpeedPct more for the share of its interval Wrack was channelling
+    // (in theory the same damage as the faster ticks with wrackLastTick 'partial' — the fair check of the speed model).
+    var WRACK_DMG = !!(cfg.options && cfg.options.wrackMode === 'damage');
+    var WRACK_SHARE = !!(cfg.options && cfg.options.wrackMode === 'share');
+    var WRACK_PARTIAL = !(cfg.options && cfg.options.wrackLastTick === 'lost');
+    var WRACK_GAIN = 1 + ((SPELLS.wrack && SPELLS.wrack.dotSpeedPct) || 0) / 100;
+    var WRACK_FAST = {};
+    if (!WRACK_DMG && table.wrack && SPELLS.wrack.dotSpeedSpells) SPELLS.wrack.dotSpeedSpells.forEach(function (k) { WRACK_FAST[k] = true; });
+    var WRACK_ANY = Object.keys(WRACK_FAST).length > 0;
+    function wrackOn() { return !!(S.channel && S.channel.key === 'wrack'); }
+    function wrackRate() { return !WRACK_SHARE && wrackOn() ? WRACK_GAIN : 1; }
     function missRoll(k) { var x = R.hit() * 100; return !CHH[k] && x >= stats.hitPct; }
     function critRoll(k, pct) { var x = R.crit() * 100; return !!CHC[k] || x < pct + (TRX ? trCrit(k) : 0); }   // + trinket crit (round 166)
     function L(type, spell, extra) {
@@ -198,8 +215,8 @@ window.WL = window.WL || {};
       if (s.school === 'shadow' && S.buff('isb')) m *= 1 + tv('improvedShadowBolt', 'debuffPct') / 100;  // [A20]
       if (s.school === 'shadow' && S.buff('snfShadow')) m *= 1 + tv('shadowAndFlame', 'schoolPct') / 100; // [A22]
       if (s.school === 'fire' && S.buff('snfFire')) m *= 1 + tv('shadowAndFlame', 'schoolPct') / 100;
-      if (periodic && S.channel && S.channel.key === 'wrack' && SPELLS.wrack.debuffSpells.indexOf(key) >= 0)
-        m *= 1 + SPELLS.wrack.debuffPct / 100;                                                        // [A18]
+      if (WRACK_DMG && periodic && S.channel && S.channel.key === 'wrack' && SPELLS.wrack.dotSpeedSpells.indexOf(key) >= 0)
+        m *= WRACK_GAIN;                                                                              // [A18] check version only (wrackMode 'damage')
       if (s.drain && tv('soulSiphon')) {                                                                 // [A19]
         var n = 0;
         WL.SOUL_SIPHON_EFFECTS.forEach(function (e) { if (e === 'curseOfElements' ? S.buff('coe') : S.dotLeft(e) > 0) n++; });
@@ -299,7 +316,7 @@ window.WL = window.WL || {};
       if (ACT_DOOM === null) ACT_DOOM = ROT.indexOf('bane') >= 0 || (build.timeline || []).some(function (e) { return e.k === 'baneOfDoom'; });
       var d = S.dots.baneOfDoom;
       if (d) doomSeen = true;
-      if (!d || d.expires <= S.t + EPS) return doomSeen || !ACT_DOOM || !!S.dots.baneOfAgony;      // exploded, or it never will
+      if (!d || d.expires <= S.t + EPS) return doomSeen || !ACT_DOOM || S.dotLeft('baneOfAgony') > 0;   // exploded, or it never will
       var toBoom = d.expires - S.t;
       if (toBoom > S.remaining) return true;                                                      // will not explode in this fight
       if (!gateKey) return false;
@@ -330,7 +347,7 @@ window.WL = window.WL || {};
       if (ACT_DOOM === null) ACT_DOOM = ROT.indexOf('bane') >= 0 || (build.timeline || []).some(function (e) { return e.k === 'baneOfDoom'; });
       var d = S.dots.baneOfDoom;                                           // 'doom'
       if (d) doomSeen = true;
-      if (!d || d.expires <= S.t + EPS) return actOpen = doomSeen || !ACT_DOOM || !!S.dots.baneOfAgony;
+      if (!d || d.expires <= S.t + EPS) return actOpen = doomSeen || !ACT_DOOM || S.dotLeft('baneOfAgony') > 0;
       var toBoom = d.expires - S.t, sp = SPELLS[key], len = sp.kind === 'channel' ? sp.duration : Math.max(S.castTime(key), S.gcd());
       return actOpen = toBoom > S.remaining || toBoom <= len + EPS;
     }
@@ -662,8 +679,48 @@ window.WL = window.WL || {};
     function applyDot(key, snap) {
       var s = SPELLS[key], e = table[key], id = ++inst;
       if (s.bane) { delete S.dots.baneOfAgony; delete S.dots.baneOfDoom; }                               // one Bane per target
-      S.dots[key] = { inst: id, applied: S.t, expires: S.t + s.duration, tick: 0, ticks: e.ticks, snap: snap };
+      var d = S.dots[key] = { inst: id, applied: S.t, expires: S.t + s.duration, tick: 0, ticks: e.ticks, snap: snap };
+      if (WRACK_FAST[key]) {                                                // [A18] Wrack can speed it up: one tick at a time
+        d.fast = true; d.prog = 0; d.at = S.t; d.rate = wrackRate(); d.gen = 0; d.n = 0; d.wacc = 0;
+        d.seq0 = H.seq; H.seq += e.ticks;                                  // its ticks keep the places in the order the fixed schedule gives them
+        nextFastTick(key, d); return;
+      }
       for (var i = 1; i <= e.ticks; i++) H.push({ t: S.t + i * s.tickEvery, o: 0, type: 'dotTick', key: key, inst: id, i: i - 1 });
+    }
+    // A DoT Wrack speeds up: d.prog = seconds of its normal tick timer built up since its last tick, growing at d.rate
+    // (2 while you channel Wrack, else 1) since d.at. The next tick comes when it reaches tickEvery, while the DoT lasts.
+    function nextFastTick(key, d) {
+      var s = SPELLS[key], t = S.t + Math.max(0, s.tickEvery - d.prog) / d.rate;
+      if (t <= d.expires + 1e-6) { H.push({ t: Math.min(t, d.expires), o: 0, type: 'dotTick', key: key, inst: d.inst, gen: d.gen, fast: 1, seqAt: fastSeq(d) }); return; }
+      if (!WRACK_PARTIAL) return;                                           // option 'lost': the part of a tick left at the end is lost
+      var frac = (d.prog + (d.expires - S.t) * d.rate) / s.tickEvery;
+      if (frac > 1e-6) H.push({ t: d.expires, o: 0, type: 'dotTick', key: key, inst: d.inst, gen: d.gen, fast: 1, seqAt: fastSeq(d), frac: Math.min(1, frac) });
+    }
+    function fastSeq(d) { return d.seq0 + Math.min(d.n, d.ticks - 1); }
+    function fastTick(key, d, frac) {
+      var s = SPELLS[key], n = d.n++;
+      // Bane of Agony's ramp follows the time since it was cast: a tick in the 3rd normal 2-second slot uses ramp[2].
+      var ri = s.ramp ? Math.min(s.ramp.length - 1, Math.max(0, Math.ceil((S.t - d.applied) / s.tickEvery - 1e-6) - 1)) : n;
+      var share = 1;                                                       // check version 'share': the Wrack part of this interval
+      if (WRACK_SHARE) { if (S.wrackOn) d.wacc += S.t - d.at; share = 1 + (WRACK_GAIN - 1) * Math.min(1, d.wacc / s.tickEvery); d.wacc = 0; }
+      periodicTick(key, d.snap, ri, false, frac, n, share);
+      d.prog = 0; d.at = S.t;
+      if (frac == null) nextFastTick(key, d);
+    }
+    // Wrack started or stopped: bring every sped-up DoT's timer up to now and re-time its next tick.
+    function syncWrack() {
+      var on = wrackOn();
+      if (on === S.wrackOn) return;
+      if (S.wrackOn) S.wrackTime += S.t - S.wrackOnAt; else S.wrackOnAt = S.t;
+      var was = S.wrackOn, r = wrackRate();
+      S.wrackOn = on; S.wrackRate = r;
+      for (var k in S.dots) {
+        var d = S.dots[k];
+        if (!d.fast || d.expires <= S.t + EPS) continue;
+        if (WRACK_SHARE && was) d.wacc += S.t - d.at;
+        d.prog += (S.t - d.at) * d.rate; d.at = S.t;
+        if (r !== d.rate) { d.rate = r; d.gen++; nextFastTick(k, d); }
+      }
     }
 
     // ---------- extra targets (multi-DoT, round 27; per-target CoE / ISB, round 39) ----------
@@ -729,15 +786,17 @@ window.WL = window.WL || {};
       return { castMult: castMult || 1 };   // what belongs to this cast; spell power and crit are read live per tick (round 96) [A13]
     }
 
-    function periodicTick(key, snap, i, isChannel) {
+    function periodicTick(key, snap, i, isChannel, frac, n, share) {   // frac: part of a tick, n: tick number (sped-up DoTs), share: check version
       var s = SPELLS[key], e = table[key];
       var amt = (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * liveMult(key, true) * (snap.castMult || 1);
       if (s.ramp) amt *= s.ramp[i];                                                                     // [A15]
+      if (frac != null) amt *= frac;
+      if (share) amt *= share;
       amt *= vulnMult(s.school);
       var crit = critRoll(key, e.critPct);                                                               // [A07]
       if (crit) amt *= e.critMult;
       deal(key, amt, crit, true);
-      if (logOn) L('tick', key, Object.assign({ dmg: Math.round(amt), crit: crit, n: i + 1, of: e.ticks }, vulnLog(amt)));
+      if (logOn) L('tick', key, Object.assign({ dmg: Math.round(amt), crit: crit, n: (n != null ? n : i) + 1, of: n != null ? undefined : e.ticks, part: frac != null ? +frac.toFixed(3) : undefined }, vulnLog(amt)));
       if (WL.NIGHTFALL_SPELLS.indexOf(key) >= 0 && tv('nightfall') && R.proc() * 100 < tv('nightfall', 'procPct')) { // [A21]
         S.buffs.shadowTrance = S.t + 10; L('proc', 'shadowTrance');
       }
@@ -880,17 +939,23 @@ window.WL = window.WL || {};
       S.cast = null;
       if (s.kind === 'channel') {
         var r = row(key);
+        // Wrack recast on a running Wrack (patch of 2026-11-10): the ticks the old one had left carry over (a whole number of them).
+        var carry = key === 'wrack' && S.wrackCarry && Math.abs(S.wrackCarry.t - S.t) < EPS ? S.wrackCarry.left : 0;
+        S.wrackCarry = null;
         if (!s.aoe && missRoll(key)) {                    // area channels always start; their ticks roll per target (round 100)
+          if (carry) { res.clipped++; r.castTime -= carry; L('clip', key, { for: key }); }   // the recast missed: the old Wrack is gone
           r.misses++; L('miss', key); if (fromTL) TL.turn = true; S.busyUntil = S.t; S.gcdReady = S.t + gcdT; scheduleDecide(S.gcdReady); return;
         }
         r.landed++;
         touchOfTheGrave();                                                // on cast, not on the channel's ticks [A29]
         jowProc(false);                                                   // [A64]
         var id = ++inst;
-        S.channel = { key: key, inst: id, snap: makeSnap(), start: S.t, end: S.t + s.duration, tl: !!fromTL, idx: actIdx };   // timeline channels run to the end
-        for (var i = 1; i <= e.ticks; i++) H.push({ t: S.t + i * s.tickEvery, o: 0, type: 'chanTick', key: key, inst: id, i: i - 1 });
-        S.busyUntil = S.t + s.duration; S.gcdReady = S.t + gcdT;
-        r.castTime += s.duration;
+        var nCh = e.ticks + (carry ? Math.floor(carry / s.tickEvery + 1e-6) : 0), chDur = carry ? nCh * s.tickEvery : s.duration;
+        S.channel = { key: key, inst: id, snap: makeSnap(), start: S.t, end: S.t + chDur, ticks: nCh, tl: !!fromTL, idx: actIdx };   // timeline channels run to the end
+        for (var i = 1; i <= nCh; i++) H.push({ t: S.t + i * s.tickEvery, o: 0, type: 'chanTick', key: key, inst: id, i: i - 1 });
+        S.busyUntil = S.t + chDur; S.gcdReady = S.t + gcdT;
+        r.castTime += chDur - carry;                                      // the carried part was counted with the old cast
+        if (logOn && carry) for (var li = log.length - 1; li >= 0; li--) if (log[li].type === 'cast') { log[li].channel = chDur; log[li].carry = +carry.toFixed(3); break; }
         scheduleDecide(S.busyUntil);
       } else if (castT > EPS) {
         S.busyUntil = S.t + castT; S.gcdReady = S.t + gcdT;
@@ -1187,7 +1252,25 @@ window.WL = window.WL || {};
       var end = Math.min(dur, tL + s.duration), gcd = S.gcd(), value = 0;
       var castMult = key === 'baneOfAgony' && tv('amplifyCurse') && S.ready('amplifyCurse') && slotGate('amplifyCurse') !== 0 ? 1 + tv('amplifyCurse', 'boaPct') / 100 : 1;
       var tickAmt = (s.tickBase + s.tickCoef * spNow(e)) * castMult * e.periodicMult * lmult(key, ti, true) * expVuln(s.school, ti) * expCrit(e.critPct, e.critMult);
-      if (f === 'wrack' && SPELLS.wrack.debuffSpells.indexOf(key) >= 0) tickAmt *= 1 + SPELLS.wrack.debuffPct / 100;   // ticks during the Wrack filler
+      // Wrack as the filler (patch of 2026-11-10): this DoT ticks WRACK_GAIN times as often (the check version: deals that much more).
+      var wf = f === 'wrack' && ti <= 1 && tv('wrack') && SPELLS.wrack.dotSpeedSpells.indexOf(key) >= 0;
+      if (wf && WRACK_DMG) tickAmt *= WRACK_GAIN;
+      // Its tick times: the normal pace until Wrack can start after this cast, then faster by Wrack's share of the fight so
+      // far (Life Tap, Nightfall bolts and recasts also take time from Wrack; 80% until 20 s have passed).
+      var times = [], lastPart = 0;                                       // lastPart: the smaller last tick (share of a tick)
+      if (wf && !WRACK_DMG) {
+        var wOn = S.wrackTime + (S.wrackOn ? S.t - S.wrackOnAt : 0), share = S.t >= 20 ? wOn / S.t : 0.8;
+        var g = 1 + (WRACK_GAIN - 1) * share, tW = Math.max(tL, S.t + occupies(key) + LAT), tEnd = tL + s.duration, tc = tL;
+        for (;;) {
+          var nt = tc < tW - EPS ? Math.min(tc + s.tickEvery, tW) : tc;
+          if (nt < tc + s.tickEvery - EPS) nt += (s.tickEvery - (nt - tc)) / g;   // part of the way at the normal pace, the rest faster
+          if (nt > tEnd + 1e-6) {
+            if (WRACK_PARTIAL) lastPart = Math.min(1, (Math.max(0, Math.min(tW, tEnd) - tc) + Math.max(0, tEnd - Math.max(tW, tc)) * g) / s.tickEvery);
+            break;
+          }
+          times.push(nt); tc = nt;
+        }
+      } else for (var i0 = 1; i0 <= e.ticks; i0++) times.push(tL + i0 * s.tickEvery);
       // Conflagrate (Destruction): a new Immolate lets the next Conflagrate happen, which then consumes it (unless
       // Shadow and Flame keeps it) — so ticks after that moment count only with the keep chance.
       var hit = hitChance(), tConf = Infinity, keep = 1;
@@ -1200,12 +1283,14 @@ window.WL = window.WL || {};
         } else tConf = Infinity;
       }
       var nTicks = 0, ticks = 0;
-      for (var i = 1; i <= e.ticks; i++) {
-        var tt = tL + i * s.tickEvery;
+      for (var i = 1; i <= times.length; i++) {
+        var tt = times[i - 1];
         if (tt > dur + EPS) break;
         nTicks++;
-        ticks += tickAmt * (s.ramp ? s.ramp[i - 1] : 1) * (tt > tConf + EPS ? keep : 1);
+        var ri = Math.min(e.ticks - 1, Math.max(0, Math.ceil((tt - tL) / s.tickEvery - 1e-6) - 1));   // the ramp by time since the cast
+        ticks += tickAmt * (s.ramp ? s.ramp[ri] : 1) * (tt > tConf + EPS ? keep : 1);
       }
+      if (lastPart > 1e-6 && nTicks === times.length && tL + s.duration <= dur + EPS) ticks += tickAmt * (s.ramp ? s.ramp[e.ticks - 1] : 1) * lastPart;
       value += hit * ticks;                                                // ticks need the DoT to land
       if (s.kind === 'hybrid') value += expCast(key, ti);                  // Immolate's direct hit (hit chance inside)
       var up = Math.max(0, end - (S.t + occupies(key)));                   // time the new DoT is up after this cast
@@ -1216,7 +1301,7 @@ window.WL = window.WL || {};
       var sbKey = table.shadowBolt && (ROT.indexOf('shadowTrance') >= 0 || (f && isSB(f))) ? 'shadowBolt' : null;
       if (WL.NIGHTFALL_SPELLS.indexOf(key) >= 0 && tv('nightfall') && sbKey) {
         var procTicks = 0;
-        for (var j = 1; j <= nTicks; j++) if (tL + j * s.tickEvery <= dur - gcd + EPS) procTicks++;
+        for (var j = 1; j <= nTicks; j++) if (times[j - 1] <= dur - gcd + EPS) procTicks++;
         var sbNow = expCast(sbKey, 0), sbCast = table[sbKey].cast / S.hasteFactor();
         value += hit * procTicks * tv('nightfall', 'procPct') / 100 * Math.max(0, sbNow - gcd * (sbKey === f ? sbNow / Math.max(sbCast, gcd) : fRate));
       }
@@ -1365,7 +1450,9 @@ window.WL = window.WL || {};
       if (P.c.melee) H.push({ t: 0, o: 0, type: 'petSwing', gen: P.gen });
     }
     var ev;
+    S.wrackRate = 1; S.wrackOn = false; S.wrackTime = 0; S.wrackOnAt = 0;
     while (H.a.length) {
+      if (WRACK_ANY) syncWrack();                             // Wrack started or stopped since the last event
       ev = H.pop();
       if (ev.t > dur + EPS) break;
       updateTime(ev.t);
@@ -1390,6 +1477,7 @@ window.WL = window.WL || {};
       } else if (ev.type === 'dotTick') {
         var d = S.dots[ev.key];
         if (!d || d.inst !== ev.inst) continue;               // refreshed or consumed [A14]
+        if (ev.fast) { if (ev.gen === d.gen) fastTick(ev.key, d, ev.frac); continue; }   // re-timed by Wrack: a later copy
         periodicTick(ev.key, d.snap, ev.i, false);
         if (ev.i === d.ticks - 1) delete S.dots[ev.key];
       } else if (ev.type === 'dotTickX') {                     // DoT tick on an extra target (multi-DoT)
@@ -1415,7 +1503,7 @@ window.WL = window.WL || {};
         if (!c || c.inst !== ev.inst) continue;               // clipped
         if (ev.t > c.end + EPS) continue;                     // cut off by pushback (round 78); chanEnd closes the channel
         if (SPELLS[ev.key].aoe) aoeTick(ev.key, ev.i); else periodicTick(ev.key, c.snap, ev.i, true);
-        var last = ev.i === table[ev.key].ticks - 1;
+        var last = ev.i === (c.ticks || table[ev.key].ticks) - 1;
         if (last) { S.channel = null; continue; }
         if (SPELLS[ev.key].selfDamage && S.health <= selfTick(ev.key)) {   // the next Hellfire tick would kill you: stop channelling (round 119)
           S.channel = null; res.clipped++; row(ev.key).castTime -= (c.end - S.t);
@@ -1440,7 +1528,11 @@ window.WL = window.WL || {};
               else if (CTL.key !== cBase) { if (ctlLegal(CTL.key)) { higher = { key: CTL.key }; ctlPending = CTL.key; } else res.ctlIllegal = true; }
             }
           }
-          if (higher) {
+          if (higher && higher.key === 'wrack' && ev.key === 'wrack') {   // Wrack on Wrack (patch of 2026-11-10): nothing is clipped,
+            S.wrackCarry = { t: S.t, left: c.end - S.t };                 // the new Wrack takes over the ticks this one has left
+            S.channel = null; S.busyUntil = S.t; L('recast', ev.key, { left: +(c.end - S.t).toFixed(3) });
+            scheduleDecide(S.t);
+          } else if (higher) {
             S.channel = null; res.clipped++;
             row(ev.key).castTime -= (c.end - S.t);
             S.busyUntil = S.t; L('clip', ev.key, { for: higher.key });
