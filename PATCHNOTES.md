@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v168
+- The build list no longer draws a bar under each DPS number: the builds are so close that the bars hardly differ. The
+  "vs best" column shows the difference.
+
 ## v167
 - **Gear builder**: the item list is updated from Wowhead Forever (November 9): 235 new items, 96 changed, 11 that are no
   longer in the game removed; 2,278 items a Warlock can wear.

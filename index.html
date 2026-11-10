@@ -671,9 +671,6 @@
   .stattab .src b { color: var(--ink); font-weight: 600; font-family: var(--mono); }
   ol.prio { margin: 0; padding-left: 20px; font-size: 12px; display: grid; gap: 2px; }
   .notes { margin: 6px 0 0; max-width: 110ch; }
-  .dbar { display: block; height: 3px; margin-top: 2px; border-radius: 2px; background: var(--sunk); overflow: hidden; min-width: 44px; }
-  .dbar i { display: block; height: 100%; background: var(--accent); border-radius: 2px; }
-  tr.racerow .dbar i { background: var(--muted); }
   /* priority & damage (round 45) */
   .pdrow { display: flex; align-items: flex-start; gap: 3px; flex-wrap: nowrap; }
   .pd { flex: none; display: flex; flex-direction: column; align-items: center; width: 24px; gap: 1px; }
@@ -747,7 +744,6 @@
   #results > tbody > tr.row:not(.racerow) > td.dps b { font-size: 15.5px; font-weight: 700; color: var(--accent); letter-spacing: -.01em; }
   #results > tbody > tr.racerow > td.dps b { font-size: 12.5px; font-weight: 600; }
   #results > tbody > tr.baserow > td.dps b { font-weight: 500; }
-  .dbar { height: 4px; }
   /* rank arrows: places gained / lost since the previous run */
   .mv { font: 600 10px var(--mono); margin-left: 3px; }
   .refd { display: block; font: 600 10px var(--mono); }                 /* round 157: change vs the reference run */

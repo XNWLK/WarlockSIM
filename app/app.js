@@ -1025,7 +1025,7 @@
   }
   function baseRow(key) { return results.filter(function (x) { return x.build.key === key && isBase(x); })[0]; }
   // "Rank for" (round 116, user): the race the list is ranked for. '' = each build's best race (the rule since round 44);
-  // a race = every build is listed with that race's row, and "best", the DPS bars, the cut-off, the tree tags and the rank
+  // a race = every build is listed with that race's row, and "best", the cut-off, the tree tags and the rank
   // arrows are all taken among the rows of that race. Remembered per browser. Stat weights stay those of the build's best
   // race (their tooltip names it).
   var myRace = '';
@@ -1268,13 +1268,8 @@
         esc(s.unit + ' = ' + v.toFixed(3) + ' DPS' + (eq != null ? ' = ' + eq.toFixed(2) + ' spell power' : '') + ' · computed on ' + WL.RACES[w.race].name) + '">' + shown + '</td>';
     }).join('');
   }
-  // Relative DPS bar under the DPS number (round 45, user): full = the best build.
-  // Round 166 (user: "the percentage difference isn't proportional to the size difference in the bar"): the bar is the
-  // DPS itself, from 0 — 2% behind = a 2% shorter bar (rounds 45–165: from 10% / 20% behind the best to the best).
-  function dpsBar(dps, top) {
-    var f = top > 0 ? Math.max(0, Math.min(1, dps / top)) : 0;
-    return '<span class="dbar" title="Bar: this DPS against the best build (full), from 0"><i style="width:' + (100 * f).toFixed(1) + '%"></i></span>';
-  }
+  // Round 194 (user: "all the numbers are so close that the bars dont show a meaningful difference"): no DPS bar under the
+  // DPS numbers any more (rounds 45–193: a bar against the best build); the "vs best" column carries the difference.
   var PIN_SVG = '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M10.5 1.5l4 4-2 1-2.5 2.5.5 3-1.5 1.5-3-3-3.5 3.5-.9-.9L5.1 9.6l-3-3L3.6 5.1l3 .5L9.1 3.1z" fill="currentColor"/></svg>';
   // Rank arrows (round 110, user): after a rerun with other settings, every build shows how many places it gained (▲) or
   // lost (▼) against the run before — the listed race then vs now (best race, or your race), counted among the builds that
@@ -1344,7 +1339,7 @@
         '<td class="bname">' + buildName(r, true) + '</td>' + raceTd +
         '<td><div class="pets">' + (pets || '<span class="none">–</span>') + '</div></td>' +
         '<td><div class="pdrow">' + prioDamage(r, r.avgDuration || r.firstFight.duration) + '</div></td>' +
-        '<td class="n dps" title="Mean of ' + fmt(r.iterations) + ' fights; ± = 95% confidence of the mean"><b>' + fmt(r.dps, 1) + '</b><span class="err">±' + fmt(r.dpsErr, 1) + '</span>' + refTag(r) + dpsBar(r.dps, top) + '</td>' +
+        '<td class="n dps" title="Mean of ' + fmt(r.iterations) + ' fights; ± = 95% confidence of the mean"><b>' + fmt(r.dps, 1) + '</b><span class="err">±' + fmt(r.dpsErr, 1) + '</span>' + refTag(r) + '</td>' +
         '<td class="n delta ' + (Math.abs(d) < 1e-9 ? 'best' : 'neg') + '">' + (Math.abs(d) < 1e-9 ? 'best' : d.toFixed(2) + '%') + '</td>' +
         raceCell(r) + weightCells(b) + '</tr>';
       if (isOpen) h += '<tr class="detail"><td colspan="' + ncols() + '"><div class="dwrap">' + detail(r) + '</div></td></tr>';
@@ -1360,7 +1355,7 @@
         ' <span class="meta">' + WL.RACES[x.race].racials.map(function (y) { return esc(y.name); }).join(', ') + '</span>') + '</td>' +
       '<td>' + (base ? '<span class="norace" title="No race: Human base stats, no racials (baseline)">–</span>' : icon('race_' + x.race, WL.RACES[x.race].name)) + '</td>' +
       '<td></td><td class="meta rvs">' + (dB > 0 ? '+' : '') + dB.toFixed(2) + '% vs ' + esc(WL.RACES[bestOfBuild.race].name) + '</td>' +
-      '<td class="n dps"><b>' + fmt(x.dps, 1) + '</b><span class="err">±' + fmt(x.dpsErr, 1) + '</span>' + refTag(x) + dpsBar(x.dps, top) + '</td>' +
+      '<td class="n dps"><b>' + fmt(x.dps, 1) + '</b><span class="err">±' + fmt(x.dpsErr, 1) + '</span>' + refTag(x) + '</td>' +
       '<td class="n delta ' + (d > 0 ? 'best' : 'neg') + '">' + (d > 0 ? '+' : '') + d.toFixed(2) + '%</td>' + raceCell(x) + '<td colspan="' + STATS.length + '"></td></tr>';
     if (isOpen) h += '<tr class="detail"><td colspan="' + ncols() + '"><div class="dwrap">' + detail(x) + '</div></td></tr>';
     return h;
