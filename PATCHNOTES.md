@@ -3,6 +3,13 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v173
+- **Amplify Curse** stays up when its Bane of Agony misses (checked in game): the next Bane of Agony that lands gets
+  the ×1.5. Wrack DS and Incinerate Pandemic gain a little.
+- **Wrack DS** holds a Nightfall proc for 2 seconds (uses it once Shadow Trance has 8 s or less left), so a proc during
+  Wrack no longer cuts the channel at once, and casts Corruption before Bane of Agony. With the Amplify Curse change:
+  +0.4 to +0.5% (689.2 as Undead).
+
 ## v172
 - **Official notes of the November 10 patch:** Wrack deals 60 damage per tick (the official tooltip; was 60.2), so
   Wrack DS loses 0.3 DPS. The Wrack and Soul Siphon tooltips now show the official text.

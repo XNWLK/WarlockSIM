@@ -201,7 +201,8 @@ Example: Corruption with 5/5 Improved Corruption and 5/5 Shadow Mastery gets × 
 | Immolate on the target | +25% | Incinerate |
 
 **Improved Sayaad** raises only the *base* of Lash of Pain (the number before the spell power part), not the whole hit.
-**Amplify Curse** multiplies every tick of its Bane of Agony by 1.5, after everything else.
+**Amplify Curse** multiplies every tick of its Bane of Agony by 1.5, after everything else. If that Bane of Agony misses,
+Amplify Curse stays up and goes to the next Bane of Agony that lands.
 
 **Wrack** makes your Corruption, Bane of Agony and Siphon Life on the boss tick twice as often while you channel it,
 without making them shorter: every DoT has a timer to its next tick that runs at double speed during Wrack. Starting
@@ -382,7 +383,7 @@ Every talent of the three trees. "Talent group" and "aura" are explained in sect
 | Improved Drains | 3 | drain damage +7 / 13 / 20% | Adds to the periodic talent group of Drain Life and Drain Soul (not Wrack). |
 | Improved Bane of Agony | 2 | Bane of Agony damage +5 / 10% | Adds to Bane of Agony's periodic talent group. |
 | Fel Concentration | 3 | pushback ignored 23 / 47 / 70% | Only matters when "Take a hit every (s)" is set: chance to ignore the pushback on Drain Life, Drain Soul and Wrack. |
-| Amplify Curse | 1 | Bane of Agony +50% | Used with every Bane of Agony cast while its 3-minute cooldown is ready (off the global cooldown). Every tick of that Bane of Agony is multiplied by 1.5 after everything else (talents, auras, curse, crit). Never used on Bane of Doom. |
+| Amplify Curse | 1 | Bane of Agony +50% | Used with every Bane of Agony cast while its 3-minute cooldown is ready (off the global cooldown); the cooldown starts then. If that Bane of Agony misses, Amplify Curse stays up for the next one that lands. Every tick of that Bane of Agony is multiplied by 1.5 after everything else (talents, auras, curse, crit). Never used on Bane of Doom. |
 | Pandemic | 3 | crit bonus +33 / 67 / 100% | Crits of Corruption, Bane of Agony, Bane of Doom, Drain Soul, Drain Life, Siphon Life and Wrack deal ×1.665 / ×1.835 / ×2.0 instead of ×1.5. |
 | Malevolence | 5 | Shadow crit +1 / 2 / 3 / 4 / 5% | Adds to the crit chance of every Shadow spell of yours. Not added when "Sheet crit % already includes talents, racials & oil" is ticked. |
 | Nightfall | 2 | chance per tick 2 / 4% | Every tick of Corruption, Drain Soul, Drain Life and Wrack has this chance to give Shadow Trance for 10 s: your next Shadow Bolt has no cast time (it still costs its mana and a global cooldown). |
@@ -931,7 +932,7 @@ every target, as "Keep DoTs on the extra targets"; Bane of Havoc as usual).
 - Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 5/5, Improved Bane of Agony 2/2, Amplify Curse 1/1, Pandemic 3/3, Malevolence 5/5, Nightfall 2/2, Siphon Life 1/1, Soul Siphon 3/3, Shadow Mastery 5/5, Wrack 1/1.
 - Demonology: Demonic Embrace 5/5, Demonic Aegis 2/2, Fel Vitality 3/3, Demonic Sacrifice 1/1.
 - Destruction: Improved Shadow Bolt 5/5.
-- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Agony if no Bane (never Bane of Doom) · 3. Shadow Bolt (max rank) if Shadow Trance (Nightfall) is up · 4. Corruption if missing/expiring · 5. Siphon Life if missing/expiring · 6. Curse of the Elements if missing · 7. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 40% mana, more than 25 s left) — only when time since you last spent mana >= 6 s · 8. Wrack (filler channel).
+- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Corruption if missing/expiring · 3. Bane of Agony if no Bane (never Bane of Doom) · 4. Shadow Bolt (max rank) if Shadow Trance (Nightfall) is up — only when Shadow Trance (Nightfall) time left <= 8 s · 5. Siphon Life if missing/expiring · 6. Curse of the Elements if missing · 7. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 40% mana, more than 25 s left) — only when time since you last spent mana >= 6 s · 8. Wrack (filler channel).
 <!-- /gen:builds -->
 
 ---

@@ -83,7 +83,7 @@ window.WL = window.WL || {};
       mana: stats.maxMana, health: stats.maxHealth, shards: Infinity,                // soul shards never run out (round 118, user; 30 per fight before) [A25]
       busyUntil: 0, gcdReady: 0, lastRegen: 0,
       lastSpend: -Infinity, spendAt: null, innervateUntil: 0,   // 5-second rule (round 114): last mana spent, cast in progress, Innervate window
-      cds: {}, dots: {}, buffs: {}, channel: null,
+      cds: {}, dots: {}, buffs: {}, channel: null, ampUp: false,
       targetHpPct: 100,
     };
     var inst = 0, decideToken = 0;
@@ -759,6 +759,7 @@ window.WL = window.WL || {};
       var s = SPELLS[key], e = table[key], rk = xkey(ti, key), r = row(rk);
       if (missRoll(key)) { r.misses++; L('miss', rk); return false; }
       r.landed++;
+      if (key === 'baneOfAgony') S.ampUp = false;                                        // Amplify Curse spent on a landed Bane (round 200)
       if (s.kind === 'utility') {                                         // your Curse of the Elements on this target
         if (key === 'curseOfElements') { S.xdeb[ti].coe = S.t + s.duration; L('debuff', rk); }
         return true;
@@ -829,6 +830,7 @@ window.WL = window.WL || {};
       var s = SPELLS[key], e = table[key], r = row(key);
       if (missRoll(key)) { r.misses++; L('miss', key); return false; }                  // [A01][A17]; cheat mode (round 166)
       r.landed++;
+      if (key === 'baneOfAgony') S.ampUp = false;                                        // Amplify Curse spent on a landed Bane (round 200)
       if (s.kind === 'utility') {
         if (key === 'curseOfElements') { S.buffs.coe = S.t + s.duration; L('debuff', key); }
         jowProc(false);                                                                                   // [A64]
@@ -922,8 +924,13 @@ window.WL = window.WL || {};
       // Amplify Curse: off the GCD, next Bane of Agony +50%; 3 min cooldown. [A52] Round 153 (user): it takes that Bane of
       // Agony's final tick value after all calculations and multiplies it by 1.5 (rounds 25–152: the base value only).
       var castMult = 1;
-      if (key === 'baneOfAgony' && tv('amplifyCurse') && S.ready('amplifyCurse') && slotGate('amplifyCurse') !== 0) {   // timeline row (round 120): held for its placed time
-        castMult = 1 + tv('amplifyCurse', 'boaPct') / 100; S.cds.amplifyCurse = S.t + 180; L('buff', 'amplifyCurse'); slotUsed('amplifyCurse');
+      // Round 200 (user: "amplify curse stays up when bane of agony misses"): using it starts the 3 min cooldown; the bonus
+      // stays up (S.ampUp) until a Bane of Agony LANDS (land / landExtra clear it), so a missed Bane passes it to the next.
+      if (key === 'baneOfAgony' && tv('amplifyCurse')) {
+        if (!S.ampUp && S.ready('amplifyCurse') && slotGate('amplifyCurse') !== 0) {   // timeline row (round 120): held for its placed time
+          S.ampUp = true; S.cds.amplifyCurse = S.t + 180; L('buff', 'amplifyCurse'); slotUsed('amplifyCurse');
+        }
+        if (S.ampUp) castMult = 1 + tv('amplifyCurse', 'boaPct') / 100;
       }
       if (s.shards && !(key === 'soulFire' && S.buff('decimation'))) S.shards -= s.shards;
       if (key === 'soulFire' && S.buff('decimation')) delete S.buffs.decimation;
@@ -1250,7 +1257,7 @@ window.WL = window.WL || {};
       var f = altBelow(S.actionIndex), fRate = f ? expCast(f, 0, key === 'immolate') / (occupies(f) + LAT) : 0;
       var cost = (occupies(key) + LAT) * fRate;
       var end = Math.min(dur, tL + s.duration), gcd = S.gcd(), value = 0;
-      var castMult = key === 'baneOfAgony' && tv('amplifyCurse') && S.ready('amplifyCurse') && slotGate('amplifyCurse') !== 0 ? 1 + tv('amplifyCurse', 'boaPct') / 100 : 1;
+      var castMult = key === 'baneOfAgony' && tv('amplifyCurse') && (S.ampUp || (S.ready('amplifyCurse') && slotGate('amplifyCurse') !== 0)) ? 1 + tv('amplifyCurse', 'boaPct') / 100 : 1;
       var tickAmt = (s.tickBase + s.tickCoef * spNow(e)) * castMult * e.periodicMult * lmult(key, ti, true) * expVuln(s.school, ti) * expCrit(e.critPct, e.critMult);
       // Wrack as the filler (patch of 2026-11-10): this DoT ticks WRACK_GAIN times as often (the check version: deals that much more).
       var wf = f === 'wrack' && ti <= 1 && tv('wrack') && SPELLS.wrack.dotSpeedSpells.indexOf(key) >= 0;

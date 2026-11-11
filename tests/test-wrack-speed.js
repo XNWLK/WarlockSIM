@@ -48,7 +48,28 @@
     T.eq(w.dotSpeedSpells.slice().sort().join(','), 'baneOfAgony,corruption,siphonLife', 'Corruption, Bane of Agony and Siphon Life (not Bane of Doom, not Immolate)');
     T.ok(w.debuffPct == null && w.debuffSpells == null, 'the old 10% damage bonus is gone');
     T.eq(WL.SOUL_SIPHON_EFFECTS.slice().sort().join(','), 'baneOfAgony,corruption,siphonLife', 'Soul Siphon counts Corruption, Bane of Agony and Siphon Life only');
-    T.eq(WL.findBuild('wrack_ds').rotation.join(','), 'deathCoilFinisher,baneOfAgony,shadowTrance,corruption,siphonLife,curseOfElements,lifeTapNeed,wrack', 'Wrack DS: Bane of Agony and Siphon Life');
+    T.eq(WL.findBuild('wrack_ds').rotation.join(','), 'deathCoilFinisher,corruption,baneOfAgony,shadowTrance,siphonLife,curseOfElements,lifeTapNeed,wrack', 'Wrack DS: Bane of Agony and Siphon Life (round 200: Corruption first)');
+    T.eq(JSON.stringify(WL.findBuild('wrack_ds').actWhen.shadowTrance), JSON.stringify({ t: 'aura', aura: 'shadowTrance', op: '<=', v: 8 }), 'Wrack DS holds a Shadow Trance proc until it has 8 s left (round 200)');
+    // Round 200 (user): Amplify Curse stays up when its Bane of Agony misses; the next Bane that lands gets it.
+    (function () {
+      var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)), wb = WL.findBuild('wrack_ds'), found = 0;
+      for (var s = 1; s <= 60 && !found; s++) {
+        var L = WL.simulateOnce(wb, 'undead', c, { seed: s, duration: 180, log: true }).log;
+        var i = L.findIndex(function (e) { return e.spell === 'amplifyCurse'; });
+        var b1 = L.slice(i).filter(function (e) { return e.spell === 'baneOfAgony' && (e.type === 'miss' || e.type === 'apply'); });
+        if (b1[0] && b1[0].type === 'miss') {
+          found = s;
+          var amps = L.filter(function (e) { return e.spell === 'amplifyCurse'; }).length;
+          var first = L.filter(function (e) { return e.type === 'tick' && e.spell === 'baneOfAgony' && !e.crit; })[0];
+          var c2 = JSON.parse(JSON.stringify(c)), nb = JSON.parse(JSON.stringify(wb)); nb.talents.amplifyCurse = 0;
+          var L2 = WL.simulateOnce(nb, 'undead', c2, { seed: s, duration: 180, log: true }).log;
+          var f2 = L2.filter(function (e) { return e.type === 'tick' && e.spell === 'baneOfAgony' && !e.crit && Math.abs(e.t - first.t) < 1e-6; })[0];
+          T.ok(amps === 1 && b1[1] && b1[1].type === 'apply', 'a missed amplified Bane: Amplify Curse used once, the recast lands (seed ' + s + ')');
+          T.ok(f2 && Math.abs(first.dmg / f2.dmg - 1.5) < 0.02, 'the recast Bane gets the x1.5 (' + first.dmg + ' vs ' + (f2 && f2.dmg) + ')');
+        }
+      }
+      T.ok(found > 0, 'a fight with a missed opening Bane was found');
+    })();
   });
 
   T.run('patch of 2026-11-10: DoTs tick twice as fast while Wrack channels', function () {

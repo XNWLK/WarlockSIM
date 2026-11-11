@@ -93,7 +93,7 @@ WL.BUILDS = [
   {
     key: 'wrack_ds', short: 'Wrack DS',
     name: 'Wrack DS – Affliction (Wrack), Imp sacrificed',
-    notes: '35/11/5. Deep Affliction with Wrack as the filler and the Imp sacrificed for +15% Shadow (Demonic Sacrifice): no demon in the fight. While Wrack channels, Corruption, Bane of Agony and Siphon Life tick twice as often, and those three are what Soul Siphon counts, so all three are kept up (Bane of Agony, never Bane of Doom). Life Tap comes right after a full Wrack, when the 5-second rule is already over, and only when the rest of the fight needs the mana. Suppression, Improved Corruption, Improved Life Tap, Pandemic, Amplify Curse, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon and Improved Bane of Agony; Demonic Embrace, Fel Vitality and Demonic Aegis lead to Demonic Sacrifice; Improved Shadow Bolt for the Shadow Trance bolts.',
+    notes: '35/11/5. Deep Affliction with Wrack as the filler and the Imp sacrificed for +15% Shadow (Demonic Sacrifice): no demon in the fight. While Wrack channels, Corruption, Bane of Agony and Siphon Life tick twice as often, and those three are what Soul Siphon counts, so all three are kept up (Bane of Agony, never Bane of Doom). A Nightfall proc is held for 2 seconds so it does not cut a Wrack short. Life Tap comes right after a full Wrack, when the 5-second rule is already over, and only when the rest of the fight needs the mana. Suppression, Improved Corruption, Improved Life Tap, Pandemic, Amplify Curse, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon and Improved Bane of Agony; Demonic Embrace, Fel Vitality and Demonic Aegis lead to Demonic Sacrifice; Improved Shadow Bolt for the Shadow Trance bolts.',
     talents: {
       suppression: 5, improvedCorruption: 5, improvedLifeTap: 2, pandemic: 3, amplifyCurse: 1, malevolence: 5, siphonLife: 1, nightfall: 2,
       shadowMastery: 5, soulSiphon: 3, wrack: 1, improvedBaneOfAgony: 2,
@@ -110,8 +110,11 @@ WL.BUILDS = [
     // Patch of 2026-11-10 (Soul Siphon counts only Corruption, Bane of Agony and Siphon Life; Wrack makes them tick twice as fast):
     // Bane of Agony instead of Bane of Doom and Siphon Life back in: +16.6% over the old priority at the default gear,
     // +17 to +21% at Build Scaling levels 0-7 (3,000 fights, Undead).
-    rotation: ['deathCoilFinisher', 'baneOfAgony', 'shadowTrance', 'corruption', 'siphonLife', 'curseOfElements', 'lifeTapNeed', 'wrack'],
-    actWhen: { lifeTapNeed: { t: 'fsr', op: '>=', v: 6 } },
+    // Round 200 (user chose it; +0.27 … +0.39% on 4 test sets of 10,000 fights: default gear, a second seed, 250 SP, 1000 SP):
+    // a Shadow Trance proc is used only once it has 8 s or less left, so a proc during Wrack does not cut the channel at once
+    // (the DoTs tick twice as fast only while Wrack channels), and Corruption comes before Bane of Agony.
+    rotation: ['deathCoilFinisher', 'corruption', 'baneOfAgony', 'shadowTrance', 'siphonLife', 'curseOfElements', 'lifeTapNeed', 'wrack'],
+    actWhen: { lifeTapNeed: { t: 'fsr', op: '>=', v: 6 }, shadowTrance: { t: 'aura', aura: 'shadowTrance', op: '<=', v: 8 } },
     params: { lifeTapNeed: { pct: 40, sec: 25 } },
   },
 ];

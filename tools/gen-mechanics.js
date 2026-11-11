@@ -31,7 +31,7 @@ const TALENT_NOTES = {
   improvedDrains: 'Adds to the periodic talent group of Drain Life and Drain Soul (not Wrack).',
   improvedBaneOfAgony: 'Adds to Bane of Agony\'s periodic talent group.',
   felConcentration: 'Only matters when "Take a hit every (s)" is set: chance to ignore the pushback on Drain Life, Drain Soul and Wrack.',
-  amplifyCurse: 'Used with every Bane of Agony cast while its 3-minute cooldown is ready (off the global cooldown). Every tick of that Bane of Agony is multiplied by 1.5 after everything else (talents, auras, curse, crit). Never used on Bane of Doom.',
+  amplifyCurse: 'Used with every Bane of Agony cast while its 3-minute cooldown is ready (off the global cooldown); the cooldown starts then. If that Bane of Agony misses, Amplify Curse stays up for the next one that lands. Every tick of that Bane of Agony is multiplied by 1.5 after everything else (talents, auras, curse, crit). Never used on Bane of Doom.',
   pandemic: 'Crits of Corruption, Bane of Agony, Bane of Doom, Drain Soul, Drain Life, Siphon Life and Wrack deal ×1.665 / ×1.835 / ×2.0 instead of ×1.5.',
   malevolence: 'Adds to the crit chance of every Shadow spell of yours. Not added when "Sheet crit % already includes talents, racials & oil" is ticked.',
   nightfall: 'Every tick of Corruption, Drain Soul, Drain Life and Wrack has this chance to give Shadow Trance for 10 s: your next Shadow Bolt has no cast time (it still costs its mana and a global cooldown).',
