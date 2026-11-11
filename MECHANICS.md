@@ -205,7 +205,8 @@ Example: Corruption with 5/5 Improved Corruption and 5/5 Shadow Mastery gets × 
 
 **Wrack** makes your Corruption, Bane of Agony and Siphon Life on the boss tick twice as often while you channel it,
 without making them shorter: every DoT has a timer to its next tick that runs at double speed during Wrack. Starting
-Wrack 1 s after a Corruption tick makes the next one come 1 s later instead of 2. Outside Wrack the normal pace returns.
+Wrack 1 s after a Corruption tick makes the next one come 1 s later instead of 2. Outside Wrack the normal pace returns,
+and the timer keeps how far it got: stopping Wrack 0.5 s before a tick makes that tick come 1 s later instead.
 Each tick deals the normal amount, so a DoT that is up during Wrack deals more ticks in total. When the DoT runs out
 between two ticks, the part of a tick that has built up is dealt as a last, smaller tick: half-way to the next tick
 deals half a tick. Bane of Agony's ticks grow with the time since it was cast (the weak ticks of its first 8 s, the
@@ -235,9 +236,9 @@ The examples use the build **Shadow Demo** as an Undead with the default gear, r
 #### 1. The character's stats
 - Intellect: (110 base − 2 Undead + 148 gear + 31 Arcane Intellect / Brilliance + 16 Mark / Gift of the Wild) × 1.10 Blessing of Kings = **333.3**
 - Spirit: (115 base + 5 Undead + 54 gear + 16 Mark / Gift of the Wild + 40 Divine Spirit / Prayer of Spirit) × 1.10 Blessing of Kings = **253**
-- Stamina: (65 base + 1 Undead + 160 gear + 16 Mark / Gift of the Wild + 70 Power Word: Fortitude) × 1.10 Blessing of Kings = **343.2**
+- Stamina: (65 base + 1 Undead + 160 gear + 16 Mark / Gift of the Wild + 70 Power Word: Fortitude) × 1.06 Demonic Embrace × 1.10 Blessing of Kings = **363.8**
 - Maximum mana: (1,373 + 20 + 15 × (333.3 − 20)) × 1.15 Fel Vitality = **7,006.4**
-- Maximum health: 1,414 + 20 + 10 × (343.2 − 20) = **4,666**
+- Maximum health: 1,414 + 20 + 10 × (363.8 − 20) = **4,871.9**
 - Spell power: 500 gear + 60 Demonic Knowledge = **560**; Shadow spells: + 21 Major Spellstone = **581**
 - Hit: 83 base against a level-63 boss + 1 Suppression + 5 gear = **89%**
 - Crit: 10 sheet + 1.29 from 77.3 Intellect above the sheet ÷ 60 + 3 Moonkin Form aura = **14.29%**
@@ -263,7 +264,7 @@ The examples use the build **Shadow Demo** as an Undead with the default gear, r
 (1,742 + 4 × 581) × 1.3029 auras = **5,297.8**; with the curse and Improved Shadow Bolt on the boss **6,993.1**; a crit deals × 1.5.
 
 #### 5. Touch of the Grave
-4,666 health × 5% = **233.3**. Nothing multiplies it: no aura, no curse, no Improved Shadow Bolt, no Power Infusion. No spell power, no crit, no resist roll. 30% chance per landed damaging cast, then nothing for 15 s.
+4,871.9 health × 5% = **243.6**. Nothing multiplies it: no aura, no curse, no Improved Shadow Bolt, no Power Infusion. No spell power, no crit, no resist roll. 30% chance per landed damaging cast, then nothing for 15 s.
 
 #### 6. The Succubus
 - Attack table of one swing: her melee hit = 8/17 × your spell hit 6% = 2.82%; miss 8% − 2.82% = **5.18%**, dodge **6.5%**, glancing blow **40%** (at 65% damage), crit your spell crit 14.29 − 4.8 = **9.49%** (× 2), normal hit the remaining **38.84%**.
@@ -900,14 +901,14 @@ every target, as "Keep DoTs on the extra targets"; Bane of Havoc as usual).
 ### Shadow Demo (2/31/18)
 - Succubus out, Imp sacrificed, Major Spellstone.
 - Affliction: Suppression 1/5, Improved Corruption 1/5.
-- Demonology: Unholy Power 5/5, Fel Vitality 3/3, Demonic Energies 2/2, Improved Sayaad 3/3, Demonic Sacrifice 1/1, Master Summoner 2/2, Decimation 2/2, Demonic Brand 3/3, Soul Link 1/1, Demonic Knowledge 3/3, Master Demonologist 5/5, Demonic Pact 1/1.
+- Demonology: Demonic Embrace 2/5, Unholy Power 5/5, Fel Vitality 3/3, Demonic Energies 2/2, Improved Sayaad 3/3, Demonic Sacrifice 1/1, Decimation 2/2, Demonic Brand 3/3, Soul Link 1/1, Demonic Knowledge 3/3, Master Demonologist 5/5, Demonic Pact 1/1.
 - Destruction: Improved Shadow Bolt 5/5, Bane 5/5, Ruin 5/5, Agonizing Flames 3/3.
 - Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Curse of the Elements if missing · 4. Searing Pain to (re)apply Demonic Brand when it is down · 5. Immolate if missing/expiring · 6. Corruption if missing/expiring · 7. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 80% mana, more than 45 s left) · 8. Shadow Bolt (filler).
 
 ### Fire Demo (2/31/18)
 - Imp out, Succubus sacrificed, Major Firestone.
 - Affliction: Suppression 1/5, Improved Corruption 1/5.
-- Demonology: Improved Imp 3/3, Unholy Power 5/5, Fel Vitality 3/3, Demonic Energies 2/2, Demonic Sacrifice 1/1, Master Summoner 2/2, Decimation 2/2, Demonic Brand 3/3, Soul Link 1/1, Demonic Knowledge 3/3, Master Demonologist 5/5, Demonic Pact 1/1.
+- Demonology: Improved Imp 3/3, Demonic Embrace 2/5, Unholy Power 5/5, Fel Vitality 3/3, Demonic Energies 2/2, Demonic Sacrifice 1/1, Decimation 2/2, Demonic Brand 3/3, Soul Link 1/1, Demonic Knowledge 3/3, Master Demonologist 5/5, Demonic Pact 1/1.
 - Destruction: Bane 5/5, Aftermath 5/5, Ruin 5/5, Agonizing Flames 3/3.
 - Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Searing Pain to (re)apply Demonic Brand when it is down · 3. Life Tap to feed the pet (Demonic Energies) when it is nearly out of mana · 4. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 5. Curse of the Elements if missing · 6. Immolate if missing/expiring · 7. Soul Fire while Decimation buff is up · 8. Corruption if missing/expiring · 9. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 80% mana, more than 45 s left) · 10. Searing Pain (filler).
 

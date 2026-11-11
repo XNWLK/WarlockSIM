@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v170
+- **Shadow Demo** and **Fire Demo** take 2 points of Demonic Embrace instead of Master Summoner (which does nothing in a
+  fight). The extra Stamina only matters for Undead: Touch of the Grave hits for 5% of your health, so both builds gain
+  about 0.5 DPS as Undead (+0.07%). Every other race is unchanged.
+- "How it's calculated": what happens to a DoT's next tick when Wrack stops (confirmed by the developers).
+
 ## v169
 - **Forever patch of November 10:** Wrack deals 30% less damage (60.2 + 0.2002 × spell power per tick). It no
   longer makes your DoTs deal 10% more: while you channel it, Corruption, Bane of Agony and Siphon Life tick **twice as

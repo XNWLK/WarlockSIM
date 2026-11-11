@@ -272,11 +272,15 @@ B.examples = (function () {
   const bd = stat => st.breakdown.filter(e => e.stat === stat);
   const src = e => clean(e.source).replace(/^Base \(L60 Warlock\)$/, 'base').replace(/ offset$/, '').replace(/^Gear$/, 'gear');
   function statLine(stat, total) {
-    const all = bd(stat), flat = all.filter(e => !/^Blessing of Kings/.test(e.source)), kings = all.filter(e => /^Blessing of Kings/.test(e.source))[0];
+    const all = bd(stat), kings = all.filter(e => /^Blessing of Kings/.test(e.source))[0];
+    // Round 197: a talent percentage (Demonic Embrace +x% Stamina) multiplies the flat sum before Blessing of Kings.
+    const pcts = all.filter(e => e !== kings && /^Demonic Embrace \+\d+%$/.test(e.source)), flat = all.filter(e => e !== kings && pcts.indexOf(e) < 0);
     if (flat.some(e => /%/.test(e.source))) throw new Error('worked example: ' + stat + ' has a percentage bonus this text does not cover');
     const sum = flat.reduce((a, e) => a + e.value, 0), kp = WL.activeBuffs(cfg).reduce((a, x) => a + (x.statPct || 0), 0);
-    near(sum * (1 + kp / 100), total, stat);
-    return '(' + flat.map((e, i) => (i ? (e.value < 0 ? '− ' : '+ ') : '') + Math.abs(e.value) + ' ' + src(e)).join(' ') + ')' + (kings ? ' × ' + (1 + kp / 100).toFixed(2) + ' Blessing of Kings' : '') + ' = **' + n(total) + '**';
+    const tp = pcts.map(e => +/\+(\d+)%/.exec(e.source)[1]), tm = tp.reduce((a, p) => a * (1 + p / 100), 1);
+    pcts.forEach((e, i) => near(e.value, sum * tp[i] / 100, stat + ' ' + e.source));
+    near(sum * tm * (1 + kp / 100), total, stat);
+    return '(' + flat.map((e, i) => (i ? (e.value < 0 ? '− ' : '+ ') : '') + Math.abs(e.value) + ' ' + src(e)).join(' ') + ')' + pcts.map((e, i) => ' × ' + (1 + tp[i] / 100).toFixed(2) + ' ' + src(e).replace(/ \+\d+%$/, '')).join('') + (kings ? ' × ' + (1 + kp / 100).toFixed(2) + ' Blessing of Kings' : '') + ' = **' + n(total) + '**';
   }
   const auras = bd('shadowDmgPct').concat(bd('allDmgPct'));
   const auraMult = auras.reduce((a, e) => a * (1 + e.value / 100), 1);
