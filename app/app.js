@@ -75,9 +75,9 @@
     return '<div class="tt-name">' + esc(s.name) + (s.rank ? ' <span class="meta">Rank ' + s.rank + '</span>' : '') + '</div><div class="tt-meta">' + esc(spellMeta(s)) + '</div>' +
       '<div class="tt-body">' + para((WL.SPELL_TEXT || {})[s.id] || '') + '</div>';
   }
-  // Bane of Havoc is not a priority action: with 2+ targets the engine casts it on target 2 by itself (off the GCD). It is
+  // Bane of Havoc is not a priority action: with 2+ targets the engine casts it on target 2 by itself (one GCD since the patch of 2026-11-10). It is
   // shown at the top of the priority list anyway, so the Destruction builds visibly use it (user report, round 40).
-  var HAVOC_LABEL = 'Bane of Havoc on target 2 (automatic with 2+ targets: at the pull and whenever it is missing, off the GCD)';
+  var HAVOC_LABEL = 'Bane of Havoc on target 2 (automatic with 2+ targets: at the pull and whenever it is missing)';
   // A precast (round 127, user) is not a priority action either: when the run's settings name one and this build can
   // precast it, it is shown first, before everything else. Whether a build can depends on its talents only, so the
   // baseline race does for the spell table.

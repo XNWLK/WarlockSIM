@@ -1346,10 +1346,13 @@ window.WL = window.WL || {};
 
     function decide() {
       if (S.t >= dur - EPS) return;
-      if (HAV && !S.buff('havoc')) {                                       // 2 targets: Bane of Havoc on the second one (off the GCD)
+      if (HAV && !S.buff('havoc')) {                                       // 2 targets: Bane of Havoc on the second one
+        // Patch of 2026-11-10 (round 199): it takes a global cooldown (rounds 27-198: off the GCD, the in-game bug the patch fixed).
+        var hg = S.gcd();
         S.mana -= table.baneOfHavoc.cost; S.buffs.havoc = S.t + SPELLS.baneOfHavoc.duration;
         if (table.baneOfHavoc.cost > 0) S.lastSpend = S.t;
-        row('baneOfHavoc').casts++; L('cast', 'baneOfHavoc', { castTime: 0, gcd: 0 });
+        row('baneOfHavoc').casts++; row('baneOfHavoc').castTime += hg; L('cast', 'baneOfHavoc', { castTime: 0, gcd: +hg.toFixed(3) });
+        S.busyUntil = S.t; S.gcdReady = S.t + hg; scheduleDecide(S.gcdReady); return;
       }
       manaBuffCheck();
       useManaItems();

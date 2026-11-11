@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v172
+- **Official notes of the November 10 patch:** Wrack deals 60 damage per tick (the official tooltip; was 60.2), so
+  Wrack DS loses 0.3 DPS. The Wrack and Soul Siphon tooltips now show the official text.
+- **Bane of Havoc** takes a global cooldown (the patch fixed it being free). With 2 or 3 targets the Incinerate builds
+  lose about 0.9% in a 3-minute fight (more in short fights). One target: unchanged.
+
 ## v171
 - **Fire Demo** moves 1 point from Demonic Brand and 1 from Demonic Energies to Demonic Embrace (4/5). Within ±0.1% on
   every race; it stays the top build (716.3 as Orc).

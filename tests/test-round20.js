@@ -45,7 +45,9 @@
     T.ok(!!hv, 'Havoc damage line exists (' + hb.short + ')');
     T.near(hv.dmg, 0.15 * own, 1e-6, 'Havoc damage = 15% of the Warlock\'s own damage');
     T.eq(casts(a2, 'baneOfHavoc').map(function (e) { return e.t; }).join(','), '0', 'Bane of Havoc cast once, at the pull');
-    T.eq(casts(a2).filter(function (e) { return e.spell !== 'baneOfHavoc'; })[0].t, 0, 'off the GCD: the first rotation spell also starts at 0 s');
+    // Patch of 2026-11-10 (round 199): Bane of Havoc takes a global cooldown (until then off the GCD, the in-game bug).
+    var hc = casts(a2, 'baneOfHavoc')[0], first = casts(a2).filter(function (e) { return e.spell !== 'baneOfHavoc'; })[0];
+    T.ok(hc.gcd > 1 && Math.abs(first.t - hc.gcd) < 0.002, 'it takes a global cooldown: the first rotation spell starts after it (' + first.t + ' s, GCD ' + hc.gcd + ' s)');
     T.ok(a2.dps > a1.dps, '2 targets raise DPS (' + a2.dps.toFixed(1) + ' vs ' + a1.dps.toFixed(1) + ')');
     var nb = WL.BUILDS.filter(function (b) { return !b.talents.baneOfHavoc; })[0];
     T.near(WL.simulateOnce(nb, 'human', h2, { seed: 3, duration: 120 }).dps, WL.simulateOnce(nb, 'human', h1, { seed: 3, duration: 120 }).dps, 1e-9, 'builds without Bane of Havoc: 2 targets change nothing');

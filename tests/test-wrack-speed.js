@@ -43,7 +43,7 @@
 
   T.run('patch of 2026-11-10: Wrack data and Soul Siphon', function () {
     var w = WL.SPELLS.wrack;
-    T.eq(w.tickBase + ' + ' + w.tickCoef, '60.2 + 0.2002', 'Wrack ticks 70% of 86 + 0.286 × SP');
+    T.eq(w.tickBase + ' + ' + w.tickCoef, '60 + 0.2002', 'Wrack ticks 60 + 0.2002 × SP (official tooltip; 70% of 86 rounded)');
     T.eq(w.dotSpeedPct, 100, 'DoTs tick 100% faster while Wrack channels');
     T.eq(w.dotSpeedSpells.slice().sort().join(','), 'baneOfAgony,corruption,siphonLife', 'Corruption, Bane of Agony and Siphon Life (not Bane of Doom, not Immolate)');
     T.ok(w.debuffPct == null && w.debuffSpells == null, 'the old 10% damage bonus is gone');

@@ -18,7 +18,7 @@
       ['shadowburn', 'base', 267], ['soulFire', 'base', 432], ['baneOfAgony', 'tickBase', 47], ['baneOfDoom', 'tickBase', 1743],
       ['siphonLife', 'tickBase', 42], ['drainLife', 'tickBase', 52], ['drainSoul', 'tickBase', 85],
       ['deathCoil', 'base', 455]];
-    T.eq(WL.SPELLS.wrack.tickBase + ' + ' + WL.SPELLS.wrack.tickCoef, '60.2 + 0.2002', 'Wrack 60.2 + 0.2002 × SP per second (patch of 2026-11-10: 70% of 86 + 0.286 from the patch of 2026-11-03; was 36 + 0.143, Value 37 − 1)');
+    T.eq(WL.SPELLS.wrack.tickBase + ' + ' + WL.SPELLS.wrack.tickCoef, '60 + 0.2002', 'Wrack 60 + 0.2002 × SP per second (patch of 2026-11-10: 70% of 86 + 0.286 from the patch of 2026-11-03; was 36 + 0.143, Value 37 − 1)');
     V.forEach(function (v) {
       var s = WL.SPELLS[v[0]];
       T.eq(s[v[1]], v[2] - 1, v[0] + '.' + v[1] + ' = ' + (v[2] - 1) + ' (Value ' + v[2] + ' − 1)');

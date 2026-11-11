@@ -70,8 +70,8 @@ WL.SPELLS = {
   drainSoul:    { id: 11675,   name: 'Drain Soul',     school: 'shadow', tree: 'affliction',  kind: 'channel', drain: true,
                   tickBase: 84, tickCoef: 0.10, tickEvery: 3, duration: 15, cast: 0, cost: 290, range: 30 },
   wrack:        { id: 1316697, name: 'Wrack',          school: 'shadow', tree: 'affliction',  kind: 'channel', drain: true,
-                  tickBase: 60.2, tickCoef: 0.2002, tickEvery: 1, duration: 6, cast: 0, cost: 200, range: 30, talent: 'wrack', noImprovedDrains: true, patch: '2026-11-03',   // 2026-11-03 patch: 36 + 0.143 → 86 + 0.286 per s; Improved Drains no longer counts [A108]. Patch of 2026-11-10: 70% of that
-                  dotSpeedPct: 100, dotSpeedSpells: ['corruption', 'baneOfAgony', 'siphonLife'] },   // patch of 2026-11-10: while it channels these tick 100% faster, same duration (was: +10% damage to them and Bane of Doom) [A18]
+                  tickBase: 60, tickCoef: 0.2002, tickEvery: 1, duration: 6, cast: 0, cost: 200, range: 30, talent: 'wrack', noImprovedDrains: true, patch: '2026-11-03',   // 2026-11-03 patch: 36 + 0.143 → 86 + 0.286 per s; Improved Drains no longer counts [A108]. Patch of 2026-11-10: 70% of that
+                  dotSpeedPct: 100, dotSpeedSpells: ['corruption', 'baneOfAgony', 'siphonLife'] },   // official tooltip (Wowhead Forever 2026-11-11): 60 per 1 s tick, SP mod 0.2002 (round 199; 60.2 = 70% of 86 until then). Patch of 2026-11-10: while it channels these tick 100% faster, same duration (was: +10% damage to them and Bane of Doom) [A18]
   deathCoil:    { id: 17926,   name: 'Death Coil',     school: 'shadow', tree: 'affliction',  kind: 'direct',
                   base: 454, coef: 0.214, cast: 0, cost: 600, range: 30, cd: 120, projectile: true, leech: 1 },
   curseOfElements: { id: 1311680, name: 'Curse of the Elements', school: 'shadow', tree: 'affliction', kind: 'utility',

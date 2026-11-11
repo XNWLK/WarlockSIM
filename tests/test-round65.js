@@ -34,7 +34,7 @@
     var sl = ticks('siphonLife'), slIn = sl.filter(function (e) { return during(e.t); }), slOut = sl.filter(function (e) { return !during(e.t); });
     T.ok(slIn.length > 0 && slIn.every(function (e) { return e.dmg === Math.round(41 + 0.05 * sp); }), 'Siphon Life ticks during Wrack = ' + Math.round(41 + 0.05 * sp) + ' (' + slIn.length + ' ticks)');
     T.ok(slOut.length > 0 && slOut.every(function (e) { return e.dmg === Math.round(41 + 0.05 * sp); }), 'Siphon Life ticks outside Wrack = ' + Math.round(41 + 0.05 * sp) + ' (' + slOut.length + ' ticks)');
-    T.ok(ticks('wrack').every(function (e) { return e.dmg === Math.round(60.2 + 0.2002 * sp); }), 'Wrack ticks = 60.2 + 0.2002 × SP = ' + Math.round(60.2 + 0.2002 * sp) + ' (70% of 86 + 0.286)');
+    T.ok(ticks('wrack').every(function (e) { return e.dmg === Math.round(60 + 0.2002 * sp); }), 'Wrack ticks = 60 + 0.2002 × SP = ' + Math.round(60 + 0.2002 * sp) + ' (70% of 86 + 0.286)');
     T.eq(WL.SPELLS.wrack.dotSpeedSpells.slice().sort().join(','), 'baneOfAgony,corruption,siphonLife', 'sped-up spells: Corruption, Bane of Agony, Siphon Life (not Bane of Doom)');
 
     T.group('reference builds (user, round 65); shown by default (round 66)');

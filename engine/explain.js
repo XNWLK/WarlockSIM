@@ -114,7 +114,7 @@ window.WL = window.WL || {};
     }
     if (bk === 'baneOfHavoc') {
       step('Copy', SPELLS.baneOfHavoc.havocPct + '% of everything you deal to the other targets', 'dealt to target 2 as well');
-      notes.push('Your demon\'s damage is not copied. Bane of Havoc is cast off the global cooldown as soon as it is not up.');
+      notes.push('Your demon\'s damage is not copied. Bane of Havoc is cast (one global cooldown) as soon as it is not up.');
       return { title: 'Bane of Havoc', steps: steps, notes: notes, values: values };
     }
     if (bk.indexOf('item:') === 0) {

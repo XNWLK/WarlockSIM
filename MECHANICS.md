@@ -316,7 +316,7 @@ tooltip says 246 to 274). A spell's "family" decides which talents count it as a
 | Siphon Life | Shadow | Affliction | 10 ticks of 41 + 0.05 × SP, one every 3 s | instant | 365 | — | 30 yd |
 | Drain Life | Shadow | Affliction | 5 ticks of 51 + 0.1 × SP, one every 1 s | channel, 5 s | 300 | — | 20 yd |
 | Drain Soul | Shadow | Affliction | 5 ticks of 84 + 0.1 × SP, one every 3 s | channel, 15 s | 290 | — | 30 yd |
-| Wrack | Shadow | Affliction | 6 ticks of 60.2 + 0.2002 × SP, one every 1 s | channel, 6 s | 200 | — | 30 yd |
+| Wrack | Shadow | Affliction | 6 ticks of 60 + 0.2002 × SP, one every 1 s | channel, 6 s | 200 | — | 30 yd |
 | Death Coil | Shadow | Affliction | 454 + 0.214 × SP | instant | 600 | 120 s | 30 yd |
 | Curse of the Elements | Shadow | Affliction | — | instant | 200 | — | 30 yd |
 | Life Tap | Shadow | Affliction | — | instant | 430 health | — | self |
@@ -336,7 +336,7 @@ tooltip says 246 to 274). A spell's "family" decides which talents count it as a
 - **Corruption.** A DoT with a cast time, unless Improved Corruption makes it instant.
 - **Bane of Agony.** The ticks ramp up: ticks 1-4 deal 50%, ticks 5-8 100% and ticks 9-12 150% of the tick value in the table. One Bane per target.
 - **Bane of Doom.** One hit after 60 s. It counts as a periodic tick (periodic talent group, it can crit). Only cast when at least 60 s of the fight are left. One Bane per target.
-- **Bane of Havoc.** Off the global cooldown; only cast with 2 or 3 targets, on target 2. While it is up, 15% of what you deal to the other targets is also dealt to target 2.
+- **Bane of Havoc.** Takes a global cooldown (patch of November 10); only cast with 2 or 3 targets, on target 2. While it is up, 15% of what you deal to the other targets is also dealt to target 2.
 - **Siphon Life.** A DoT that heals you for the damage it deals.
 - **Drain Life.** Channel; heals you for the damage it deals.
 - **Drain Soul.** Listed because talents name it. No priority action casts it.

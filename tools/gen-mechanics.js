@@ -113,7 +113,7 @@ const SPELL_NOTES = {
   corruption: 'A DoT with a cast time, unless Improved Corruption makes it instant.',
   baneOfAgony: 'The ticks ramp up: ticks 1-4 deal 50%, ticks 5-8 100% and ticks 9-12 150% of the tick value in the table. One Bane per target.',
   baneOfDoom: 'One hit after 60 s. It counts as a periodic tick (periodic talent group, it can crit). Only cast when at least 60 s of the fight are left. One Bane per target.',
-  baneOfHavoc: 'Off the global cooldown; only cast with 2 or 3 targets, on target 2. While it is up, 15% of what you deal to the other targets is also dealt to target 2.',
+  baneOfHavoc: 'Takes a global cooldown (patch of November 10); only cast with 2 or 3 targets, on target 2. While it is up, 15% of what you deal to the other targets is also dealt to target 2.',
   siphonLife: 'A DoT that heals you for the damage it deals.',
   drainLife: 'Channel; heals you for the damage it deals.',
   drainSoul: 'Listed because talents name it. No priority action casts it.',
