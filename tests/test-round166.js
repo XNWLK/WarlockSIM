@@ -54,7 +54,7 @@
       var a = Object.keys(b.talents).filter(function (k) { return b.talents[k]; }).sort().map(function (k) { return k + b.talents[k]; }).join(','), z = Object.keys(t).sort().map(function (k) { return k + t[k]; }).join(',');
       T.eq(z, a, b.short + ': link → talents round trip');
     });
-    T.eq(WL.wowheadTalentLink(sheet('demo_pact_succ_sb')), 'https://www.wowhead.com/forever/talent-calc/warlock/v2011-0025003231020301351-0550005003_t0/0bc1ccdddddggghhiiijllnnnpqqqrrrrrs2bbbbbcccccgggggjjj', 'Demo Pact Shadow Bolt: the link checked on Wowhead');   // round 197: Demonic Embrace 2 instead of Master Summoner 2; Wowhead shows 2/31/18 (2026-11-11)
+    T.eq(WL.wowheadTalentLink(sheet('demo_pact_succ_sb')), 'https://www.wowhead.com/forever/talent-calc/warlock/v2011-0035003131020301351-0550005003_t0/0bc1cccdddddggghiiijllnnnpqqqrrrrrs2bbbbbcccccgggggjjj', 'Demo Pact Shadow Bolt: the link checked on Wowhead');   // round 198: Demonic Embrace 3, Demonic Energies 1, no Master Summoner; Wowhead shows 2/31/18 (2026-11-11)
     var w = WL.parseWowheadTalents('https://www.wowhead.com/forever/talent-calc/warlock/v202-1-1_t0/0bb1a2a');
     T.eq(JSON.stringify(w), '{"suppression":2,"improvedHealthFunnel":1,"destructiveReach":1}', 'a link made on Wowhead (2 Suppression, 1 Improved Health Funnel, 1 Destructive Reach)');
     T.eq(JSON.stringify(WL.parseWowheadTalents('https://www.wowhead.com/forever/talent-calc/warlock/0bb1a')), '{"suppression":2,"improvedHealthFunnel":1}', 'only the clicks: read too');

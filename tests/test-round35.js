@@ -4,7 +4,7 @@
 (function () {
   function scenario() {
     var b = JSON.parse(JSON.stringify(WL.BUILDS.filter(function (x) { return x.key === 'demo_pact_succ_sb'; })[0]));
-    delete b.talents.demonicEmbrace; b.talents.masterSummoner = 2;   // round 197: the build took Demonic Embrace instead; the scenario keeps Master Summoner
+    delete b.talents.demonicEmbrace; b.talents.masterSummoner = 2; b.talents.demonicEnergies = 2;   // rounds 197-198: the build took Demonic Embrace instead; the scenario keeps its old talents
     delete b.talents.suppression; b.talents.felDomination = 1;   // user's scenario: the point that was Improved Life Tap (Suppression since round 61) → Fel Domination
     b.key = 't35swap'; b.short = 'swap test';
     b.rotation = ['bane', 'curseOfElements', 'searingPainBrand', 'immolate', 'corruption', 'swapToImp', 'soulFire', 'searingPainExecute', 'shadowBolt'];

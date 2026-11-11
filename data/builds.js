@@ -39,8 +39,8 @@ WL.BUILDS = [
     notes: '2/31/18. Imp sacrificed (+15% Shadow, kept by Demonic Pact) with the Succubus out: Master Demonologist gives +10% Shadow to you and to her, and she adds Lash of Pain, melee and the Demonic Brand bonus. Searing Pain keeps Demonic Brand up, Shadow Bolt is the filler with 5/5 Improved Shadow Bolt, Death Coil finishes the fight.',
     talents: {
       suppression: 1, improvedCorruption: 1,   // round 61: -1 Improved Life Tap +1 Suppression (round 30 had moved it the other way)
-      demonicEmbrace: 2,   // round 197 (user): −2 Master Summoner +2 Demonic Embrace (+6% Stamina; Master Summoner does nothing in a fight)
-      unholyPower: 5, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1, improvedSayaad: 3,
+      demonicEmbrace: 3,   // round 197 (user): −2 Master Summoner +2 Demonic Embrace (+6% Stamina; Master Summoner does nothing in a fight); round 198 (user): −1 Demonic Energies +1 Demonic Embrace (no DPS change). Demonic Brand stays 3: at 2 (4 charges) the Succubus spends the brand sooner, −1.4%
+      unholyPower: 5, felVitality: 3, demonicEnergies: 1, demonicSacrifice: 1, improvedSayaad: 3,
       decimation: 2, demonicBrand: 3, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
       improvedShadowBolt: 5, bane: 5, ruin: 5, agonizingFlames: 3,   // round 61: -3 Cataclysm +3 Improved Shadow Bolt
     },
@@ -54,9 +54,9 @@ WL.BUILDS = [
     notes: '2/31/18. Succubus sacrificed (+15% Fire, kept by Demonic Pact) with the Imp out: Master Demonologist gives +10% Fire to you and to the Imp. Searing Pain is the filler and keeps Demonic Brand up by itself; Soul Fire is cast in the execute phase (Decimation). Aftermath and Agonizing Flames strengthen Immolate and Searing Pain, and Life Tap also refills the Imp (Demonic Energies).',
     talents: {
       suppression: 1, improvedCorruption: 1,
-      demonicEmbrace: 2,   // round 197 (user): −2 Master Summoner +2 Demonic Embrace
-      unholyPower: 5, improvedImp: 3, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1,
-      decimation: 2, demonicBrand: 3, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
+      demonicEmbrace: 4,   // round 197 (user): −2 Master Summoner +2 Demonic Embrace; round 198 (user): −1 Demonic Brand −1 Demonic Energies +2 Demonic Embrace
+      unholyPower: 5, improvedImp: 3, felVitality: 3, demonicEnergies: 1, demonicSacrifice: 1,
+      decimation: 2, demonicBrand: 2, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
       bane: 5, aftermath: 5, ruin: 5, agonizingFlames: 3,
     },
     pet: 'imp', sacrifice: 'succubus', oil: 'firestone',

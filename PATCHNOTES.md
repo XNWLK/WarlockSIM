@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v171
+- **Fire Demo** moves 1 point from Demonic Brand and 1 from Demonic Energies to Demonic Embrace (4/5). Within ±0.1% on
+  every race; it stays the top build (716.3 as Orc).
+- **Shadow Demo** moves 1 point from Demonic Energies to Demonic Embrace (3/5); no DPS change (Undead +0.2). It keeps 3/3
+  Demonic Brand: with 2 points the brand runs out of charges sooner and the build loses 1.4%.
+
 ## v170
 - **Shadow Demo** and **Fire Demo** take 2 points of Demonic Embrace instead of Master Summoner (which does nothing in a
   fight). The extra Stamina only matters for Undead: Touch of the Grave hits for 5% of your health, so both builds gain
