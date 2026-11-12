@@ -3,6 +3,11 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v175
+- **Wrack:** when pushback cut Wrack short exactly at a half-way point and you started it again at that moment, that
+  point gave its extra tick twice. It now gives it once. Only fights where you take hits change (Wrack DS with a hit
+  every 2 s: −0.15%); the default results are unchanged.
+
 ## v174
 - **Wrack** works differently: your DoTs keep their normal ticks, and while Wrack channels each half-way point between
   two of them gives an extra tick (Corruption: Wrack from 4 to 8 s adds ticks at 4.5 and 7.5 s; its normal ticks stay at

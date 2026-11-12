@@ -128,7 +128,10 @@ window.WL = window.WL || {};
     // d.xp = seconds the second timer has built up ('saved'), d.xat = when it last moved, d.xg = its generation.
     function xSched(key, d, strict) {
       var te = SPELLS[key].tickEvery, t;
-      if (WRACK_X === 'A') t = d.applied + (Math.ceil((S.t - d.applied) / te - 0.5 + (strict ? 1e-6 : -1e-6)) + 0.5) * te;
+      if (WRACK_X === 'A') {
+        t = d.applied + (Math.ceil((S.t - d.applied) / te - 0.5 + (strict ? 1e-6 : -1e-6)) + 0.5) * te;
+        if (d.xLast != null && t <= d.xLast + 1e-6) t += te;           // round 204: a point that already ticked (Wrack restarted at that moment) ticks once
+      }
       else if (WRACK_X === 'B') t = S.t + te;
       else t = S.t + te - d.xp;
       if (t < d.expires - 1e-6) H.push({ t: t, o: 0, type: 'wrackX', key: key, inst: d.inst, gen: d.xg });
@@ -1524,7 +1527,7 @@ window.WL = window.WL || {};
         var xl = log.length;
         periodicTick(ev.key, xd2.snap, xri, false);           // Bane of Agony: the ramp of the 2-second slot it falls in
         if (logOn) for (; xl < log.length; xl++) if (log[xl].type === 'tick' && log[xl].spell === ev.key) { log[xl].extra = true; break; }   // its own line (procs may follow)
-        xd2.xp = 0; xd2.xat = S.t; xSched(ev.key, xd2, true);
+        xd2.xp = 0; xd2.xat = S.t; xd2.xLast = S.t; xSched(ev.key, xd2, true);
       } else if (ev.type === 'dotTickX') {                     // DoT tick on an extra target (multi-DoT)
         var dx = S.xdots[ev.ti][ev.key];
         if (!dx || dx.inst !== ev.inst) continue;

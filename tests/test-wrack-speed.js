@@ -121,6 +121,18 @@
     var ra = run(b), ap = applies(ra, 'corruption'), ex = ticks(ra, 'corruption').filter(function (e) { return e.extra; });
     T.ok(ex.length > 0 && ex.every(function (e) { var a = ap.filter(function (x) { return x.t < e.t - 1e-6; }).pop(); var q = (e.t - a.t) / 3; return Math.abs(q - Math.floor(q) - 0.5) < 1e-4; }),
       'default: every extra Corruption tick lands 1.5 s after a normal tick time (' + ex.length + ')');
+    // Round 204 (found by Forever Warlocking): a Wrack cut short by pushback exactly at a half-way point and started again at
+    // that moment gave that point's extra tick twice. Seeds 4 and 5 with a hit every 2 s did (Bane of Agony at 56.725 / 31.306).
+    var dbl = 0, nx = 0;
+    [4, 5, 8].forEach(function (s) {
+      var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)); c.fight.hitEvery = 2;
+      var seen = {};
+      WL.simulateOnce(WL.findBuild('wrack_ds'), 'undead', c, { seed: s, duration: 180, log: true }).log.forEach(function (e) {
+        if (e.type !== 'tick' || !e.extra) return;
+        nx++; var k = e.spell + '@' + e.t; if (seen[k]) dbl++; seen[k] = 1;
+      });
+    });
+    T.ok(nx > 100 && dbl === 0, 'a half-way point gives its extra tick once, also when Wrack restarts at that moment (' + nx + ' extra ticks, ' + dbl + ' twice)');
   });
 
   T.run('patch of 2026-11-10: option "timer" (rounds 195-201): DoTs tick twice as fast while Wrack channels', function () {
