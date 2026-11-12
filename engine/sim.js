@@ -98,22 +98,41 @@ window.WL = window.WL || {};
     // Cheat mode (round 166, user): a ticked spell always hits / always crits. The dice are still thrown, so every other
     // roll stays where it was. Keys: spell keys, 'pet:firebolt', 'pet:lashOfPain', 'pet:melee'.
     var CH = (cfg.options && cfg.options.cheat) || {}, CHH = CH.hit || {}, CHC = CH.crit || {};
-    // Wrack (patch of 2026-11-10): while you channel it, the DoTs in dotSpeedSpells tick dotSpeedPct faster on the boss; their
-    // duration stays, and a sped-up DoT that ends between two ticks deals the part of a tick it has built up (Xn: "it will
-    // tick for 100, and then tick for 50"). Internal options for measuring (not on the page): wrackLastTick 'lost' = only
-    // whole ticks (as every other DoT here); wrackMode 'damage' = the same gain as extra damage instead of speed (a check
-    // of the speed model); wrackMode
-    // 'share' = normal tick times, each tick deals dotSpeedPct more for the share of its interval Wrack was channelling
-    // (in theory the same damage as the faster ticks with wrackLastTick 'partial' — the fair check of the speed model).
-    var WRACK_DMG = !!(cfg.options && cfg.options.wrackMode === 'damage');
-    var WRACK_SHARE = !!(cfg.options && cfg.options.wrackMode === 'share');
-    var WRACK_PARTIAL = !(cfg.options && cfg.options.wrackLastTick === 'lost');
+    // Wrack (patch of 2026-11-10): while you channel it, the DoTs in dotSpeedSpells tick dotSpeedPct faster on the boss
+    // without getting shorter. Default since round 202 (user's choice), wrackMode 'halfway': each DoT keeps its normal ticks
+    // and gets an extra tick at every half-way point between two of its normal ticks that falls inside a Wrack channel.
+    // Other models are kept as internal options (not on the page), in case the game turns out to work another way:
+    //   'restart' - a second tick timer starts with each channel (an extra tick every tickEvery of that channel); stopping
+    //               Wrack throws its progress away;
+    //   'saved'   - a second tick timer that only runs while Wrack channels and keeps its progress from one channel to the
+    //               next (lost when the DoT ends or is cast again);
+    //   'timer'   - rounds 195-201: the DoT's own tick timer runs at double speed during Wrack and keeps that progress;
+    //               with it, wrackLastTick 'partial' = a smaller last tick for the part built up when the DoT ends (rounds
+    //               195-200; lost since round 201, user's call);
+    //   'damage'  - check version: normal tick times, ticks during Wrack deal dotSpeedPct more;
+    //   'share'   - check version of 'timer': normal tick times, each tick deals dotSpeedPct more for the share of its
+    //               interval Wrack was channelling (in theory the same damage as 'timer' with wrackLastTick 'partial').
+    // 'halfway' / 'restart' / 'saved' are written for dotSpeedPct 100 (one extra tick per normal interval under Wrack).
+    var WMODE = (cfg.options && cfg.options.wrackMode) || 'halfway';
+    var WRACK_DMG = WMODE === 'damage';
+    var WRACK_SHARE = WMODE === 'share';
+    var WRACK_PARTIAL = !!(cfg.options && cfg.options.wrackLastTick === 'partial');
     var WRACK_GAIN = 1 + ((SPELLS.wrack && SPELLS.wrack.dotSpeedPct) || 0) / 100;
-    var WRACK_FAST = {};
-    if (!WRACK_DMG && table.wrack && SPELLS.wrack.dotSpeedSpells) SPELLS.wrack.dotSpeedSpells.forEach(function (k) { WRACK_FAST[k] = true; });
-    var WRACK_ANY = Object.keys(WRACK_FAST).length > 0;
+    var WRACK_X = WRACK_GAIN > 1 ? ({ halfway: 'A', restart: 'B', saved: 'C' })[WMODE] || null : null;   // the extra-tick models
+    var WRACK_FAST = {}, WRACK_XS = {};
+    if (!WRACK_DMG && table.wrack && SPELLS.wrack.dotSpeedSpells) SPELLS.wrack.dotSpeedSpells.forEach(function (k) { if (WRACK_X) WRACK_XS[k] = true; else WRACK_FAST[k] = true; });
+    var WRACK_ANY = Object.keys(WRACK_FAST).length > 0 || Object.keys(WRACK_XS).length > 0;
     function wrackOn() { return !!(S.channel && S.channel.key === 'wrack'); }
     function wrackRate() { return !WRACK_SHARE && wrackOn() ? WRACK_GAIN : 1; }
+    // Extra-tick models (WRACK_X): queue DoT d's next extra tick while Wrack channels (strict: right after one came).
+    // d.xp = seconds the second timer has built up ('saved'), d.xat = when it last moved, d.xg = its generation.
+    function xSched(key, d, strict) {
+      var te = SPELLS[key].tickEvery, t;
+      if (WRACK_X === 'A') t = d.applied + (Math.ceil((S.t - d.applied) / te - 0.5 + (strict ? 1e-6 : -1e-6)) + 0.5) * te;
+      else if (WRACK_X === 'B') t = S.t + te;
+      else t = S.t + te - d.xp;
+      if (t < d.expires - 1e-6) H.push({ t: t, o: 0, type: 'wrackX', key: key, inst: d.inst, gen: d.xg });
+    }
     function missRoll(k) { var x = R.hit() * 100; return !CHH[k] && x >= stats.hitPct; }
     function critRoll(k, pct) { var x = R.crit() * 100; return !!CHC[k] || x < pct + (TRX ? trCrit(k) : 0); }   // + trinket crit (round 166)
     function L(type, spell, extra) {
@@ -680,6 +699,7 @@ window.WL = window.WL || {};
       var s = SPELLS[key], e = table[key], id = ++inst;
       if (s.bane) { delete S.dots.baneOfAgony; delete S.dots.baneOfDoom; }                               // one Bane per target
       var d = S.dots[key] = { inst: id, applied: S.t, expires: S.t + s.duration, tick: 0, ticks: e.ticks, snap: snap };
+      if (WRACK_XS[key]) { d.xp = 0; d.xg = 0; d.xat = S.t; if (S.wrackOn) xSched(key, d, false); }   // [A18] extra ticks under Wrack
       if (WRACK_FAST[key]) {                                                // [A18] Wrack can speed it up: one tick at a time
         d.fast = true; d.prog = 0; d.at = S.t; d.rate = wrackRate(); d.gen = 0; d.n = 0; d.wacc = 0;
         d.seq0 = H.seq; H.seq += e.ticks;                                  // its ticks keep the places in the order the fixed schedule gives them
@@ -692,7 +712,7 @@ window.WL = window.WL || {};
     function nextFastTick(key, d) {
       var s = SPELLS[key], t = S.t + Math.max(0, s.tickEvery - d.prog) / d.rate;
       if (t <= d.expires + 1e-6) { H.push({ t: Math.min(t, d.expires), o: 0, type: 'dotTick', key: key, inst: d.inst, gen: d.gen, fast: 1, seqAt: fastSeq(d) }); return; }
-      if (!WRACK_PARTIAL) return;                                           // option 'lost': the part of a tick left at the end is lost
+      if (!WRACK_PARTIAL) return;                                           // default (round 201): the part of a tick left at the end is lost
       var frac = (d.prog + (d.expires - S.t) * d.rate) / s.tickEvery;
       if (frac > 1e-6) H.push({ t: d.expires, o: 0, type: 'dotTick', key: key, inst: d.inst, gen: d.gen, fast: 1, seqAt: fastSeq(d), frac: Math.min(1, frac) });
     }
@@ -714,6 +734,13 @@ window.WL = window.WL || {};
       if (S.wrackOn) S.wrackTime += S.t - S.wrackOnAt; else S.wrackOnAt = S.t;
       var was = S.wrackOn, r = wrackRate();
       S.wrackOn = on; S.wrackRate = r;
+      if (WRACK_X) for (var xk in S.dots) {                                // extra-tick models: restart / stop the extra ticks
+        var xd = S.dots[xk];
+        if (!WRACK_XS[xk] || xd.xg == null) continue;
+        if (was && WRACK_X === 'C') xd.xp += S.t - xd.xat;
+        xd.xat = S.t; xd.xg++;
+        if (on) xSched(xk, xd, false);
+      }
       for (var k in S.dots) {
         var d = S.dots[k];
         if (!d.fast || d.expires <= S.t + EPS) continue;
@@ -1490,6 +1517,14 @@ window.WL = window.WL || {};
         if (ev.fast) { if (ev.gen === d.gen) fastTick(ev.key, d, ev.frac); continue; }   // re-timed by Wrack: a later copy
         periodicTick(ev.key, d.snap, ev.i, false);
         if (ev.i === d.ticks - 1) delete S.dots[ev.key];
+      } else if (ev.type === 'wrackX') {                       // an extra DoT tick under Wrack (round 202)
+        var xd2 = S.dots[ev.key];
+        if (!xd2 || xd2.inst !== ev.inst || ev.gen !== xd2.xg || !S.wrackOn) continue;
+        var xs = SPELLS[ev.key], xri = xs.ramp ? Math.min(xs.ramp.length - 1, Math.max(0, Math.ceil((S.t - xd2.applied) / xs.tickEvery - 1e-6) - 1)) : 0;
+        var xl = log.length;
+        periodicTick(ev.key, xd2.snap, xri, false);           // Bane of Agony: the ramp of the 2-second slot it falls in
+        if (logOn) for (; xl < log.length; xl++) if (log[xl].type === 'tick' && log[xl].spell === ev.key) { log[xl].extra = true; break; }   // its own line (procs may follow)
+        xd2.xp = 0; xd2.xat = S.t; xSched(ev.key, xd2, true);
       } else if (ev.type === 'dotTickX') {                     // DoT tick on an extra target (multi-DoT)
         var dx = S.xdots[ev.ti][ev.key];
         if (!dx || dx.inst !== ev.inst) continue;

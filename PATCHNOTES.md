@@ -3,6 +3,15 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v174
+- **Wrack** works differently: your DoTs keep their normal ticks, and while Wrack channels each half-way point between
+  two of them gives an extra tick (Corruption: Wrack from 4 to 8 s adds ticks at 4.5 and 7.5 s; its normal ticks stay at
+  3, 6, 9 s). Stopping Wrack early changes nothing else, and there is no smaller last tick when a DoT runs out.
+  Wrack DS stays about the same (689.3 as Undead, within 0.1%); other builds unchanged.
+- **Gear builder items** updated from Wowhead Forever: 104 new items (many level 58–60 dungeon drops, such as
+  Spellweaver's Turban and Gift of the Elven Magi), level requirements and sources brought up to date, 1 item gone
+  (Obsidian Bauble). All 172 Enchanting recipes re-read.
+
 ## v173
 - **Amplify Curse** stays up when its Bane of Agony misses (checked in game): the next Bane of Agony that lands gets
   the ×1.5. Wrack DS and Incinerate Pandemic gain a little.

@@ -27,18 +27,50 @@
     return w;
   }
   // The expected tick times of one application of DoT k (applied at a, lasting until a + duration): a timer that runs
-  // at double speed inside the Wrack windows, a tick each time it reaches tickEvery.
-  function expectTicks(k, a, W, until) {
+  // at double speed inside the Wrack windows, a tick each time it reaches tickEvery (part = also the smaller last tick of
+  // option wrackLastTick 'partial'; none by default since round 201).
+  function expectTicks(k, a, W, until, part) {
     var s = WL.SPELLS[k], end = Math.min(a + s.duration, until), out = [], t = a, prog = 0, step = 0.0005;
     while (t < end + 1e-9) {
       var on = W.some(function (x) { return t >= x[0] - 1e-9 && t < x[1] - 1e-9; }), rate = on ? 2 : 1;
       var need = (s.tickEvery - prog) / rate;
       var nextEdge = W.reduce(function (m, x) { return [x[0], x[1]].reduce(function (mm, y) { return y > t + 1e-9 && y < mm ? y : mm; }, m); }, Infinity);
       if (t + need <= Math.min(nextEdge, end) + 1e-6) { t += need; out.push(t); prog = 0; continue; }
-      if (nextEdge >= end) { if (end === a + s.duration && (prog + (end - t) * rate) > 1e-6) out.push(end); break; }   // the part tick at the end
+      if (nextEdge >= end) { if (part && end === a + s.duration && (prog + (end - t) * rate) > 1e-6) out.push(end); break; }   // the part tick at the end
       prog += (nextEdge - t) * rate; t = nextEdge;
     }
     return out;
+  }
+  // Round 202: the extra ticks of the extra-tick models for one application of DoT k (applied at a; until = its end, the
+  // next cast or the fight end), from the Wrack windows W. A ('halfway'): the half-way points between its normal ticks
+  // inside a window; B ('restart'): every tickEvery from each window's start, inside it; C ('saved'): a timer that runs
+  // only inside windows and keeps its progress between them.
+  function expectExtra(mode, k, a, W, until) {
+    var s = WL.SPELLS[k], te = s.tickEvery, end = Math.min(a + s.duration, until), out = [], acc = 0;
+    W.forEach(function (w) {
+      var w0 = Math.max(w[0], a), w1 = Math.min(w[1], end);
+      if (w1 <= w0) return;
+      if (mode === 'A') { for (var j = 0; a + (j + 0.5) * te < w1; j++) { var h = a + (j + 0.5) * te; if (h >= w0 - 1e-9) out.push(h); } }
+      else if (mode === 'B') { for (var x = w0 + te; x < w1; x += te) out.push(x); }
+      else { var t = w0; while (t + te - acc < w1) { t += te - acc; out.push(t); acc = 0; } acc += w1 - t; }
+    });
+    return out.filter(function (x) { return x < a + s.duration - 1e-6; });
+  }
+  // Compare the logged extra ticks of every application with the expected ones (points within 2 ms of a window edge are
+  // left out: there the order of two events at the same moment decides).
+  function checkExtra(r, mode, W, k) {
+    var ap = applies(r, k), all = ticks(r, k), bad = 0, n = 0, normalOff = 0;
+    var edge = function (t) { return W.some(function (w) { return Math.abs(t - w[0]) < 0.002 || Math.abs(t - w[1]) < 0.002; }); };
+    ap.forEach(function (a, i) {
+      var until = Math.min(i + 1 < ap.length ? ap[i + 1].t : Infinity, DUR);
+      var mine = all.filter(function (e) { return e.t > a.t + 1e-6 && e.t <= until + 1e-6; });
+      var got = mine.filter(function (e) { return e.extra; }).map(function (e) { return e.t; }).filter(function (t) { return !edge(t); });
+      var exp = expectExtra(mode, k, a.t, W, until).filter(function (t) { return !edge(t) && t <= until + 1e-6; });
+      n += got.length;
+      if (got.length !== exp.length || got.some(function (t, j) { return Math.abs(t - exp[j]) > 0.002; })) bad++;
+      mine.filter(function (e) { return !e.extra; }).forEach(function (e) { var q = (e.t - a.t) / WL.SPELLS[k].tickEvery; if (Math.abs(q - Math.round(q)) > 1e-4) normalOff++; });
+    });
+    return { bad: bad, n: n, casts: ap.length, normalOff: normalOff };
   }
 
   T.run('patch of 2026-11-10: Wrack data and Soul Siphon', function () {
@@ -72,9 +104,28 @@
     })();
   });
 
-  T.run('patch of 2026-11-10: DoTs tick twice as fast while Wrack channels', function () {
+  T.run('round 202: extra ticks at the half-way points under Wrack (default) and the other two models', function () {
     // The shipped Wrack DS in a plain fight: Wrack starts and stops many times (Nightfall bolts, Life Tap, refreshes).
-    var b = JSON.parse(JSON.stringify(WL.findBuild('wrack_ds'))), r = run(b), W = wrackWindows(r);
+    var b = JSON.parse(JSON.stringify(WL.findBuild('wrack_ds')));
+    [['A', {}, 'default "halfway": an extra tick at each half-way point inside a Wrack channel'],
+     ['B', { wrackMode: 'restart' }, 'option "restart": an extra tick every interval from each channel\'s start'],
+     ['C', { wrackMode: 'saved' }, 'option "saved": a second timer that runs only under Wrack and keeps its progress']].forEach(function (m) {
+      var r = run(b, m[1]), W = wrackWindows(r);
+      ['corruption', 'baneOfAgony', 'siphonLife'].forEach(function (k) {
+        var c = checkExtra(r, m[0], W, k);
+        T.ok(c.bad === 0 && c.n > 0, m[2] + ' — ' + WL.SPELLS[k].name + ': ' + c.n + ' extra ticks over ' + c.casts + ' casts, ' + c.bad + ' casts off');
+        T.eq(c.normalOff, 0, m[2] + ' — ' + WL.SPELLS[k].name + ': the normal ticks stay on their normal times');
+      });
+    });
+    // A: Corruption's extra ticks are exactly half-way (1.5 s) between two normal ticks.
+    var ra = run(b), ap = applies(ra, 'corruption'), ex = ticks(ra, 'corruption').filter(function (e) { return e.extra; });
+    T.ok(ex.length > 0 && ex.every(function (e) { var a = ap.filter(function (x) { return x.t < e.t - 1e-6; }).pop(); var q = (e.t - a.t) / 3; return Math.abs(q - Math.floor(q) - 0.5) < 1e-4; }),
+      'default: every extra Corruption tick lands 1.5 s after a normal tick time (' + ex.length + ')');
+  });
+
+  T.run('patch of 2026-11-10: option "timer" (rounds 195-201): DoTs tick twice as fast while Wrack channels', function () {
+    // The shipped Wrack DS in a plain fight: Wrack starts and stops many times (Nightfall bolts, Life Tap, refreshes).
+    var b = JSON.parse(JSON.stringify(WL.findBuild('wrack_ds'))), r = run(b, { wrackMode: 'timer' }), W = wrackWindows(r);
     T.ok(W.length > 10, W.length + ' Wrack channels');
     ['corruption', 'baneOfAgony', 'siphonLife'].forEach(function (k) {
       var ap = applies(r, k), all = ticks(r, k), bad = 0, n = 0, extra = 0;
@@ -105,13 +156,13 @@
     var unit = first.map(function (e) { return e.dmg / ramp[Math.min(11, Math.ceil((e.t - a0) / 2 - 1e-6) - 1)]; });
     T.ok(unit.every(function (u) { return Math.abs(u - unit[0]) <= 1.5; }), 'every tick = the same amount × the ramp of its 2-second slot (' + unit.map(Math.round).join(' ') + ')');
 
-    // Corruption cast 2 s before Wrack: its ticks run on to exactly its normal end; what is left is lost (default) or dealt
-    // as a part of a tick (option for measuring).
-    var bc = tb(['corruption', 'wrack']), lost = run(bc, { wrackLastTick: 'lost' }, 40), part = run(bc, {}, 40);
+    // Corruption cast 2 s before Wrack: its ticks run on to exactly its normal end; what is left is lost (default since
+    // round 201, user's call) or dealt as a part of a tick (option wrackLastTick 'partial', rounds 195-200).
+    var bc = tb(['corruption', 'wrack']), lost = run(bc, {}, 40), part = run(bc, { wrackMode: 'timer', wrackLastTick: 'partial' }, 40);
     var pt = ticks(part, 'corruption').filter(function (e) { return e.part != null; });
-    T.ok(ticks(lost, 'corruption').every(function (e) { return e.part == null; }), 'option "lost": only whole ticks');
+    T.ok(ticks(lost, 'corruption').every(function (e) { return e.part == null; }), 'default: only whole ticks, no smaller last tick (round 201)');
     T.ok(pt.length > 0 && pt.every(function (e) { return e.part > 0 && e.part < 1 && Math.abs(e.t - applies(part, 'corruption').filter(function (a) { return a.t < e.t; }).pop().t - 18) < 1e-6; }),
-      'default: a smaller last tick when the DoT ends between two ticks, at its normal end (' + pt.map(function (e) { return e.part; }).join(', ') + ')');
+      'options "timer" + "partial": a smaller last tick when the DoT ends between two ticks, at its normal end (' + pt.map(function (e) { return e.part; }).join(', ') + ')');
     var full = ticks(part, 'corruption').filter(function (e) { return e.part == null; })[0].dmg;
     T.ok(pt.every(function (e) { return Math.abs(e.dmg - full * e.part) <= 1; }), 'the part tick deals that part of a tick');
   });
@@ -139,17 +190,18 @@
     var b = WL.findBuild('wrack_ds'), dots = ['corruption', 'baneOfAgony', 'siphonLife'];
     function dotDps(o) { var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)); Object.assign(c.options, o); c.fight.iterations = 300;
       var r = WL.simulate(b, 'undead', c, { iterations: 300 }); return dots.reduce(function (a, k) { return a + r.bySpell[k].dmg; }, 0); }
-    var fast = dotDps({}), share = dotDps({ wrackMode: 'share' });
+    var fast = dotDps({ wrackMode: 'timer', wrackLastTick: 'partial' }), share = dotDps({ wrackMode: 'share' });
     T.ok(Math.abs(fast / share - 1) < 0.01, 'Corruption + Bane of Agony + Siphon Life: faster ticks ' + Math.round(fast) + ' vs check version ' + Math.round(share) + ' per fight (' + ((fast / share - 1) * 100).toFixed(2) + '%)');
-    var lost = dotDps({ wrackLastTick: 'lost' });
-    T.ok(lost < fast, 'without the part ticks at the end the DoTs deal less (' + Math.round(lost) + ')');
+    var lost = dotDps({ wrackMode: 'timer' }), half = dotDps({});
+    T.ok(Math.abs(half / share - 1) < 0.01, 'default (round 202, half-way extra ticks): ' + Math.round(half) + ' vs check version ' + Math.round(share) + ' (' + ((half / share - 1) * 100).toFixed(2) + '%)');
+    T.ok(lost < fast, 'option "timer" without the part ticks at the end: the DoTs deal less (' + Math.round(lost) + ')');
   });
 
   T.run('patch of 2026-11-10: Wrack cast again while it channels', function () {
     // A second Wrack action above the plain Wrack filler that switches on 20.5 s into the fight, in the middle of a filler
     // Wrack: it casts Wrack over the running one. Nothing is clipped: the ticks it had left carry over.
     var b = tb(['corruption', 'wrackDots', 'wrack']); b.params = { wrackDots: { sec: 0 } }; b.actWhen = { wrackDots: { t: 'fight', what: 'elapsed', op: '>=', v: 20.5 } };
-    var r = run(b), rc = r.log.filter(function (e) { return e.type === 'recast'; });
+    var r = run(b), rc = r.log.filter(function (e) { return e.type === 'recast'; }), rt = run(b, { wrackMode: 'timer' });
     T.ok(rc.length > 0, rc.length + ' times Wrack was cast again while it channelled');
     T.eq(r.log.filter(function (e) { return e.type === 'clip' && e.spell === 'wrack' && e.for === 'wrack'; }).length, 0, 'never logged as a clip');
     var bad = 0;
@@ -161,19 +213,25 @@
       if (!c || c.channel !== n || (!cut && tk.length !== n)) bad++;
     });
     T.eq(bad, 0, 'each new Wrack runs for its 6 ticks plus the ones the old one had left, one every second');
-    var W = wrackWindows(r).map(function (w, i, a) { return w; }), ap = applies(r, 'corruption'), all = ticks(r, 'corruption'), off = 0;
-    // the DoTs stay sped up through the recast: Corruption's ticks still follow the double-speed timer
-    W = []; r.log.forEach(function (e) {
-      if (e.type === 'cast' && e.spell === 'wrack') W.push([e.t, e.t + e.channel]);
-      if ((e.type === 'clip' || e.type === 'recast') && e.spell === 'wrack' && W.length) W[W.length - 1][1] = e.t;
-    });
+    function windows(x) {
+      var W = []; x.log.forEach(function (e) {
+        if (e.type === 'cast' && e.spell === 'wrack') W.push([e.t, e.t + e.channel]);
+        if ((e.type === 'clip' || e.type === 'recast') && e.spell === 'wrack' && W.length) W[W.length - 1][1] = e.t;
+      });
+      return W;
+    }
+    // default: the extra Corruption ticks keep coming at the half-way points across each recast
+    var ca = checkExtra(r, 'A', windows(r), 'corruption');
+    T.ok(ca.bad === 0 && ca.n > 0 && ca.normalOff === 0, 'default: Corruption\'s half-way extra ticks go on across each recast (' + ca.n + ' extra ticks, ' + ca.casts + ' casts)');
+    // option "timer": Corruption's ticks still follow the double-speed timer across each recast
+    var W = windows(rt), ap = applies(rt, 'corruption'), all = ticks(rt, 'corruption'), off = 0;
     ap.forEach(function (a, i) {
       var next = i + 1 < ap.length ? ap[i + 1].t : Infinity;
       var got = all.filter(function (e) { return e.t > a.t + 1e-6 && e.t <= Math.min(next, DUR) + 1e-6; }).map(function (e) { return e.t; });
       var exp = expectTicks('corruption', a.t, W, Math.min(next, DUR));
       if (got.length !== exp.length || got.some(function (t, j) { return Math.abs(t - exp[j]) > 0.002; })) off++;
     });
-    T.eq(off, 0, 'Corruption keeps ticking twice as fast across each recast (' + ap.length + ' casts)');
+    T.eq(off, 0, 'option "timer": Corruption keeps ticking twice as fast across each recast (' + ap.length + ' casts)');
   });
 
   T.run('patch of 2026-11-10: Soul Siphon on Wrack', function () {

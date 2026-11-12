@@ -205,15 +205,14 @@ Example: Corruption with 5/5 Improved Corruption and 5/5 Shadow Mastery gets × 
 Amplify Curse stays up and goes to the next Bane of Agony that lands.
 
 **Wrack** makes your Corruption, Bane of Agony and Siphon Life on the boss tick twice as often while you channel it,
-without making them shorter: every DoT has a timer to its next tick that runs at double speed during Wrack. Starting
-Wrack 1 s after a Corruption tick makes the next one come 1 s later instead of 2. Outside Wrack the normal pace returns,
-and the timer keeps how far it got: stopping Wrack 0.5 s before a tick makes that tick come 1 s later instead.
-Each tick deals the normal amount, so a DoT that is up during Wrack deals more ticks in total. When the DoT runs out
-between two ticks, the part of a tick that has built up is dealt as a last, smaller tick: half-way to the next tick
-deals half a tick. Bane of Agony's ticks grow with the time since it was cast (the weak ticks of its first 8 s, the
-strong ones of its last 8 s), however fast they come. More Corruption ticks also mean more chances for Nightfall.
-Casting Wrack again while it channels cuts nothing short: the ticks the running Wrack has left are added to the new
-one, and the DoTs keep their faster pace.
+without making them shorter: each DoT keeps its normal ticks, and every half-way point between two of them that falls
+inside a Wrack channel gives an extra tick. Corruption ticks every 3 s, so a channel from 4 to 8 s after its cast adds
+ticks at 4.5 and 7.5 s, while its normal ticks stay at 3, 6, 9 s and so on. A short channel still gets an extra tick
+when it covers a half-way point, and stopping Wrack changes nothing else. Each tick deals the normal amount, so a DoT
+that is up during Wrack deals more ticks in total; when the DoT runs out, nothing is left over. Bane of Agony's ticks
+grow with the time since it was cast (the weak ticks of its first 8 s, the strong ones of its last 8 s), the extra ones
+too. More Corruption ticks also mean more chances for Nightfall. Casting Wrack again while it channels cuts nothing
+short: the ticks the running Wrack has left are added to the new one, and the extra ticks go on.
 
 **Resist roll.** See section 11. At the default settings nothing is resisted once Curse of the Elements is on the boss.
 
