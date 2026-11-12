@@ -209,22 +209,38 @@
     T.ok(lost < fast, 'option "timer" without the part ticks at the end: the DoTs deal less (' + Math.round(lost) + ')');
   });
 
-  T.run('patch of 2026-11-10: Wrack cast again while it channels', function () {
+  T.run('Wrack cast again while it channels (round 206, user: the new one replaces the old one)', function () {
     // A second Wrack action above the plain Wrack filler that switches on 20.5 s into the fight, in the middle of a filler
-    // Wrack: it casts Wrack over the running one. Nothing is clipped: the ticks it had left carry over.
+    // Wrack: it casts Wrack over the running one. Default: like any channel cast again, the old one is cut and the new one
+    // runs its own 6 ticks. Option wrackRecast 'carry' (rounds 195-205): the ticks the old one had left carry over.
     var b = tb(['corruption', 'wrackDots', 'wrack']); b.params = { wrackDots: { sec: 0 } }; b.actWhen = { wrackDots: { t: 'fight', what: 'elapsed', op: '>=', v: 20.5 } };
-    var r = run(b), rc = r.log.filter(function (e) { return e.type === 'recast'; }), rt = run(b, { wrackMode: 'timer' });
-    T.ok(rc.length > 0, rc.length + ' times Wrack was cast again while it channelled');
-    T.eq(r.log.filter(function (e) { return e.type === 'clip' && e.spell === 'wrack' && e.for === 'wrack'; }).length, 0, 'never logged as a clip');
+    var r = run(b), rt = run(b, { wrackMode: 'timer' }), rk = run(b, { wrackRecast: 'carry' });
+    function sixTicks(x, after) {                 // each Wrack cast from the first refresh on: 6 ticks, one every second, unless cut
+      var bad = 0;
+      x.log.forEach(function (c) {
+        if (c.type !== 'cast' || c.spell !== 'wrack' || c.t < after - 1e-6 || c.t + c.channel > DUR + 1e-6) return;   // not the one the fight's end cuts
+        var end = c.t + c.channel;
+        var tk = x.log.filter(function (e) { return e.type === 'tick' && e.spell === 'wrack' && e.t > c.t + 1e-6 && e.t <= end + 1e-6; });
+        var cut = x.log.some(function (e) { return (e.type === 'clip' || e.type === 'miss') && e.spell === 'wrack' && e.t > c.t - 1e-6 && e.t < end - 1e-6 && !(e.type === 'clip' && Math.abs(e.t - c.t) < 1e-6); });
+        if (c.channel !== 6 || (!cut && tk.length !== 6)) bad++;
+      });
+      return bad;
+    }
+    var rw = r.log.filter(function (e) { return e.type === 'clip' && e.spell === 'wrack' && e.for === 'wrack'; });
+    T.ok(rw.length > 0 && r.log.every(function (e) { return e.type !== 'recast'; }), 'default: Wrack cast over Wrack cuts the old one (' + rw.length + ' times)');
+    T.eq(sixTicks(r, rw.length ? rw[0].t : 0), 0, 'default: each new Wrack runs its own 6 ticks, nothing carried over');
+    var rc = rk.log.filter(function (e) { return e.type === 'recast'; });
+    T.ok(rc.length > 0, 'option "carry": ' + rc.length + ' times Wrack was cast again while it channelled');
+    T.eq(rk.log.filter(function (e) { return e.type === 'clip' && e.spell === 'wrack' && e.for === 'wrack'; }).length, 0, 'option "carry": never logged as a clip');
     var bad = 0;
     rc.forEach(function (x) {
-      var c = r.log.filter(function (e) { return e.type === 'cast' && e.spell === 'wrack' && Math.abs(e.t - x.t) < 1e-6; })[0];
+      var c = rk.log.filter(function (e) { return e.type === 'cast' && e.spell === 'wrack' && Math.abs(e.t - x.t) < 1e-6; })[0];
       var n = Math.floor(x.left + 1e-6) + 6, end = c ? c.t + c.channel : 0;
-      var tk = r.log.filter(function (e) { return e.type === 'tick' && e.spell === 'wrack' && e.t > x.t + 1e-6 && e.t <= end + 1e-6; });
-      var cut = r.log.some(function (e) { return (e.type === 'clip' || e.type === 'recast') && e.spell === 'wrack' && e.t > x.t + 1e-6 && e.t < end - 1e-6; });
+      var tk = rk.log.filter(function (e) { return e.type === 'tick' && e.spell === 'wrack' && e.t > x.t + 1e-6 && e.t <= end + 1e-6; });
+      var cut = rk.log.some(function (e) { return (e.type === 'clip' || e.type === 'recast') && e.spell === 'wrack' && e.t > x.t + 1e-6 && e.t < end - 1e-6; });
       if (!c || c.channel !== n || (!cut && tk.length !== n)) bad++;
     });
-    T.eq(bad, 0, 'each new Wrack runs for its 6 ticks plus the ones the old one had left, one every second');
+    T.eq(bad, 0, 'option "carry": each new Wrack runs for its 6 ticks plus the ones the old one had left, one every second');
     function windows(x) {
       var W = []; x.log.forEach(function (e) {
         if (e.type === 'cast' && e.spell === 'wrack') W.push([e.t, e.t + e.channel]);
@@ -233,8 +249,9 @@
       return W;
     }
     // default: the extra Corruption ticks keep coming at the half-way points across each recast
-    var ca = checkExtra(r, 'A', windows(r), 'corruption');
+    var ca = checkExtra(r, 'A', windows(r), 'corruption'), ck = checkExtra(rk, 'A', windows(rk), 'corruption');
     T.ok(ca.bad === 0 && ca.n > 0 && ca.normalOff === 0, 'default: Corruption\'s half-way extra ticks go on across each recast (' + ca.n + ' extra ticks, ' + ca.casts + ' casts)');
+    T.ok(ck.bad === 0 && ck.n > 0 && ck.normalOff === 0, 'option "carry": the same (' + ck.n + ' extra ticks)');
     // option "timer": Corruption's ticks still follow the double-speed timer across each recast
     var W = windows(rt), ap = applies(rt, 'corruption'), all = ticks(rt, 'corruption'), off = 0;
     ap.forEach(function (a, i) {
@@ -244,6 +261,27 @@
       if (got.length !== exp.length || got.some(function (t, j) { return Math.abs(t - exp[j]) > 0.002; })) off++;
     });
     T.eq(off, 0, 'option "timer": Corruption keeps ticking twice as fast across each recast (' + ap.length + ' casts)');
+  });
+
+  T.run('round 205 (user): a Wrack recast that is resisted loses the old Wrack', function () {
+    // Same build as above with 15% misses: when the new Wrack misses, the old one stops at once. Neither Wrack nor the
+    // extra DoT ticks go on until the next Wrack lands.
+    var b = tb(['corruption', 'wrackDots', 'wrack']); b.params = { wrackDots: { sec: 0 } }; b.actWhen = { wrackDots: { t: 'fight', what: 'elapsed', op: '>=', v: 20.5 } };
+    [{}, { wrackRecast: 'carry' }].forEach(function (o) {
+    var found = 0, bad = 0;
+    for (var s = 1; s <= 60; s++) {
+      var c = det(); c.combat.baseHitPct = 85; c.combat.maxHitPct = 85; Object.assign(c.options, o);
+      var L = WL.simulateOnce(b, 'human', c, { seed: s, duration: 40, log: true }).log;
+      L.forEach(function (e, i) {
+        if (e.type !== 'miss' || e.spell !== 'wrack' || !L.some(function (p) { return p.type === 'clip' && p.spell === 'wrack' && p.for === 'wrack' && Math.abs(p.t - e.t) < 1e-6; })) return;
+        found++;
+        var rest = L.slice(i + 1), land = rest.filter(function (x, j) { return x.type === 'cast' && x.spell === 'wrack' && !(rest[j + 1] && rest[j + 1].type === 'miss' && rest[j + 1].spell === 'wrack'); })[0];
+        var until = land ? land.t : Infinity;
+        if (rest.some(function (x) { return x.type === 'tick' && x.t > e.t + 1e-6 && x.t <= until + 1e-6 && (x.spell === 'wrack' || x.extra); })) bad++;
+      });
+    }
+    T.ok(found > 0 && bad === 0, (o.wrackRecast ? 'option "carry": ' : 'default: ') + 'after a resisted recast nothing of the old Wrack goes on (' + found + ' resisted recasts in 60 fights, ' + bad + ' wrong)');
+    });
   });
 
   T.run('patch of 2026-11-10: Soul Siphon on Wrack', function () {

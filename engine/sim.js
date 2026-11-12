@@ -118,6 +118,10 @@ window.WL = window.WL || {};
     var WRACK_SHARE = WMODE === 'share';
     var WRACK_PARTIAL = !!(cfg.options && cfg.options.wrackLastTick === 'partial');
     var WRACK_GAIN = 1 + ((SPELLS.wrack && SPELLS.wrack.dotSpeedPct) || 0) / 100;
+    // Wrack cast over a running Wrack: 'replace' (default, round 206, user): like any channel cast again, the old one is cut
+    // and the new one runs its own 6 ticks. Option wrackRecast 'carry' (rounds 195–205): the ticks the old one had left are
+    // added to the new one.
+    var WRACK_CARRY = !!(cfg.options && cfg.options.wrackRecast === 'carry');
     var WRACK_X = WRACK_GAIN > 1 ? ({ halfway: 'A', restart: 'B', saved: 'C' })[WMODE] || null : null;   // the extra-tick models
     var WRACK_FAST = {}, WRACK_XS = {};
     if (!WRACK_DMG && table.wrack && SPELLS.wrack.dotSpeedSpells) SPELLS.wrack.dotSpeedSpells.forEach(function (k) { if (WRACK_X) WRACK_XS[k] = true; else WRACK_FAST[k] = true; });
@@ -976,7 +980,7 @@ window.WL = window.WL || {};
       S.cast = null;
       if (s.kind === 'channel') {
         var r = row(key);
-        // Wrack recast on a running Wrack (patch of 2026-11-10): the ticks the old one had left carry over (a whole number of them).
+        // Option wrackRecast 'carry': a Wrack cast on a running Wrack takes over the ticks the old one had left (a whole number).
         var carry = key === 'wrack' && S.wrackCarry && Math.abs(S.wrackCarry.t - S.t) < EPS ? S.wrackCarry.left : 0;
         S.wrackCarry = null;
         if (!s.aoe && missRoll(key)) {                    // area channels always start; their ticks roll per target (round 100)
@@ -1576,7 +1580,7 @@ window.WL = window.WL || {};
               else if (CTL.key !== cBase) { if (ctlLegal(CTL.key)) { higher = { key: CTL.key }; ctlPending = CTL.key; } else res.ctlIllegal = true; }
             }
           }
-          if (higher && higher.key === 'wrack' && ev.key === 'wrack') {   // Wrack on Wrack (patch of 2026-11-10): nothing is clipped,
+          if (WRACK_CARRY && higher && higher.key === 'wrack' && ev.key === 'wrack') {   // option 'carry': Wrack on Wrack clips nothing,
             S.wrackCarry = { t: S.t, left: c.end - S.t };                 // the new Wrack takes over the ticks this one has left
             S.channel = null; S.busyUntil = S.t; L('recast', ev.key, { left: +(c.end - S.t).toFixed(3) });
             scheduleDecide(S.t);

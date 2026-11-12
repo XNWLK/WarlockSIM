@@ -211,8 +211,9 @@ ticks at 4.5 and 7.5 s, while its normal ticks stay at 3, 6, 9 s and so on. A sh
 when it covers a half-way point, and stopping Wrack changes nothing else. Each tick deals the normal amount, so a DoT
 that is up during Wrack deals more ticks in total; when the DoT runs out, nothing is left over. Bane of Agony's ticks
 grow with the time since it was cast (the weak ticks of its first 8 s, the strong ones of its last 8 s), the extra ones
-too. More Corruption ticks also mean more chances for Nightfall. Casting Wrack again while it channels cuts nothing
-short: the ticks the running Wrack has left are added to the new one, and the extra ticks go on.
+too. More Corruption ticks also mean more chances for Nightfall. Casting Wrack again while it channels works like
+recasting any drain: the new Wrack replaces the old one and runs its own 6 ticks; the ticks the old one had left are
+lost, and nothing stacks. If the new Wrack is resisted, the old one is lost too.
 
 **Resist roll.** See section 11. At the default settings nothing is resisted once Curse of the Elements is on the boss.
 

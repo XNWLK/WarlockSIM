@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v176
+- **Wrack cast over a running Wrack** now replaces it, like recasting any drain: the new Wrack runs its normal 6 ticks
+  and the ticks the old one had left are lost (before, they were added to the new one). If the new Wrack is resisted,
+  the old one is lost too. None of the built-in builds does this, so their results are unchanged; it matters for your own
+  builds that cast Wrack again while it channels.
+
 ## v175
 - **Wrack:** when pushback cut Wrack short exactly at a half-way point and you started it again at that moment, that
   point gave its extra tick twice. It now gives it once. Only fights where you take hits change (Wrack DS with a hit
