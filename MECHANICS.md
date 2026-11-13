@@ -851,12 +851,18 @@ crit, MP5 …) are always on, like any item. Its "Use:" effect is used, by your 
 (the setting above, and its custom timeline has a row for each trinket), whenever it is ready, only in the execute phase,
 or never. Trinkets are off the global cooldown. A mana trinket is used when its amount of mana is missing.
 
+**Boss type and zone** (Fight & pets → Encounter, not set by default): some trinkets do more against a kind of enemy or
+in a kind of area. Boss type lists the creature types (Beast, Demon, Dragonkin, Elemental, Giant, Humanoid, Mechanical,
+Undead) and every kind of enemy a trinket names (a Satyr counts as a Demon too, a Murloc as a Humanoid, a Dinosaur as a
+Beast). Zone lists every kind of area a trinket names: Forest / Grassland, Marsh / Swamp, Mountainous, Snowy, Volcanic,
+Desert, Wasteland, Haunted, Stronghold / City. Nothing else in the sim depends on them.
+
 | Trinket | In the sim |
 |---|---|
 | Talisman of Ephemeral Power | +175 spell power for 15 s, 90 s cooldown. |
 | The Restrained Essence of Sapphiron | +130 spell power for 20 s, 2 min cooldown. |
 | Eye of Moam | +50 spell power and the boss's resistances −100 (like Spell Penetration) for 30 s, 3 min cooldown. |
-| Frozen Heart of the Mountain | +29 Shadow spell power for 15 s, 5 min cooldown ("doubled in Snowy areas" not counted). |
+| Frozen Heart of the Mountain | +29 Shadow spell power for 15 s (58 in Snowy areas), 5 min cooldown. |
 | Zandalarian Hero Charm | +204 spell power for 20 s, 17 less after each of your damaging casts, 2 min cooldown. |
 | Talisman of Ascendance | +40 spell power for each damaging cast since it was used (up to 5), for 6 casts or 20 s, 1 min cooldown. |
 | Hazza'rah's Charm of Destruction | +10% crit for your Destruction spells for 20 s, 3 min cooldown. |
@@ -865,11 +871,25 @@ or never. Trinkets are off the global cooldown. A mana trinket is used when its 
 | Serenity Field | +72 Spirit for 15 s (more mana from Life Tap), 90 s cooldown. |
 | Darkmoon Card: Blue Dragon | 2% chance per damaging cast: +150 Spirit for 15 s. |
 | Warmth of Forgiveness / Earthen Sigil | 500 / 400 mana (the Sigil's "over 10 sec" counted at once), 3 min cooldown. |
-| Shard of the Fallen Star, Smokey's Lighter, Thunderbrew's Boot Flask, Goblin Bomb Dispenser, Infernal Lasso | Their Fire damage as one hit: no spell power, your spell hit and crit (× 1.5), Curse of the Elements. |
-| Everlook Delivery Bot | 467 Fire damage after 7 of your damaging casts (the tooltip says 6 to 8). |
+| Shard of the Fallen Star, Smokey's Lighter, Thunderbrew's Boot Flask, Goblin Bomb Dispenser, Infernal Lasso, Goblin Mortar, EZ-Thro Bronze Mortar | Their Fire damage as one hit: no spell power, your spell hit and crit (× 1.5), Curse of the Elements. Smokey's Lighter and the Boot Flask: twice against Plants. |
+| Everlook Delivery Bot | 467 Fire damage after 7 of your damaging casts (the tooltip says 6 to 8); 3 or 4 in Snowy areas. |
+| Eye of the Beast | +7% spell hit for 20 s (up to the hit cap), 5 min cooldown. |
+| Heart of the Primeval | +19 spell power for 30 s, 6 min cooldown. |
+| Cannonball Runner | A cannon for 10 s: 10 shots of 85–139 Holy damage, one per second (its Cannon Fire is a 1 s cast), each like a trinket hit above but without Curse of the Elements (Holy); twice against Undead. 5 min cooldown. |
+| Draconic Infused Emblem | +35 spell power for 10 s on a damaging cast (Wowhead lists its chance as 100%), then not again for 60 s; 70 against Dragonkin. |
+| Bolt's Charged Eyeball | 15% chance on any damage you deal (hits and ticks), at most every 3 s: 60 Nature damage, half the time to the boss (180 against Dinosaurs), half the time to you. |
+| Cursed Murloc Eye | 2 Shadow damage with each damaging cast (8 against Murlocs). |
+| Mindtap Talisman | 1,250 mana (counted at once), but −60 Intellect for 2 min (less crit; the lower maximum mana is not counted), 7 min cooldown. |
+| Burst of Knowledge | Your spells cost 150 less mana for 10 s, 6 min cooldown. |
+| Second Wind | 630 mana (1,260 in Mountainous areas; counted at once), 15 min cooldown. |
+| Golden Banana | +16 to all attributes for 15 s (32 for 30 s in Forest areas): Intellect adds crit, Spirit adds Life Tap mana. 5 min cooldown. |
+| Pimgib's Collar | Your Imp regains 9 more mana per 5 s. |
+| Mark of the Champion / Rune of the Dawn / Royal Seal of Eldre'Thalas | +85 spell power against Demons and Undead / +46 against Undead / +18 more against Demons. |
+| Briarwood Reed / Jewel of the Guard Captain, Cleansed Vilebranch Icon | +15 spell power, 30 in Marsh areas / +8, 24 in Forest areas. |
+| Rune of Perfection / Enriched Seal, Darkspear Voodoo Seal | +3 (level 45) or +2 Spell Penetration, 7 or 4 more in Forest areas / +5 or +3 MP5, 10 or 6 more in Forest areas. |
 
-Other trinkets (threat, defence, resistance, movement, summoned helpers, Mark of the Champion's bonus against Demons and
-Undead) only bring their stats.
+Other trinkets (threat, defence, resistance, movement, summoned fighters, melee-range and random effects) only bring their
+stats.
 
 **Weapon enchants with an effect** (the gear builder's weapon enchant, while the builder is on):
 

@@ -3,6 +3,20 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v178
+- **Boss type and Zone** (Fight & pets → Encounter): what the boss is (creature types, and every kind of enemy a trinket
+  names, such as Murloc or Dinosaur) and where the fight is (Forest, Marsh, Mountainous, Snowy …). Only trinket effects
+  depend on them; not set by default.
+- **20 more trinket effects** in the gear builder and the fight: Eye of the Beast, Heart of the Primeval, Cannonball
+  Runner, Goblin Mortar, EZ-Thro Bronze Mortar, Draconic Infused Emblem, Bolt's Charged Eyeball, Cursed Murloc Eye,
+  Mindtap Talisman, Burst of Knowledge, Second Wind, Golden Banana, Pimgib's Collar (your Imp's mana), Mark of the Champion,
+  Rune of the Dawn, Royal Seal of Eldre'Thalas, Briarwood Reed, Jewel of the Guard Captain / Cleansed Vilebranch Icon,
+  Rune of Perfection, Enriched Seal / Darkspear Voodoo Seal. Frozen Heart of the Mountain, Everlook Delivery Bot,
+  Smokey's Lighter and Thunderbrew's Boot Flask now get their zone or enemy bonus too.
+- **Fixed:** trinkets whose bonus only counts in one kind of area (Briarwood Reed, Jewel of the Guard Captain, Rune of
+  Perfection, the Seals) counted it everywhere. The gear builder's list shows each trinket's effect and what it is worth
+  against the boss you set. Draconic Infused Emblem: +35 spell power for 10 s, then not again for 60 s.
+
 ## v177
 - **Gear builder items** updated from Wowhead Forever: 8 new items (Dark Advisor's Pendant, Painweaver Band,
   Skullsmoke Pants, Tempestria's Frozen Necklace, Coldstone Slippers, Naturopathy Footpads, Runed Ring, Frigid Ring),

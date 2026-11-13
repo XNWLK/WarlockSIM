@@ -151,6 +151,9 @@ WL.computeStats = function (build, raceKey, cfg) {
 
   // --- Spell power ---
   var sp = add('sp', 'Gear', gear.sp) + add('sp', 'Stat-weight test', ex.sp || 0) + conStat('sp') + oilStat('sp') + buffStat('sp');   // buffStat: round 157 (Atiesh)
+  // Round 209: a worn trinket's bonus that holds against this boss type / in this zone (Mark of the Champion, Briarwood Reed …) [A113]
+  var trEq = WL.trinketEquipFx ? WL.trinketEquipFx(cfg) : [];
+  trEq.forEach(function (q) { sp += add('sp', q.name, q.sp); });
   var dkSp = 0;   // Demonic Knowledge: "your spell damage and your Demon pet's spell damage" — the pet gets it too (round 31)
   if (petActive && tv('demonicKnowledge')) {
     dkSp = Math.round(60 * tv('demonicKnowledge', 'levelPct') / 100);
@@ -188,9 +191,11 @@ WL.computeStats = function (build, raceKey, cfg) {
                + add('hastePct', 'Stat-weight test', ex.hastePct || 0)
                + oilStat('hastePct') + conStat('hastePct');
   var pierce = add('pierce', 'Gear', gear.pierce || 0) + add('pierce', 'Stat-weight test', ex.pierce || 0);
-  var spellPen = add('spellPen', 'Gear', gear.spellPen || 0) + add('spellPen', 'Stat-weight test', ex.spellPen || 0);                // round 155: lowers resistance down to 0 [A96]
+  var spellPen = add('spellPen', 'Gear', gear.spellPen || 0) + add('spellPen', 'Stat-weight test', ex.spellPen || 0)
+               + trEq.reduce(function (a, q) { return a + add('spellPen', q.name, q.spellPen); }, 0);                // round 155: lowers resistance down to 0 [A96]
 
-  var mp5 = add('mp5', 'Gear', gear.mp5 || 0) + buffStat('mp5') + conStat('mp5') + oilStat('mp5') + add('mp5', 'Stat-weight test', ex.mp5 || 0);
+  var mp5 = add('mp5', 'Gear', gear.mp5 || 0) + buffStat('mp5') + conStat('mp5') + oilStat('mp5') + add('mp5', 'Stat-weight test', ex.mp5 || 0)
+          + trEq.reduce(function (a, q) { return a + add('mp5', q.name, q.mp5); }, 0);
 
   // --- Static caster damage AURAS per school ("Mod Damage Done %" buffs: they multiply with each other and with the
   // talent spell modifiers [A16]). Talent spell modifiers (Shadow Mastery, Agonizing Flames, Malediction, …) are not

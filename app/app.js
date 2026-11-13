@@ -371,6 +371,11 @@
     $('o_actives').value = cfg.options.activesPolicy || 'doom';
     $('precast').innerHTML = '<option value="">None</option>' + WL.PRECAST_SPELLS.map(function (k) { return '<option value="' + k + '">' + esc(WL.SPELLS[k].name) + '</option>'; }).join('');
     $('precast').value = WL.PRECAST_SPELLS.indexOf(cfg.fight.precast) >= 0 ? cfg.fight.precast : '';
+    // Round 209 (user): boss type and zone — for the trinket effects that depend on them
+    $('bossType').innerHTML = WL.BOSS_TYPES.map(function (b, i) { return (i === 9 ? '<option disabled>──────────</option>' : '') + '<option value="' + b.key + '">' + esc(b.name + (b.is ? ' (' + cap1(b.is) + ')' : '')) + '</option>'; }).join('');
+    $('bossType').value = cfg.fight.bossType || '';
+    $('zone').innerHTML = WL.ZONE_TYPES.map(function (z) { return '<option value="' + z.key + '">' + esc(z.name) + '</option>'; }).join('');
+    $('zone').value = cfg.fight.zone || '';
     gbSync();                                             // gear builder on (a loaded code): its sums into the sheet
     armorNote(); renderTotals(); tabCounts(); renderCdTl(); advNote(); renderGear(); renderGearEdit();
   }
@@ -631,6 +636,7 @@
     cfg.combat.levelResist.on = $('o_levelRes').checked;
     cfg.options.activesPolicy = $('o_actives').value;
     cfg.fight.precast = $('precast').value;
+    cfg.fight.bossType = $('bossType').value; cfg.fight.zone = $('zone').value;   // round 209
     gbSync();
     armorNote(); renderTotals(); tabCounts(); renderCdTl();
     if (gb().on) renderGear();
@@ -3805,7 +3811,7 @@
     var ctx = gbValCtx(), isItem = what === 'item';
     var hits = list.filter(function (x) { return (!q || x.it.name.toLowerCase().indexOf(q) >= 0) && (!isItem || gbPasses(x.id, x.it)); }).map(function (x) {
       var v = ctx ? WL.gearValue(x.it.stats, ctx.w, ctx.share) : null;
-      if (v && isItem && WL.TRINKET_FX && WL.TRINKET_FX[x.id] && ctx.w.sp > 0) { var tw = WL.trinketSpWorth(WL.TRINKET_FX[x.id]); v.dps += tw * ctx.w.sp; v.sp = (v.sp || 0) + tw; }   // round 166: a use effect, roughly
+      if (v && isItem && WL.TRINKET_FX && WL.TRINKET_FX[x.id] && ctx.w.sp > 0) { var tw = WL.trinketSpWorth(WL.TRINKET_FX[x.id], cfg); v.dps += tw * ctx.w.sp; v.sp = (v.sp || 0) + tw; }   // round 166: a use effect, roughly
       if (v && !isItem && WL.ENCHANT_FX && WL.ENCHANT_FX[x.id] && ctx.w.sp > 0) { var ew = WL.ENCHANT_FX[x.id].about || 0; v.dps += ew * ctx.w.sp; v.sp = (v.sp || 0) + ew; }   // round 167: a weapon enchant's effect, roughly
       return { x: x, v: v };
     }).sort(function (a, b) {
@@ -3815,8 +3821,9 @@
     var head = '<p class="meta gbhitsum">' + fmt(hits.length) + ' ' + what + (hits.length === 1 ? '' : 's') + (q ? ' with that name' : ' for this slot') + (filtered ? ' (filtered)' : '') +
       (ctx && hits.length > 1 ? ', best first for ' + esc(ctx.b.short) : '') + (hits.length > GB_HITS ? '. The first ' + GB_HITS + ' are shown: type a name to narrow it down.' : '.') + '</p>';
     return head + '<ul class="gblist">' + (hits.length ? hits.slice(0, GB_HITS).map(function (h) {
-      var it = h.x.it, st = gbStatText(it.stats), meta = [it.ilvl ? 'iLvl ' + it.ilvl : '', it.req ? 'Req ' + it.req : '', st || it.text || ''].filter(Boolean).join(' · ');
-      var tip = it.name + (st ? '\n' + st : '') + (it.text ? '\n' + it.text : '') + (it.twoHand ? '\nTwo-handed weapons only' : '') + (it.from ? '\n' + it.from : '') + (it.side ? '\n' + it.side + ' only' : '') + (it.unique ? '\nUnique' : '') +
+      var it = h.x.it, st = gbStatText(it.stats), fxT = isItem && WL.TRINKET_FX && WL.TRINKET_FX[h.x.id] ? trkText(WL.TRINKET_FX[h.x.id]) : '';   // round 209: a trinket's effect
+      var meta = [it.ilvl ? 'iLvl ' + it.ilvl : '', it.req ? 'Req ' + it.req : '', st || it.text || '', fxT].filter(Boolean).join(' · ');
+      var tip = it.name + (st ? '\n' + st : '') + (it.text ? '\n' + it.text : '') + (fxT ? '\n' + fxT : '') + (it.twoHand ? '\nTwo-handed weapons only' : '') + (it.from ? '\n' + it.from : '') + (it.side ? '\n' + it.side + ' only' : '') + (it.unique ? '\nUnique' : '') +
         (h.v && h.v.sp != null ? '\n' + gbValText(it.stats, ctx, true) : '');
       var warn = isItem ? gbWarn(h.x.id, it) : [];
       var side = isItem ? '<button type="button" class="gbstar' + (gbFav[h.x.id] ? ' on' : '') + '" data-gfav="' + esc(h.x.id) + '" aria-pressed="' + !!gbFav[h.x.id] + '" title="' + (gbFav[h.x.id] ? 'Remove from your favourites' : 'Add to your favourites') + '" aria-label="Favourite ' + esc(it.name) + '">★</button>' +
@@ -3903,18 +3910,39 @@
   // ---------- trinkets (round 166, user): what each worn trinket does in the fight, and when it is used ----------
   var TRK_WHEN = [['cds', 'with your other cooldowns'], ['ready', 'whenever it is ready'], ['execute', 'in the execute phase'], ['never', 'never']];
   function trkText(fx) {
-    var u = fx.use, p = fx.proc;
-    if (p) return p.chancePct + '% chance per damaging cast: +' + p.spi + ' Spirit for ' + p.duration + ' s';
+    // Round 209: conditions — "×2 against Undead", "doubled in Snowy areas"; what holds in this fight is marked (now).
+    function bt(k) { var b = WL.BOSS_TYPES.filter(function (x) { return x.key === k; })[0]; return b ? b.name : k; }
+    function zn(k) { var z = WL.ZONE_TYPES.filter(function (x) { return x.key === k; })[0]; return z ? z.name : k; }
+    function cond(o, equip) {
+      var out = [];
+      if (o.vs) { var ks = Object.keys(o.vs); out.push((equip ? 'against ' : '×' + o.vs[ks[0]] + ' against ') + ks.map(bt).join(' / ') + (ks.some(function (k) { return WL.bossIs(cfg, k); }) ? ' (now)' : '')); }
+      if (o.zones) Object.keys(o.zones).forEach(function (k) { out.push((equip ? 'in ' : (o.zones[k] < 1 ? '×' + o.zones[k] + ' in ' : '×' + o.zones[k] + ' in ')) + zn(k) + ' areas' + (cfg.fight.zone === k ? ' (now)' : '')); });
+      if (o.castsZones) Object.keys(o.castsZones).forEach(function (k) { out.push('half as many spells in ' + zn(k) + ' areas' + (cfg.fight.zone === k ? ' (now)' : '')); });
+      return out.length ? ' — ' + out.join(', ') : '';
+    }
+    var u = fx.use, p = fx.proc, q = fx.equip;
+    if (q) return (q.sp ? '+' + q.sp + ' spell power' : q.spellPen ? '+' + q.spellPen + ' Spell Penetration' : q.mp5 ? '+' + q.mp5 + ' MP5' : '')
+      + (q.petMp5 ? '+' + q.petMp5 + ' MP5 for your ' + cap1(q.pet || 'demon') : '') + cond(q, true) + (WL.fxHolds(cfg, q) ? '' : ' (not in this fight: set Boss type / Zone in Fight & pets)');
+    if (p) {
+      var on = (p.onDamage ? '% chance per damage you deal' : '% chance per damaging cast') + (p.icd ? ' (' + p.icd + ' s cooldown)' : '');
+      return p.chancePct + on + ': ' + (p.kind === 'spi' ? '+' + p.spi + ' Spirit for ' + p.duration + ' s'
+        : p.kind === 'sp' ? '+' + p.sp + ' spell power for ' + p.duration + ' s'
+        : (p.min === p.max ? p.min : p.min + '–' + p.max) + ' ' + cap1(p.school) + ' damage' + (p.selfPct ? ' (' + p.selfPct + '% of the time to you)' : '')) + cond(p);
+    }
     var d = ' for ' + u.duration + ' s', c = ' (' + (u.cd >= 60 && u.cd % 60 === 0 ? u.cd / 60 + ' min' : u.cd + ' s') + ' cooldown)';
     return (u.kind === 'sp' ? '+' + u.sp + (u.school ? ' ' + u.school : '') + ' spell power' + (u.pierce ? ' and −' + u.pierce + ' boss resistances' : '') + d
       : u.kind === 'spDecay' ? '+' + u.sp + ' spell power, ' + u.per + ' less after each of your casts' + d
       : u.kind === 'spStack' ? '+' + u.per + ' spell power per cast, up to ' + u.max + ' times, for ' + u.casts + ' casts or ' + u.duration + ' s'
       : u.kind === 'crit' ? '+' + u.pct + '% crit' + (u.tree ? ' for ' + cap1(u.tree) + ' spells' : '') + d + (u.endsOnCrit ? ' or until a crit' : '')
+      : u.kind === 'hit' ? '+' + u.pct + '% spell hit' + d
       : u.kind === 'petDmg' ? 'your demon deals ' + u.pct + '% more' + d
       : u.kind === 'spi' ? '+' + u.spi + ' Spirit' + d
-      : u.kind === 'mana' ? '+' + u.amount + ' mana, used when that much is missing'
+      : u.kind === 'stats' ? '+' + u.stat + ' to all attributes' + d
+      : u.kind === 'costRed' ? 'your spells cost ' + u.amount + ' less mana' + d
+      : u.kind === 'mana' ? '+' + u.amount + ' mana, used when that much is missing' + (u.int ? '; −' + u.int + ' Intellect for ' + u.intDuration / 60 + ' min' : '')
       : u.kind === 'dmgAfter' ? u.min + ' Fire damage after ' + u.casts + ' of your spells'
-      : (u.min === u.max ? u.min : u.min + '–' + u.max) + ' ' + cap1(u.school || '') + ' damage') + c;
+      : u.kind === 'dmgOver' ? u.shots + ' shots of ' + u.min + '–' + u.max + ' ' + cap1(u.school) + ' damage, one every ' + u.every + ' s'
+      : (u.min === u.max ? u.min : u.min + '–' + u.max) + ' ' + cap1(u.school || '') + ' damage') + c + cond(u);
   }
   function renderTrinketUse() {
     var box = $('gbTrinkets'); if (!box) return;

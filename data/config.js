@@ -23,6 +23,9 @@ WL.DEFAULT_CONFIG = {
     // Healing you receive (round 119, user): healAmount health every healEvery seconds, first at healEvery. Your health pays
     // for Life Tap (430), Hellfire's damage to yourself, the Demonic Rune and the Goblin Sapper. 0 = nobody heals you. [A83]
     healAmount: 1000, healEvery: 10,
+    // Round 209 (user): what the boss is and where the fight is — only trinket effects depend on them (WL.BOSS_TYPES,
+    // WL.ZONE_TYPES in data/trinkets.js; '' = not set). [A113]
+    bossType: '', zone: '',
   },
   combat: {
     baseHitPct: 83,         // L63 boss: 17% miss [A01] (user-confirmed)

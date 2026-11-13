@@ -140,7 +140,7 @@ window.WL = window.WL || {};
       else t = S.t + te - d.xp;
       if (t < d.expires - 1e-6) H.push({ t: t, o: 0, type: 'wrackX', key: key, inst: d.inst, gen: d.xg });
     }
-    function missRoll(k) { var x = R.hit() * 100; return !CHH[k] && x >= stats.hitPct; }
+    function missRoll(k) { var x = R.hit() * 100; return !CHH[k] && x >= (TRX ? hitNow() : stats.hitPct); }   // round 209: + trinket hit
     function critRoll(k, pct) { var x = R.crit() * 100; return !!CHC[k] || x < pct + (TRX ? trCrit(k) : 0); }   // + trinket crit (round 166)
     function L(type, spell, extra) {
       if (!logOn) return;
@@ -453,19 +453,35 @@ window.WL = window.WL || {};
     // is missing. Off the global cooldown; a trinket's hit (Shard of the Fallen Star …) has no spell power, rolls your spell
     // hit and crit (×1.5) and takes Curse of the Elements.
     var TRK = WL.equippedTrinkets ? WL.equippedTrinkets(cfg) : [], TRU = (cfg.options && cfg.options.trinketUse) || {}, trs = {};
-    TRK.forEach(function (x) { trs[x.slot] = { until: -1, n: 0, pending: 0, procUntil: -1 }; });
+    TRK.forEach(function (x) { trs[x.slot] = { until: -1, n: 0, pending: 0, procUntil: -1, icdUntil: -1, intUntil: -1 }; });
+    var TRD = TRK.filter(function (x) { return x.fx.proc && x.fx.proc.onDamage; });   // round 209: procs on any damage of yours (Bolt's Charged Eyeball)
     // Weapon enchant effects (round 167) [A106]: procs on your landed damaging casts; Revelation on direct hits that do not crit.
     var EPR = WL.equippedEnchantFx ? WL.equippedEnchantFx(cfg) : [], eps = {};
     EPR.forEach(function (x) { eps[x.id] = { until: -1 }; });
     var REV = EPR.filter(function (x) { return x.fx.proc.kind === 'crit'; })[0] || null;
     var TRX = TRK.length > 0 || EPR.length > 0;
+    // Round 209 (user) [A113]: the fight's boss type / zone multiply an effect (WL.fxMult); new kinds hit, stats, costRed,
+    // dmgOver, the Intellect a trinket adds or takes (crit), procs that deal damage.
+    var KM = 1 + WL.activeBuffs(cfg).reduce(function (a, b) { return a + (b.statPct || 0); }, 0) / 100;   // Kings on a trinket's attributes
+    var COE_SCHOOLS = { shadow: 1, fire: 1, arcane: 1, frost: 1 };                                      // the schools Curse of the Elements raises
+    function trMult(o) { return WL.fxMult(cfg, o); }
+    function trHitPct() { var h = 0; TRK.forEach(function (x) { var u = x.fx.use; if (u && u.kind === 'hit' && trUp(x)) h += u.pct; }); return h; }
+    function hitNow() { var h = trHitPct(); return h ? Math.min(cb.maxHitPct, stats.hitPctUncapped + h) : stats.hitPct; }
+    function trIntNow() {                                            // Intellect from trinkets now: Golden Banana +, Mindtap −
+      var n = 0;
+      TRK.forEach(function (x) { var u = x.fx.use; if (!u) return; if (u.kind === 'stats' && trUp(x)) n += u.stat * trMult(u); if (u.int && trs[x.slot].intUntil > S.t + EPS) n -= u.int; });
+      return n * KM;
+    }
+    function trCostRed() { var c = 0; TRK.forEach(function (x) { var u = x.fx.use; if (u && u.kind === 'costRed' && trUp(x)) c += u.amount; }); return c; }
+    function trAmt(u) { return u.amount * trMult(u); }               // a mana trinket's amount (Second Wind: doubled in Mountainous areas)
     function epUp(x) { return eps[x.id].until > S.t + EPS; }
     function trUp(x) { return trs[x.slot].until > S.t + EPS; }
     function trSp(e) {
       var s = 0;
       TRK.forEach(function (x) {
+        var p = x.fx.proc; if (p && p.kind === 'sp' && trs[x.slot].procUntil > S.t + EPS) s += p.sp * trMult(p);   // Draconic Infused Emblem (round 209)
         var u = x.fx.use; if (!u || !trUp(x)) return;
-        if (u.kind === 'sp' && (!u.school || (e && e.school === u.school))) s += u.sp;
+        if (u.kind === 'sp' && (!u.school || (e && e.school === u.school))) s += u.sp * trMult(u);
         else if (u.kind === 'spDecay') s += Math.max(0, u.sp - u.per * trs[x.slot].n);
         else if (u.kind === 'spStack') s += u.per * Math.min(u.max, trs[x.slot].n);
       });
@@ -473,20 +489,20 @@ window.WL = window.WL || {};
       return s;
     }
     function trPierce() { var p = 0; TRK.forEach(function (x) { var u = x.fx.use; if (u && u.pierce && trUp(x)) p += u.pierce; }); return p; }
-    function trCrit(k) { var c = 0, s = SPELLS[k]; TRK.forEach(function (x) { var u = x.fx.use; if (u && u.kind === 'crit' && trUp(x) && (!u.tree || (s && s.tree === u.tree))) c += u.pct; }); return c; }
+    function trCrit(k) { var c = trIntNow() * cb.critPerInt, s = SPELLS[k]; TRK.forEach(function (x) { var u = x.fx.use; if (u && u.kind === 'crit' && trUp(x) && (!u.tree || (s && s.tree === u.tree))) c += u.pct; }); return c; }
     function trPet() { var m = 1; TRK.forEach(function (x) { var u = x.fx.use; if (u && u.kind === 'petDmg' && trUp(x)) m *= 1 + u.pct / 100; }); return m; }
     function trSpi() {
       var s = 0;
-      TRK.forEach(function (x) { var u = x.fx.use, p = x.fx.proc; if (u && u.kind === 'spi' && trUp(x)) s += u.spi; if (p && p.kind === 'spi' && trs[x.slot].procUntil > S.t + EPS) s += p.spi; });
+      TRK.forEach(function (x) { var u = x.fx.use, p = x.fx.proc; if (u && u.kind === 'spi' && trUp(x)) s += u.spi; if (u && u.kind === 'stats' && trUp(x)) s += u.stat * trMult(u) * KM; if (p && p.kind === 'spi' && trs[x.slot].procUntil > S.t + EPS) s += p.spi; });
       EPR.forEach(function (x) { var p = x.fx.proc; if (p.kind === 'spiPct' && epUp(x)) s += stats.spi * p.pct / 100; });   // Insight (round 167)
       return s;
     }
     function trHit(x, u) {                                           // a trinket's own hit
       var key = 'trinket:' + x.id, r = row(key);
-      if (R.hit() * 100 >= stats.hitPct) { r.misses++; L('miss', key); return; }
+      if (R.hit() * 100 >= hitNow()) { r.misses++; L('miss', key); return; }
       r.landed++;
-      var amt = u.min + (u.max - u.min) * R.proc();
-      if (S.buff('coe')) amt *= 1 + SPELLS.curseOfElements.dmgTakenPct / 100;
+      var amt = (u.min + (u.max - u.min) * R.proc()) * trMult(u);            // round 209: × boss type / zone
+      if (S.buff('coe') && COE_SCHOOLS[u.school || 'fire']) amt *= 1 + SPELLS.curseOfElements.dmgTakenPct / 100;   // round 209: not on Holy / Nature
       var crit = R.crit() * 100 < stats.critPct; if (crit) amt *= cb.critMultiplier;
       deal(key, amt, crit, false);
       L('hit', key, { dmg: Math.round(amt), crit: crit });
@@ -496,7 +512,11 @@ window.WL = window.WL || {};
         var u = x.fx.use, p = x.fx.proc, st = trs[x.slot];
         if (u && trUp(x) && (u.kind === 'spDecay' || u.kind === 'spStack')) { st.n++; if (u.kind === 'spStack' && st.n >= u.casts) st.until = -1; }
         if (u && u.kind === 'dmgAfter' && st.pending > 0 && --st.pending === 0) trHit(x, u);
-        if (p && R.proc() * 100 < p.chancePct) { st.procUntil = S.t + p.duration; L('buff', x.fx.name); }
+        if (p && !p.onDamage && !(p.icd && S.t < st.icdUntil - EPS) && R.proc() * 100 < p.chancePct) {
+          if (p.icd) st.icdUntil = S.t + p.icd;                             // Draconic Infused Emblem: 60 s internal cooldown (user, round 209)
+          if (p.kind === 'dmg') trHit(x, p);                                // Cursed Murloc Eye (round 209)
+          else { if (st.procUntil <= S.t + EPS) L('buff', x.fx.name); st.procUntil = S.t + p.duration; }
+        }
       });
       EPR.forEach(function (x) {                                     // weapon enchants (round 167)
         var p = x.fx.proc; if (p.kind !== 'sp' && p.kind !== 'spiPct') return;
@@ -504,6 +524,15 @@ window.WL = window.WL || {};
           eps[x.id].until = S.t + p.duration; L('buff', x.fx.name);
           if (p.mana) { var g = Math.min(p.mana, stats.maxMana - S.mana); S.mana += g; res.manaFromConsumables = (res.manaFromConsumables || 0) + g; }
         }
+      });
+    }
+    function trOnDamage() {                                          // round 209: Bolt's Charged Eyeball — 15% per damage event, 3 s cooldown
+      TRD.forEach(function (x) {
+        var p = x.fx.proc, st = trs[x.slot];
+        if (S.t < st.icdUntil - EPS || R.proc() * 100 >= p.chancePct) return;
+        st.icdUntil = S.t + p.icd;
+        if (R.proc() * 100 < (p.selfPct || 0)) { loseHealth(p.min + (p.max - p.min) * R.proc(), 'self'); L('buff', x.fx.name + ' (hits you)'); }
+        else trHit(x, p);
       });
     }
     // Revelation (round 167): the next non-periodic spell + pct % crit; a non-periodic spell that does not crit may trigger it.
@@ -517,12 +546,17 @@ window.WL = window.WL || {};
       var u = x.fx.use, st = trs[x.slot];
       if (!u || !S.ready('tr:' + x.slot) || S.t >= dur - EPS) return false;
       S.cds['tr:' + x.slot] = S.t + u.cd;
-      if (u.duration) { st.until = S.t + u.duration; st.n = 0; }
+      if (u.duration) { st.until = S.t + u.duration * (u.durZones ? trMult({ zones: u.durZones }) : 1); st.n = 0; }   // Golden Banana: longer in Forest areas
       L('trinket', x.fx.name);
       var r = row('trinket:' + x.id);
       if (u.kind === 'dmg') { r.casts++; trHit(x, u); }
-      if (u.kind === 'dmgAfter') { r.casts++; st.pending = u.casts; }
-      if (u.kind === 'mana') { var miss = stats.maxMana - S.mana, amt = Math.min(u.amount, miss); S.mana += amt; res.manaFromConsumables = (res.manaFromConsumables || 0) + amt; }
+      if (u.kind === 'dmgOver') { r.casts++; for (var si = 1; si <= u.shots; si++) H.push({ t: S.t + si * u.every, o: 0, type: 'trShot', slot: x.slot }); }   // round 209: Cannonball Runner
+      if (u.kind === 'dmgAfter') {
+        r.casts++; st.pending = u.casts;
+        if (u.castsZones) { var cn = u.casts * trMult({ zones: u.castsZones }); if (cn !== u.casts) st.pending = Math.floor(cn) + (R.proc() < cn % 1 ? 1 : 0); }   // round 209: Everlook Delivery Bot in Snowy areas: 3 or 4
+      }
+      if (u.int) st.intUntil = S.t + u.intDuration;                  // Mindtap Talisman: − Intellect for 2 min (round 209)
+      if (u.kind === 'mana') { var miss = stats.maxMana - S.mana, amt = Math.min(trAmt(u), miss); S.mana += amt; res.manaFromConsumables = (res.manaFromConsumables || 0) + amt; }
       return true;
     }
     function trWhen(x, key) {                                        // may this trinket be used now (right before a damaging cast)?
@@ -537,7 +571,7 @@ window.WL = window.WL || {};
     function useManaTrinkets() {
       TRK.forEach(function (x) {
         var u = x.fx.use; if (!u || u.kind !== 'mana' || (TRU[x.slot] || 'cds') === 'never') return;
-        if (stats.maxMana - S.mana >= u.amount && trUse(x)) slotUsed(x.slot);
+        if (stats.maxMana - S.mana >= trAmt(u) && trUse(x)) slotUsed(x.slot);
       });
     }
     // Your spell power right now for this spell: sheet + school + Spellblasting potion, × Blood Fury. [A32]
@@ -628,6 +662,7 @@ window.WL = window.WL || {};
       var copied = 0;
       if (HAV && key.indexOf('pet:') !== 0 && target !== HAV_T && S.buff('havoc')) { var h = row('baneOfHavoc'); copied = amount * HAV; h.dmg += copied; h.hits++; res.total += copied; }
       if (S.targetHpPct < cfg.fight.executePct) res.exDmg += amount + copied;       // execute-phase damage (round 44)
+      if (TRD.length && key.indexOf('pet:') !== 0 && key.indexOf('trinket:') !== 0) trOnDamage();   // round 209
       if (key.indexOf('pet:') !== 0) {                                              // threat and leeched health (round 119)
         var bk = key.charAt(0) === 'x' && key.charAt(2) === ':' ? key.slice(3) : key, th = (amount + copied) * threatMult(bk);
         r.threat += th; res.threat += th;
@@ -937,6 +972,7 @@ window.WL = window.WL || {};
     function effectiveCost(key) {
       var c = table[key].cost;
       if (eurekaAt(key, finishesAt(key))) c *= 1 - EUREKA.costRedPct / 100;                // [A31][A93]
+      if (TRX && c > 0) c = Math.max(0, c - trCostRed());                                   // Burst of Knowledge (round 209)
       return c;
     }
 
@@ -1067,6 +1103,7 @@ window.WL = window.WL || {};
       if (!key || !cfg.options.includePetDamage) return null;
       var pc = cfg.pets[key];
       var p = { key: key, c: pc, maxMana: pc.mana * (1 + tv('felVitality', 'manaPct') / 100), lastRegen: S.t, lashReady: 0, gen: ++petGen };
+      p.regenAdd = (WL.trinketEquipFx ? WL.trinketEquipFx(cfg) : []).reduce(function (a, q) { return a + (q.petMp5 && (!q.pet || q.pet === key) ? q.petMp5 / 5 : 0); }, 0);   // Pimgib's Collar (round 209)
       p.mana = p.maxMana;
       return p;
     }
@@ -1085,12 +1122,12 @@ window.WL = window.WL || {};
       var lv = 0, mx = stats.maxMana;
       manaBuffs.forEach(function (mb) { if (mb.left > 0 && S.t >= mb.until - EPS) lv = Math.max(lv, 0.5 * mx); });
       manaItems.forEach(function (c) { if (S.ready('cd:' + c.cdGroup)) lv = Math.max(lv, mx - (c.manaRestore.amount || mx * c.manaRestore.pct / 100)); });
-      TRK.forEach(function (x) { var u = x.fx.use; if (u && u.kind === 'mana' && (TRU[x.slot] || 'cds') !== 'never' && S.ready('tr:' + x.slot)) lv = Math.max(lv, mx - u.amount); });
+      TRK.forEach(function (x) { var u = x.fx.use; if (u && u.kind === 'mana' && (TRU[x.slot] || 'cds') !== 'never' && S.ready('tr:' + x.slot)) lv = Math.max(lv, mx - trAmt(u)); });
       return lv;
     };
     S.tapGain = function () { return (SPELLS.lifeTap.manaBase + stats.spi + (TRX ? trSpi() : 0)) * (1 + tv('improvedLifeTap', 'manaPct') / 100); };
     S.maxMana = stats.maxMana;
-    function petRegen() { P.mana = Math.min(P.maxMana, P.mana + P.c.manaRegen * (S.t - P.lastRegen)); P.lastRegen = S.t; }
+    function petRegen() { P.mana = Math.min(P.maxMana, P.mana + (P.c.manaRegen + (P.regenAdd || 0)) * (S.t - P.lastRegen)); P.lastRegen = S.t; }
     function petMult(school) {
       var m = (1 + tv('unholyPower', 'petDmgPct') / 100) * stats.mult.all;                             // Soul Link lives in mult.all
       var cmd = racialOf('petDmgPct'); if (cmd) m *= 1 + cmd.value / 100;                              // Command (Orc), patch notes of 2026-10-26 [A100]
@@ -1503,6 +1540,9 @@ window.WL = window.WL || {};
       if (ev.type === 'decide') {
         if (ev.token !== decideToken) continue;
         decide();
+      } else if (ev.type === 'trShot') {                               // round 209: one shot of a summoned helper (Cannonball Runner)
+        var tx = TRK.filter(function (q) { return q.slot === ev.slot; })[0];
+        if (tx) trHit(tx, tx.fx.use);
       } else if (ev.type === 'castEnd') {
         if (ev.dead) continue;                                // pushed back: a later copy of this event lands it (round 78)
         var fin = ev.t - (SPELLS[ev.key].projectile && TRAVEL > EPS ? TRAVEL : 0);   // when the cast finished (a projectile flies on)

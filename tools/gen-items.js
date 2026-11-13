@@ -90,7 +90,9 @@ raw.items.slice().sort((a, b) => a.id - b.id).forEach(x => {
   if (TEST_NAME.test(x.n)) { dropped.test++; return; }
   const slot = SLOT[x.sl];
   if (!slot || !WL.GEAR_SLOTS.some(s => s.fits.indexOf(slot) >= 0)) { dropped.slot++; return; }
-  const st = stats((STATS_FIX[x.id] && STATS_FIX[x.id].s) || x.s || {});
+  let st = stats((STATS_FIX[x.id] && STATS_FIX[x.id].s) || x.s || {});
+  const tfx = WL.TRINKET_FX && WL.TRINKET_FX[x.id];
+  if (tfx && tfx.stats) st = Object.assign({}, tfx.stats);   // round 209: a trinket's own stats where Wowhead's list counts a zone bonus always
   if (!USEFUL.some(k => st[k]) && !(WL.TRINKET_FX && WL.TRINKET_FX[x.id])) { dropped.noStat++; return; }   // round 166: a trinket with an effect in data/trinkets.js stays
   const it = { name: x.n, slot, quality: QUALITY[x.q] || 'common', ilvl: x.l || 0, req: x.r || 0, stats: st, icon: iconOf(x.ic) };
   if (WEAPON[x.cat]) it.weapon = WEAPON[x.cat];
