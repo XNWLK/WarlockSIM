@@ -3,6 +3,11 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v177
+- **Gear builder items** updated from Wowhead Forever: 8 new items (Dark Advisor's Pendant, Painweaver Band,
+  Skullsmoke Pants, Tempestria's Frozen Necklace, Coldstone Slippers, Naturopathy Footpads, Runed Ring, Frigid Ring),
+  22 items now show where they come from. Earthen Silk Slippers keep their tooltip's +24 spell damage.
+
 ## v176
 - **Wrack cast over a running Wrack** now replaces it, like recasting any drain: the new Wrack runs its normal 6 ticks
   and the ticks the old one had left are lost (before, they were added to the new one). If the new Wrack is resisted,

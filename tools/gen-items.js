@@ -25,6 +25,8 @@ const raw = JSON.parse(fs.readFileSync(RAW, 'utf8'));
 const cb = WL.DEFAULT_CONFIG.combat;
 
 const EXCLUDE = { 276765: 'Leafre\'s Ring of Precise Spell Power: 100 spell power at level 1, no source (user: remove it)' };
+// Stats where Wowhead's item list disagrees with the item's own tooltip: the tooltip's numbers are used.
+const STATS_FIX = { 254013: { s: { splpwr: 18, spldmg: 6, spi: 7 }, why: 'Earthen Silk Slippers: tooltip +24 damage / +18 healing; the list said 6 / 11 on 2026-11-13' } };
 const WARLOCK_BIT = 256;                                   // class mask bit of the Warlock (class 9)
 const ALLIANCE = 1 | 4 | 8 | 64 | 1024, HORDE = 2 | 16 | 32 | 128 | 512;   // race mask bits
 const SLOT = { 1: 'head', 2: 'neck', 3: 'shoulder', 4: 'shirt', 5: 'chest', 20: 'chest', 6: 'waist', 7: 'legs', 8: 'feet', 9: 'wrist', 10: 'hands',
@@ -88,7 +90,7 @@ raw.items.slice().sort((a, b) => a.id - b.id).forEach(x => {
   if (TEST_NAME.test(x.n)) { dropped.test++; return; }
   const slot = SLOT[x.sl];
   if (!slot || !WL.GEAR_SLOTS.some(s => s.fits.indexOf(slot) >= 0)) { dropped.slot++; return; }
-  const st = stats(x.s || {});
+  const st = stats((STATS_FIX[x.id] && STATS_FIX[x.id].s) || x.s || {});
   if (!USEFUL.some(k => st[k]) && !(WL.TRINKET_FX && WL.TRINKET_FX[x.id])) { dropped.noStat++; return; }   // round 166: a trinket with an effect in data/trinkets.js stays
   const it = { name: x.n, slot, quality: QUALITY[x.q] || 'common', ilvl: x.l || 0, req: x.r || 0, stats: st, icon: iconOf(x.ic) };
   if (WEAPON[x.cat]) it.weapon = WEAPON[x.cat];
