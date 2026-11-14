@@ -86,7 +86,7 @@ WL.PRE_RAID_BIS = {
     ranged: 13938,      // Bonecreeper Stylus
   },
   wrack_ds: { // Wrack DS – Affliction (Wrack), Imp sacrificed
-    head: 260212,       // Bad Hat
+    head: 22267,        // Spellweaver's Turban (round 211, user: "change wrack ds to turban as well"; was Bad Hat)
     neck: 19426,        // Orb of the Darkmoon
     shoulder: 19050,    // Mantle of the Timbermaw
     back: 272411,       // Arcanoweave Cloak

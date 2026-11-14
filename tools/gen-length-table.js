@@ -16,7 +16,7 @@ const TARGETS = [1, 2, 3];
 if (!isMainThread) {
   const WL = load(workerData.root);
   parentPort.on('message', j => {
-    const cfg = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)); cfg.fight.duration = j.d;
+    const cfg = WL.applyPageDefaults(JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG))); cfg.fight.duration = j.d;   // rounds 211–212: the page's default settings
     if (j.t > 1) { cfg.fight.targets = j.t; cfg.fight.multiDot = true; }
     const b = WL.BUILDS.find(x => x.key === j.key);
     parentPort.postMessage({ i: j.i, dps: WL.simulate(b, j.race, cfg).dps });

@@ -35,7 +35,7 @@
     T.near(WL.computeStats(b, 'human', only(base(), ['flaskSupremePower'])).sp - s0.sp, 150, 1e-9, 'Flask of Supreme Power +150 SP');
     T.near(WL.computeStats(b, 'human', only(base(), ['nightfinSoup'])).sp - s0.sp, 22, 1e-9, 'Nightfin Soup +22 SP (Forever value)');
     T.near(WL.computeStats(b, 'human', only(base(), ['greaterArcaneElixir'])).sp - s0.sp, 35, 1e-9, 'Greater Arcane Elixir +35 SP');
-    T.eq(['arcaneElixir', 'minorArcaneElixir', 'magebloodElixir', 'sagefishDelight', 'wizardOil'].filter(function (k) { return WL.CONSUMABLES[k]; }).join(','), '', 'smaller versions removed: only the biggest of each consumable (user, round 87)');
+    T.eq(['arcaneElixir', 'minorArcaneElixir', 'magebloodElixir', 'sagefishDelight'].filter(function (k) { return WL.CONSUMABLES[k]; }).join(','), '', 'smaller versions removed: only the biggest of each consumable (user, round 87; Wizard Oil back in round 212 — Brilliant Wizard Oil is Phase 4)');
     T.ok(!WL.CONSUMABLES.superiorManaPotion, 'Superior Mana Potion removed (user round 12)');
     T.eq(['greaterArcaneElixir', 'shadowPower', 'firePower'].map(function (k) { return WL.CONSUMABLES[k].icon; }).join(','),
       'inv_potion_25,inv_potion_46,inv_potion_33', 'Classic icons for the 3 elixirs with a wrong Forever DB icon');
@@ -66,7 +66,7 @@
     var fs2 = WL.computeStats(tb(['shadowBolt'], 'firestone'), 'human', only(base(), ['buildOil', 'brilliantWizardOil']));
     T.near(fs2.critPct - s0.critPct, 3, 1e-9, 'Firestone + Brilliant Wizard Oil: +2% + 1% crit');
     T.eq(WL.CONSUMABLES.buildOil.group, 'stone', 'the stone is its own group');
-    T.eq(Object.keys(WL.CONSUMABLES).filter(function (k) { return WL.CONSUMABLES[k].group === 'weapon'; }).join(','), 'brilliantWizardOil', 'weapon-oil group: Brilliant Wizard Oil only (round 90)');
+    T.eq(Object.keys(WL.CONSUMABLES).filter(function (k) { return WL.CONSUMABLES[k].group === 'weapon'; }).join(','), 'brilliantWizardOil,wizardOil', 'weapon-oil group: Brilliant Wizard Oil (round 90) and Wizard Oil (round 212, user: Brilliant is Phase 4)');
     var sNone = WL.computeStats(ss, 'human', only(base(), []));
     T.near(sNone.hastePct + sNone.schoolSp.shadow, 0, 1e-9, 'weapon slot empty → no Spellstone');
     var noCons = base(); delete noCons.consumables;

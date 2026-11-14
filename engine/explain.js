@@ -18,6 +18,7 @@ window.WL = window.WL || {};
   function activeBuff(cfg, field) { return WL.activeBuffs(cfg).filter(function (b) { return b[field]; })[0] || null; }
 
   WL.explainSpell = function (build, raceKey, cfg, key, stats, table) {
+    cfg = WL.cfgFor(build, cfg);   // round 211: Pre-BiS gear per build
     stats = stats || WL.computeStats(build, raceKey, cfg);
     table = table || WL.buildSpellTable(build, stats, cfg);
     var SPELLS = WL.spellsFor(cfg), cb = cfg.combat, race = WL.RACES[raceKey];

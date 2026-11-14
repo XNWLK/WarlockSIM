@@ -30,7 +30,9 @@ const EXCLUDE = { 276765: 'Leafre\'s Ring of Precise Spell Power: 100 spell powe
 // you on those"): the vendor Deathmist pieces (set 1681) are out; the quest pieces (set 518, 22070–22077) stay.
 [226905, 226906, 226907, 226908, 226909, 226910, 226911, 226912].forEach(id => { EXCLUDE[id] = 'Deathmist (vendor version, set 1681): not in the game (user: toss it)'; });
 // Stats where Wowhead's item list disagrees with the item's own tooltip: the tooltip's numbers are used.
-const STATS_FIX = { 254013: { s: { splpwr: 18, spldmg: 6, spi: 7 }, why: 'Earthen Silk Slippers: tooltip +24 damage / +18 healing; the list said 6 / 11 on 2026-11-13' } };
+const STATS_FIX = { 254013: { s: { splpwr: 18, spldmg: 6, spi: 7 }, why: 'Earthen Silk Slippers: tooltip +24 damage / +18 healing; the list said 6 / 11 on 2026-11-13' },
+  // Round 211 (user: "looks like bad hat lost the shadow dmg on it"): in the game it no longer has its +23 Shadow damage.
+  260212: { s: { splpwr: 12, splheal: 25, int: 17, spi: 17 }, why: 'Bad Hat: no Shadow damage in the game any more (user); Wowhead still lists +23' } };
 const WARLOCK_BIT = 256;                                   // class mask bit of the Warlock (class 9)
 const ALLIANCE = 1 | 4 | 8 | 64 | 1024, HORDE = 2 | 16 | 32 | 128 | 512;   // race mask bits
 const SLOT = { 1: 'head', 2: 'neck', 3: 'shoulder', 4: 'shirt', 5: 'chest', 20: 'chest', 6: 'waist', 7: 'legs', 8: 'feet', 9: 'wrist', 10: 'hands',

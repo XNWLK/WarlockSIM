@@ -21,14 +21,14 @@ function scaleGear(lv, def) {
 if (!isMainThread) {
   const WL = load(workerData.root);
   parentPort.on('message', j => {
-    const cfg = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)); Object.assign(cfg.gear, scaleGear(j.lv, j.def));
+    const cfg = WL.applyPageDefaults(JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG))); cfg.gearMode = null; Object.assign(cfg.gear, scaleGear(j.lv, j.def));   // round 212: the page's buffs and consumables, the chart's own gear levels
     const b = WL.BUILDS.find(x => x.key === j.key);
     parentPort.postMessage({ i: j.i, dps: WL.statWeightRun(b, j.race, cfg, cfg.fight.iterations, null) });
   });
   return;
 }
 
-const WL = load(root, ['engine/settings-code.js']), cfg = WL.DEFAULT_CONFIG;
+const WL = load(root, ['engine/settings-code.js']), cfg = WL.pageDefaultConfig();   // round 211: the page's settings (the chart's own gear levels in the jobs)
 const builtins = WL.BUILDS.filter(b => !b.custom);
 const app = fs.readFileSync(path.join(root, 'app/app.js'), 'utf8');
 const m = /var CH_SCALE_DEF = (\{[^;]*\});/.exec(app);

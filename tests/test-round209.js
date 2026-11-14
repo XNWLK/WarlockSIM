@@ -62,11 +62,11 @@
     var ru = run(13382, { bossType: 'undead' });
     T.ok(lines(ru, 'trinket:13382', 'hit').filter(function (e) { return !e.crit; }).every(function (e) { return e.dmg >= 170 && e.dmg <= 278; }), 'against Undead: 170–278');
 
-    T.group('Draconic Infused Emblem: +35 spell power for 10 s on a damaging cast, then 60 s internal cooldown (user); ×2 against Dragonkin');
+    T.group('Draconic Infused Emblem: +35 spell power for 10 s on a damaging cast, then 75 s internal cooldown (user, round 211; was 60); ×2 against Dragonkin');
     var rdc = run(22268), pr = rdc.log.filter(function (e) { return e.type === 'buff' && e.spell === 'Draconic Infused Emblem'; });
-    T.ok(pr.length === 3 && pr.every(function (e, i) { return !i || e.t - pr[i - 1].t >= 60 - 1e-6; }) && pr[0].t < 5, 'procs at ' + pr.map(function (e) { return e.t.toFixed(1); }).join(', ') + ' s: on the first damaging cast, then each minute');
-    T.near(WL.trinketSpWorth(WL.TRINKET_FX[22268], det()), 35 / 6, 1e-9, 'its worth in the list: 35 × 10 / 60');
-    T.near(WL.trinketSpWorth(WL.TRINKET_FX[22268], det(function (c) { c.fight.bossType = 'dragonkin'; })), 70 / 6, 1e-9, '… twice against Dragonkin');
+    T.ok(pr.length === 3 && pr.every(function (e, i) { return !i || e.t - pr[i - 1].t >= 75 - 1e-6; }) && pr[0].t < 5, 'procs at ' + pr.map(function (e) { return e.t.toFixed(1); }).join(', ') + ' s: on the first damaging cast, then every 75 s');
+    T.near(WL.trinketSpWorth(WL.TRINKET_FX[22268], det()), 35 * 10 / 75, 1e-9, 'its worth in the list: 35 × 10 / 75');
+    T.near(WL.trinketSpWorth(WL.TRINKET_FX[22268], det(function (c) { c.fight.bossType = 'dragonkin'; })), 70 * 10 / 75, 1e-9, '… twice against Dragonkin');
 
     T.group("Bolt's Charged Eyeball: 15% per damage you deal, 3 s cooldown, half of it on you; ×3 against Dinosaurs");
     var rb = run(280032), bh = lines(rb, 'trinket:280032').filter(function (e) { return e.type === 'hit' || e.type === 'miss'; }), me = rb.log.filter(function (e) { return e.type === 'buff' && /Bolt's Charged Eyeball \(hits you\)/.test(e.spell); });

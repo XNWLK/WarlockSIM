@@ -101,7 +101,7 @@ WL.TRINKET_FX = {
   13382:  { name: 'Cannonball Runner',                  use: { kind: 'dmgOver', min: 85, max: 139, school: 'holy', shots: 10, every: 1, cd: 300, vs: { undead: 2 } } },   // a cannon for 10 s, Cannon Fire = 1 s cast [A113]
   10577:  { name: 'Goblin Mortar',                      use: { kind: 'dmg', min: 393, max: 531, school: 'fire', cd: 600 } },
   260802: { name: 'EZ-Thro Bronze Mortar',              use: { kind: 'dmg', min: 85, max: 115, school: 'fire', cd: 600 } },
-  22268:  { name: 'Draconic Infused Emblem',            proc: { kind: 'sp', chancePct: 100, icd: 60, sp: 35, duration: 10, vs: { dragonkin: 2 } } },   // Wowhead: proc chance 100% per harmful cast; 60 s internal cooldown (user) [A113]
+  22268:  { name: 'Draconic Infused Emblem',            proc: { kind: 'sp', chancePct: 100, icd: 75, sp: 35, duration: 10, vs: { dragonkin: 2 } } },   // Wowhead: proc chance 100% per harmful cast; 75 s internal cooldown (user, round 211; was 60) [A113]
   280032: { name: "Bolt's Charged Eyeball",             proc: { kind: 'dmg', onDamage: true, chancePct: 15, icd: 3, min: 60, max: 60, school: 'nature', selfPct: 50, vs: { dinosaur: 3 } } },   // "to you or your current target": half each [A113]
   273840: { name: 'Cursed Murloc Eye',                  proc: { kind: 'dmg', chancePct: 100, min: 2, max: 2, school: 'shadow', vs: { murloc: 4 } } },
   18371:  { name: 'Mindtap Talisman',                   use: { kind: 'mana', amount: 1250, int: 60, intDuration: 120, cd: 420 } },   // "over 10 sec": counted at once

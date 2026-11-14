@@ -128,7 +128,8 @@ WL.DEFAULT_CONFIG = {
     // Salvation: removed from the game in the patch of 2026-11-03 (was a −30% threat raid buff, off by default).
     powerInfusion:    { on: false, id: 10060, name: 'Power Infusion',                cls: 'Priest',  desc: '+20% spell damage for 15 s (3 min cooldown per Priest); cast on you when you pop your cooldowns', spellDmgPct: 20, duration: 15, cd: 180, count: 1, maxCount: 5 },   // count = Priests giving you theirs (round 157)
   },
-  // Consumables (data/consumables.js, loaded before this file). Only the per-build weapon oil is on by default. [A57]
+  // Consumables (data/consumables.js, loaded before this file). Only the per-build weapon oil is on in the engine's own
+  // default [A57]; the page starts with an ideal Phase 1 setup (WL.PAGE_CONSUMABLES_ON below, round 212).
   consumables: JSON.parse(JSON.stringify(WL.CONSUMABLES || {})),
   // Professions with a DPS effect in the sim (W14, A59). Only Engineering has one (explosives); researched on Wowhead
   // Forever 2026-09-24: Alchemy, Tailoring, Enchanting, Leatherworking, Blacksmithing, gathering skills have none for a caster.
@@ -237,4 +238,30 @@ WL.DEFAULT_CONFIG = {
     felhunter: { name: 'Felhunter', mana: 2000, manaRegen: 8, melee: { baseDps: 40, swing: 2.0, apPerSp: 0.1667, apPerDps: 14, inheritSpellCrit: true } },   // round 152: your spell crit [A95]
     voidwalker:{ name: 'Voidwalker',mana: 2000, manaRegen: 8, melee: { baseDps: 30, swing: 2.0, apPerSp: 0.1667, apPerDps: 14, inheritSpellCrit: true } },
   },
+};
+
+// Round 211 (user: "change the quick gear setups from default & hit capped to Pre-BiS and Custom"; the page starts on Pre-BiS):
+// the page's gear mode. 'preBis' = every build fights in its own Pre-BiS gear (data/pre-bis-gear.js, engine/stats.js
+// WL.cfgFor). WL.DEFAULT_CONFIG itself has no gear mode, so the engine's own default stays the gear above (the tests use it);
+// the page, the shipped results and share links start from WL.pageDefaultConfig() (engine/settings-code.js).
+WL.PAGE_GEAR_MODE = 'preBis';
+
+// Round 212 (user: "change the default buffs & consumables to everything you'd have in an ideal phase 1 scenario"; the
+// user's answers: Mana Spring Totem on, Wizard Oil instead of Brilliant Wizard Oil — "brilliant wizard oil is phase 4, add
+// the lower tank of wizard oil and enable it" —, Major Spellblasting Potion and the Forever elixirs on, Cerebral Cortex
+// off, Curse of the Elements cast by you). The page's raid buffs and consumables; boss debuffs stay as in WL.DEFAULT_CONFIG
+// (Sunder Armor, Faerie Fire, Judgement of Wisdom). Not Phase 1: Brilliant Wizard Oil (4), Spirit of Zanza (Zul'Gurub),
+// Runn Tum Tuber Surprise / Kreeg's Stout (Dire Maul), the Atiesh auras (Naxxramas). [A118]
+WL.PAGE_BUFFS_ON = ['arcaneIntellect', 'markOfTheWild', 'fortitude', 'divineSpirit', 'blessingOfKings', 'concentrationAura', 'blessingOfWisdom',
+  'manaSpring', 'restorativeTotems', 'moonkinAura'];
+WL.PAGE_CONSUMABLES_ON = ['flaskSupremePower', 'greaterArcaneElixir', 'shadowPower', 'firePower', 'elixirOwl', 'elixirSages', 'greaterMageblood',
+  'nightfinSoup', 'buildOil', 'wizardOil', 'majorSpellblasting', 'demonicRune'];
+// The page's default settings from a copy of WL.DEFAULT_CONFIG (changed in place and returned): its gear mode, raid buffs
+// and consumables. Used by the page (WL.pageDefaultConfig), the Web Workers (pageGear jobs) and the tools that make the
+// shipped results, so all of them start from the same settings.
+WL.applyPageDefaults = function (c) {
+  c.gearMode = WL.PAGE_GEAR_MODE;
+  Object.keys(c.buffs || {}).forEach(function (k) { c.buffs[k].on = WL.PAGE_BUFFS_ON.indexOf(k) >= 0; });
+  Object.keys(c.consumables || {}).forEach(function (k) { c.consumables[k].on = WL.PAGE_CONSUMABLES_ON.indexOf(k) >= 0; });
+  return c;
 };

@@ -11,7 +11,7 @@ const { load, SOURCE_FILES } = require('./load-wl.js');
 const root = path.resolve(__dirname, '..');
 
 if (!isMainThread) {                                  // one thread: load the engine, run the jobs it is given
-  const WL = load(workerData.root), cfg = WL.DEFAULT_CONFIG;
+  const WL = load(workerData.root), cfg = WL.applyPageDefaults(JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)));   // rounds 211–212: the page's default settings
   parentPort.on('message', j => {
     const b = WL.BUILDS.find(x => x.key === j.key);
     parentPort.postMessage(j.kind === 'combo' ? { i: j.i, r: WL.stripResult(WL.simulate(b, j.race, cfg)) }
@@ -20,7 +20,7 @@ if (!isMainThread) {                                  // one thread: load the en
   return;
 }
 
-const WL = load(root, ['engine/settings-code.js']), cfg = WL.DEFAULT_CONFIG;
+const WL = load(root, ['engine/settings-code.js']), cfg = WL.pageDefaultConfig();   // round 211: the page's default settings (Pre-BiS gear)
 const builtins = WL.BUILDS.filter(b => !b.custom);
 const snap = WL.settingsSnapshot(cfg); snap.options = Object.assign({}, snap.options); delete snap.options.showWithinPct;   // = app.js snapNoCut
 const hash = f => crypto.createHash('sha256').update(fs.readFileSync(path.join(root, f), 'utf8').replace(/\r\n/g, '\n')).digest('hex');

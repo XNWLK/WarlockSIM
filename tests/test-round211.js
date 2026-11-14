@@ -53,3 +53,51 @@
     T.eq(WL.ITEMS[19426].phase || 1, 1, 'Orb of the Darkmoon is Phase 1 (the user\'s pick)');
   });
 })();
+
+// Round 211: gear modes (user: "change the quick gear setups from default & hit capped to Pre-BiS and Custom … have Pre-BiS
+// be the items and stats straight from that artifact"; each build its own list; the page starts on Pre-BiS).
+(function () {
+  T.run('round 211: Pre-BiS gear per build', function () {
+    var D = WL.DEFAULT_CONFIG, P = WL.PRE_BIS_GEAR;
+    T.group('data and defaults');
+    T.ok(WL.PAGE_GEAR_MODE === 'preBis' && WL.pageDefaultConfig().gearMode === 'preBis', 'the page starts on Pre-BiS');
+    T.ok(!('gearMode' in D), 'WL.DEFAULT_CONFIG has no gear mode: the engine\'s own default gear is unchanged (500 SP)');
+    T.eq(Object.keys(WL.PRE_RAID_BIS).filter(function (k) { return P[k]; }).length, 5, 'data/pre-bis-gear.js has every list');
+    T.ok(Object.keys(WL.PRE_RAID_BIS).every(function (k) { return JSON.stringify(P[k].slots) === JSON.stringify(WL.PRE_RAID_BIS[k]); }), 'its items = the lists of data/pre-raid-bis.js (else run node tools/gen-pre-bis.js)');
+    T.eq(WL.PRE_RAID_BIS.wrack_ds.head, 22267, 'Wrack DS wears Spellweaver\'s Turban (user)');
+    T.ok(!WL.ITEMS[260212].stats.shadowSp && WL.ITEMS[260212].stats.sp === 12, 'Bad Hat: no Shadow damage any more (user), 12 spell power');
+
+    T.group('WL.cfgFor = the gear builder');
+    var c = WL.pageDefaultConfig();
+    WL.BUILDS.filter(function (b) { return WL.PRE_RAID_BIS[b.key]; }).forEach(function (b) {
+      var L = WL.PRE_RAID_BIS[b.key], gb = { on: true, slots: {}, enchants: {}, manual: {} };
+      Object.keys(L).forEach(function (s) { gb.slots[s] = { id: L[s] }; });
+      var sh = WL.gearSheet(gb, c).sheet, g = WL.cfgFor(b, c).gear;
+      T.ok(WL.GEAR_STAT_KEYS.every(function (k) { return Math.abs(sh[k] - g[k]) < 1e-9; }), b.short + ': the engine\'s sheet = the gear builder\'s (' + g.sp + ' SP, ' + g.critPct + '% crit)');
+    });
+    var custom = { key: 'my_build_x', talents: {} };
+    T.eq(JSON.stringify(WL.cfgFor(custom, c).gearBuilder.slots.head), JSON.stringify({ id: P._common.slots.head }), 'a build without a list (your own) wears the items most builds wear');
+    T.ok(WL.cfgFor(WL.BUILDS[0], D) === D, 'no gear mode: the settings as they are');
+    var once = WL.cfgFor(WL.BUILDS[0], c); T.ok(WL.cfgFor(WL.BUILDS[0], once) === once, 'applied once (no second swap)');
+
+    T.group('in a fight');
+    var b = WL.BUILDS.filter(function (x) { return x.key === 'wrack_ds'; })[0], n = 30;
+    var c1 = WL.pageDefaultConfig(); c1.fight.iterations = n;
+    var c2 = JSON.parse(JSON.stringify(c1)); delete c2.gearMode; var ap = WL.cfgFor(b, c1); c2.gear = JSON.parse(JSON.stringify(ap.gear)); c2.gearBuilder = JSON.parse(JSON.stringify(ap.gearBuilder));
+    T.eq(WL.simulate(b, 'undead', c1).dps, WL.simulate(b, 'undead', c2).dps, 'Pre-BiS = the same fights with that gear typed in and its items in the gear builder');
+    T.eq(JSON.stringify(WL.computeStats(b, 'undead', c1)), JSON.stringify(WL.computeStats(b, 'undead', c2)), 'and the same character stats (the detail views)');
+
+    T.group('settings code and share links');
+    var sp = WL.settingsSnapshot(WL.pageDefaultConfig());
+    T.ok(sp.gm === 'preBis' && !sp.gear && !sp.gb, 'Pre-BiS: the code says so; the gear values and items are not in it');
+    var cc = WL.pageDefaultConfig(); cc.gearMode = null; cc.gear.sp = 123; var sc = WL.settingsSnapshot(cc);
+    T.ok(sc.gm === 'custom' && sc.gear.sp === 123, 'Custom: the gear values are in it');
+    var back = WL.pageDefaultConfig(); WL.applySettings(back, JSON.parse(JSON.stringify(sc)));
+    T.ok(!back.gearMode && back.gear.sp === 123, 'a Custom code loads as your own gear');
+    var back2 = JSON.parse(JSON.stringify(cc)); WL.applySettings(back2, JSON.parse(JSON.stringify(sp))); T.eq(back2.gearMode, 'preBis', 'a Pre-BiS code switches Pre-BiS on');
+    var old = JSON.parse(JSON.stringify(sc)); delete old.gm; var back3 = WL.pageDefaultConfig(); WL.applySettings(back3, old); T.ok(!back3.gearMode, 'an older code (no gear mode) = your own gear');
+    var d = WL.settingsDiff(sc), m = WL.settingsMerge(d);
+    T.ok(d.gm === 'custom' && m.gm === 'custom' && m.gear.sp === 123, 'a share link of Custom gear: only the differences, merged back right');
+    T.eq(JSON.stringify(WL.settingsDiff(sp)), '{}', 'a share link of the default settings carries nothing');
+  });
+})();

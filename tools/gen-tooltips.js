@@ -57,6 +57,8 @@ function gameSet(h, set, items) {
       '<span class="q0">' + set.bonuses.map(b => '<span>(' + b.n + ') Set: ' + e(b.text) + '</span>').join('<br>') + '</span>' + end);
 }
 module.exports = { clean, gameSet };
+// Round 211: tooltip lines the game no longer has (user). Bad Hat: "looks like bad hat lost the shadow dmg on it".
+const DROP = { 260212: '<br><span class="q2">Equip: Increases damage done by Shadow spells and effects by up to 23.</span>' };
 
 if (require.main === module) {
   const raw = JSON.parse(fs.readFileSync(RAW, 'utf8'));
@@ -72,6 +74,7 @@ if (require.main === module) {
     let h = clean(t.h); if (lacks(items[id], h)) { off.push(items[id].name); return; }
     const set = items[id].set && (box.WL.ITEM_SETS || {})[items[id].set];
     if (set && set.game) h = gameSet(h, set, items);   // round 211: the set bonuses as the game shows them (tools/gen-items.js SET_GAME)
+    if (DROP[id]) h = h.split(DROP[id]).join('');      // round 211: a line the game no longer shows
     tips[id] = h; n++;
   });
   if (off.length) console.log('tooltips left out (a stat of the item list is missing in them): ' + off.join(', '));

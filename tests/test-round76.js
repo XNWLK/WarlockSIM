@@ -56,7 +56,7 @@
       });
     })).then(function (hs) {
       T.group('shipped default results: made from the current engine and data (else run node tools/gen-default-results.js)');
-      T.eq(files.length, 14, 'hashes of the 14 engine / data files are recorded (round 166: + data/trinkets.js)');
+      T.eq(files.length, 15, 'hashes of the 15 engine / data files are recorded (round 166: + data/trinkets.js; round 211: + data/pre-bis-gear.js)');
       hs.forEach(function (h) { T.ok(h.ok, h.f + ' unchanged since the results were generated (' + D.generated + ')'); });
       var builtins = WL.BUILDS.filter(function (b) { return !b.custom; });
       T.eq(D.keys.length, builtins.length * WL.SIM_RACE_KEYS.length, 'one result per built-in build × race (' + D.keys.length + ')');
@@ -65,9 +65,9 @@
       // Re-simulate a few rows and one build's stat weights on a worker with its own (shipped) default config.
       var pool = WL.makeSimPool('../engine/worker.js', 2), pick = [0, Math.floor(D.keys.length / 2) + 1, D.keys.length - 1], jobs = [];
       var byKey = {}; builtins.forEach(function (b) { byKey[b.key] = b; });
-      pick.forEach(function (i) { jobs.push({ kind: 'combo', build: byKey[D.keys[i]], race: D.results[i].race, i: i }); });
+      pick.forEach(function (i) { jobs.push({ kind: 'combo', build: byKey[D.keys[i]], race: D.results[i].race, i: i, pageGear: true }); });   // pageGear: round 211, the page's Pre-BiS gear
       var wk = D.keys[0], wr = D.weights[wk];
-      [null].concat(WL.STAT_WEIGHT_KEYS).forEach(function (s) { jobs.push({ kind: 'weight', build: byKey[wk], race: wr.race, stat: s }); });
+      [null].concat(WL.STAT_WEIGHT_KEYS).forEach(function (s) { jobs.push({ kind: 'weight', build: byKey[wk], race: wr.race, stat: s, pageGear: true }); });
       var by = {}, base = null;
       pool.run(jobs, function (j, res) {
         T.group('shipped default results: re-simulated on a worker (its own shipped config) = shipped'); 

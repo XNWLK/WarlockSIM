@@ -63,6 +63,11 @@ WL.CONSUMABLES = {
                          text: 'Major Spellstone: +2% spell haste and up to 21 Shadow damage. Major Firestone: +2% spell crit and up to 21 Fire damage. Each build uses the one listed in its details. Stacks with a weapon oil.' },
   brilliantWizardOil:  { on: false, id: 20749, icon: 'inv_potion_105', cat: 'Weapon', group: 'weapon', name: 'Brilliant Wizard Oil', desc: '+36 spell damage, +1% crit', oil: { sp: 36, critPct: 1 },
                          text: 'While applied to target weapon it increases spell damage and healing by up to 36 and increases Spell Critical chance by 1%. Lasts for 30 minutes.' },
+  // Round 212 (user: "brilliant wizard oil is phase 4, add the lower tank of wizard oil and enable it"): Wizard Oil, Forever tooltip
+  // (item 20750, spell 25121, 2026-11-14): up to 24 spell damage and healing, 30 min. Phase 1; on in the page's default setup
+  // (data/config.js WL.PAGE_CONSUMABLES_ON), off in the engine's own default.
+  wizardOil:           { on: false, id: 20750, icon: 'inv_potion_104', cat: 'Weapon', group: 'weapon', name: 'Wizard Oil', desc: '+24 spell damage', oil: { sp: 24 },
+                         text: 'While applied to target weapon it increases spell damage and healing by up to 24. Lasts for 30 minutes.' },
 
   // ---------------- Potions (shared 2 min cooldown) ----------------
   majorManaPotion:     { on: false, id: 13444, icon: 'inv_potion_76', cat: 'Potion', group: 'potion', name: 'Major Mana Potion', desc: '1800 mana, 2 min cooldown', manaRestore: { amount: 1800 }, cd: 120, cdGroup: 'potion',

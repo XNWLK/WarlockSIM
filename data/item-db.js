@@ -1830,7 +1830,7 @@ WL.ITEMS = {
   260201: {"name":"Highborne Memory Crystal","slot":"offHand","quality":"uncommon","ilvl":55,"req":47,"stats":{"sp":6,"spi":9},"icon":538,"from":"Quest: Your Final Reward","src":"quest"},
   260207: {"name":"Staff of Archmage Selwyn","slot":"twoHand","quality":"uncommon","ilvl":55,"req":47,"stats":{"sp":48,"int":16,"sta":16},"icon":8,"weapon":"staff","from":"Quest: Your Final Reward","src":"quest"},
   260208: {"name":"Prelate's Orb","slot":"offHand","quality":"uncommon","ilvl":55,"req":47,"stats":{"spi":13},"icon":539,"from":"Quest: The Head of the Serpent","src":"quest"},
-  260212: {"name":"Bad Hat","slot":"head","quality":"rare","ilvl":56,"req":50,"stats":{"sp":12,"shadowSp":23,"int":17,"spi":17},"icon":540,"from":"Quest","src":"quest"},
+  260212: {"name":"Bad Hat","slot":"head","quality":"rare","ilvl":56,"req":50,"stats":{"sp":12,"int":17,"spi":17},"icon":540,"from":"Quest","src":"quest"},
   260214: {"name":"Staff of Wild Beasts","slot":"twoHand","quality":"uncommon","ilvl":60,"req":45,"stats":{"sp":52,"critPct":1,"spi":19},"icon":541,"weapon":"staff","from":"Quest: Claws That Rend, Tusks that Gore","src":"quest"},
   260217: {"name":"Eagle's Head Signet","slot":"finger","quality":"rare","ilvl":62,"req":47,"stats":{"int":8,"spi":7},"icon":542,"from":"Quest: Blackmaw Reclamation","src":"quest"},
   260218: {"name":"Malefactor's End","slot":"finger","quality":"rare","ilvl":62,"req":47,"stats":{"int":14,"sta":6,"mp5":4},"icon":543,"from":"Quest: Blackmaw Reclamation","src":"quest"},

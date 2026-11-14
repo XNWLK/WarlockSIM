@@ -71,7 +71,30 @@ WL.armorReduction = function (cfg) {
   return a / (a + 400 + 85 * 60);
 };
 
+// Round 211 (user: "change the quick gear setups … to Pre-BiS and Custom"; each build its own list): with cfg.gearMode
+// 'preBis' every build fights in its own Pre-BiS gear (data/pre-bis-gear.js; a build without a list wears the items most
+// builds wear, `_common`). Returns the settings that fight uses: the Sheet (gear) values of that gear — as the gear builder
+// counts them: naked crit and crit from Intellect from these settings, two decimals — and the gear builder's items (for
+// trinket and set effects). Any other gearMode: the settings as they are. The engine's entry points (computeStats,
+// buildSpellTable, simulateOnce, the explanations) call it, so the page, the Web Workers and the tools all get the same.
+var GEAR_KEYS = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'spellPen', 'int', 'spi', 'sta', 'mp5'];
+WL.cfgFor = function (build, cfg) {
+  if (!cfg || cfg.gearMode !== 'preBis' || !WL.PRE_BIS_GEAR) return cfg;
+  var P = WL.PRE_BIS_GEAR[build && build.key] || WL.PRE_BIS_GEAR._common;
+  if (!P) return cfg;
+  var r2 = function (x) { return Math.round(x * 100) / 100; }, s = P.sums || {}, cb = cfg.combat, gear = {}, slots = {};
+  Object.keys(cfg.gear || {}).forEach(function (k) { gear[k] = cfg.gear[k]; });
+  GEAR_KEYS.forEach(function (k) { gear[k] = r2(s[k] || 0); });
+  gear.critPct = r2(cb.baseCritPct + (WL.WARLOCK_BASE_60.int + (s.int || 0)) * cb.critPerInt + (s.critPct || 0));
+  gear.critIncludesAll = false;
+  Object.keys(P.slots).forEach(function (k) { slots[k] = { id: P.slots[k] }; });
+  var c = {}; Object.keys(cfg).forEach(function (k) { c[k] = cfg[k]; });
+  c.gear = gear; c.gearBuilder = { on: true, slots: slots, enchants: {}, manual: {} }; c.gearMode = 'preBis:applied';
+  return c;
+};
+
 WL.computeStats = function (build, raceKey, cfg) {
+  cfg = WL.cfgFor(build, cfg);
   var race = WL.RACES[raceKey], base = WL.WARLOCK_BASE_60, gear = cfg.gear, cb = cfg.combat;
   var tv = function (k, f) { return WL.talentValue(build, k, f); };
   var oils = WL.weaponEffects(build, cfg);

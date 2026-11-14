@@ -30,6 +30,10 @@ WL.settingsSnapshot = function (c) {
   var cn = {}; Object.keys(c.buffs || {}).forEach(function (k) { var b = c.buffs[k]; if (b.on && b.count > 1) cn[k] = b.count; });   // round 157: Innervate / PI counts
   if (Object.keys(cn).length) snap.counts = cn;
   if (gb && gb.on) snap.gb = { slots: gb.slots || {}, manual: gb.manual || {}, enchants: gb.enchants || {} };   // enchants: round 148
+  // Round 211: the gear mode — 'preBis' (every build in its own Pre-BiS gear: the gear values and the gear builder's items
+  // follow from it, so they are not part of the settings) or 'custom' (your own gear: the values, and the builder if on).
+  snap.gm = c.gearMode === 'preBis' ? 'preBis' : 'custom';
+  if (snap.gm === 'preBis') { delete snap.gear; delete snap.gb; }
   return snap;
 };
 
@@ -74,6 +78,9 @@ WL.applySettings = function (c, o) {
   // Gear builder (round 147): a code with it switches it on with its items; a code without it switches it off and keeps
   // the items you had (they no longer count).
   Object.keys(c.buffs || {}).forEach(function (k) { if (c.buffs[k].count != null) { var n = (o.counts || {})[k]; c.buffs[k].count = n > 0 ? Math.min(c.buffs[k].maxCount || 5, Math.round(n)) : 1; } });   // round 157
+  // Round 211: gear mode. A code without one is your own gear (codes made before Pre-BiS existed).
+  c.gearMode = o.gm === 'preBis' ? 'preBis' : null;
+  if (c.gearMode === 'preBis') return unknown;                          // the page shows the Pre-BiS items itself
   if (o.gb && typeof o.gb === 'object') c.gearBuilder = { on: true, slots: o.gb.slots || {}, manual: o.gb.manual || {}, enchants: o.gb.enchants || {} };
   else if (c.gearBuilder) c.gearBuilder.on = false;
   return unknown;
@@ -82,7 +89,7 @@ WL.applySettings = function (c, o) {
 // Short human-readable summary of a snapshot (batch-compare list).
 WL.describeSettings = function (o) {
   var g = o.gear || {};
-  return g.sp + ' SP · ' + g.hitPct + '% hit · ' + g.critPct + '% crit · ' + g.hastePct + '% haste · ' +
+  return (o.gm === 'preBis' ? 'Pre-BiS gear (each build its own)' : g.sp + ' SP · ' + g.hitPct + '% hit · ' + g.critPct + '% crit · ' + g.hastePct + '% haste') + ' · ' +   // round 211
     (o.buffs || []).length + ' buffs · ' + (o.cons || []).length + ' consumables' + ((o.prof || {}).engineering ? ' · Engineering' : '') +
     ' · ' + (o.fight || {}).duration + ' s · ' + (o.fight || {}).iterations + ' fights';
 };
@@ -138,9 +145,12 @@ WL.describeSettings = function (o) {
   };
   // What a snapshot has that differs from `base` (default: the default settings): changed keys of fight / gear / options,
   // and each of the other parts as a whole if it differs. WL.settingsMerge puts it back onto a base.
-  var SECTIONS = ['fight', 'gear', 'options'], WHOLE = ['buffs', 'debuffs', 'cons', 'prof', 'petSpPct', 'succ', 'bossArmor', 'resist', 'levelResist', 'resModel', 'gb'];
+  var SECTIONS = ['fight', 'gear', 'options'], WHOLE = ['buffs', 'debuffs', 'cons', 'prof', 'petSpPct', 'succ', 'bossArmor', 'resist', 'levelResist', 'resModel', 'gb', 'gm'];
   var same = function (a, b) { return JSON.stringify(a) === JSON.stringify(b); };
-  WL.defaultSnapshot = function () { return JSON.parse(JSON.stringify(WL.settingsSnapshot(WL.DEFAULT_CONFIG))); };
+  // Round 211: the page's default settings = WL.DEFAULT_CONFIG with the page's gear mode (data/config.js WL.PAGE_GEAR_MODE).
+  // Round 212: + the page's raid buffs and consumables (data/config.js WL.applyPageDefaults).
+  WL.pageDefaultConfig = function () { var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)); return WL.applyPageDefaults ? WL.applyPageDefaults(c) : c; };
+  WL.defaultSnapshot = function () { return JSON.parse(JSON.stringify(WL.settingsSnapshot(WL.pageDefaultConfig()))); };
   WL.settingsDiff = function (snap, base) {
     base = base || WL.defaultSnapshot();
     var d = {};
@@ -154,9 +164,12 @@ WL.describeSettings = function (o) {
   };
   WL.settingsMerge = function (d, base) {
     var s = JSON.parse(JSON.stringify(base || WL.defaultSnapshot()));
-    SECTIONS.forEach(function (sec) { Object.keys((d || {})[sec] || {}).forEach(function (k) { s[sec][k] = d[sec][k]; }); });
+    SECTIONS.forEach(function (sec) { Object.keys((d || {})[sec] || {}).forEach(function (k) { (s[sec] = s[sec] || {})[k] = d[sec][k]; }); });   // round 211: a Pre-BiS base has no gear section
     WHOLE.forEach(function (k) { if (d && k in d) s[k] = d[k]; });
-    return s;
+    // round 211: in the order of a snapshot (a Pre-BiS base has no gear section, so a merged one would come last)
+    var o = {}; ['v', 'fight', 'gear', 'options'].concat(Object.keys(s)).forEach(function (k) { if (k in s && !(k in o)) o[k] = s[k]; });
+    if (o.gm === 'preBis') { delete o.gear; delete o.gb; }
+    return o;
   };
   // A short mark of the default settings (FNV-1a of their snapshot): a link made with other defaults has another mark.
   WL.defaultsMark = function () {

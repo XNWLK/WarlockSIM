@@ -58,7 +58,7 @@ WL.makeSimPool = function (workerUrl, size) {
       function feed(w) {
         if (stopped || next >= jobs.length) { w.job = null; return; }
         var j = jobs[next++], k = ++id; w.job = { id: k, j: j };
-        w.postMessage({ id: k, kind: j.kind, build: j.build, race: j.race, cfg: j.cfg, n: j.n, stat: j.stat });
+        w.postMessage({ id: k, kind: j.kind, build: j.build, race: j.race, cfg: j.cfg, n: j.n, stat: j.stat, pageGear: j.pageGear });   // pageGear: round 211
       }
       workers.forEach(function (w) {
         w.onmessage = function (e) {

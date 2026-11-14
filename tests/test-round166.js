@@ -128,7 +128,8 @@
       // A worker with its own (shipped) default config: the 180 s column = the default fight. (The page's WL.DEFAULT_CONFIG may
       // have been changed by earlier tests.)
       var b0 = builtins[0], want = L.rows.filter(function (r) { return r.build === b0.key && r.race === 'human'; })[0].dps[2], pool = WL.makeSimPool('../engine/worker.js', 1), got = null;
-      pool.run([{ kind: 'combo', build: b0, race: 'human' }], function (j, res) { got = res.r.dps; }, function () {
+      pool.run([{ kind: 'combo', build: b0, race: 'human', pageGear: true }],   // round 211: the page's Pre-BiS gear
+        function (j, res) { got = res.r.dps; }, function () {
         T.near(got, want, 0.051, b0.short + ', Human, 180 s: re-simulated on a worker = shipped (' + want + ')');
         done();
       });

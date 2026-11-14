@@ -58,6 +58,7 @@ window.WL = window.WL || {};
   };
 
   WL.simulateOnce = function (build, raceKey, cfg, opt) {
+    cfg = WL.cfgFor(build, cfg);   // round 211: Pre-BiS gear per build (engine/stats.js)
     opt = opt || {};
     var stats = opt.stats || WL.computeStats(build, raceKey, cfg);
     var table = opt.table || WL.buildSpellTable(build, stats, cfg);

@@ -41,7 +41,7 @@
       return fetch('../data/config.js').then(function (r) { return r.text(); }).then(function (txt) {
         var w = { WL: { CONSUMABLES: WL.CONSUMABLES } };
         new Function('window', 'WL', txt)(w, w.WL);
-        var c = JSON.parse(JSON.stringify(w.WL.DEFAULT_CONFIG)), lv = 4, f = lv / D.def.levels;
+        var c = w.WL.applyPageDefaults(JSON.parse(JSON.stringify(w.WL.DEFAULT_CONFIG))), lv = 4, f = lv / D.def.levels; c.gearMode = null;   // round 212: the page's buffs and consumables, the chart's own gear
         Object.keys(D.def.max).forEach(function (k) { if ((k === 'int' || k === 'spi' || k === 'sta') && !D.def.intSpi) return; c.gear[k] = +(D.def.max[k] * f).toFixed(k === 'hitPct' || k === 'critPct' || k === 'hastePct' ? 2 : 0); });
         var s = D.series[D.series.length - 1], b = builtins.filter(function (x) { return x.key === s.key; })[0], got = null, pool = WL.makeSimPool('../engine/worker.js', 1);
         pool.run([{ kind: 'weight', build: b, race: s.race, cfg: c, n: D.n, stat: null }], function (j, res) { got = res.dps; }, function () {

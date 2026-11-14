@@ -9,7 +9,8 @@ const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..');
 const WL = require('./load-wl.js').load(ROOT);
 const FILE = path.join(ROOT, 'MECHANICS.md');
-const cfg = WL.DEFAULT_CONFIG;
+// Round 211: the page's default settings — WL.DEFAULT_CONFIG with the page's gear mode (Pre-BiS: each build its own list).
+const cfg = WL.applyPageDefaults(JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)));   // round 212: + the page's raid buffs and consumables
 
 // ---------- small helpers ----------
 const n = (x, d) => Number(x).toLocaleString('en-US', { maximumFractionDigits: d == null ? 1 : d });
@@ -217,12 +218,15 @@ B.races = (function () {
 })();
 
 B.gear = (function () {
-  const g = cfg.gear, f = cfg.fight;
-  return '- **Gear (character sheet, before talents, racials and weapon stone):** ' + g.sp + ' spell power, ' + g.hitPct + '% hit, ' + g.critPct + '% crit, ' + g.hastePct + '% haste, Intellect ' + g.int +
-    ', Spirit ' + g.spi + ', Stamina ' + g.sta + ', MP5 ' + g.mp5 + ', Spell Pierce ' + g.pierce + ', Spell Penetration ' + (g.spellPen || 0) + '.\n' +
+  // Round 211: Pre-BiS — each build its own list (the page's default gear); Custom = naked.
+  const f = cfg.fight, rows = WL.BUILDS.filter(b => !b.custom).map(b => { const g = WL.cfgFor(b, cfg).gear;
+    return [b.short, n(g.sp, 0) + (g.shadowSp ? ' + ' + g.shadowSp + ' Shadow' : '') + (g.fireSp ? ' + ' + g.fireSp + ' Fire' : ''), g.hitPct + '%', g.critPct + '%', g.int, g.spi, g.sta, g.pierce]; });
+  return '- **Gear: Pre-BiS** — every build fights in its own pre-raid best-in-slot list (Phase 1, no raid items), its items and set bonuses ' +
+    'counted as in the gear builder (character sheet, before talents, racials and weapon stone):\n\n' +
+    table(['Build', 'Spell power', 'Hit', 'Crit', 'Intellect', 'Spirit', 'Stamina', 'Spell Pierce'], rows) + '\n\n' +
     '- **Fight:** ' + f.duration + ' s ± ' + f.durationVarPct + '%, ' + n(f.iterations, 0) + ' fights per build and race, ' + f.targets + ' target, execute phase below ' + f.executePct +
     '% boss health, healing on you ' + n(f.healAmount, 0) + ' every ' + f.healEvery + ' s.\n' +
-    '- **Hit-capped preset:** 1,000 spell power, 17% hit, 20% crit, Intellect 250, Spirit 100, Stamina 300.';
+    '- **Custom** (the other gear button): your own gear, starting naked — every gear value 0; the level-60 base Intellect, Spirit, Stamina and crit stay.';
 })();
 
 B.pets = table(['Demon', 'Spell', 'Melee', 'Mana'], Object.keys(cfg.pets).map(k => {
@@ -267,7 +271,7 @@ Object.keys(ACTION_NOTES).forEach(k => { if (!WL.ACTIONS[k]) throw new Error('no
 B.examples = (function () {
   const out = [], P = s => out.push(s);
   const build = WL.BUILDS.filter(b => b.key === 'demo_pact_succ_sb')[0], race = 'undead';
-  const st = WL.computeStats(build, race, cfg), tb = WL.buildSpellTable(build, st, cfg), cb = cfg.combat, g = cfg.gear;
+  const st = WL.computeStats(build, race, cfg), tb = WL.buildSpellTable(build, st, cfg), cb = cfg.combat, g = WL.cfgFor(build, cfg).gear;   // round 211: the build's Pre-BiS gear
   const coe = 1 + SP.curseOfElements.dmgTakenPct / 100, isb = 1 + tv(build, 'improvedShadowBolt', 'debuffPct') / 100;
   const bd = stat => st.breakdown.filter(e => e.stat === stat);
   const src = e => clean(e.source).replace(/^Base \(L60 Warlock\)$/, 'base').replace(/ offset$/, '').replace(/^Gear$/, 'gear');
@@ -287,7 +291,7 @@ B.examples = (function () {
   const auraText = auras.map(e => (1 + e.value / 100).toFixed(2) + ' ' + src(e)).join(' × ');
   near(auraMult, st.mult.shadow * st.mult.all, 'Shadow auras');
 
-  P('The examples use the build **' + build.short + '** as an Undead with the default gear, raid buffs and boss debuffs. Every number below is checked against the sim\'s own value when this document is generated.');
+  P('The examples use the build **' + build.short + '** as an Undead in its Pre-BiS gear with the default raid buffs and boss debuffs. Every number below is checked against the sim\'s own value when this document is generated.');
   P('');
   P('#### 1. The character\'s stats');
   P('- Intellect: ' + statLine('int', st.int));

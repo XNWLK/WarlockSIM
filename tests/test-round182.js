@@ -17,7 +17,7 @@
     fetch('../data/config.js').then(function (r) { return r.text(); }).then(function (txt) {
       var w = { WL: { CONSUMABLES: WL.CONSUMABLES } };
       new Function('window', 'WL', txt)(w, w.WL);
-      var mk = function (t) { var c = JSON.parse(JSON.stringify(w.WL.DEFAULT_CONFIG)); c.fight.targets = t; c.fight.multiDot = true; return c; };
+      var mk = function (t) { var c = w.WL.applyPageDefaults(JSON.parse(JSON.stringify(w.WL.DEFAULT_CONFIG))); c.fight.targets = t; c.fight.multiDot = true; return c; };
       var b0 = builtins[0], b1 = builtins[builtins.length - 1], jobs = [{ kind: 'combo', build: b0, race: 'human', cfg: mk(2), t: 2 }, { kind: 'combo', build: b1, race: 'undead', cfg: mk(3), t: 3 }];
       var pool = WL.makeSimPool('../engine/worker.js', 2), got = {};
       pool.run(jobs, function (j, res) { got[j.t] = res.r.dps; }, function () {

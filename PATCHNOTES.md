@@ -3,6 +3,19 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v181
+- **Pre-BiS gear by default:** the quick setup's gear choice is now **Pre-BiS** or **Custom**. Pre-BiS (the default)
+  puts every build in its own pre-raid best-in-slot list; the gear builder shows the list of the build picked under
+  "Value for". Change anything there and it becomes your own gear. **Custom** starts naked: every gear stat 0, only the
+  level-60 base Intellect, Spirit, Stamina and crit.
+- **Ideal Phase 1 buffs & consumables by default:** every raid buff a full raid brings (now with Concentration Aura and
+  Mana Spring Totem), and the Phase 1 consumables: Flask of Supreme Power, Greater Arcane Elixir, Elixir of Shadow Power,
+  Elixir of Fire Power, Elixir of the Owl, Elixir of Sages, Greater Mageblood, Nightfin Soup, the Spellstone /
+  Firestone, Wizard Oil, Major Spellblasting Potion and Demonic Rune. The default results: Wrack DS 872.2, Fire Demo 835.9, Shadow Demo 834.3, Incinerate 820.5, Incinerate DS 790.1.
+- **Wizard Oil is back** (+24 spell damage): Brilliant Wizard Oil comes in Phase 4.
+- **Draconic Infused Emblem:** 75 seconds between procs (was 60).
+- **Wrack DS pre-raid list:** Spellweaver's Turban instead of Bad Hat, which no longer has Shadow damage in the game.
+
 ## v180
 - **Spell Pierce in the build table:** the stat-weight columns at the top now include Spell Pierce (spell power per
   1 Spell Pierce), next to Int. Compare two builds lists it too.

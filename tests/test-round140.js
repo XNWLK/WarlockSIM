@@ -13,11 +13,11 @@
 
     T.group('share link: only what differs from the defaults');
     T.eq(JSON.stringify(WL.settingsDiff(WL.defaultSnapshot())), '{}', 'the default settings differ in nothing');
-    T.eq(Object.keys(diff).sort().join(','), 'buffs,cons,fight,gear,options', 'the changed settings: only the parts that were touched (' + JSON.stringify(diff).length + ' characters instead of ' + JSON.stringify(snap).length + ')');
-    T.eq(JSON.stringify(diff.gear), '{"sp":777,"hitPct":12.5}', 'of the gear only the two changed values');
+    T.eq(Object.keys(diff).sort().join(','), 'buffs,cons,fight,gear,gm,options', 'the changed settings: only the parts that were touched (' + JSON.stringify(diff).length + ' characters instead of ' + JSON.stringify(snap).length + ')');
+    T.ok(diff.gm === 'custom' && diff.gear.sp === 777 && diff.gear.hitPct === 12.5 && JSON.stringify(diff.gear) === JSON.stringify(snap.gear), 'your own gear (round 211: the defaults are Pre-BiS, so all its values) and gm custom');
     T.ok(same(WL.settingsMerge(diff), snap), 'put back onto the defaults it is the full snapshot again');
     T.ok(same(WL.settingsMerge({}), WL.defaultSnapshot()), 'an empty difference gives the defaults');
-    var sp0 = WL.DEFAULT_CONFIG.gear.sp; WL.DEFAULT_CONFIG.gear.sp = sp0 + 1; var mark2 = WL.defaultsMark(); WL.DEFAULT_CONFIG.gear.sp = sp0;
+    var du0 = WL.DEFAULT_CONFIG.fight.duration; WL.DEFAULT_CONFIG.fight.duration = du0 + 1; var mark2 = WL.defaultsMark(); WL.DEFAULT_CONFIG.fight.duration = du0;   // round 211: a fight default (the gear defaults to Pre-BiS)
     T.ok(/^[0-9a-z]{1,8}$/.test(mark) && mark2 !== mark && WL.defaultsMark() === mark, 'the mark of the defaults is short (' + mark + '), changes when a default changes and is the same again afterwards');
     T.group('share link: there and back');
     T.eq(WL.shareFromHash('#share=1.abc_-9'), '1.abc_-9', 'the code is read from "#share=…"');
@@ -32,7 +32,8 @@
       if (zip) {
         T.eq(codes[0].charAt(0), '1', 'this browser compresses: a "1." code');
         T.ok(codes[2].length < codes[3].length * 0.75, 'the compressed code is clearly shorter (' + codes[2].length + ' vs ' + codes[3].length + ' characters)');
-        T.ok(codes[0].length < WL.encodeSettings(c).length * 0.2, 'a link with only the differences is a fraction of the settings code of the same settings (' + codes[0].length + ' vs ' + WL.encodeSettings(c).length + ' characters)');
+        T.ok(codes[0].length < WL.encodeSettings(c).length * 0.3,   // round 211: 0.3 (was 0.2) — your own gear is all different from Pre-BiS
+           'a link with only the differences is a fraction of the settings code of the same settings (' + codes[0].length + ' vs ' + WL.encodeSettings(c).length + ' characters)');
       }
       return Promise.all(codes.map(function (x) { return WL.decodeShare(x); })).then(function (back) {
         T.ok(same(back[0], p1), 'settings only (as differences): comes back exactly');

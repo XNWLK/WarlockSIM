@@ -45,6 +45,7 @@
     T.near(rate, 0.124, 0.012, 'proc rate per landed damaging cast ≈ 12.4% (30% chance, 15 s cooldown since round 164; ' + (100 * rate).toFixed(2) + '% of ' + landed.toFixed(1) + ' casts per fight)');
 
     T.group('Wizard Oil');
-    T.ok(!WL.CONSUMABLES.wizardOil, 'Wizard Oil (24 SP since this beta build) removed in round 87: only Brilliant Wizard Oil is kept');
+    var wo = WL.CONSUMABLES.wizardOil;   // removed in round 87 (only the biggest of each kind); back in round 212 (user: "brilliant wizard oil is phase 4, add the lower tank of wizard oil and enable it")
+    T.ok(wo && wo.oil.sp === 24 && !wo.oil.critPct && wo.group === 'weapon' && wo.id === 20750, 'Wizard Oil: +24 spell damage, the weapon-oil slot (Forever tooltip, item 20750)');
   });
 })();

@@ -4,15 +4,16 @@
 // itself as before.
 // Messages in:  { id, kind: 'combo', build, race, cfg }                 → { id, r: WL.stripResult(WL.simulate(...)) }
 //               { id, kind: 'weight', build, race, cfg, n, stat|null }  → { id, dps: WL.statWeightRun(...) }
+// pageGear (round 211): with no cfg, the shipped config with the page's gear mode (Pre-BiS).
 // No cfg → the worker's own WL.DEFAULT_CONFIG as shipped (no n → its weightIterations) (the tests use it: the test page changes its own copy).
 // Message out on start: { ready: true } once the engine is loaded.
 self.window = self;
 importScripts('../data/consumables.js', '../data/config.js', '../data/talents.js', '../data/spells.js', '../data/races.js',
-  '../data/builds.js', '../data/trinkets.js', 'stats.js', 'spelltable.js', 'rng.js', 'resist.js', 'rotation.js', 'sim.js', 'custom-builds.js');
+  '../data/builds.js', '../data/trinkets.js', '../data/pre-bis-gear.js', 'stats.js', 'spelltable.js', 'rng.js', 'resist.js', 'rotation.js', 'sim.js', 'custom-builds.js');
 
 self.onmessage = function (e) {
   var j = e.data;
-  if (!j.cfg) j.cfg = WL.DEFAULT_CONFIG;
+  if (!j.cfg) j.cfg = j.pageGear ? WL.applyPageDefaults(JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG))) : WL.DEFAULT_CONFIG;   // pageGear: rounds 211–212, the page's default settings (tests)
   if (j.kind === 'weight' && !j.n) j.n = j.cfg.fight.weightIterations;
   try {
     if (j.kind === 'combo') self.postMessage({ id: j.id, r: WL.stripResult(WL.simulate(j.build, j.race, j.cfg)) });

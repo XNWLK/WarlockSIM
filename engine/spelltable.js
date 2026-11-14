@@ -4,6 +4,7 @@
 window.WL = window.WL || {};
 
 WL.buildSpellTable = function (build, stats, cfg) {
+  cfg = WL.cfgFor(build, cfg);   // round 211: Pre-BiS gear per build
   var tv = function (k, f) { return WL.talentValue(build, k, f); };
   var table = {}, SPELLS = WL.spellsFor(cfg);             // trainer ranks, or AQ20 book ranks (round 42)
   Object.keys(SPELLS).forEach(function (key) {
