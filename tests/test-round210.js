@@ -84,7 +84,7 @@
     T.ok(byRaid('Blackwing Lair').filter(rule).every(function (id) { return WL.ITEMS[id].phase >= 3; }), 'Blackwing Lair items: Phase 3 or later unless reviewed');
     var pvp = ids.filter(function (id) { return WL.ITEMS[id].src === 'pvp'; });
     T.ok(pvp.length > 0 && pvp.filter(rule).every(function (id) { return WL.ITEMS[id].phase >= 2; }), 'PvP rank gear: Phase 2 or later unless reviewed (' + pvp.length + ')');
-    T.eq(Object.keys(WL.ITEM_PHASE_SET).length, 185, "the user's review of 2026-11-14: 184 items + Orb of the Darkmoon (round 211, pre-raid pick)");
+    T.eq(Object.keys(WL.ITEM_PHASE_SET).length, 186, "the user's review of 2026-11-14: 184 items + Orb of the Darkmoon (round 211) + Obsidian Bauble (round 213)");
     T.eq(WL.ITEMS[18820].phase, 9, "Talisman of Ephemeral Power: not in the game (user's review)");
     Object.keys(WL.ITEM_PHASE_SET).forEach(function (id) { if (WL.ITEMS[id]) T.eq(WL.ITEMS[id].phase || 1, WL.ITEM_PHASE_SET[id], 'your review wins: ' + WL.ITEMS[id].name); });
     var now = ids.filter(function (id) { return (WL.ITEMS[id].phase || 1) <= WL.PHASE_NOW; }).length;

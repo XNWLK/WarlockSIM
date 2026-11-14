@@ -89,7 +89,8 @@ WL.cfgFor = function (build, cfg) {
   gear.critIncludesAll = false;
   Object.keys(P.slots).forEach(function (k) { slots[k] = { id: P.slots[k] }; });
   var c = {}; Object.keys(cfg).forEach(function (k) { c[k] = cfg[k]; });
-  c.gear = gear; c.gearBuilder = { on: true, slots: slots, enchants: {}, manual: {} }; c.gearMode = 'preBis:applied';
+  var ench = {}; Object.keys(P.enchants || {}).forEach(function (k) { ench[k] = JSON.parse(JSON.stringify(P.enchants[k])); });   // round 213: the Phase 1 enchants (Revelation's effect)
+  c.gear = gear; c.gearBuilder = { on: true, slots: slots, enchants: ench, manual: {} }; c.gearMode = 'preBis:applied';
   return c;
 };
 

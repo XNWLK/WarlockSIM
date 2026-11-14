@@ -105,3 +105,19 @@ WL.PRE_RAID_BIS = {
     ranged: 13396,      // Skul's Ghastly Touch
   },
 };
+
+// Round 213 (user: "have the gear builder also use the p1 enchants. head is 8sp, neck is 6sp, chest is 3 stats, wrist suggest
+// something, i dont remember what's available. weapon revelation, gloves haste, pants 8sp, boots speed"): the enchants of every
+// list (the same for each build). Enchant ids of data/item-db.js WL.ENCHANTS; the boots' run speed has no stat and no effect
+// in the sim, so it is a named entry only. Wrist: +6 spell damage (8209) — my pick (the Phase 1 82xx set of the neck and
+// Revelation; +7 Intellect is the classic alternative). Phases of all enchants: data/enchant-phases.js.
+WL.PRE_RAID_BIS_ENCHANTS = {
+  head: 2544,         // Arcanum of Focus: +8 spell damage and healing
+  neck: 8218,         // +6 Spell Power
+  chest: 928,         // All Stats +3
+  wrist: 8209,        // Healing Spells +16, Damage Spells +6 (pick, guess)
+  hands: 931,         // Haste +1% (casting speed)
+  legs: 2544,         // Arcanum of Focus: +8 spell damage and healing
+  feet: { custom: { name: 'Minor Speed', stats: {}, text: 'Run speed increased slightly (no effect in the sim).' } },
+  mainHand: 8217,     // Revelation
+};

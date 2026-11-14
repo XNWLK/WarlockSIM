@@ -3,6 +3,14 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v182
+- **Phase 1 enchants on the Pre-BiS lists:** head and legs +8 spell damage, neck +6, chest +3 stats, wrist +6 spell
+  damage, gloves +1% casting speed, weapon Revelation, boots Minor Speed. The gear builder shows them, and every build's
+  DPS counts them (Wrack DS 900.0, Shadow Demo 891.3, Fire Demo 870.6, Incinerate 865.9, Incinerate DS 842.1).
+- **Phase filter for enchants:** with Phase 1 chosen, the gear builder lists only the enchants in Phase 1 (a first guess
+  for each enchant, to be checked).
+- **Pre-raid lists online:** https://xnwlk.github.io/BIS/
+
 ## v181
 - **Pre-BiS gear by default:** the quick setup's gear choice is now **Pre-BiS** or **Custom**. Pre-BiS (the default)
   puts every build in its own pre-raid best-in-slot list; the gear builder shows the list of the build picked under

@@ -72,9 +72,17 @@
     WL.BUILDS.filter(function (b) { return WL.PRE_RAID_BIS[b.key]; }).forEach(function (b) {
       var L = WL.PRE_RAID_BIS[b.key], gb = { on: true, slots: {}, enchants: {}, manual: {} };
       Object.keys(L).forEach(function (s) { gb.slots[s] = { id: L[s] }; });
+      var EN = WL.PRE_RAID_BIS_ENCHANTS; Object.keys(EN).forEach(function (s) { if (L[s]) gb.enchants[s] = typeof EN[s] === 'number' ? { id: EN[s] } : EN[s]; });   // round 213
       var sh = WL.gearSheet(gb, c).sheet, g = WL.cfgFor(b, c).gear;
-      T.ok(WL.GEAR_STAT_KEYS.every(function (k) { return Math.abs(sh[k] - g[k]) < 1e-9; }), b.short + ': the engine\'s sheet = the gear builder\'s (' + g.sp + ' SP, ' + g.critPct + '% crit)');
+      T.ok(WL.GEAR_STAT_KEYS.every(function (k) { return Math.abs(sh[k] - g[k]) < 1e-9; }), b.short + ': the engine\'s sheet = the gear builder\'s, enchants included (' + g.sp + ' SP, ' + g.critPct + '% crit, ' + g.hastePct + '% haste)');
     });
+    T.group('Phase 1 enchants (round 213)');
+    var E = WL.PRE_RAID_BIS_ENCHANTS, ce = WL.cfgFor(WL.BUILDS[0], c);
+    T.ok(E.head === 2544 && E.legs === 2544 && E.neck === 8218 && E.chest === 928 && E.hands === 931 && E.mainHand === 8217 && E.wrist === 8209 && E.feet.custom, 'head / legs 8 SP, neck 6 SP, chest +3 stats, gloves haste, Revelation (user), wrist +6 spell damage (pick), boots run speed');
+    T.ok(WL.equippedEnchantFx(ce).some(function (x) { return x.id === 8217 && x.fx.name === 'Revelation'; }), 'Revelation is on the main hand in the fight');
+    T.eq(WL.cfgFor(WL.BUILDS[0], c).gear.hastePct, 1, '+1% haste from the gloves');
+    T.ok([2544, 8218, 928, 931, 8217, 8209].every(function (id) { return WL.enchantPhase(id) === 1; }) && WL.enchantPhase(2721) === 6 && WL.enchantPhase(2605) === 4 && WL.enchantPhase(7645) > 1, 'enchant phases: the lists\' enchants Phase 1; Scourge 6, Zandalar 4, Living Stats later');
+    T.ok(Object.keys(WL.ENCHANTS).every(function (id) { return WL.ENCHANT_PHASE_GUESS[id] != null; }), 'every enchant has a phase guess (data/enchant-phases.js)');
     var custom = { key: 'my_build_x', talents: {} };
     T.eq(JSON.stringify(WL.cfgFor(custom, c).gearBuilder.slots.head), JSON.stringify({ id: P._common.slots.head }), 'a build without a list (your own) wears the items most builds wear');
     T.ok(WL.cfgFor(WL.BUILDS[0], D) === D, 'no gear mode: the settings as they are');

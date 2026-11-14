@@ -557,6 +557,7 @@
     return first ? first.key : '_common';
   }
   function preBisSlots(k) { var P = (WL.PRE_BIS_GEAR[k] || WL.PRE_BIS_GEAR._common).slots, o = {}; Object.keys(P).forEach(function (s) { o[s] = { id: P[s] }; }); return o; }
+  function preBisEnchants(k) { return JSON.parse(JSON.stringify((WL.PRE_BIS_GEAR[k] || WL.PRE_BIS_GEAR._common).enchants || {})); }   // round 213
   // Pre-BiS on: the gear builder holds the list of the build under "Value for" (its numbers fill the Stats panel). Only
   // what is shown changes with "Value for": each build fights in its own list either way.
   function preBisShow(force) {
@@ -564,7 +565,7 @@
     var k = preBisKey();
     if (!force && k === preBisShown && gb().on) return;
     preBisShown = k;
-    cfg.gearBuilder = { on: true, slots: preBisSlots(k), enchants: {}, manual: {} };
+    cfg.gearBuilder = { on: true, slots: preBisSlots(k), enchants: preBisEnchants(k), manual: {} };   // round 213: with its enchants
     gbSel = null; gbCmp = null; gbSync();
   }
   // A change in the gear builder or the Stats panel while Pre-BiS is on: from now on it is your own gear (Custom), for
@@ -572,7 +573,7 @@
   function preBisCheck() {
     if (cfg.gearMode !== 'preBis' || !preBisShown) return;
     var g = gb(), ids = function (sl) { var o = {}; Object.keys(sl || {}).sort().forEach(function (k) { var e = sl[k]; if (e) o[k] = e.custom ? 'c:' + JSON.stringify(e.custom) : e.id; }); return JSON.stringify(o); };
-    var same = g.on && ids(g.slots) === ids(preBisSlots(preBisShown)) && !Object.keys(g.enchants || {}).some(function (k) { return g.enchants[k]; }) &&
+    var same = g.on && ids(g.slots) === ids(preBisSlots(preBisShown)) && ids(g.enchants) === ids(preBisEnchants(preBisShown)) &&   // round 213: its enchants too
       !Object.keys(g.manual || {}).some(function (k) { return +g.manual[k]; });
     if (same) return;
     var b = WL.BUILDS.filter(function (x) { return x.key === preBisShown; })[0];
@@ -3937,7 +3938,7 @@
     }).join('') + '</div>';
   }
   function gbList(src, fits) {                            // entries of WL.ITEMS / WL.ENCHANTS for the open slot
-    return Object.keys(src).map(function (id) { return { id: id, it: src[id] }; }).filter(function (x) { return fits(x.it); });
+    return Object.keys(src).map(function (id) { return { id: id, it: src[id] }; }).filter(function (x) { return fits(x.it, x.id); });
   }
   // Round 154: the list for the open slot, best first for the build under "Value for" (its stat weights), then by item
   // level; a name filter; the first GB_HITS rows.
@@ -3976,7 +3977,8 @@
   // Round 155: an enchant made for two-handed weapons only shows for the main hand while it holds one.
   function gbEnchList() {
     var mh = WL.gearItem((gb().slots || {}).mainHand), two = !!(mh && mh.slot === 'twoHand');
-    return gbList(WL.ENCHANTS, function (en) { return (en.slots || []).indexOf(gbSel) >= 0 && !(en.twoHand && gbSel === 'mainHand' && !two); });
+    return gbList(WL.ENCHANTS, function (en, id) { return (en.slots || []).indexOf(gbSel) >= 0 && !(en.twoHand && gbSel === 'mainHand' && !two) &&
+      !(+gbFilt.phase && WL.enchantPhase && WL.enchantPhase(id) > +gbFilt.phase); });   // round 213: the Phase choice filters enchants too (data/enchant-phases.js)
   }
 
   function gbFields(prefix, stats) {
