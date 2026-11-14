@@ -54,6 +54,13 @@ WL.DEFAULT_CONFIG = {
     // reduces (rounds 39–117: off by default, and added after the curse as in Classic). [A43]
     levelResist: { on: true, perLevel: 8, levelDiff: 3 },
     coeResistReduction: 75,                  // Curse of the Elements R4 (cannot go below 0)
+    // Round 210 (user: "play around with [a Spell Piercing calculator] to get the math on spell pierce"): 'fitted' = the share
+    // R / (|R| + 8 × your level + 19) fitted to Forever combat logs, rolled in tenths, a DoT tick a tenth of it [A115];
+    // 'classic' = rounds 39–209 (the three values below). engine/resist.js. User (round 210): "keep the new model. have the
+    // old model hidden. we dont need it but it also shouldnt be deleted forever" → no setting on the page; a settings code
+    // (resModel) or this value can still choose it.
+    resistModel: 'fitted',
+    casterLevel: 60,
     pierceAvgPerPoint: 0.75 / (5 * 60),      // mean vulnerable damage per point of negative resistance (Classic resist formula mirrored)
     vulnerableStepPct: 10,                   // vulnerable damage comes in 10% steps (user)
     vulnerableSpread: 0.2,                   // triangular spread (±20%) of the step distribution around the mean

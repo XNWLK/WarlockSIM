@@ -24,7 +24,7 @@
     T.group('stats as on the tooltip (ratings → %: 10 hit = 1%, 14 crit = 1%, 10 haste = 1%)');
     var eq = function (id, want, what) { var it = I[id]; T.eq(it ? JSON.stringify(it.stats) : 'missing', JSON.stringify(want), what + ' (' + id + ')'); };
     eq(240139, { sp: 36, hitPct: 1, hastePct: 2, int: 14, spi: 20, sta: 12 }, 'Heretic Sandals: 36 spell power, 1% hit, 2% haste');
-    eq(22943, { sp: 28, spellPen: 13, int: 8, sta: 9 }, 'Malice Stone Pendant: 13 Spell Penetration (its own stat, not Spell Pierce; round 155)');
+    eq(22943, { sp: 28, pierce: 13, int: 8, sta: 9 }, 'Malice Stone Pendant: 13 Spell Pierce (tooltip: "Your spells pierce 13 Magical Resistance"; round 210 — rounds 155–209 it was counted as Spell Penetration)');
     eq(14153, { sp: 46, int: 9, sta: 10 }, 'Robe of the Void (Forever: Intellect 9 added, Stamina 10)');
     T.eq(I[14153] && I[14153].slot, 'chest', 'a robe goes in the chest slot');
     T.ok(!I[22496] && !I[22512] && I[22510], 'pieces of other classes\' sets are out (round 155: Frostfire = Mage, Faith = Priest), the Warlock set stays (Plagueheart)');

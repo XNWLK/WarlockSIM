@@ -69,10 +69,17 @@
     if (s.duration && s.kind !== 'channel' && s.kind !== 'direct') parts.push(s.duration >= 60 ? (s.duration / 60) + ' min' : s.duration + ' s');
     return parts.join(' · ');
   }
+  // Round 210 (user: "the same tooltip thing with spells and buffs and anything with a popup that's a relevant thing from
+  // the game"): tooltips laid out as the game draws them; #tip shows them in the game's dark box (tipShow), this page's
+  // notes (.tt-rule) in a box under it.
+  function ttRow(l, r) { return '<div class="tt-row"><span>' + l + '</span>' + (r ? '<span>' + r + '</span>' : '') + '</div>'; }
+  function secs(x) { return x >= 60 && x % 60 === 0 ? (x / 60) + ' min' : (+x.toFixed(2)) + ' sec'; }
   function spellBlock(key) {
     var s = WL.spellsFor(cfg)[key];                       // the rank in use (book ranks option, round 42)
     if (!s) return '';
-    return '<div class="tt-name">' + esc(s.name) + (s.rank ? ' <span class="meta">Rank ' + s.rank + '</span>' : '') + '</div><div class="tt-meta">' + esc(spellMeta(s)) + '</div>' +
+    var cast = s.kind === 'channel' ? 'Channeled' : s.cast ? secs(s.cast) + ' cast' : 'Instant';
+    return '<div class="tt-row tt-head"><span class="tt-name">' + esc(s.name) + '</span>' + (s.rank ? '<span class="tt-rank">Rank ' + s.rank + '</span>' : '') + '</div>' +
+      ttRow(s.cost ? s.cost + ' Mana' : '', s.range ? s.range + ' yd range' : '') + ttRow(cast, s.cd ? secs(s.cd) + ' cooldown' : '') +
       '<div class="tt-body">' + para((WL.SPELL_TEXT || {})[s.id] || '') + '</div>';
   }
   // Bane of Havoc is not a priority action: with 2+ targets the engine casts it on target 2 by itself (one GCD since the patch of 2026-11-10). It is
@@ -115,7 +122,7 @@
     return (ACTION_SPELLS[a] || ownSpells(a, b) || [a]).filter(function (k) { return WL.SPELLS[k]; }).map(spellBlock).join('<hr>') + '<div class="tt-rule">Priority rule: ' + esc(actLabel(a, b)) + '</div>';
   }
   function racialTip(rc) {
-    return '<div class="tt-name">' + esc(rc.name) + '</div><div class="tt-meta">Racial · ' + (rc.cd ? (rc.cd / 60) + ' min cooldown' : 'passive') + '</div>' +
+    return '<div class="tt-row tt-head"><span class="tt-name">' + esc(rc.name) + '</span><span class="tt-rank">Racial</span></div>' + ttRow(rc.cd ? 'Instant' : 'Passive', rc.cd ? secs(rc.cd) + ' cooldown' : '') +
       '<div class="tt-body">' + para((WL.SPELL_TEXT || {})[rc.id] || '') + '</div>' +
       '<div class="tt-rule">' + esc(racialRule(rc)) + '</div>';
   }
@@ -162,12 +169,12 @@
   }
   function talentTip(t, n) {
     var txt = (WL.TALENT_TEXT || {})[t.key] || [];
-    var h = '<div class="tt-name">' + esc(t.name) + '</div><div class="tt-meta">Rank ' + n + '/' + t.ranks + ' · ' + WL.TREES[t.tree].name + '</div>';
+    var h = '<div class="tt-name">' + esc(t.name) + '</div><div class="tt-meta">Rank ' + n + '/' + t.ranks + '</div>';   // round 210: as in the game
     var rq = t.req && WL.TALENT_BY_KEY[t.req];                            // round 186: what the arrow into it means
     if (rq) h += '<div class="tt-meta">Requires ' + (t.reqQty || 1) + ' point' + ((t.reqQty || 1) === 1 ? '' : 's') + ' in ' + esc(rq.name) + '</div>';
-    h += n ? '<div class="tt-body">' + para(txt[n - 1] || '') + '</div>' : '<div class="tt-body tt-dim">' + para(txt[0] || '') + '</div>';
-    if (n && n < t.ranks) h += '<div class="tt-next">Next rank:</div><div class="tt-body tt-dim">' + para(txt[n] || '') + '</div>';
-    if (!n) h += '<div class="tt-next">Not taken in this build</div>';
+    h += '<div class="tt-body">' + para(txt[n ? n - 1 : 0] || '') + '</div>';
+    if (n && n < t.ranks) h += '<div class="tt-next">Next rank:</div><div class="tt-body">' + para(txt[n] || '') + '</div>';
+    if (!n) h += '<div class="tt-rule">Not taken in this build · ' + esc(WL.TREES[t.tree].name) + '</div>';
     if (TALENT_SIM[t.key]) h += '<div class="tt-rule">In the sim: ' + esc(TALENT_SIM[t.key][1]) + '</div>';
     return h;
   }
@@ -183,6 +190,8 @@
     if (!t) return;
     if (!tipEl) { tipEl = document.createElement('div'); tipEl.id = 'tip'; tipEl.setAttribute('role', 'tooltip'); document.body.appendChild(tipEl); }
     tipEl.innerHTML = t.getAttribute('data-tip');
+    var notes = Array.prototype.map.call(tipEl.querySelectorAll('.tt-rule'), function (n) { var h = n.innerHTML; n.parentNode.removeChild(n); return h; });   // round 210
+    tipEl.innerHTML = '<div class="tipg">' + tipEl.innerHTML + '</div>' + (notes.length ? '<div class="tipx">' + notes.join('<br>') + '</div>' : '');
     tipEl.hidden = false;
     tipMove(e);
   }
@@ -336,10 +345,9 @@
     function box(prefix, k, o) {
       var iconKey = ({ b_: 'buff_', d_: 'debuff_', c_: 'consumable_' })[prefix] + k;
       var isCon = prefix === 'c_', text = isCon ? o.text : (WL.SPELL_TEXT || {})[o.id];
-      var tip = '<div class="tt-name">' + esc(o.name) + '</div><div class="tt-meta">' + esc(isCon ? o.cat : o.cls || '') +
-        (o.id ? ' · Wowhead ' + (isCon ? 'item ' : 'spell ') + o.id : '') + '</div>' +
+      var tip = isCon ? conTip(k) : '<div class="tt-row tt-head"><span class="tt-name">' + esc(o.name) + '</span>' + (o.cls ? '<span class="tt-rank">' + esc(o.cls) + '</span>' : '') + '</div>' +
         (text ? '<div class="tt-body">' + para(text) + '</div>' : '') +
-        '<div class="tt-rule">Simulated as: ' + esc(o.desc || '') + '</div>';
+        '<div class="tt-rule">Simulated as: ' + esc(o.desc || '') + '</div>';   // round 210: game layout
       var cnt = o.count != null ? ' <input id="bn_' + k + '" class="bcount" type="number" min="1" max="' + (o.maxCount || 5) + '" step="1" value="' + (o.count || 1) + '" title="How many (round 157)" aria-label="How many: ' + esc(o.name) + '">×' : '';
       // Round 177 (user): a compact tile — icon and name; class, text and what the sim does are in the tooltip
       return '<label class="c btile" for="' + prefix + k + '" data-tip="' + esc(tip) + '"><input id="' + prefix + k + '" type="checkbox"' + (o.on ? ' checked' : '') + '>' +
@@ -382,8 +390,9 @@
   // Round 177: a consumable's tooltip (the slots and their lists) and the slots' faces from the check boxes.
   function conTip(k) {
     var o = cfg.consumables[k];
-    return '<div class="tt-name">' + esc(o.name) + '</div><div class="tt-meta">' + esc(o.cat || '') + (o.id ? ' · Wowhead item ' + o.id : '') + '</div>' +
-      (o.text ? '<div class="tt-body">' + para(o.text) + '</div>' : '') + '<div class="tt-rule">Simulated as: ' + esc(o.desc || '') + '</div>';
+    // Round 210: the item's own Forever tooltip (data/con-tips.js, made safe by tools/gen-tooltips.js), else one in its layout.
+    var game = WL.CON_TIPS && WL.CON_TIPS[o.id] ? WL.CON_TIPS[o.id] : '<div class="tt-name">' + esc(o.name) + '</div>' + (o.text ? '<div class="tt-use">Use: ' + para(o.text) + '</div>' : '');
+    return game + '<div class="tt-rule">' + esc(o.cat || '') + ' · Simulated as: ' + esc(o.desc || '') + '</div>';
   }
   function renderConsSlots() {
     Array.prototype.forEach.call(document.querySelectorAll('[data-cslot]'), function (btn) {
@@ -538,7 +547,7 @@
   function advNote() {
     var D = WL.DEFAULT_CONFIG, m = function (c) { return c.pets.succubus.melee; };
     var same = cfg.combat.bossArmor === D.combat.bossArmor && cfg.combat.targetResist.shadow === D.combat.targetResist.shadow && cfg.combat.targetResist.fire === D.combat.targetResist.fire &&
-      !!cfg.combat.levelResist.on === !!D.combat.levelResist.on && cfg.fight.durationVarPct === D.fight.durationVarPct && cfg.fight.weightIterations === D.fight.weightIterations &&
+      !!cfg.combat.levelResist.on === !!D.combat.levelResist.on && (cfg.combat.resistModel || 'classic') === D.combat.resistModel && cfg.fight.durationVarPct === D.fight.durationVarPct && cfg.fight.weightIterations === D.fight.weightIterations &&
       cfg.fight.seed === D.fight.seed && (cfg.options.showWithinPct || 0) === (D.options.showWithinPct || 0) && cfg.petSpPct === D.petSpPct &&
       m(cfg).apPerSp === m(D).apPerSp && m(cfg).baseDps === m(D).baseDps;
     $('advChanged').hidden = same;
@@ -1112,6 +1121,8 @@
     if (k.indexOf('summon:') === 0) return 'Summon ' + (PET_NAMES[k.slice(7)] || k.slice(7));
     if (k.indexOf('pet_') === 0) return (PET_NAMES[k.slice(4)] || k.slice(4)) + ' arrives';
     if (k.indexOf('item:') === 0) { var c = WL.CONSUMABLES[k.slice(5)]; return c ? c.name : k; }   // Engineering explosives
+    if (k.indexOf('trinket:set') === 0) { var sf = (WL.SET_FX || {})[k.slice(11)]; return sf ? sf.name + ' (set bonus)' : k; }   // round 210
+    if (k.indexOf('trinket:') === 0) { var tf = (WL.TRINKET_FX || {})[k.slice(8)]; return tf ? tf.name : k; }
     if (k === 'isb') return 'Improved Shadow Bolt';                                               // per-target ISB (round 39)
     var xt = /^x(\d):(\w+)$/.exec(k);                                                              // multi-DoT extra target
     if (xt) return spellName(xt[2]) + ' (target ' + xt[1] + ')';
@@ -1481,7 +1492,7 @@
       return '<li>' + icon(actIcon(a, b), actLabel(a, b), '', actionTip(a, b)) + ' ' + esc(actLabel(a, b)) +
         (a === 'havocAuto' ? ' <span class="meta">(added by Targets ≥ 2)</span>' :
          b.rotation.indexOf(a) < 0 ? ' <span class="meta">(added by the Multi-DoT option)</span>' : '') + '</li>';
-    }).join('') + '<li>' + icon('lifeTap', 'Life Tap') + ' Life Tap whenever mana is below the next spell\'s cost</li></ol>' +
+    }).join('') + '<li>' + icon('lifeTap', 'Life Tap', '', spellTipByKey('lifeTap')) + ' Life Tap whenever mana is below the next spell\'s cost</li></ol>' +
       (preSet && !preAct ? '<p class="meta"><b>No precast:</b> this build cannot precast ' + esc(precastName(preSet)) + ' (it does not have the spell, or its talents make it an instant), so it starts the fight as usual.</p>' : '') +
       '<p class="meta">Racial cooldowns, the Spellblasting potion and Power Infusion are first popped ' + activesWhen() + ', then whenever ready; channels are clipped when a higher-priority action is ready.' +
       (WL.activeConsumables(runCfg).some(function (c) { return c.manaRestore || c.spPotion; }) ? ' Mana potions / runes are used when at least their amount of mana is missing.' : '') + '</p>' +
@@ -2142,7 +2153,7 @@
     if (!armed('resetSide')) return;
     var D = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)), race = $('t_race').value;
     ['buffs', 'debuffs', 'consumables', 'fight', 'options', 'pets', 'petSpPct'].forEach(function (k) { cfg[k] = D[k]; });
-    cfg.combat.bossArmor = D.combat.bossArmor; cfg.combat.targetResist = D.combat.targetResist; cfg.combat.levelResist = D.combat.levelResist;
+    cfg.combat.bossArmor = D.combat.bossArmor; cfg.combat.targetResist = D.combat.targetResist; cfg.combat.levelResist = D.combat.levelResist; cfg.combat.resistModel = D.combat.resistModel;
     initSettings();                     // rebuilds the check boxes and refills every input from cfg
     $('t_race').value = race; renderTotals(); markDirty();
     $('runMeta').textContent = 'Buffs, debuffs, consumables and fight settings reset to the defaults — press Sim! to simulate.';
@@ -2325,7 +2336,7 @@
         '<button type="button" data-edup="' + i + '" aria-label="Move up"' + (i ? '' : ' disabled') + '>↑</button>' +
         '<button type="button" data-eddown="' + i + '" aria-label="Move down"' + (i < b.rotation.length - 1 ? '' : ' disabled') + '>↓</button>' +
         '<button type="button" data-edrm="' + i + '" aria-label="Remove">✕</button></li>';
-    }).join('') + '<li class="meta">' + icon('lifeTap', 'Life Tap') + ' Life Tap whenever mana is below the next spell\'s cost (automatic)</li>';
+    }).join('') + '<li class="meta">' + icon('lifeTap', 'Life Tap', '', spellTipByKey('lifeTap')) + ' Life Tap whenever mana is below the next spell\'s cost (automatic)</li>';
     var errs = WL.validateBuild(b).concat(timelineErrors().map(function (x) { return 'Timeline: ' + x.msg; }));
     renderTimeline(); renderRuleEd(); renderApl();                        // renderRuleEd: round 157; renderApl: round 172
     $('edErrs').innerHTML = errs.length ? errs.map(function (e) { return '<li>' + esc(e) + '</li>'; }).join('') : '<li class="ok">Legal build — ready to add.</li>';
@@ -2552,7 +2563,7 @@
         '<button type="button" data-eddown="' + i + '" aria-label="Move down"' + (i < n - 1 ? '' : ' disabled') + '>↓</button>' +
         '<button type="button" data-edrm="' + i + '" aria-label="Remove">✕</button></span></li>';
     });
-    box.innerHTML = h + '<li class="meta"><span class="aplnum"></span><div class="apllines"><div class="aplline">' + icon('lifeTap', 'Life Tap') + ' <b>Life Tap</b> <i>if</i> mana is below the next spell\'s cost (automatic)</div></div></li>';
+    box.innerHTML = h + '<li class="meta"><span class="aplnum"></span><div class="apllines"><div class="aplline">' + icon('lifeTap', 'Life Tap', '', spellTipByKey('lifeTap')) + ' <b>Life Tap</b> <i>if</i> mana is below the next spell\'s cost (automatic)</div></div></li>';
   }
   // An APL line → its priority entry: the simple action it matches (its numbers and extra condition set on the build), or a
   // new APL line of your own. A named line stays yours. others = the other entries of the priority.
@@ -3639,6 +3650,7 @@
   function gbLoadJson(k, d) { try { var v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } }
   function gbKeep(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* page only */ } }
   var gbFilt = gbLoadJson('wfs.gbFilter', { min: '', max: '', side: '', src: '', fav: false });
+  if (gbFilt.phase == null) gbFilt.phase = WL.PHASE_NOW || 0;   // round 210: Phase 1 (now) / All items
   var gbFav = gbLoadJson('wfs.gbFav', {});
   var gbSets = gbLoadJson('wfs.gbSets', []);
   var GB_SRC = [['crafted', 'Crafted'], ['quest', 'Quest'], ['vendor', 'Vendor'], ['drop', 'Drop'], ['pvp', 'PvP']];
@@ -3650,11 +3662,14 @@
     if (f.side && it.side && it.side !== f.side) return false;
     if (f.src && (f.src.indexOf('raid:') === 0 ? it.raid !== f.src.slice(5) : it.src !== f.src)) return false;
     if (f.fav && !gbFav[id]) return false;
+    if (+f.phase && (it.phase || 1) > +f.phase) return false;   // round 210: only what is in the game in that phase
     return true;
   }
   function gbFiltHtml() {
     var f = gbFilt, opt = function (v, t) { return '<option value="' + esc(v) + '"' + (f.src === v ? ' selected' : '') + '>' + esc(t) + '</option>'; };
+    var phs = (WL.PHASE_CHOICES || []).map(function (p) { return '<option value="' + p.v + '"' + (+f.phase === p.v ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join('');
     return '<div class="gbfilt">' +
+      (phs ? '<select id="gbfPhase" aria-label="Phase" title="Only the items in the game in this phase, or every item">' + phs + '</select>' : '') +
       '<label class="c" title="Only items of this item level">iLvl <input id="gbfMin" type="number" min="0" placeholder="min" value="' + esc(f.min) + '" aria-label="Lowest item level"> – ' +
       '<input id="gbfMax" type="number" min="0" placeholder="max" value="' + esc(f.max) + '" aria-label="Highest item level"></label>' +
       '<select id="gbfSide" aria-label="Side"><option value="">Both sides</option><option' + (f.side === 'Alliance' ? ' selected' : '') + '>Alliance</option><option' + (f.side === 'Horde' ? ' selected' : '') + '>Horde</option></select>' +
@@ -3682,6 +3697,71 @@
     var st = gbIconStyle(it, px);
     return st ? '<span class="gbico img" aria-hidden="true" style="' + st + '"></span>' : '<span class="gbico" aria-hidden="true">' + (letter ? esc(letter) : '') + '</span>';
   }
+  // Round 210 (user: "build a tooltip popup when you hover over an item that is as close to an ingame one as you can make
+  // it"): the item's own tooltip from Wowhead Forever (data/item-tips.js, loaded the first time one is needed; tags and
+  // classes made safe by tools/gen-tooltips.js), drawn like the game's; under it this page's notes (where it comes from, its
+  // phase, its worth, warnings). An item without one (typed in, or not fetched) gets one made from its stats.
+  var gbTipEl = null, gbTipFor = null, gbTipsWanted = false;
+  function gbTipsLoad() {
+    if (WL.ITEM_TIPS || gbTipsWanted) return;
+    gbTipsWanted = true;
+    var s = document.createElement('script'); s.src = 'data/item-tips.js';
+    s.onload = function () { if (gbTipFor) gbTipShow(gbTipFor.el, gbTipFor.x, gbTipFor.y); };
+    s.onerror = function () { WL.ITEM_TIPS = WL.ITEM_TIPS || {}; };
+    document.head.appendChild(s);
+  }
+  var GB_TIP_STAT = { int: 'Intellect', spi: 'Spirit', sta: 'Stamina' };
+  var GB_TIP_SLOT = { head: 'Head', neck: 'Neck', shoulder: 'Shoulder', back: 'Back', chest: 'Chest', wrist: 'Wrist', hands: 'Hands', waist: 'Waist', legs: 'Legs', feet: 'Feet',
+    finger: 'Finger', trinket: 'Trinket', mainHand: 'Main Hand', oneHand: 'One-Hand', twoHand: 'Two-Hand', offHand: 'Held In Off-hand', ranged: 'Ranged' };
+  function gbTipMade(it) {                                 // a tooltip from the item's own data
+    var q = { poor: 0, common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5 }[it.quality], s = it.stats || {}, l = [], eq = [], sl = GB_TIP_SLOT[it.slot] || '';
+    l.push('<b class="q' + (q == null ? 1 : q) + '">' + esc(it.name) + '</b>');
+    if (it.unique) l.push('Unique');
+    if (sl) l.push('<table class="w"><tr><td>' + sl + '</td><th>' + esc(it.weapon ? it.weapon.charAt(0).toUpperCase() + it.weapon.slice(1) : '') + '</th></tr></table>');
+    Object.keys(GB_TIP_STAT).forEach(function (k) { if (s[k]) l.push('+' + esc(s[k]) + ' ' + GB_TIP_STAT[k]); });
+    if (it.req) l.push('Requires Level ' + esc(it.req));
+    if (s.sp) eq.push('Increases damage and healing done by magical spells and effects by up to ' + s.sp + '.');
+    if (s.shadowSp) eq.push('Increases damage done by Shadow spells and effects by up to ' + s.shadowSp + '.');
+    if (s.fireSp) eq.push('Increases damage done by Fire spells and effects by up to ' + s.fireSp + '.');
+    if (s.hitPct) eq.push('Improves your chance to hit with spells by ' + s.hitPct + '%.');
+    if (s.critPct) eq.push('Improves your chance to get a critical strike with spells by ' + s.critPct + '%.');
+    if (s.hastePct) eq.push('Increases your casting speed by ' + s.hastePct + '%.');
+    if (s.spellPen) eq.push('Decreases the magical resistances of your spell targets by ' + s.spellPen + '.');
+    if (s.mp5) eq.push('Restores ' + s.mp5 + ' mana per 5 sec.');
+    eq.forEach(function (e) { l.push('<span class="q2">Equip: ' + esc(e) + '</span>'); });
+    return '<table><tr><td>' + l.join('<br>') + '</td></tr></table>';
+  }
+  function gbTipShow(el, x, y) {
+    var it = null, id = null, ent = null, gx = el.getAttribute('data-gx') || '';
+    if (el.hasAttribute('data-gpick')) { id = el.getAttribute('data-gpick'); it = WL.ITEMS[id]; }
+    else if (el.hasAttribute('data-gslot')) { ent = gb().slots[el.getAttribute('data-gslot')]; it = WL.gearItem(ent); id = ent && !ent.custom ? ent.id : null; }
+    if (!it) return gbTipHide();
+    gbTipFor = { el: el, x: x, y: y };
+    gbTipsLoad();
+    if (!gbTipEl) { gbTipEl = document.createElement('div'); gbTipEl.id = 'gbTip'; gbTipEl.className = 'gbtip'; gbTipEl.setAttribute('role', 'tooltip'); document.body.appendChild(gbTipEl); }
+    var game = id != null && WL.ITEM_TIPS && WL.ITEM_TIPS[id] ? WL.ITEM_TIPS[id] : gbTipMade(it);   // data/item-tips.js: made safe by tools/gen-tooltips.js
+    gbTipEl.innerHTML = '<div class="gbtipg">' + game + '</div>' + (gx ? '<div class="gbtipx">' + esc(gx).replace(/\n/g, '<br>') + '</div>' : '');
+    // As in the game: the set line counts the pieces you wear (gear builder), which show in white.
+    var worn = {}; Object.keys(gb().slots).forEach(function (k) { var w = WL.gearItem(gb().slots[k]); if (w) worn[w.name] = 1; });
+    Array.prototype.forEach.call(gbTipEl.querySelectorAll('.gbtipg span.q'), function (sp) {
+      var m = /^(.*) \((\d+)\/(\d+)\)$/.exec(sp.textContent), list = sp.nextElementSibling; if (!m || !list || !list.classList.contains('indent')) return;
+      var n = 0; Array.prototype.forEach.call(list.querySelectorAll('span'), function (p) { if (worn[p.textContent.trim()]) { p.className = 'q1'; n++; } });
+      sp.textContent = m[1] + ' (' + n + '/' + m[3] + ')';
+      Array.prototype.forEach.call(gbTipEl.querySelectorAll('.gbtipg span'), function (b) { var bm = /^\((\d)\) Set ?:/.exec(b.textContent); if (bm) b.className = +bm[1] <= n ? 'q2' : 'q0'; });   // round 210
+    });
+    gbTipEl.style.display = 'block';
+    gbTipPlace(x, y, el);
+  }
+  function gbTipPlace(x, y, el) {
+    if (!gbTipEl) return;
+    var w = gbTipEl.offsetWidth, h = gbTipEl.offsetHeight, vw = window.innerWidth, vh = window.innerHeight;
+    if (x == null) { var r = el.getBoundingClientRect(); x = r.right; y = r.top; }
+    var left = x + 18, top = y + 14;
+    if (left + w > vw - 8) left = Math.max(8, x - w - 18);
+    if (top + h > vh - 8) top = Math.max(8, vh - h - 8);
+    gbTipEl.style.left = left + 'px'; gbTipEl.style.top = top + 'px';
+  }
+  function gbTipHide() { gbTipFor = null; if (gbTipEl) gbTipEl.style.display = 'none'; }
   function gb() {
     var g = cfg.gearBuilder || (cfg.gearBuilder = { on: false, slots: {}, manual: {} });
     if (!g.enchants) g.enchants = {};
@@ -3778,7 +3858,7 @@
     var name = off ? 'Blocked by a two-handed weapon' : it ? esc(it.name) : e ? 'Unknown item ' + esc(e.id) : 'Empty';
     var stats = shown ? gbStatText(it.stats) : '', val = shown ? gbValText(it.stats, ctx) : '';
     return '<button type="button" class="gbslot' + (shown ? ' full' : '') + (off ? ' blocked' : '') + (sel ? ' sel' : '') + '" data-gslot="' + s.key + '" aria-expanded="' + sel + '" aria-controls="gbEdit"' +
-      (shown ? ' title="' + esc(it.name + (stats ? ': ' + stats : '') + (en ? '\nEnchant: ' + en.name + (gbStatText(en.stats) ? ' (' + gbStatText(en.stats) + ')' : '') : '') + (val ? '\n' + gbValText(it.stats, ctx, true) : '')) + '"' : '') + '>' +
+      (shown ? ' data-gx="' + esc([en ? 'Enchant: ' + en.name + (gbStatText(en.stats) ? ' (' + gbStatText(en.stats) + ')' : '') : '', val ? gbValText(it.stats, ctx, true) : ''].filter(Boolean).join('\n')) + '"' : '') + '>' +   // round 210: in-game tooltip on hover (gbTip)
       gbIconHtml(shown ? it : null, 34, shown ? it.name.charAt(0).toUpperCase() : '') +
       '<span class="gbtxt"><span class="gbsn">' + esc(s.name) + (val ? ' <span class="gbval">' + esc(val.replace(' spell power', ' SP')) + '</span>' : '') + '</span>' +
       '<span class="gbin"' + (shown ? ' style="color:' + (GB_QUALITY[it.quality] || 'var(--ink)') + '"' : '') + '>' + name + '</span>' +
@@ -3788,17 +3868,27 @@
     var g = gb(), r = WL.gearSheet(g, cfg), c = cfg.combat.critPerInt;
     var rows = WL.GEAR_STAT_KEYS.map(function (k) {
       var items = r.items[k] + (k === 'critPct' ? r.items.int * c : 0), ench = r.enchants[k] + (k === 'critPct' ? r.enchants.int * c : 0),
-          mine = r.manual[k] + (k === 'critPct' ? r.manual.int * c : 0);
+          sets = r.sets[k] + (k === 'critPct' ? r.sets.int * c : 0), mine = r.manual[k] + (k === 'critPct' ? r.manual.int * c : 0);
       return '<tr><td>' + esc(statLabel(k)) + '</td><td class="n">' + gbNum(r.naked[k], k) + '</td><td class="n">' + gbNum(items, k) + '</td>' +
-        '<td class="n">' + gbNum(ench, k) + '</td><td class="n">' + gbNum(mine, k) + '</td><td class="n gbsum">' + gbNum(r.sheet[k], k) + '</td></tr>';
+        '<td class="n">' + gbNum(ench, k) + '</td><td class="n">' + gbNum(sets, k) + '</td><td class="n">' + gbNum(mine, k) + '</td><td class="n gbsum">' + gbNum(r.sheet[k], k) + '</td></tr>';
     }).join('');
-    var all = {}; WL.GEAR_STAT_KEYS.forEach(function (k) { all[k] = r.items[k] + r.enchants[k]; });
+    var all = {}; WL.GEAR_STAT_KEYS.forEach(function (k) { all[k] = r.items[k] + r.enchants[k] + r.sets[k]; });
     var tot = r.used.length && ctx ? gbValText(all, ctx, true) : '';
-    return '<table class="gbtab"><thead><tr><th>Stat</th><th class="n">Naked</th><th class="n">Items</th><th class="n">Enchants</th><th class="n" title="What you typed in the Stats panel on top of your items">Yours</th>' +
+    return '<table class="gbtab"><thead><tr><th>Stat</th><th class="n">Naked</th><th class="n">Items</th><th class="n">Enchants</th><th class="n" title="Set bonuses of the sets you wear (round 210)">Sets</th><th class="n" title="What you typed in the Stats panel on top of your items">Yours</th>' +
       '<th class="n">' + (g.on ? 'Sheet' : 'Would be') + '</th></tr></thead><tbody>' + rows + '</tbody></table>' +
-      (tot ? '<p class="meta gbtot">Your items and enchants together: <b>' + esc(tot) + '</b>.</p>' : '') +
+      (tot ? '<p class="meta gbtot">Your items, enchants and set bonuses together: <b>' + esc(tot) + '</b>.</p>' : '') + gbSetsHtml(r.setList) +
       '<p class="meta">' + r.used.length + ' of ' + WL.GEAR_SLOTS.length + ' slots filled, ' + r.enchUsed.length + ' enchanted. Crit includes Intellect / 60, as on the character sheet. ' +
       'Your base Intellect, Spirit and Stamina (class and race) are not in these numbers: the sim adds them, see Total in the Stats panel.</p>';
+  }
+  // Round 210: the sets you wear and their bonuses (green: counts; the sim's note where a bonus is an effect).
+  function gbSetsHtml(list) {
+    if (!list || !list.length) return '';
+    return '<div class="gbisets">' + list.map(function (s) {
+      return '<div class="gbiset"><b>' + esc(s.name) + '</b> <span class="meta">' + s.worn + ' of ' + (s.size || '?') + ' pieces</span><ul>' + (s.bonuses.length ? s.bonuses.map(function (b) {
+        var fx = WL.setBonusNote ? WL.setBonusNote(s.id, b) : '';
+        return '<li class="' + (b.on ? 'on' : 'off') + '">(' + b.n + ') ' + esc(b.text) + (fx ? ' <span class="gbsetfx">' + esc(fx) + '</span>' : '') + '</li>';
+      }).join('') : '<li class="off">No bonuses known for this set.</li>') + '</ul></div>';
+    }).join('') + '</div>';
   }
   function gbList(src, fits) {                            // entries of WL.ITEMS / WL.ENCHANTS for the open slot
     return Object.keys(src).map(function (id) { return { id: id, it: src[id] }; }).filter(function (x) { return fits(x.it); });
@@ -3817,8 +3907,8 @@
     }).sort(function (a, b) {
       return ((b.v ? b.v.dps : 0) - (a.v ? a.v.dps : 0)) || ((b.x.it.ilvl || 0) - (a.x.it.ilvl || 0)) || (a.x.it.name < b.x.it.name ? -1 : a.x.it.name > b.x.it.name ? 1 : 0);
     });
-    var filtered = isItem && (gbFilt.min !== '' || gbFilt.max !== '' || gbFilt.side || gbFilt.src || gbFilt.fav);
-    var head = '<p class="meta gbhitsum">' + fmt(hits.length) + ' ' + what + (hits.length === 1 ? '' : 's') + (q ? ' with that name' : ' for this slot') + (filtered ? ' (filtered)' : '') +
+    var filtered = isItem && (gbFilt.min !== '' || gbFilt.max !== '' || gbFilt.side || gbFilt.src || gbFilt.fav), phN = isItem && +gbFilt.phase ? (WL.PHASE_NAMES || {})[gbFilt.phase] : '';
+    var head = '<p class="meta gbhitsum">' + fmt(hits.length) + ' ' + what + (hits.length === 1 ? '' : 's') + (q ? ' with that name' : ' for this slot') + (phN ? ' in ' + phN : '') + (filtered ? ' (filtered)' : '') +
       (ctx && hits.length > 1 ? ', best first for ' + esc(ctx.b.short) : '') + (hits.length > GB_HITS ? '. The first ' + GB_HITS + ' are shown: type a name to narrow it down.' : '.') + '</p>';
     return head + '<ul class="gblist">' + (hits.length ? hits.slice(0, GB_HITS).map(function (h) {
       var it = h.x.it, st = gbStatText(it.stats), fxT = isItem && WL.TRINKET_FX && WL.TRINKET_FX[h.x.id] ? trkText(WL.TRINKET_FX[h.x.id]) : '';   // round 209: a trinket's effect
@@ -3828,7 +3918,10 @@
       var warn = isItem ? gbWarn(h.x.id, it) : [];
       var side = isItem ? '<button type="button" class="gbstar' + (gbFav[h.x.id] ? ' on' : '') + '" data-gfav="' + esc(h.x.id) + '" aria-pressed="' + !!gbFav[h.x.id] + '" title="' + (gbFav[h.x.id] ? 'Remove from your favourites' : 'Add to your favourites') + '" aria-label="Favourite ' + esc(it.name) + '">★</button>' +
         '<button type="button" class="gbcmpb" data-gcmp="' + esc(h.x.id) + '" title="Compare it with what you wear in this slot (real fights for the best builds)" aria-label="Compare ' + esc(it.name) + '">⇄</button>' : '';
-      return '<li class="gbhitli"><button type="button" class="gbhit" ' + attr + '="' + esc(h.x.id) + '" title="' + esc(tip + (warn.length ? '\n⚠ ' + warn.join('\n⚠ ') : '')) + '">' + gbIconHtml(it, 28, it.name.charAt(0).toUpperCase()) +
+      // Round 210: an item shows its in-game tooltip on hover (gbTip), with this page's notes under it; an enchant keeps its title.
+      var gx = isItem ? [it.from || '', it.phase ? (WL.PHASE_NAMES || {})[it.phase] || '' : '', fxT ? 'In the sim: ' + fxT : '', h.v && h.v.sp != null ? gbValText(it.stats, ctx, true) : ''].concat(warn.map(function (w) { return '⚠ ' + w; })).filter(Boolean).join('\n') : '';
+      return '<li class="gbhitli"><button type="button" class="gbhit" ' + attr + '="' + esc(h.x.id) + '"' + (isItem ? ' data-gx="' + esc(gx) + '" aria-label="' + esc(it.name + (st ? ': ' + st : '')) + '"' : ' aria-label="' + esc(it.name) + '" data-tip="' + esc('<div class="tt-name">' + esc(it.name) + '</div>' + (it.text ? '<div class="tt-body">' + esc(it.text) + '</div>' : '') +   // round 210: an enchant in the game's layout
+        '<div class="tt-rule">' + esc([st, it.twoHand ? 'Two-handed weapons only' : '', it.from ? 'From: ' + it.from : '', h.v && h.v.sp != null ? gbValText(it.stats, ctx, true) : ''].filter(Boolean).join(' · ')) + '</div>') + '"') + '>' + gbIconHtml(it, 28, it.name.charAt(0).toUpperCase()) +
         '<span class="gbhn" style="color:' + (GB_QUALITY[it.quality] || 'var(--ink)') + '">' + (warn.length ? '<span class="gbwarn" aria-label="Warning">⚠</span> ' : '') + esc(it.name) + '</span>' +
         '<span class="gbhm">' + esc(meta) + '</span><span class="gbhv">' + (h.v && h.v.sp != null && h.v.dps ? '≈ ' + fmt(h.v.sp, Math.abs(h.v.sp) < 10 ? 1 : 0) + ' SP' : '') + '</span></button>' + side + '</li>';
     }).join('') : '<li class="meta">Nothing for this slot has that name.</li>') + '</ul>';
@@ -4248,11 +4341,22 @@
     else if (id === 'gbEnFind') { gbEnFind = e.target.value; $('gbEnHits').innerHTML = gbHitsHtml(gbEnchList(), gbEnFind, 'enchant', 'data-gepick'); }
     else if (e.target.closest('.gbown')) gbFormValues();
   });
+  $('gear').addEventListener('mouseover', function (e) {     // round 210: the item tooltip
+    var el = e.target.closest && e.target.closest('[data-gpick],[data-gslot]');
+    if (!el) return gbTipHide();
+    if (!gbTipFor || gbTipFor.el !== el) gbTipShow(el, e.clientX, e.clientY);
+  });
+  $('gear').addEventListener('mousemove', function (e) { if (gbTipFor) { gbTipFor.x = e.clientX; gbTipFor.y = e.clientY; gbTipPlace(e.clientX, e.clientY, gbTipFor.el); } });
+  $('gear').addEventListener('mouseleave', gbTipHide);
+  $('gear').addEventListener('focusin', function (e) { var el = e.target.closest && e.target.closest('[data-gpick],[data-gslot]'); if (el && el.matches(':focus-visible')) gbTipShow(el, null, null); else gbTipHide(); });
+  $('gear').addEventListener('focusout', gbTipHide);
+  $('gear').addEventListener('click', gbTipHide);
+  window.addEventListener('scroll', gbTipHide, { passive: true });
   $('gear').addEventListener('change', function (e) {
     var id = e.target.id;
     if (id === 'gbValFor') { gbValKey = e.target.value; renderGear(); return; }
     if (/^gbf/.test(id)) {                                  // round 157: the item list's filters
-      gbFilt = { min: $('gbfMin').value, max: $('gbfMax').value, side: $('gbfSide').value, src: $('gbfSrc').value, fav: $('gbfFav').checked };
+      gbFilt = { min: $('gbfMin').value, max: $('gbfMax').value, side: $('gbfSide').value, src: $('gbfSrc').value, fav: $('gbfFav').checked, phase: $('gbfPhase') ? +$('gbfPhase').value : 0 };
       gbKeep('wfs.gbFilter', gbFilt); $('gbHits').innerHTML = gbHitsHtml(gbItemList(), gbFind, 'item', 'data-gpick');
     }
     if (id === 'gbSetSel') renderGbSets();

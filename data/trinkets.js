@@ -25,7 +25,7 @@
 //     'spi' / 'sp'  + spi Spirit / + sp spell power for duration; chancePct per landed damaging cast (icd: not again for that long)
 //     'dmg'     a hit of min…max (as 'dmg' above); per landed damaging cast, or onDamage: per damage event of yours (hits
 //               and ticks) with an internal cooldown `icd`; selfPct: that share of the procs hits you instead
-//   equip: always on while worn, when its condition holds — { sp, spellPen, mp5, petMp5 (pet: only that demon) }
+//   equip: always on while worn, when its condition holds — { sp, pierce (Spell Pierce, round 210), spellPen, mp5, petMp5 (pet: only that demon) }
 //   stats: the trinket's own item stats, for the gear builder, where Wowhead's list counts a zone bonus always.
 //   Conditions (round 209): vs { bossType: × } (fight.bossType, or the creature type it belongs to), zones { zone: × }
 //   (fight.zone); on use / proc effects they multiply the amount, on equip effects the effect only counts there.
@@ -115,8 +115,8 @@ WL.TRINKET_FX = {
   12930:  { name: 'Briarwood Reed',                     equip: { sp: 15, zones: { marsh: 1 } }, stats: { sp: 15 } },
   270225: { name: 'Jewel of the Guard Captain',         equip: { sp: 16, zones: { forest: 1 } }, stats: { sp: 8, critPct: 0.5 } },
   270276: { name: 'Cleansed Vilebranch Icon',           equip: { sp: 16, zones: { forest: 1 } }, stats: { sp: 8, critPct: 0.5 } },
-  21565:  { name: 'Rune of Perfection',                 equip: { spellPen: 7, zones: { forest: 1 } }, stats: { spellPen: 3, sta: 8 } },
-  21566:  { name: 'Rune of Perfection',                 equip: { spellPen: 4, zones: { forest: 1 } }, stats: { spellPen: 2, sta: 4 } },
+  21565:  { name: 'Rune of Perfection',                 equip: { pierce: 7, zones: { forest: 1 } }, stats: { pierce: 3, sta: 8 } },   // round 210: "Your spells pierce 3 …", "additional 7 Spell Piercing"
+  21566:  { name: 'Rune of Perfection',                 equip: { pierce: 4, zones: { forest: 1 } }, stats: { pierce: 2, sta: 4 } },
   271903: { name: 'Enriched Seal',                      equip: { mp5: 10, zones: { forest: 1 } }, stats: { mp5: 5, sta: 10 } },
   271905: { name: 'Enriched Seal',                      equip: { mp5: 6, zones: { forest: 1 } }, stats: { mp5: 3, sta: 7 } },
   272061: { name: 'Darkspear Voodoo Seal',              equip: { mp5: 10, zones: { forest: 1 } }, stats: { mp5: 5, sta: 10 } },
@@ -125,10 +125,54 @@ WL.TRINKET_FX = {
 // Not here (no effect on a Warlock's damage in the sim): threat, defence, resistance, movement and utility trinkets, pets of
 // their own (dragonlings, Vanquished Tentacle), melee-range or cone effects (Goblin Dragon Gun, Chained Essence of
 // Eranikus), random ones (Six Demon Bag, Gnomish Death Ray).
-// The worn trinkets' equip effects that hold in this fight: [{ name, sp, spellPen, mp5, petMp5, pet }].
+// The worn trinkets' equip effects that hold in this fight: [{ name, sp, pierce, spellPen, mp5, petMp5, pet }].
 WL.trinketEquipFx = function (cfg) {
   return WL.equippedTrinkets(cfg).filter(function (x) { return x.fx.equip && WL.fxHolds(cfg, x.fx.equip); })
-    .map(function (x) { var e = x.fx.equip; return { name: x.fx.name, sp: e.sp || 0, spellPen: e.spellPen || 0, mp5: e.mp5 || 0, petMp5: e.petMp5 || 0, pet: e.pet || null }; });
+    .map(function (x) { var e = x.fx.equip; return { name: x.fx.name, sp: e.sp || 0, pierce: e.pierce || 0, spellPen: e.spellPen || 0, mp5: e.mp5 || 0, petMp5: e.petMp5 || 0, pet: e.pet || null }; });
+};
+
+// Set bonuses with an effect in the fight (round 210, user: "start implementing the set bonuses for phase 1 items"). [A116]
+// A set's plain stat bonuses (spell power, hit, crit, MP5, Intellect, Spirit, Spell Penetration …) are in data/item-db.js
+// (WL.ITEM_SETS, from the pieces' tooltips) and count in the gear builder like item stats. Here: the bonuses the fight
+// engine plays, keyed by item set id — pieces (item ids), at = { pieces worn: effect }. Effects (like a trinket's proc,
+// on each landed damaging cast unless said otherwise):
+//   'mana'      chancePct → + amount mana
+//   'dmg'       chancePct → a hit of min…max (school), no spell power (Necropile Drain; the healing is not counted)
+//   'castRegen' chancePct → for duration, pct % of your Spirit regeneration also while casting (inside the 5 s rule)
+//   'lowMana'   below belowPct % mana: + amount mana (counted at once), cd seconds
+// zones: × in that kind of area (fight.zone), as for trinkets. Not simulated: Violet Sorcerer's 5 (an Arcane elemental of
+// unknown damage), Dreadmist's 5 (healing), anything defensive.
+WL.SET_FX = {
+  122:  { name: 'Necropile Raiment', pieces: [14626, 14629, 14631, 14632, 14633],
+          at: { 3: { kind: 'dmg', chancePct: 100, min: 28, max: 28, school: 'shadow' } } },                 // Necropile Drain 1299737 → 1299735
+  181:  { name: "Magister's Regalia", pieces: [16682, 16683, 16684, 16685, 16686, 16687, 16688, 16689],
+          at: { 5: { kind: 'mana', chancePct: 5, amount: 200 } } },                                         // 450527
+  182:  { name: 'Vestments of the Devout', pieces: [16690, 16691, 16692, 16693, 16694, 16695, 16696, 16697],
+          at: { 5: { kind: 'mana', chancePct: 5, amount: 200 } } },                                         // 450576
+  2133: { name: "Rotmender's Raiment", pieces: [271207, 271214, 286978, 286979, 286980],
+          at: { 4: { kind: 'lowMana', belowPct: 15, amount: 200, cd: 300, zones: { haunted: 2, wasteland: 2 } } } },   // 1321560
+  2134: { name: "Violet Sorcerer's Vestments", pieces: [273044, 273051, 286987, 286988, 286989],
+          at: { 4: { kind: 'castRegen', chancePct: 100, pct: 15, duration: 15, zones: { city: 2 } } } },     // Violet Meditation 1324318
+};
+WL.SET_NOT_SIMULATED = { 2134: { 5: 'not simulated: the elemental\'s damage is unknown' } };
+// The set effects of the gear builder's items that are on: [{ slot, id, fx: { name, proc } }] (shaped like trinkets).
+WL.equippedSetFx = function (cfg) {
+  var gb = cfg && cfg.gearBuilder; if (!gb || !gb.on || !gb.slots) return [];
+  var worn = {}; Object.keys(gb.slots).forEach(function (k) { var e = gb.slots[k], id = e && (e.id != null ? e.id : e.custom && e.custom.id); if (id != null) worn[+id] = 1; });
+  var out = [];
+  Object.keys(WL.SET_FX).forEach(function (sid) {
+    var s = WL.SET_FX[sid], n = s.pieces.filter(function (id) { return worn[id]; }).length;
+    Object.keys(s.at).forEach(function (need) { if (n >= +need) out.push({ slot: 'set' + sid + '_' + need, id: 'set' + sid, fx: { name: s.name, proc: s.at[need] } }); });
+  });
+  return out;
+};
+// What the sim does with a set bonus (for the gear builder's list of sets).
+WL.setBonusNote = function (sid, b) {
+  var s = WL.SET_FX[sid], fx = s && s.at[b.n], ns = (WL.SET_NOT_SIMULATED[sid] || {})[b.n];
+  if (ns) return ns;
+  if (fx) return 'in the fight' + (fx.chancePct === 100 ? ' (on every landed damaging cast)' : '');
+  if (b.stats) return '';
+  return 'no effect in the sim';
 };
 
 // Weapon enchants with an effect of their own (round 166, user: "start implementing enchants as well (like revelation)"). [A106]

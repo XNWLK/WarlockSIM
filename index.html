@@ -214,6 +214,24 @@
   #gbWeap { grid-area: w; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
   .gbcol { display: grid; gap: 4px; align-content: start; }
   .gbslot { display: flex; align-items: center; gap: 8px; width: 100%; padding: 3px 6px; text-align: left; font-weight: 500; background: var(--sunk); min-width: 0; }
+  /* Round 210: the item tooltip, drawn like the game's (dark in both themes, as in the game) */
+  .gbtip { position: fixed; z-index: 55; display: none; pointer-events: none; max-width: min(340px, calc(100vw - 16px)); }
+  .gbtipg { background: rgba(6, 8, 24, .95); border: 2px solid #c8c8cc; border-radius: 5px; box-shadow: 0 2px 10px rgba(0, 0, 0, .55);
+    padding: 7px 10px 8px; color: #fff; font: 13px/1.38 "Arial Narrow", Arial, "Helvetica Neue", sans-serif; text-shadow: 1px 1px 0 #000; }
+  .gbtip .gbtipg { min-width: 200px; }
+  .gbtip .gbtipg table { border-collapse: collapse; width: 100%; margin: 0; font: inherit; color: inherit; }
+  .gbtip .gbtipg td, .gbtip .gbtipg th { padding: 0; vertical-align: top; text-align: left; font: inherit; color: inherit; text-transform: none; letter-spacing: normal;
+    background: none; border: 0; position: static; }
+  .gbtip .gbtipg th { text-align: right; padding-left: 18px; }
+  .gbtip .gbtipg b { display: inline-block; font-size: 16px; line-height: 1.3; font-weight: normal; margin-bottom: 1px; }
+  .gbtipg .q { color: #ffd100; } .gbtipg .q0 { color: #9d9d9d; } .gbtipg .q1 { color: #fff; } .gbtipg .q2 { color: #1eff00; }
+  .gbtipg .q3 { color: #0070dd; } .gbtipg .q4 { color: #a335ee; } .gbtipg .q5 { color: #ff8000; } .gbtipg .q6, .gbtipg .q7 { color: #e6cc80; }
+  .gbtipg .indent { padding-left: 10px; }
+  .gbisets { display: grid; gap: 8px; margin-top: 8px; }
+  .gbiset ul { margin: 2px 0 0; padding-left: 18px; font-size: 12.5px; }
+  .gbiset li.on { color: var(--good); } .gbiset li.off { color: var(--muted); }
+  .gbsetfx { color: var(--muted); font-style: italic; }
+  .gbtipx { margin-top: 4px; padding: 5px 9px; border-radius: 5px; background: var(--surface); color: var(--muted); border: 1px solid var(--line); font-size: 12px; line-height: 1.4; }
   .gbslot:hover { border-color: var(--accent); }
   #gbRight .gbslot { flex-direction: row-reverse; text-align: right; }
   #gbWeap .gbslot { width: 230px; }
@@ -483,16 +501,26 @@
   .tarrow.bend.right::before { right: 17px; } .tarrow.bend.left::before { left: 15px; } .tarrow.bend:not(.down)::after { display: none; }
   .tarrow.bend.down::before { top: 15px; }   /* the turn: sideways along the prerequisite's row, then down */
   .ico[data-tip] { cursor: help; }
-  #tip { position: fixed; z-index: 50; max-width: 320px; pointer-events: none; background: var(--surface); color: var(--ink);
-         border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-size: 12px; line-height: 1.4;
-         box-shadow: 0 6px 20px rgba(0,0,0,.28); }
-  #tip hr { border: 0; border-top: 1px solid var(--line); margin: 6px 0; }
-  #tip .tt-name { font-weight: 600; font-size: 13px; color: var(--accent); }
-  #tip .tt-meta { color: var(--muted); font-size: 11px; margin-bottom: 4px; }
-  #tip .tt-body { color: var(--ink); }
-  #tip .tt-dim { color: var(--muted); }
-  #tip .tt-next { margin-top: 6px; font-size: 11px; color: var(--c-crit); }
-  #tip .tt-rule { margin-top: 6px; padding-top: 5px; border-top: 1px solid var(--line); font-size: 11px; color: var(--good); }
+  /* Round 210: spell, talent, buff and consumable tooltips drawn like the game's (dark in both themes, as in the game);
+     this page's notes in a box under it */
+  #tip { position: fixed; z-index: 50; max-width: min(340px, calc(100vw - 16px)); pointer-events: none; }
+  #tip[hidden] { display: none; }
+  #tip .tipg { background: rgba(6, 8, 24, .95); border: 2px solid #c8c8cc; border-radius: 5px; box-shadow: 0 2px 10px rgba(0, 0, 0, .55);
+    padding: 7px 10px 8px; color: #fff; font: 13px/1.38 "Arial Narrow", Arial, "Helvetica Neue", sans-serif; text-shadow: 1px 1px 0 #000; min-width: 200px; }
+  #tip .tipx { margin-top: 4px; padding: 5px 9px; border-radius: 5px; background: var(--surface); color: var(--muted); border: 1px solid var(--line); font-size: 12px; line-height: 1.4; }
+  #tip hr { border: 0; border-top: 1px solid rgba(255, 255, 255, .2); margin: 7px 0; }
+  #tip .tt-row { display: flex; justify-content: space-between; gap: 18px; }
+  #tip .tt-name { font-size: 16px; line-height: 1.3; color: #fff; }
+  #tip .tt-rank { color: #9d9d9d; align-self: center; }
+  #tip .tt-meta { color: #fff; }
+  #tip .tt-body { color: #ffd100; margin-top: 2px; }
+  #tip .tt-next { margin-top: 8px; color: #fff; }
+  #tip .tt-use { color: #1eff00; margin-top: 2px; }
+  #tip .tipg b { display: inline-block; font-size: 16px; line-height: 1.3; font-weight: normal; }
+  #tip .tipg table { border-collapse: collapse; width: 100%; margin: 0; font: inherit; color: inherit; }
+  #tip .tipg td, #tip .tipg th { padding: 0; vertical-align: top; text-align: left; font: inherit; color: inherit; text-transform: none; letter-spacing: normal; background: none; border: 0; }
+  #tip .tipg th { text-align: right; padding-left: 18px; }
+  #tip .q { color: #ffd100; } #tip .q0 { color: #9d9d9d; } #tip .q1 { color: #fff; } #tip .q2 { color: #1eff00; } #tip .q3 { color: #0070dd; } #tip .q4 { color: #a335ee; } #tip .q5 { color: #ff8000; }
   .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
   .log { max-height: 400px; overflow: auto; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
   .log td, .log th { padding: 2px 8px; font-size: 11.5px; }
@@ -1354,7 +1382,7 @@
           <label class="f" for="bossArmor">Boss armor (before debuffs)<input id="bossArmor" type="number" min="0" step="100"></label>
           <label class="f" for="resShadow" title="Resistance left after Curse of the Elements (−75) and Spell Pierce is rolled as partial resists (0/25/50/75/100%) on every hit and tick; average = 0.75 × resistance / 300.">Boss Shadow resistance<input id="resShadow" type="number" min="0" step="5"></label>
           <label class="f" for="resFire" title="As Shadow resistance, for Fire spells.">Boss Fire resistance<input id="resFire" type="number" min="0" step="5"></label>
-          <label class="c" for="o_levelRes" title="A boss 3 levels above you has +24 resistance to all schools (8 per level): about 6% of your damage is resisted on average — until Curse of the Elements is on the boss, which takes it to 0."><input id="o_levelRes" type="checkbox"> Level resistance (+24, removed by Curse of the Elements)</label>
+          <label class="c" for="o_levelRes" title="A boss 3 levels above you has +24 resistance to all schools (8 per level): about 4.6% of your hits is resisted on average — until Curse of the Elements is on the boss, which takes it to 0."><input id="o_levelRes" type="checkbox"> Level resistance (+24, removed by Curse of the Elements)</label>
         </fieldset>
         <fieldset><legend>Run</legend>
           <label class="f" for="durVar" title="Each fight lasts the duration ± up to this % (uniform), so results don't hinge on one exact fight length.">Length variation ± %<input id="durVar" type="number" min="0" max="50" step="5"></label>
@@ -1583,5 +1611,7 @@
 <script src="data/default-scaling.js"></script>
 <script src="data/items.js"></script>
 <script src="data/item-db.js"></script>
+<script src="data/item-phases.js"></script>
+<script src="data/con-tips.js"></script>
 <script src="app/gear-builder.js"></script>
 <script src="app/app.js"></script>

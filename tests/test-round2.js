@@ -16,6 +16,7 @@
   T.run('resist', function () {
     T.group('resistance & Spell Pierce [A43][A44]');
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)); c.combat.levelResist.on = false;   // the level resistance (round 118) has its own tests
+    c.combat.resistModel = 'classic';   // round 210: the classic model's own numbers (the default is the combat-log fit, test-round210)
     T.eq(WL.effectiveResist(c, 0, 'shadow', true), 0, 'boss 0 resist + CoE → 0 (CoE cannot go below 0)');
     T.eq(WL.effectiveResist(c, 15, 'shadow', true), -15, '15 pierce → −15');
     c.combat.targetResist.fire = 100;
@@ -38,7 +39,7 @@
 
   T.run('pierce in sim', function () {
     T.group('Spell Pierce inside the simulation');
-    var c = detCfg(); c.fight.duration = 3000;
+    var c = detCfg(); c.fight.duration = 3000; c.combat.resistModel = 'classic';   // round 210: the classic model's own numbers (the default is the combat-log fit, test-round210)
     var r0 = WL.simulateOnce(tb(['shadowBolt']), 'human', c, { rng: WL.makeRng(3) });
     c.gear.pierce = 15;
     var r1 = WL.simulateOnce(tb(['shadowBolt']), 'human', c, { rng: WL.makeRng(3) });

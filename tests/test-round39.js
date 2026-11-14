@@ -5,6 +5,7 @@
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     c.combat.baseHitPct = 100; c.combat.maxHitPct = 100; c.gear.hitPct = 0; c.gear.critPct = 0; c.gear.critPct -= 2;
     c.gear.pierce = 0; c.fight.durationVarPct = 0; c.options.useCurseOfElements = false; c.combat.levelResist.on = false;
+    c.combat.resistModel = 'classic';   // round 210: the classic model's own numbers (the default is the combat-log fit, test-round210)
     if (f) f(c);
     return c;
   }

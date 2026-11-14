@@ -56,10 +56,30 @@ WL.levelResist = function (cfg) {
   return lr && lr.on ? lr.perLevel * lr.levelDiff : 0;
 };
 
+// Round 210 (user: "play around with [a Spell Piercing calculator] to get the math on spell pierce"): a model fitted to
+// Forever combat logs (levels 20–50). combat.resistModel 'fitted':
+//   average share a = R / (|R| + 8 × your level + 19)  (R as above; a > 0 resisted, a < 0 bonus damage from Spell Pierce)
+//   each hit rolls whole tenths: up to a = 10%: 0 / 1 / 2 tenths at 1 − 7.5a, 5a, 2.5a; past it every tenth within 20% of a
+//   at 0.5 − 2.5 × its distance (mirrored from 90%); a DoT tick rolls a tenth of a. [A115]
+// 'classic' (rounds 39–209): the mean 0.75 × R / 300, 25% resist chunks / 10% bonus steps around it, ticks as hits.
+WL.fittedShare = function (R, level) { return R / (Math.abs(R) + 8 * (level || 60) + 19); };
+WL.tenthsDist = function (a) {                            // a ≥ 0 → [{ tenths, p }]
+  if (!(a > 1e-12)) return [{ tenths: 0, p: 1 }];
+  if (a <= 0.1) return [{ tenths: 0, p: 1 - 7.5 * a }, { tenths: 1, p: 5 * a }, { tenths: 2, p: 2.5 * a }];
+  if (a >= 0.9) { var b = 1 - a; return [{ tenths: 8, p: 2.5 * b }, { tenths: 9, p: 5 * b }, { tenths: 10, p: 1 - 7.5 * b }]; }
+  var out = [];
+  for (var k = 0; k <= 10; k++) { var p = 0.5 - 2.5 * Math.abs(k / 10 - a); if (p > 1e-12) out.push({ tenths: k, p: p }); }
+  return out;
+};
 // Returns { R, flat, dist, mean } for one school. R > 0 → partial resists (dist of negative steps, flat 1);
 // R < 0 → vulnerable damage from Spell Pierce (positive steps). `mean` = average multiplier − 1.
-WL.resistProfile = function (cfg, pierce, school, coeActive, pen) {
+WL.resistProfile = function (cfg, pierce, school, coeActive, pen, periodic) {
   var cb = cfg.combat, R = WL.effectiveResist(cfg, pierce, school, coeActive, pen);
+  if (cb.resistModel === 'fitted') {                        // round 210 [A115]
+    var a = WL.fittedShare(R, cb.casterLevel || 60) / (periodic ? 10 : 1), sg = a > 0 ? -1 : 1;
+    var d = WL.tenthsDist(Math.abs(a)).map(function (x) { return { pct: x.tenths ? sg * x.tenths * 10 : 0, p: x.p }; });
+    return { R: R, flat: 1, dist: d, mean: -a };
+  }
   if (R > 0) { var mr = Math.min(0.75, cb.pierceAvgPerPoint * R); return { R: R, flat: 1, dist: WL.partialResistDist(mr), mean: -mr }; }
   if (R === 0) return { R: 0, flat: 1, dist: [{ pct: 0, p: 1 }], mean: 0 };
   var m = cb.pierceAvgPerPoint * -R;

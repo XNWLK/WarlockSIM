@@ -31,7 +31,7 @@
     NEW.forEach(function (id) { T.ok(!!WL.ITEMS[id] && !!WL.TRINKET_FX[id], WL.TRINKET_FX[id].name + ' (' + id + ') in the gear builder with its effect'); });
     T.eq(WL.ITEMS[12930].stats.sp, 15, 'Briarwood Reed: 15 spell power (Wowhead\'s list counts the Marsh doubling always: 30)');
     T.eq(WL.ITEMS[270225].stats.sp, 8, 'Jewel of the Guard Captain: 8 spell power (24 in Forest areas)');
-    T.eq(WL.ITEMS[21565].stats.spellPen, 3, 'Rune of Perfection: 3 Spell Penetration (10 in Forest areas)');
+    T.eq(WL.ITEMS[21565].stats.pierce, 3, 'Rune of Perfection: 3 Spell Pierce (10 in Forest areas; round 210)');
     T.eq(WL.ITEMS[271903].stats.mp5, 5, 'Enriched Seal: 5 MP5 (15 in Forest areas)');
     T.eq(WL.ITEMS[11819].stats.sp, 5, 'Second Wind: 5 spell power (its tooltip: healing up to 15 and damage up to 5)');
 
@@ -47,7 +47,7 @@
     T.eq(spOf(12930, { zone: 'marsh' }) - spOf(12930, {}), 15, 'Briarwood Reed: +15 in Marsh areas');
     T.eq(spOf(270276, { zone: 'forest' }) - spOf(270276, {}), 16, 'Cleansed Vilebranch Icon: +16 in Forest areas (tripled)');
     var st = WL.computeStats(b, 'human', wear(det(), 21565, { zone: 'forest' }));
-    T.ok(st.breakdown.some(function (x) { return x.stat === 'spellPen' && x.source === 'Rune of Perfection' && x.value === 7; }), 'Rune of Perfection: +7 Spell Penetration in Forest areas, listed by name');
+    T.ok(st.breakdown.some(function (x) { return x.stat === 'pierce' && x.source === 'Rune of Perfection' && x.value === 7; }), 'Rune of Perfection: +7 Spell Pierce in Forest areas, listed by name');
     T.eq(WL.computeStats(b, 'human', wear(det(), 272061, { zone: 'forest' })).mp5 - WL.computeStats(b, 'human', wear(det(), 272061, {})).mp5, 10, 'Darkspear Voodoo Seal: +10 MP5 in Forest areas');
   });
 

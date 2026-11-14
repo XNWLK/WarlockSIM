@@ -82,7 +82,7 @@
 
   T.run('pierce weight', function () {
     T.group('Spell Pierce stat weight');
-    var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)); c.fight.iterations = 150;
+    var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)); c.fight.iterations = 150; c.combat.resistModel = 'classic';   // round 210: the classic model's own numbers (the default is the combat-log fit, test-round210)
     var w = WL.statWeights(WL.TEST_BUILDS[4], 'orc', c, 150);
     T.ok(w.pierce > 0, 'DPS per 1 Spell Pierce is positive (boss at 0 resistance → vulnerable damage)', w.pierce);
     T.ok(Math.abs(w.pierce - w.base * 0.75 / 300) < w.base * 0.75 / 300 * 0.35,

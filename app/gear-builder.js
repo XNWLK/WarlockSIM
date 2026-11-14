@@ -49,13 +49,29 @@ WL.gearNaked = function (cfg) {
 
 WL.gearRound = function (x) { return Math.round(x * 100) / 100; };   // the sheet shows two decimals
 
+// Round 210 (user: "start implementing the set bonuses for phase 1 items"): the item sets you wear (WL.ITEM_SETS, data/item-db.js) —
+// per set the pieces worn (each item once) and its bonuses that count: [{ id, name, size, worn, bonuses: [{ n, text, stats, on }] }].
+// Only items that count (fit their slot; not an off-hand blocked by a two-handed weapon).
+WL.gearSets = function (gb) {
+  var S = WL.ITEM_SETS || {}, slots = (gb || {}).slots || {}, blocked = WL.gearOffHandBlocked(gb), by = {}, seen = {};
+  WL.GEAR_SLOTS.forEach(function (s) {
+    var e = slots[s.key], it = WL.gearItem(e), id = e && !e.custom ? e.id : it && it.id;
+    if (!it || !it.set || !S[it.set] || !WL.gearFits(s.key, it) || (s.key === 'offHand' && blocked) || seen[id]) return;
+    seen[id] = 1; by[it.set] = (by[it.set] || 0) + 1;
+  });
+  return Object.keys(by).map(function (sid) {
+    var s = S[sid], n = by[sid];
+    return { id: +sid, name: s.name, size: s.size, worn: n, bonuses: (s.bonuses || []).map(function (b) { return { n: b.n, text: b.text, stats: b.stats || null, spell: b.spell, on: n >= b.n }; }) };
+  });
+};
+
 // Everything the builder shows: per stat the naked value, the items' sum, the enchants' sum, your own additions and the
 // resulting sheet value (rounded to 2 decimals); `crit from Int` separately; which slots / enchants count. (Until round 149
 // also the main hand's weapon type, for Sword Specialization; Ruthless needs no sword.)
 WL.gearSheet = function (gb, cfg) {
   gb = gb || {}; var slots = gb.slots || {}, ench = gb.enchants || {}, manual = gb.manual || {};
-  var naked = WL.gearNaked(cfg), items = {}, enchants = {}, mine = {}, sheet = {}, used = [], enchUsed = [];
-  WL.GEAR_STAT_KEYS.forEach(function (k) { items[k] = 0; enchants[k] = 0; mine[k] = +manual[k] || 0; });
+  var naked = WL.gearNaked(cfg), items = {}, enchants = {}, sets = {}, mine = {}, sheet = {}, used = [], enchUsed = [];
+  WL.GEAR_STAT_KEYS.forEach(function (k) { items[k] = 0; enchants[k] = 0; sets[k] = 0; mine[k] = +manual[k] || 0; });
   var blocked = WL.gearOffHandBlocked(gb);
   var add = function (to, stats) { WL.GEAR_STAT_KEYS.forEach(function (k) { var v = +((stats || {})[k]); if (isFinite(v)) to[k] += v; }); };
   WL.GEAR_SLOTS.forEach(function (s) {
@@ -65,17 +81,19 @@ WL.gearSheet = function (gb, cfg) {
     var en = s.enchant ? WL.gearEnchant(ench[s.key]) : null;
     if (en) { enchUsed.push(s.key); add(enchants, en.stats); }
   });
-  var critFromInt = (items.int + enchants.int + mine.int) * cfg.combat.critPerInt;
-  WL.GEAR_STAT_KEYS.forEach(function (k) { sheet[k] = WL.gearRound(naked[k] + items[k] + enchants[k] + mine[k] + (k === 'critPct' ? critFromInt : 0)); });
-  return { naked: naked, items: items, enchants: enchants, manual: mine, critFromInt: critFromInt, sheet: sheet, used: used, enchUsed: enchUsed,
+  var setList = WL.gearSets(gb);                                    // round 210: set bonuses that count
+  setList.forEach(function (s) { s.bonuses.forEach(function (b) { if (b.on && b.stats) add(sets, b.stats); }); });
+  var critFromInt = (items.int + enchants.int + sets.int + mine.int) * cfg.combat.critPerInt;
+  WL.GEAR_STAT_KEYS.forEach(function (k) { sheet[k] = WL.gearRound(naked[k] + items[k] + enchants[k] + sets[k] + mine[k] + (k === 'critPct' ? critFromInt : 0)); });
+  return { naked: naked, items: items, enchants: enchants, sets: sets, setList: setList, manual: mine, critFromInt: critFromInt, sheet: sheet, used: used, enchUsed: enchUsed,
            offHandBlocked: blocked };
 };
 
 // You typed `value` into the Stats panel for stat k while the builder is on: what you added by hand becomes the difference
 // to naked + items + enchants (+ crit from Int). Changing Intellect by hand also moves the sheet's crit.
 WL.gearManualFor = function (gb, cfg, k, value) {
-  var r = WL.gearSheet(gb, cfg), base = r.naked[k] + r.items[k] + r.enchants[k];
-  if (k === 'critPct') base += (r.items.int + r.enchants.int + (r.manual.int || 0)) * cfg.combat.critPerInt;
+  var r = WL.gearSheet(gb, cfg), base = r.naked[k] + r.items[k] + r.enchants[k] + r.sets[k];
+  if (k === 'critPct') base += (r.items.int + r.enchants.int + r.sets.int + (r.manual.int || 0)) * cfg.combat.critPerInt;
   return Math.round((value - base) * 10000) / 10000;
 };
 

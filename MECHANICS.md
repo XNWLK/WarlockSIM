@@ -286,8 +286,8 @@ Build **Incinerate Pandemic**, Undead, default settings; Fire spell power 500 + 
 - Incinerate: (217 + 0.714 × 521) × 1.10 Agonizing Flames = 647.9; × 1.25 with Immolate on the boss × 1.10 curse × 1.20 Shadow and Flame (after a Shadowburn) = **1,069**; a crit (16.29%) deals × 2.
 
 #### 9. Resistance before the curse, and Spell Pierce
-- Before Curse of the Elements is up the boss has 24 level resistance: on average 6% of each hit or tick is resisted - 76% of them lose 0%, 24% of them lose 25%.
-- With the curse the resistance is 0 and nothing is resisted. With 15 Spell Pierce on top it is −15: on average +3.75% - 64.1% of hits gain 0%, 34.4% of hits gain 10%, 1.6% of hits gain 20%.
+- Before Curse of the Elements is up the boss has 24 level resistance: on average 4.59% of each hit or tick is resisted - 65.6% of them lose 0%, 22.9% of them lose 10%, 11.5% of them lose 20%.
+- With the curse the resistance is 0 and nothing is resisted. With 15 Spell Pierce on top it is −15: on average +2.92% - 78.1% of hits gain 0%, 14.6% of hits gain 10%, 7.3% of hits gain 20%.
 <!-- /gen:examples -->
 
 ---
@@ -640,16 +640,24 @@ resistance = (boss resistance for the school + 24 level resistance − 75 with C
              − your Spell Pierce
 ```
 
-- **Spell Penetration** (on items) lowers the boss's resistance, but never below 0: it only helps while something is still
-  resisted, which at the default settings is only before Curse of the Elements is up. **Spell Pierce** is a different stat:
-  it goes below 0 (see below).
+- **Spell Penetration** lowers the boss's resistance, but never below 0: it only helps while something is still
+  resisted, which at the default settings is only before Curse of the Elements is up. **Spell Pierce** (Forever's "Spell
+  Piercing", on items as "Your spells pierce N Magical Resistance") is a different stat: it goes below 0 (see below).
+  No item of the gear builder has Spell Penetration; Eye of Moam's use effect works like it.
 
 - A boss three levels above you has 24 resistance to everything (8 per level). Curse of the Elements removes it.
   The boss's own Shadow and Fire resistance are 0 by default.
-- **Resistance above 0:** each hit and tick is resisted by 0, 25, 50, 75 or 100%. On average `0.25% × resistance` is
-  lost (at most 75%). So before the curse is up, 6% of your damage is resisted on average.
-- **Resistance below 0** (only possible with Spell Pierce): each hit and tick gains 0%, 10%, 20% … "vulnerable" damage,
-  on average `0.25% × the resistance below 0`. *The size of this bonus is assumed.*
+- **The average share** (fitted to Forever combat logs, levels 20–50; level 60 is the fit's prediction):
+  `share = resistance / (|resistance| + 8 × your level + 19)`, at level 60 `resistance / (|resistance| + 499)`.
+  Above 0 it is resisted damage, below 0 (only possible with Spell Pierce) bonus damage.
+- **Each hit** rolls whole 10% steps around the share: up to 10%, 0 / 10 / 20% at `1 − 7.5 × share`, `5 × share`,
+  `2.5 × share` (so +10% comes twice as often as +20%); past 10%, every 10% step within 20 points of the share at
+  `0.5 − 2.5 × its distance`. Channel ticks (Drain Life, Wrack, Rain of Fire, Hellfire) roll like hits.
+- **Each DoT tick** rolls a tenth of the share (Corruption, Bane of Agony, Immolate's ticks, Siphon Life …).
+- So 15 Spell Pierce adds +2.92% to every hit and +0.29% to every DoT tick; 24 level resistance before the curse is up
+  takes 4.59% off hits. Spell Pierce gives less per point the more you have (100 → +16.7%).
+- The classic guess of rounds 39–209 (`0.25% × resistance` on hits and ticks alike, in 25% chunks above 0 and 10% steps
+  below; 15 Spell Pierce = +3.75%) is kept in the engine but no longer offered on the page (user's choice).
 - **Exactly 0:** no roll at all. That is the default once the curse is on the boss.
 
 Demons, explosives and Touch of the Grave are never resisted and get nothing from Spell Pierce.
@@ -886,7 +894,7 @@ Desert, Wasteland, Haunted, Stronghold / City. Nothing else in the sim depends o
 | Pimgib's Collar | Your Imp regains 9 more mana per 5 s. |
 | Mark of the Champion / Rune of the Dawn / Royal Seal of Eldre'Thalas | +85 spell power against Demons and Undead / +46 against Undead / +18 more against Demons. |
 | Briarwood Reed / Jewel of the Guard Captain, Cleansed Vilebranch Icon | +15 spell power, 30 in Marsh areas / +8, 24 in Forest areas. |
-| Rune of Perfection / Enriched Seal, Darkspear Voodoo Seal | +3 (level 45) or +2 Spell Penetration, 7 or 4 more in Forest areas / +5 or +3 MP5, 10 or 6 more in Forest areas. |
+| Rune of Perfection / Enriched Seal, Darkspear Voodoo Seal | +3 (level 45) or +2 Spell Pierce, 7 or 4 more in Forest areas / +5 or +3 MP5, 10 or 6 more in Forest areas. |
 
 Other trinkets (threat, defence, resistance, movement, summoned fighters, melee-range and random effects) only bring their
 stats.
@@ -974,7 +982,7 @@ every target, as "Keep DoTs on the extra targets"; Bane of Havoc as usual).
 
 - The demons' mana pool (2,000) and regeneration (8 per second).
 - The Succubus' base melee damage (73.5 per second); the Felhunter's and Voidwalker's melee.
-- How much damage Spell Pierce adds below 0 resistance.
+- Spell Pierce and resistance at level 60 (the combat-log fit is measured at levels 20–50).
 - Which consumables exclude each other.
 - Values taken from Classic because Forever's are not known: base stats of a level-60 Warlock, boss armor (3,731),
   Concentration Aura (35%), the Atiesh auras (+33 spell power, +2% spell crit, 11 MP5), Blood Pact (+42 Stamina).

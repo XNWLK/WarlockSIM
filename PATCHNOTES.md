@@ -3,6 +3,31 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v179
+- **Item search:** 11 new items (among them Felheart Bracers, Gloves, Belt, Shoulder Pads, Horns and Pants, Conqueror's
+  Medallion, Shroud of Arcane Mastery, Band of the Damned, Fireproof Cloak); enchants refreshed. 2,409 items.
+- **Phases in the gear builder:** a "Phase 1 (now) / All items" choice in the item list's filters. Phase 1 shows only
+  what is in the game now. Every item has a phase from where it comes from (Dire Maul, PvP ranks 2; Blackwing Lair,
+  battlegrounds 3; Zul'Gurub 4; Ahn'Qiraj 5; Naxxramas 6), then checked item by item: 64 items are not in the game.
+- **Item tooltips:** hovering an item in the list or a filled slot shows its tooltip as the game draws it (quality
+  colour, binding, slot and type, armor, stats, Equip / Use lines, set pieces with the ones you wear counted), with
+  where it comes from and what it is worth for your build under it.
+- **Game-style tooltips everywhere:** spells (name and rank, mana and range, cast time and cooldown, the gold text),
+  talents, buffs, debuffs, racials, enchants and consumables (their own item tooltips) now look like the game's, with
+  what the sim does under them.
+- **Fixed: Spell Pierce on items.** 53 items (Malice Stone Pendant, Spellbound Tome, Rune of Perfection …) say "Your
+  spells pierce N Magical Resistance" and now count as Spell Pierce; they were counted as Spell Penetration, which
+  stops at 0 resistance.
+- **Spell Pierce math from combat logs:** the average bonus is R / (|R| + 8 × your level + 19), rolled in 10% steps
+  (+10% twice as often as +20%), and a DoT tick gets a tenth of it. 15 Spell Pierce: +2.9% on hits (was 3.75% on hits
+  and ticks). Spell Pierce is worth about half as much as before for direct damage, far less for DoTs. The old model
+  stays in the engine (not on the page). Default results unchanged (Curse of the Elements already takes resistance to 0).
+- **Set bonuses:** wearing pieces of a set in the gear builder now gives its bonuses — spell power, hit, crit, MP5,
+  Intellect, Spirit, Stamina, Spell Penetration in a new Sets column, and in the fight Magister's Regalia / Vestments of
+  the Devout (5: mana), Necropile Raiment (3: Necropile Drain), Violet Sorcerer's Vestments (4: mana regeneration while
+  casting) and Rotmender's Raiment (4: mana when low). The sets you wear are listed with each bonus; item tooltips show the
+  pieces you wear and the bonuses that count in green.
+
 ## v178
 - **Boss type and Zone** (Fight & pets → Encounter): what the boss is (creature types, and every kind of enemy a trinket
   names, such as Murloc or Dinosaur) and where the fight is (Forest, Marsh, Mountainous, Snowy …). Only trinket effects

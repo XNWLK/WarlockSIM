@@ -5,6 +5,7 @@
 // swords, staves, wands; not off-hand weapons) and may wear: not items that name other classes only, not pieces of an item
 // set for other classes (e.g. a Mage set), not the items in EXCLUDE. And at least one stat the sim uses for damage or
 // mana: spell power (all, Shadow, Fire), hit, crit, haste, Spell Pierce, Spell Penetration, Intellect, Spirit, MP5.
+// Round 210: Wowhead's splpen is Spell Pierce on Forever items (their tooltips: "Your spells pierce N Magical Resistance").
 // Stamina alone is not enough. Ratings become % with the sim's own rates (data/config.js: 10 hit rating = 1%, 14 crit
 // rating = 1%, 10 haste rating = 1%). "Use:" and "Chance on hit:" effects are not in the stats (not simulated yet).
 // Enchants kept: all of them (Enchanting recipes and permanent item enhancements), each game enchant once with every slot
@@ -18,7 +19,7 @@
 const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..');
 const { load } = require('./load-wl.js');
-const WL = load(ROOT, ['data/items.js']);
+const WL = load(ROOT, ['data/items.js', 'data/item-phases.js']);
 const RAW = process.argv[2] || path.join(ROOT, 'research/raw/forever-items.json');
 const OUT = path.join(ROOT, 'data/item-db.js');
 const raw = JSON.parse(fs.readFileSync(RAW, 'utf8'));
@@ -35,7 +36,7 @@ const QUALITY = ['poor', 'common', 'uncommon', 'rare', 'epic', 'legendary', 'art
 const WEAPON = { 'weapons/daggers': 'dagger', 'weapons/staves': 'staff', 'weapons/one-handed-swords': 'sword', 'weapons/wands': 'wand' };
 const TEST_NAME = /\(TEST\)|^Test\b|\bTEST\b|Deprecated|\bDEP\b|\(old\)|\bOLD\b|zzOLD|^QA /i;
 const r2 = x => Math.round(x * 100) / 100;
-const decode = t => String(t || '').replace(/ (?:Always up to date|A spell)\.$/, '').replace(/&apos;|&#039;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+const decode = t => String(t || '').replace(/ (?:Always up to date|A spell(?: from [^.]+)?)\.$/, '').replace(/&apos;|&#039;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 
 function stats(s) {
   const o = {
@@ -44,12 +45,20 @@ function stats(s) {
     hitPct: r2((s.hitrtng || 0) / cb.ratingPerHitPct),
     critPct: r2((s.critstrkrtng || 0) / cb.ratingPerCritPct + (s.splcritstrkpct || 0)),
     hastePct: r2((s.hastertng || 0) / cb.ratingPerHastePct),
-    spellPen: s.splpen || 0,                               // "Spell Penetration" (not Spell Pierce, user)
+    // Round 210 (user: "make sure spell pierce is properly marked … and not wrongfully marked as spell penetration"): Wowhead's
+    // key splpen is listed as "Spell Penetration", but every such Forever item's own tooltip says "Your spells pierce N
+    // Magical Resistance" = Spell Pierce (the wording decides, A96). An item whose tooltip says "Decreases the magical
+    // resistances of your spell targets by N" is Spell Penetration (moved below, PEN_TIP).
+    pierce: s.splpen || 0,
     int: s.int || 0, spi: s.spi || 0, sta: s.sta || 0, mp5: s.manargn || 0,
   };
   Object.keys(o).forEach(k => { if (!o[k]) delete o[k]; });
   return o;
 }
+// The items' Forever tooltips (round 210, research/raw/forever-tooltips.json), as plain text: they decide Pierce / Penetration.
+const TIP = {}, TIPH = {};
+try { const tt = JSON.parse(fs.readFileSync(path.join(ROOT, 'research/raw/forever-tooltips.json'), 'utf8')).tips || {}; Object.keys(tt).forEach(id => { TIP[id] = String(tt[id].h || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' '); TIPH[id] = String(tt[id].h || ''); }); } catch (e) { /* no tooltips yet */ }
+const PEN_TIP = /Equip: Decreases the magical resistances of your spell targets by \d+/;
 const USEFUL = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'spellPen', 'int', 'spi', 'mp5'];
 function from(x) {                                         // a short "where it comes from", when Wowhead knows it
   const m = (x.sm || [])[0], src = x.src || [];
@@ -74,13 +83,34 @@ function srcKind(x) {
   if (src.indexOf(2) >= 0) return 'drop';
   return src.length ? 'other' : '';
 }
+// Round 210: the content phase (data/item-phases.js): the user's review, else the latest phase its sources point to.
+const PR = WL.PHASE_RULES || { zones: {}, npcs: {} };
+function phaseOf(id, x, kind) {
+  const set = (WL.ITEM_PHASE_SET || {})[id];
+  if (set) return { p: set, why: 'user' };
+  let p = 1, why = '';
+  (x.sm || []).forEach(m => {
+    const zid = m.z || (m.t === 5 ? m.c : 0), z = PR.zones[zid]; if (z && z > p) { p = z; why = 'zone ' + zid; }   // c = a quest's zone (for a recipe it is the profession list)
+    const n = m.n && PR.npcs[m.n]; if (n && n > p) { p = n; why = m.n; }
+  });
+  if (kind === 'pvp' && PR.pvpRank > p) { p = PR.pvpRank; why = 'PvP rank'; }
+  if (/Darkmoon/.test(x.n) && PR.darkmoon > p) { p = PR.darkmoon; why = 'Darkmoon Faire'; }
+  return { p, why };
+}
 function raidOf(x) { const m = (x.sm || []).map(y => RAIDS[y.z] || RAIDS[y.c]).filter(Boolean)[0]; return m || ''; }
 
 // Item sets for other classes: their pieces are out
 const otherClassSet = {}, otherClassPiece = {};
 (raw.sets || []).forEach(s => { if (s.rc && !(s.rc & WARLOCK_BIT)) { otherClassSet[s.id] = s.n; (s.p || []).forEach(id => { otherClassPiece[id] = s.n; }); } });
 
+// Round 210: every icon keeps its place in the icon sheet (the names of the current data/item-db.js come first, unused ones
+// included); new icons go at the end. So art/items/icons.jpg only needs new squares when new icons come.
 const icons = [], iconAt = {};
+try {
+  const box0 = { window: {} }; box0.WL = box0.window.WL = {};
+  require('vm').runInNewContext(fs.readFileSync(OUT, 'utf8'), box0);
+  ((box0.WL.ITEM_ICONS || {}).names || []).forEach(n => { if (iconAt[n] == null) { iconAt[n] = icons.length; icons.push(n); } });
+} catch (e) { /* no list yet */ }
 const iconOf = ic => { ic = ic || 'inv_misc_questionmark'; if (iconAt[ic] == null) { iconAt[ic] = icons.length; icons.push(ic); } return iconAt[ic]; };
 const dropped = { otherClass: 0, otherClassSet: 0, excluded: 0, test: 0, slot: 0, noStat: 0 }, items = {};
 raw.items.slice().sort((a, b) => a.id - b.id).forEach(x => {
@@ -92,6 +122,7 @@ raw.items.slice().sort((a, b) => a.id - b.id).forEach(x => {
   if (!slot || !WL.GEAR_SLOTS.some(s => s.fits.indexOf(slot) >= 0)) { dropped.slot++; return; }
   let st = stats((STATS_FIX[x.id] && STATS_FIX[x.id].s) || x.s || {});
   const tfx = WL.TRINKET_FX && WL.TRINKET_FX[x.id];
+  if (st.pierce && TIP[x.id] && PEN_TIP.test(TIP[x.id]) && !/Your spells pierce/.test(TIP[x.id])) { st.spellPen = st.pierce; delete st.pierce; }   // round 210
   if (tfx && tfx.stats) st = Object.assign({}, tfx.stats);   // round 209: a trinket's own stats where Wowhead's list counts a zone bonus always
   if (!USEFUL.some(k => st[k]) && !(WL.TRINKET_FX && WL.TRINKET_FX[x.id])) { dropped.noStat++; return; }   // round 166: a trinket with an effect in data/trinkets.js stays
   const it = { name: x.n, slot, quality: QUALITY[x.q] || 'common', ilvl: x.l || 0, req: x.r || 0, stats: st, icon: iconOf(x.ic) };
@@ -103,6 +134,7 @@ raw.items.slice().sort((a, b) => a.id - b.id).forEach(x => {
   const f = from(x); if (f) it.from = f;
   const sc = srcKind(x); if (sc) it.src = sc;
   const rd = raidOf(x); if (rd) it.raid = rd;
+  const ph = phaseOf(x.id, x, sc); if (ph.p !== 1) it.phase = ph.p;   // round 210
   items[x.id] = it;
 });
 
@@ -198,6 +230,37 @@ const diff = (now, before) => {
 };
 const di = diff(items, old), de = diff(enchants, oldE);
 
+// ---------- item sets (round 210, user: "start implementing the set bonuses for phase 1 items") ----------
+// Every set with a piece in the list: its name, size, the pieces in the list and its bonuses from the pieces' tooltips
+// ("(3) Set: …" with the bonus spell). A bonus's stats come from its text, in the item list's sense (Forever's plain "chance
+// to hit / get a critical strike" is spell hit / crit, as on items); bonuses without a stat the sheet has (resistances,
+// armor, speed, procs) carry only their text — the procs that matter are simulated from data/trinkets.js WL.SET_FX.
+function setStats(text) {
+  const o = {}, n = re => { const m = text.match(re); return m ? +m[1] : 0; };
+  const put = (k, v) => { if (v) o[k] = (o[k] || 0) + v; };
+  put('sp', n(/damage and healing done by magical spells and effects by up to (\d+)/i) || n(/damage done by spells and effects by up to (\d+)/i));
+  put('hitPct', n(/Improves your chance to hit(?: with spells)? by ([\d.]+)%/i));
+  put('critPct', n(/Improves your chance to get a critical strike(?: with spells)? by ([\d.]+)%/i));
+  put('mp5', n(/Restores (\d+) mana per 5 sec/i));
+  put('int', n(/^\+(\d+) Intellect\.?$/i)); put('spi', n(/^\+(\d+) Spirit\.?$/i)); put('sta', n(/^\+(\d+) Stamina\.?$/i));
+  put('spellPen', n(/Decreases the magical resistances of your spell targets by (\d+)/i));
+  put('pierce', n(/Your spells pierce (\d+) Magical Resistance/i));
+  return o;
+}
+const setsById = {}; (raw.sets || []).forEach(s => { setsById[s.id] = s; });
+const itemSets = {};
+Object.keys(items).forEach(id => {
+  const sid = items[id].set; if (!sid) return;
+  const s = itemSets[sid] || (itemSets[sid] = { name: (setsById[sid] || {}).n || '', size: ((setsById[sid] || {}).p || []).length, items: [], bonuses: [] });
+  s.items.push(+id);
+  const h = TIPH[id] || '', re = /\((\d)\) Set ?:\s*(?:<a[^>]*spell=(\d+)[^>]*>)?([\s\S]*?)(?:<\/a>)?<\/span>/g, b = []; let m;
+  while ((m = re.exec(h))) b.push({ n: +m[1], spell: +m[2] || 0, text: decode(m[3].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()) });
+  if (b.length > s.bonuses.length) s.bonuses = b;
+  const sz = h.match(/\(\d+\/(\d+)\)<\/span>/); if (sz) s.size = +sz[1];
+});
+Object.keys(itemSets).forEach(sid => itemSets[sid].bonuses.forEach(b => { const st = setStats(b.text); if (Object.keys(st).length) b.stats = st; }));
+console.log('item sets: ' + Object.keys(itemSets).length + ', with bonuses ' + Object.keys(itemSets).filter(k => itemSets[k].bonuses.length).length);
+
 const ids = Object.keys(items), eids = Object.keys(enchants);
 const head = '// GENERATED by tools/gen-items.js from the Wowhead Forever data (collected ' + String(raw.collected || '').slice(0, 10) + ') — do not edit by hand.\n' +
   '// The gear builder\'s lists: the items a Warlock can wear with at least one stat the sim uses, and every enchant.\n' +
@@ -206,7 +269,8 @@ const head = '// GENERATED by tools/gen-items.js from the Wowhead Forever data (
 const body = 'WL.ITEM_DB = ' + JSON.stringify({ collected: String(raw.collected || '').slice(0, 10), count: ids.length, enchants: eids.length }) + ';\n' +
   'WL.ITEM_ICONS = ' + JSON.stringify({ file: 'art/items/icons.jpg', size: 36, cols: 24, names: icons }) + ';\n' +
   'WL.ITEMS = {\n' + ids.map(id => '  ' + id + ': ' + JSON.stringify(items[id])).join(',\n') + '\n};\n' +
-  'WL.ENCHANTS = {\n' + eids.map(id => '  ' + id + ': ' + JSON.stringify(enchants[id])).join(',\n') + '\n};\n';
+  'WL.ENCHANTS = {\n' + eids.map(id => '  ' + id + ': ' + JSON.stringify(enchants[id])).join(',\n') + '\n};\n' +
+  'WL.ITEM_SETS = {\n' + Object.keys(itemSets).map(id => '  ' + id + ': ' + JSON.stringify(itemSets[id])).join(',\n') + '\n};\n';   // round 210
 fs.writeFileSync(OUT, head + body);
 console.log('data/item-db.js: ' + ids.length + ' items, ' + eids.length + ' enchants, ' + icons.length + ' icons, ' + (fs.statSync(OUT).size / 1024).toFixed(0) + ' KB');
 console.log('items left out: ' + JSON.stringify(dropped) + '; enchants left out: ' + JSON.stringify(enchDropped));

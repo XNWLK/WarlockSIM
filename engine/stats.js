@@ -190,7 +190,8 @@ WL.computeStats = function (build, raceKey, cfg) {
   var hastePct = add('hastePct', 'Gear', gear.hastePct || 0)
                + add('hastePct', 'Stat-weight test', ex.hastePct || 0)
                + oilStat('hastePct') + conStat('hastePct');
-  var pierce = add('pierce', 'Gear', gear.pierce || 0) + add('pierce', 'Stat-weight test', ex.pierce || 0);
+  var pierce = add('pierce', 'Gear', gear.pierce || 0) + add('pierce', 'Stat-weight test', ex.pierce || 0)
+             + trEq.reduce(function (a, q) { return a + add('pierce', q.name, q.pierce || 0); }, 0);              // round 210: Rune of Perfection in its zone
   var spellPen = add('spellPen', 'Gear', gear.spellPen || 0) + add('spellPen', 'Stat-weight test', ex.spellPen || 0)
                + trEq.reduce(function (a, q) { return a + add('spellPen', q.name, q.spellPen); }, 0);                // round 155: lowers resistance down to 0 [A96]
 

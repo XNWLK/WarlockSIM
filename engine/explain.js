@@ -233,7 +233,8 @@ window.WL = window.WL || {};
     if (WL.levelResist(cfg) > 0 || (cb.targetResist[school] || 0) > 0 || stats.pierce > 0) {
       var pr = WL.resistProfile(cfg, stats.pierce, school, hasCoe, stats.spellPen), pr0 = WL.resistProfile(cfg, stats.pierce, school, false, stats.spellPen);
       notes.push((hasCoe && pr0.mean < 0 ? 'Before the curse is on the ' + (extra ? 'target' : 'boss') + ', ' + f(-pr0.mean * 100, 1) + '% is resisted on average. ' : '') +
-        (pr.mean < 0 ? 'On average ' + f(-pr.mean * 100, 1) + '% is resisted.' : pr.mean > 0 ? 'Spell Pierce adds ' + f(pr.mean * 100, 2) + '% on average.' : hasCoe ? 'With the curse up nothing is resisted.' : ''));
+        (pr.mean < 0 ? 'On average ' + f(-pr.mean * 100, 1) + '% is resisted.' : pr.mean > 0 ? 'Spell Pierce adds ' + f(pr.mean * 100, 2) + '% on average.' : hasCoe ? 'With the curse up nothing is resisted.' : '') +
+        (cb.resistModel === 'fitted' && pr.mean !== 0 ? ' A DoT tick rolls a tenth of that (combat-log fit, round 210).' : ''));
     }
     if (extra) notes.push('On an extra target only its own Curse of the Elements and Improved Shadow Bolt count; Wrack\'s and Soul Siphon\'s bonuses do not apply there.');
     return { title: s.name + (s.rank ? ' (Rank ' + s.rank + ')' : ''), steps: steps, notes: notes, values: values };

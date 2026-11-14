@@ -193,6 +193,10 @@ window.WL = window.WL || {};
       // end / clip, and it only changes at events, so it holds for the whole of [a, b]. [A82]
       if (S.channel) return;
       var from = Math.max(a, S.lastSpend + FSR, S.innervateUntil);
+      if (TRK.length && from > a) {                                 // round 210: Violet Meditation, a part of it also while casting
+        var cr = castRegenPct(), to = Math.min(b, from), lo = Math.max(a, S.innervateUntil);
+        if (cr > 0 && to > lo) { var bc = S.mana; S.mana = Math.min(stats.maxMana, S.mana + SPI_REGEN * cr / 100 * (to - lo)); res.manaFromSpirit += S.mana - bc; }
+      }
       if (b <= from) return;
       var before = S.mana; S.mana = Math.min(stats.maxMana, S.mana + SPI_REGEN * (b - from));
       res.manaFromSpirit += S.mana - before; res.fsrOutTime += b - from;
@@ -452,7 +456,7 @@ window.WL = window.WL || {};
     // ready from the pull, 'execute' only once the boss is below the execute line, 'never'. Mana trinkets: when their amount
     // is missing. Off the global cooldown; a trinket's hit (Shard of the Fallen Star …) has no spell power, rolls your spell
     // hit and crit (×1.5) and takes Curse of the Elements.
-    var TRK = WL.equippedTrinkets ? WL.equippedTrinkets(cfg) : [], TRU = (cfg.options && cfg.options.trinketUse) || {}, trs = {};
+    var TRK = (WL.equippedTrinkets ? WL.equippedTrinkets(cfg) : []).concat(WL.equippedSetFx ? WL.equippedSetFx(cfg) : []), TRU = (cfg.options && cfg.options.trinketUse) || {}, trs = {};
     TRK.forEach(function (x) { trs[x.slot] = { until: -1, n: 0, pending: 0, procUntil: -1, icdUntil: -1, intUntil: -1 }; });
     var TRD = TRK.filter(function (x) { return x.fx.proc && x.fx.proc.onDamage; });   // round 209: procs on any damage of yours (Bolt's Charged Eyeball)
     // Weapon enchant effects (round 167) [A106]: procs on your landed damaging casts; Revelation on direct hits that do not crit.
@@ -515,6 +519,8 @@ window.WL = window.WL || {};
         if (p && !p.onDamage && !(p.icd && S.t < st.icdUntil - EPS) && R.proc() * 100 < p.chancePct) {
           if (p.icd) st.icdUntil = S.t + p.icd;                             // Draconic Infused Emblem: 60 s internal cooldown (user, round 209)
           if (p.kind === 'dmg') trHit(x, p);                                // Cursed Murloc Eye (round 209)
+          else if (p.kind === 'mana') { var mg = Math.min(p.amount * trMult(p), stats.maxMana - S.mana); S.mana += mg; res.manaFromConsumables = (res.manaFromConsumables || 0) + mg; L('buff', x.fx.name); }   // round 210: Magister's / Devout 5
+          else if (p.kind === 'lowMana') { /* checked before each decision (setLowMana) */ }
           else { if (st.procUntil <= S.t + EPS) L('buff', x.fx.name); st.procUntil = S.t + p.duration; }
         }
       });
@@ -567,6 +573,15 @@ window.WL = window.WL || {};
       if (!ACT_TL) return activesOk(key);
       var g = slotGate(x.slot); return g === 1 || (g === 2 && (!!ACT_TL[x.slot] || activesOk(key)));
     }
+    // Round 210: Rotmender's Raiment 4 — below belowPct % mana, + amount (× zone), once per cd. [A116]
+    function setLowMana() {
+      TRK.forEach(function (x) {
+        var p = x.fx.proc, st = trs[x.slot]; if (!p || p.kind !== 'lowMana' || S.t < st.icdUntil - EPS || S.mana >= stats.maxMana * p.belowPct / 100) return;
+        st.icdUntil = S.t + p.cd; var g = Math.min(p.amount * trMult(p), stats.maxMana - S.mana); S.mana += g; res.manaFromConsumables = (res.manaFromConsumables || 0) + g; L('buff', x.fx.name);
+      });
+    }
+    // Round 210: Violet Sorcerer's Vestments 4 — the part of Spirit regeneration that goes on while casting (0 = none).
+    function castRegenPct() { var c = 0; TRK.forEach(function (x) { var p = x.fx.proc; if (p && p.kind === 'castRegen' && trs[x.slot].procUntil > S.t + EPS) c += p.pct * trMult(p); }); return Math.min(100, c); }
     function useTrinkets(key) { TRK.forEach(function (x) { var u = x.fx.use; if (u && u.kind !== 'mana' && trWhen(x, key) && trUse(x)) slotUsed(x.slot); }); }
     function useManaTrinkets() {
       TRK.forEach(function (x) {
@@ -582,10 +597,10 @@ window.WL = window.WL || {};
     // Resistance / Spell Pierce roll for one Warlock damage event. [A43][A44]
     var resCache = {}, lastVulnPct = 0;                 // vulnerable (+) / partially resisted (−) step of the last roll (log marker)
     // `ti` > 1 = an extra target: its own Curse of the Elements counts (round 39; the boss's CoE does not carry over).
-    function vulnMult(school, ti) {
+    function vulnMult(school, ti, periodic) {                     // periodic: a DoT tick (round 210: rolls a tenth in the 'fitted' model)
       var tp = TRK.length ? trPierce() : 0;                             // Eye of Moam (round 166): −100 resistances while up
-      var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe'), key = school + (coe ? '1' : '0') + (tp ? 'p' + tp : '');
-      var pr = resCache[key] || (resCache[key] = WL.resistProfile(cfg, stats.pierce, school, coe, stats.spellPen + tp));
+      var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe'), key = school + (coe ? '1' : '0') + (tp ? 'p' + tp : '') + (periodic ? 't' : '');
+      var pr = resCache[key] || (resCache[key] = WL.resistProfile(cfg, stats.pierce, school, coe, stats.spellPen + tp, periodic));
       var m = pr.flat;
       lastVulnPct = 0;
       if (pr.dist.length > 1) {
@@ -813,7 +828,7 @@ window.WL = window.WL || {};
       var s = SPELLS[key], e = table[key], rk = xkey(ti, key);
       var amt = (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * liveMultX(key, ti, true) * (snap.castMult || 1);
       if (s.ramp) amt *= s.ramp[i];
-      amt *= vulnMult(s.school, ti);
+      amt *= vulnMult(s.school, ti, true);
       var crit = critRoll(key, e.critPct);
       if (crit) amt *= e.critMult;
       deal(rk, amt, crit, true, ti);
@@ -862,7 +877,7 @@ window.WL = window.WL || {};
       if (s.ramp) amt *= s.ramp[i];                                                                     // [A15]
       if (frac != null) amt *= frac;
       if (share) amt *= share;
-      amt *= vulnMult(s.school);
+      amt *= vulnMult(s.school, 0, true);
       var crit = critRoll(key, e.critPct);                                                               // [A07]
       if (crit) amt *= e.critMult;
       deal(key, amt, crit, true);
@@ -1274,10 +1289,10 @@ window.WL = window.WL || {};
     // live buffs, SP snapshot) — the same formulas as the real hits and ticks.
     var DOT_END = !(cfg.options && cfg.options.dotEndCheck === false);
     res.dotSkips = {};
-    function expVuln(school, ti) {
+    function expVuln(school, ti, periodic) {
       var tp = TRK.length ? trPierce() : 0;
-      var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe'), key = school + (coe ? '1' : '0') + (tp ? 'p' + tp : '');
-      var pr = resCache[key] || (resCache[key] = WL.resistProfile(cfg, stats.pierce, school, coe, stats.spellPen + tp));
+      var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe'), key = school + (coe ? '1' : '0') + (tp ? 'p' + tp : '') + (periodic ? 't' : '');
+      var pr = resCache[key] || (resCache[key] = WL.resistProfile(cfg, stats.pierce, school, coe, stats.spellPen + tp, periodic));
       return pr.flat * pr.dist.reduce(function (a, d) { return a + d.p * (1 + d.pct / 100); }, 0);
     }
     function expCrit(critPct, critMult) { return 1 + Math.max(0, Math.min(100, critPct)) / 100 * (critMult - 1); }
@@ -1329,7 +1344,7 @@ window.WL = window.WL || {};
       var cost = (occupies(key) + LAT) * fRate;
       var end = Math.min(dur, tL + s.duration), gcd = S.gcd(), value = 0;
       var castMult = key === 'baneOfAgony' && tv('amplifyCurse') && (S.ampUp || (S.ready('amplifyCurse') && slotGate('amplifyCurse') !== 0)) ? 1 + tv('amplifyCurse', 'boaPct') / 100 : 1;
-      var tickAmt = (s.tickBase + s.tickCoef * spNow(e)) * castMult * e.periodicMult * lmult(key, ti, true) * expVuln(s.school, ti) * expCrit(e.critPct, e.critMult);
+      var tickAmt = (s.tickBase + s.tickCoef * spNow(e)) * castMult * e.periodicMult * lmult(key, ti, true) * expVuln(s.school, ti, true) * expCrit(e.critPct, e.critMult);
       // Wrack as the filler (patch of 2026-11-10): this DoT ticks WRACK_GAIN times as often (the check version: deals that much more).
       var wf = f === 'wrack' && ti <= 1 && tv('wrack') && SPELLS.wrack.dotSpeedSpells.indexOf(key) >= 0;
       if (wf && WRACK_DMG) tickAmt *= WRACK_GAIN;
@@ -1434,7 +1449,7 @@ window.WL = window.WL || {};
       }
       manaBuffCheck();
       useManaItems();
-      if (TRK.length) useManaTrinkets();                                 // round 166
+      if (TRK.length) { useManaTrinkets(); setLowMana(); }               // round 166; round 210: set bonus
       if (explosives.length && useExplosive()) return;
       if (TL && !TL.turn && timelineStep()) return;
       var fit = TL && !TL.turn && TL.wake != null ? TL.wake : null;       // a gap before the next timeline entry

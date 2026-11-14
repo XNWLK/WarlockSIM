@@ -25,7 +25,7 @@
     T.ok(dW.dmg === dS.dmg, 'with Wrack channelling it deals the same: ' + dW.dmg + ' vs ' + dS.dmg + ' with a Shadow Bolt filler');
 
     T.group('level resistance: on, and Curse of the Elements removes it');
-    var D = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
+    var D = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)); D.combat.resistModel = 'classic';   // round 210: the classic model's own numbers (the default is the combat-log fit, test-round210)
     T.eq(WL.levelResist(D), 24, '+24 against a level-63 boss by default');
     T.eq(WL.effectiveResist(D, 0, 'shadow', false), 24, 'without the curse: 24 resistance');
     T.eq(WL.effectiveResist(D, 0, 'shadow', true), 0, 'with Curse of the Elements (−75): 0');

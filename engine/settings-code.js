@@ -22,6 +22,7 @@ WL.settingsSnapshot = function (c) {
     succ: { apPerSp: c.pets.succubus.melee.apPerSp, baseDps: c.pets.succubus.melee.baseDps },
     bossArmor: c.combat.bossArmor,
     resist: c.combat.targetResist, levelResist: !!(c.combat.levelResist && c.combat.levelResist.on),   // round 39
+    resModel: c.combat.resistModel || 'classic',                                                      // round 210
   };
   // Round 147: the gear builder's items and your own additions, only while the builder is on (its numbers are in gear
   // anyway; this lets a code or link bring the builder back as it was). Off = not part of the settings.
@@ -69,6 +70,7 @@ WL.applySettings = function (c, o) {
   if (isFinite(o.bossArmor)) c.combat.bossArmor = o.bossArmor;
   if (o.resist) ['shadow', 'fire'].forEach(function (s) { if (isFinite(o.resist[s])) c.combat.targetResist[s] = o.resist[s]; });
   if (typeof o.levelResist === 'boolean' && c.combat.levelResist) c.combat.levelResist.on = o.levelResist;
+  if (o.resModel === 'fitted' || o.resModel === 'classic') c.combat.resistModel = o.resModel;   // round 210 (a code without it keeps your model)
   // Gear builder (round 147): a code with it switches it on with its items; a code without it switches it off and keeps
   // the items you had (they no longer count).
   Object.keys(c.buffs || {}).forEach(function (k) { if (c.buffs[k].count != null) { var n = (o.counts || {})[k]; c.buffs[k].count = n > 0 ? Math.min(c.buffs[k].maxCount || 5, Math.round(n)) : 1; } });   // round 157
@@ -136,7 +138,7 @@ WL.describeSettings = function (o) {
   };
   // What a snapshot has that differs from `base` (default: the default settings): changed keys of fight / gear / options,
   // and each of the other parts as a whole if it differs. WL.settingsMerge puts it back onto a base.
-  var SECTIONS = ['fight', 'gear', 'options'], WHOLE = ['buffs', 'debuffs', 'cons', 'prof', 'petSpPct', 'succ', 'bossArmor', 'resist', 'levelResist', 'gb'];
+  var SECTIONS = ['fight', 'gear', 'options'], WHOLE = ['buffs', 'debuffs', 'cons', 'prof', 'petSpPct', 'succ', 'bossArmor', 'resist', 'levelResist', 'resModel', 'gb'];
   var same = function (a, b) { return JSON.stringify(a) === JSON.stringify(b); };
   WL.defaultSnapshot = function () { return JSON.parse(JSON.stringify(WL.settingsSnapshot(WL.DEFAULT_CONFIG))); };
   WL.settingsDiff = function (snap, base) {
