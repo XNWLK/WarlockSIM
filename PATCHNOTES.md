@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v184
+- **Realistic Pre-BiS:** the quick setup's default gear is now called Realistic Pre-BiS. The pre-raid page
+  (https://xnwlk.github.io/BIS/) also shows Real Pre-BiS: the best Phase 1 pieces and enchants whatever they cost.
+
 ## v183
 - **Pre-BiS enchants:** chest Mystic Rugged Armor Kit (+6 Spell Power), bracers +16 Spell Power. Gloves: the armor kit
   for Fire Demo and Wrack DS, +1% haste for the others (whichever is better for that build). New default DPS: Wrack DS 914.4, Shadow Demo 902.4, Fire Demo 887.6, Incinerate 876.9, Incinerate DS 852.5.

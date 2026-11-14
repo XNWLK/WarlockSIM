@@ -505,7 +505,7 @@
   var MAX_CONS = ['flaskSupremePower', 'greaterArcaneElixir', 'shadowPower', 'firePower', 'elixirOwl', 'elixirSages', 'greaterMageblood', 'spiritOfZanza',
     'cerebralCortex', 'nightfinSoup', 'kreegsStout', 'buildOil', 'brilliantWizardOil', 'majorSpellblasting', 'demonicRune'];
   var SIDE_GROUPS = ['buffs', 'debuffs', 'consumables'];
-  function gearLabel(c) { return c.gearMode === 'preBis' ? 'Pre-BiS gear (each build its own)' : gearText(c.gear); }   // round 211
+  function gearLabel(c) { return c.gearMode === 'preBis' ? 'Realistic Pre-BiS gear (each build its own)' : gearText(c.gear); }   // round 211
   function gearText(g) { return g.sp + ' SP / ' + g.hitPct + '% hit / ' + g.critPct + '% crit / Int ' + g.int + ' / Spirit ' + g.spi + ' / Stamina ' + g.sta; }
   function applySidePreset(c, which) {
     if (which !== 'max') { var P = WL.pageDefaultConfig(); SIDE_GROUPS.forEach(function (g) { Object.keys(c[g]).forEach(function (k) { c[g][k].on = !!(P[g][k] && P[g][k].on); }); }); return; }   // round 212: the page's defaults (ideal Phase 1)
@@ -544,7 +544,7 @@
     else if (kind === 'gear') { cfg.gearMode = null; cfg.gearBuilder = { on: true, slots: {}, enchants: {}, manual: {} }; preBisShown = null; gbSync(); gbSave(); }
     else applySidePreset(cfg, which);
     initSettings(); $('t_race').value = race; renderTotals(); markDirty(); renderGear();
-    $('quickMsg').textContent = (kind === 'gear' ? (which === 'prebis' ? 'Pre-BiS gear: every build in its own list' : 'Custom gear: naked — put items in the gear builder or type your numbers')
+    $('quickMsg').textContent = (kind === 'gear' ? (which === 'prebis' ? 'Realistic Pre-BiS gear: every build in its own list' : 'Custom gear: naked — put items in the gear builder or type your numbers')
       : which === 'max' ? 'Max buffs & consumables: ' + WL.activeBuffs(cfg).length + ' raid buffs, ' + WL.activeConsumables(cfg).length + ' consumables'
       : 'Default buffs & consumables') + ' — press Sim!';
   }
@@ -578,7 +578,7 @@
     if (same) return;
     var b = WL.BUILDS.filter(function (x) { return x.key === preBisShown; })[0];
     cfg.gearMode = null; preBisShown = null;
-    gbMsgText = 'This is your own gear now (Custom), for every build — it started from ' + (b ? b.short + '\'s' : 'the') + ' Pre-BiS list. Pre-BiS in the quick setup brings the lists back.';
+    gbMsgText = 'This is your own gear now (Custom), for every build — it started from ' + (b ? b.short + '\'s' : 'the') + ' Realistic Pre-BiS list. Realistic Pre-BiS in the quick setup brings the lists back.';
     renderSetupBar();
   }
   // round 169: the steps strip is gone (null-safe)
@@ -894,7 +894,7 @@
   function renderStatbar() {
     var g = runCfg.gear, f = runCfg.fight;
     $('statbar').innerHTML =                                             // round 177: Sim! / Stop has its own place in the Sim bar
-      (runCfg.gearMode === 'preBis' ? chip('--c-sp', 'Pre-BiS', 'gear, each build its own') :   // round 211: no one set of numbers
+      (runCfg.gearMode === 'preBis' ? chip('--c-sp', 'Realistic Pre-BiS', 'gear, each build its own') :   // round 211: no one set of numbers
         chip('--c-sp', fmt(g.sp), 'spell power') + chip('--c-hit', fmt(g.hitPct, 1) + '%', 'hit') + chip('--c-crit', fmt(g.critPct, 1) + '%', 'crit')) +
       chip('--c-fight', f.duration + ' s' + (f.durationVarPct ? ' ±' + f.durationVarPct + '%' : ''), (f.targets > 1 ? f.targets + ' targets · ' : '') + 'fight' + (WL.PRECAST_SPELLS.indexOf(f.precast) >= 0 ? ' · ' + esc(precastName(f.precast)) + ' precast' : '')) +
       '';
