@@ -25,7 +25,7 @@ WL.GEAR_SLOTS.forEach(s => {
 
 const out = {};
 keys.concat(['_common']).forEach(k => {
-  const slots = k === '_common' ? common : L[k], gb = { on: true, slots: {}, enchants: {}, manual: {} }, EN = WL.PRE_RAID_BIS_ENCHANTS || {}, ench = {};
+  const slots = k === '_common' ? common : L[k], gb = { on: true, slots: {}, enchants: {}, manual: {} }, EN = k === '_common' ? WL.PRE_RAID_BIS_ENCHANTS : WL.preRaidBisEnchants(k), ench = {};   // round 214: per-build gloves
   // round 213: the Phase 1 enchants (data/pre-raid-bis.js WL.PRE_RAID_BIS_ENCHANTS), on the slots that hold an item
   Object.keys(EN).forEach(s => { if (!slots[s]) return; const e = EN[s]; if (typeof e === 'number' && !WL.ENCHANTS[e]) throw new Error(s + ': enchant ' + e + ' is not in data/item-db.js'); gb.enchants[s] = typeof e === 'number' ? { id: e } : e; ench[s] = gb.enchants[s]; });
   Object.keys(slots).forEach(s => { if (!WL.ITEMS[slots[s]]) throw new Error(k + ' ' + s + ': item ' + slots[s] + ' is not in data/item-db.js'); gb.slots[s] = { id: slots[s] }; });

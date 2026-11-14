@@ -57,12 +57,12 @@ WL.ENCHANT_PHASE_GUESS = {
   2716: 6,  // Stamina +16 and Armor +100 (shoulder) — Fortitude of the Scourge: Naxxramas
   2721: 6,  // Spell Damage +15 and +1% Spell Critical Strike (shoulder) — Power of the Scourge: Naxxramas
   7645: 2,  // Living Stats (chest) — Living Stats (+4): the user has +3 in Phase 1, so this comes later
-  7655: 2,  // +12 Spell Power (wrist) — Forever 76xx set with Living Stats: later, guess
+  7655: 1,  // +12 Spell Power (wrist) — the lower rank of +16 Spell Power, which the user has in Phase 1 (round 214): guess
   7659: 2,  // +9 Intellect (offHand) — Forever 76xx set: later, guess
   7660: 2,  // +12 Spirit (offHand) — Forever 76xx set: later, guess
   7661: 2,  // +6 Intellect and +5 Spirit (offHand) — Forever 76xx set: later, guess
   7662: 2,  // +65 Spell Power (mainHand) — Forever 76xx set: later, guess
-  7665: 2,  // +16 Spell Power (wrist) — Forever 76xx set with Living Stats: later, guess
+  7665: 1,  // +16 Spell Power (wrist) — Phase 1: the user put it on the Pre-BiS bracers (round 214)
   7941: 2,  // Grand Arcanist (mainHand) — Grand Arcanist (Forever): later, guess
   7942: 2,  // Grand Sorcerer (mainHand) — Grand Sorcerer (Forever): later, guess
   8203: 1,  // Spirit +4 (wrist, feet) — classic enchanting, guess
@@ -81,7 +81,7 @@ WL.ENCHANT_PHASE_GUESS = {
   8487: 1,  // Stamina +4 and Armor +32 (chest, hands, legs, feet) — armor kit, guess
   8489: 1,  // Spell Power +5 and Armor +32 (chest, hands, legs, feet) — armor kit, guess
   8490: 1,  // Stamina +5 and Armor +40 (chest, hands, legs, feet) — armor kit, guess
-  8492: 1,  // Spell Power +6 and Armor +40 (chest, hands, legs, feet) — armor kit, guess
+  8492: 1,  // Spell Power +6 and Armor +40 (chest, hands, legs, feet) — Phase 1: the user put it on the Pre-BiS chest (round 214)
   8719: 1,  // Defense +4 and Stamina +10 (chest, hands, legs, feet) — armor kit, guess
   8734: 1,  // Intellect +3 (wrist) — classic enchanting, guess
 };

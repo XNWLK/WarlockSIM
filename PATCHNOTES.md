@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v183
+- **Pre-BiS enchants:** chest Mystic Rugged Armor Kit (+6 Spell Power), bracers +16 Spell Power. Gloves: the armor kit
+  for Fire Demo and Wrack DS, +1% haste for the others (whichever is better for that build). New default DPS: Wrack DS 914.4, Shadow Demo 902.4, Fire Demo 887.6, Incinerate 876.9, Incinerate DS 852.5.
+
 ## v182
 - **Phase 1 enchants on the Pre-BiS lists:** head and legs +8 spell damage, neck +6, chest +3 stats, wrist +6 spell
   damage, gloves +1% casting speed, weapon Revelation, boots Minor Speed. The gear builder shows them, and every build's

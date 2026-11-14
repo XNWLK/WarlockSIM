@@ -72,16 +72,19 @@
     WL.BUILDS.filter(function (b) { return WL.PRE_RAID_BIS[b.key]; }).forEach(function (b) {
       var L = WL.PRE_RAID_BIS[b.key], gb = { on: true, slots: {}, enchants: {}, manual: {} };
       Object.keys(L).forEach(function (s) { gb.slots[s] = { id: L[s] }; });
-      var EN = WL.PRE_RAID_BIS_ENCHANTS; Object.keys(EN).forEach(function (s) { if (L[s]) gb.enchants[s] = typeof EN[s] === 'number' ? { id: EN[s] } : EN[s]; });   // round 213
+      var EN = WL.preRaidBisEnchants(b.key); Object.keys(EN).forEach(function (s) { if (L[s]) gb.enchants[s] = typeof EN[s] === 'number' ? { id: EN[s] } : EN[s]; });   // round 213
       var sh = WL.gearSheet(gb, c).sheet, g = WL.cfgFor(b, c).gear;
       T.ok(WL.GEAR_STAT_KEYS.every(function (k) { return Math.abs(sh[k] - g[k]) < 1e-9; }), b.short + ': the engine\'s sheet = the gear builder\'s, enchants included (' + g.sp + ' SP, ' + g.critPct + '% crit, ' + g.hastePct + '% haste)');
     });
     T.group('Phase 1 enchants (round 213)');
     var E = WL.PRE_RAID_BIS_ENCHANTS, ce = WL.cfgFor(WL.BUILDS[0], c);
-    T.ok(E.head === 2544 && E.legs === 2544 && E.neck === 8218 && E.chest === 928 && E.hands === 931 && E.mainHand === 8217 && E.wrist === 8209 && E.feet.custom, 'head / legs 8 SP, neck 6 SP, chest +3 stats, gloves haste, Revelation (user), wrist +6 spell damage (pick), boots run speed');
+    T.ok(E.head === 2544 && E.legs === 2544 && E.neck === 8218 && E.chest === 8492 && E.hands === 931 && E.mainHand === 8217 && E.wrist === 7665 && E.feet.custom, 'head / legs 8 SP, neck 6 SP, chest Mystic Rugged Armor Kit (round 214), gloves haste, Revelation (user), wrist +16 Spell Power (round 214), boots run speed');
+    var gl = {}; WL.BUILDS.forEach(function (x) { if (WL.PRE_RAID_BIS[x.key]) gl[x.key] = WL.preRaidBisEnchants(x.key).hands; });
+    T.ok(gl.demo_pact_fire === 8492 && gl.wrack_ds === 8492 && gl.demo_pact_succ_sb === 931 && gl.destro_incin_succ === 931 && gl.destro_incin_ds === 931, 'gloves per build (round 214): the armor kit for Fire Demo and Wrack DS, haste for the others (whichever simmed higher)');
+    T.eq(WL.PRE_BIS_GEAR.wrack_ds.enchants.hands.id, 8492, 'the generated Pre-BiS gear has the per-build gloves');
     T.ok(WL.equippedEnchantFx(ce).some(function (x) { return x.id === 8217 && x.fx.name === 'Revelation'; }), 'Revelation is on the main hand in the fight');
-    T.eq(WL.cfgFor(WL.BUILDS[0], c).gear.hastePct, 1, '+1% haste from the gloves');
-    T.ok([2544, 8218, 928, 931, 8217, 8209].every(function (id) { return WL.enchantPhase(id) === 1; }) && WL.enchantPhase(2721) === 6 && WL.enchantPhase(2605) === 4 && WL.enchantPhase(7645) > 1, 'enchant phases: the lists\' enchants Phase 1; Scourge 6, Zandalar 4, Living Stats later');
+    T.eq(WL.cfgFor(WL.BUILDS[0], c).gear.hastePct, 1, '+1% haste from the gloves (' + WL.BUILDS[0].key + ')');
+    T.ok([2544, 8218, 8492, 931, 8217, 7665, 7655].every(function (id) { return WL.enchantPhase(id) === 1; }) && WL.enchantPhase(2721) === 6 && WL.enchantPhase(2605) === 4 && WL.enchantPhase(7645) > 1, 'enchant phases: the lists\' enchants Phase 1; Scourge 6, Zandalar 4, Living Stats later');
     T.ok(Object.keys(WL.ENCHANTS).every(function (id) { return WL.ENCHANT_PHASE_GUESS[id] != null; }), 'every enchant has a phase guess (data/enchant-phases.js)');
     var custom = { key: 'my_build_x', talents: {} };
     T.eq(JSON.stringify(WL.cfgFor(custom, c).gearBuilder.slots.head), JSON.stringify({ id: P._common.slots.head }), 'a build without a list (your own) wears the items most builds wear');

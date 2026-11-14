@@ -114,10 +114,25 @@ WL.PRE_RAID_BIS = {
 WL.PRE_RAID_BIS_ENCHANTS = {
   head: 2544,         // Arcanum of Focus: +8 spell damage and healing
   neck: 8218,         // +6 Spell Power
-  chest: 928,         // All Stats +3
-  wrist: 8209,        // Healing Spells +16, Damage Spells +6 (pick, guess)
+  chest: 8492,        // Mystic Rugged Armor Kit: Spell Power +6 and Armor +40 (round 214, user; replaces the enchant)
+  wrist: 7665,        // +16 Spell Power (round 214, user)
   hands: 931,         // Haste +1% (casting speed)
   legs: 2544,         // Arcanum of Focus: +8 spell damage and healing
   feet: { custom: { name: 'Minor Speed', stats: {}, text: 'Run speed increased slightly (no effect in the sim).' } },
   mainHand: 8217,     // Revelation
+};
+// Round 214 (user: "use mystic rugged armor kits for the available slots … except boots. use 16 spell power on bracers" →
+// "it replaces the enchant. calculate if it's better than the haste. for legs keep 8 spellpower. for boots keep speed"):
+// chest kit and +16 bracers above for every build; gloves per build — kit (+6 Spell Power) or Haste +1%, whichever simmed
+// higher on that build's list (page defaults, 4 seeds × 5000 fights, kit − haste: Shadow Demo −1.7, Fire Demo +6.2,
+// Incinerate −0.7, Incinerate DS −4.2, Wrack DS +2.4).
+WL.PRE_RAID_BIS_ENCHANTS_BY_BUILD = {
+  demo_pact_fire: { hands: 8492 },
+  wrack_ds: { hands: 8492 },
+};
+WL.preRaidBisEnchants = function (buildKey) {
+  var r = {}, o = WL.PRE_RAID_BIS_ENCHANTS_BY_BUILD[buildKey] || {};
+  Object.keys(WL.PRE_RAID_BIS_ENCHANTS).forEach(function (s) { r[s] = WL.PRE_RAID_BIS_ENCHANTS[s]; });
+  Object.keys(o).forEach(function (s) { r[s] = o[s]; });
+  return r;
 };
