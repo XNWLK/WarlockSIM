@@ -22,13 +22,15 @@
     lifeTapPet: 'lifeTap', lifeTapBelow: 'lifeTap', lifeTapNeed: 'lifeTap', soulFireShards: 'soulFire', searingPainBrand: 'searingPain', shadowburnSnF: 'shadowburn', conflagrateSnF: 'conflagrate', conflagrateExpire: 'conflagrate', multiDot: 'corruption', shadowBoltSpread: 'talent_improvedShadowBolt', isbUpkeep: 'talent_improvedShadowBolt', shadowBoltR2LowMana: 'shadowBolt', deathCoil: 'deathCoil', deathCoilFinisher: 'deathCoil', havocAuto: 'baneOfHavoc',
     swapToImp: 'pet_imp', swapToSuccubus: 'pet_succubus', searingPainExecute: 'searingPain', searingPainDecimation: 'searingPain' };
   // Stat weights (round 44): the table shows SP first (DPS per 1 SP), the others as spell-power equivalents
-  // (weight ÷ SP weight: "1% hit is worth 12 SP"); Spell Pierce only in the details.
+  // (weight ÷ SP weight: "1% hit is worth 12 SP"); Spell Pierce in the details only until round 211 (user: "add spell
+  // pierce to the stat sp per 1 bar at the top where the builds are").
   var STATS = [
     { k: 'sp', label: 'per 1 SP', unit: '1 SP', c: '--c-sp' }, { k: 'hitPct', label: 'per 1% hit', unit: '1% hit', c: '--c-hit' },
     { k: 'critPct', label: 'per 1% crit', unit: '1% crit', c: '--c-crit' }, { k: 'hastePct', label: 'per 1% haste', unit: '1% haste', c: '--c-haste' },
     { k: 'int', label: 'per 1 Int', unit: '1 Int', c: '--c-int' },
+    { k: 'pierce', label: 'per 1 Spell Pierce', unit: '1 Spell Pierce', c: '--c-pierce' },   // round 211 (user): in the table too
   ];
-  var STATS_ALL = STATS.concat([{ k: 'pierce', label: 'per 1 Spell Pierce', unit: '1 Spell Pierce', c: '--c-pierce' },
+  var STATS_ALL = STATS.concat([
     { k: 'spellPen', label: 'per 1 Spell Penetration', unit: '1 Spell Penetration', c: '--c-pierce' }, { k: 'spi', label: 'per 1 Spirit', unit: '1 Spirit', c: '--c-int' },
     { k: 'mp5', label: 'per 1 MP5', unit: '1 MP5', c: '--c-hit' }]);   // round 157: Spell Penetration, Spirit, MP5 when chosen
   var WSTAT_NAMES = { sp: 'Spell power', hitPct: 'Hit', critPct: 'Crit', hastePct: 'Haste', int: 'Intellect', pierce: 'Spell Pierce', spellPen: 'Spell Penetration', spi: 'Spirit', mp5: 'MP5' };
@@ -1198,7 +1200,7 @@
   }
 
   // ---------- table ----------
-  function ncols() { return 13; }
+  function ncols() { return 14; }   // round 211: + Spell Pierce weight
   // "Spells & damage" (round 45, user — replaces the separate priority strip and damage split bar; renamed in round 46):
   // the damaging spells in priority order (left = checked first), each once at its first place (Shadow Trance + the
   // Shadow Bolt filler = one Shadow Bolt; damage on extra targets counts toward the spell), with a bar in the spell's
@@ -1280,7 +1282,7 @@
     return STATS.map(function (s) {
       var v = w.w[s.k]; if (v == null) return '<td class="wt"><span class="meta" title="Not chosen in Fight &amp; pets → Advanced → Stat weights for">–</span></td>';   // round 157
       var eq = s.k !== 'sp' && sp > 1e-9 ? v / sp : null;
-      var shown = s.k === 'sp' ? v.toFixed(2) : eq != null ? eq.toFixed(s.k === 'int' ? 2 : 1) : v.toFixed(2);
+      var shown = s.k === 'sp' ? v.toFixed(2) : eq != null ? eq.toFixed(s.k === 'int' || s.k === 'pierce' ? 2 : 1) : v.toFixed(2);
       return '<td class="wt' + (s.k === wbest ? ' top' : '') + '" style="--c:var(' + s.c + ')" title="' +
         esc(s.unit + ' = ' + v.toFixed(3) + ' DPS' + (eq != null ? ' = ' + eq.toFixed(2) + ' spell power' : '') + ' · computed on ' + WL.RACES[w.race].name) + '">' + shown + '</td>';
     }).join('');
@@ -2006,7 +2008,7 @@
       ['All damage % (auras)', pctOf(sA.mult.all), pctOf(sB.mult.all), 1, 1]];
     h += '<div><h2>Stats used in the fight</h2><div class="scroll"><table class="cmpt"><thead><tr><th></th>' + th + '<th class="n">B − A</th></tr></thead><tbody>' +
       st.filter(function (s) { return !s[4] || Math.abs(s[1]) > 1e-9 || Math.abs(s[2]) > 1e-9; }).map(function (s) { return num(s[0], s[1], s[2], s[3]); }).join('') +
-      (wA && wB ? STATS.map(function (s) {
+      (wA && wB ? STATS.filter(function (s) { return wA.w[s.k] != null && wB.w[s.k] != null; }).map(function (s) {   // round 211: a weight not chosen is left out
         var ea = s.k === 'sp' ? wA.w.sp.toFixed(2) + ' DPS' : (wA.w[s.k] / wA.w.sp).toFixed(1) + ' SP', eb = s.k === 'sp' ? wB.w.sp.toFixed(2) + ' DPS' : (wB.w[s.k] / wB.w.sp).toFixed(1) + ' SP';
         return row('Weight of ' + s.unit, ea, eb);
       }).join('') : '') + '</tbody></table></div><p class="meta">Same gear, buffs and consumables for both: the differences come from talents, race, pet and weapon stone.' +
@@ -4210,9 +4212,15 @@
   function renderGbSets() {
     var sel = $('gbSetSel'); if (!sel) return;
     var cur = sel.value;
-    sel.innerHTML = gbSets.length ? gbSets.map(function (s, i) { return '<option value="' + i + '">' + esc(s.name) + ' (' + Object.keys(s.slots || {}).length + (Object.keys(s.slots || {}).length === 1 ? ' item' : ' items') + ')</option>'; }).join('') : '<option value="">No saved sets yet</option>';
-    if (cur !== '' && gbSets[+cur]) sel.value = cur;
-    sel.disabled = !gbSets.length; $('gbSetLoad').disabled = $('gbSetDel').disabled = !gbSets.length;
+    // Round 211 (user: the pre-raid BiS lists): the lists of data/pre-raid-bis.js come first, as fixed sets ("bis:<build key>").
+    var B = WL.PRE_RAID_BIS || {}, bk = WL.BUILDS.filter(function (b) { return B[b.key]; });
+    var own = gbSets.length ? gbSets.map(function (s, i) { return '<option value="' + i + '">' + esc(s.name) + ' (' + Object.keys(s.slots || {}).length + (Object.keys(s.slots || {}).length === 1 ? ' item' : ' items') + ')</option>'; }).join('') : '<option value="">No saved sets yet</option>';
+    sel.innerHTML = bk.length ? '<optgroup label="Pre-raid BiS (Phase ' + (WL.PRE_RAID_BIS_PHASE || 1) + ')">' + bk.map(function (b) { return '<option value="bis:' + b.key + '">Pre-raid BiS · ' + esc(b.short) + '</option>'; }).join('') + '</optgroup>' +
+      '<optgroup label="Your saved sets">' + own + '</optgroup>' : own;
+    if (cur !== '' && (gbSets[+cur] || (/^bis:/.test(cur) && B[cur.slice(4)]))) sel.value = cur;
+    else if (gbSets.length) sel.value = '0';
+    var isBis = /^bis:/.test(sel.value);
+    sel.disabled = !gbSets.length && !bk.length; $('gbSetLoad').disabled = !gbSets.length && !isBis; $('gbSetDel').disabled = isBis || !gbSets.length;
   }
   function gbSetSave() {
     var g = gb(), name = $('gbSetName').value.trim();
@@ -4226,7 +4234,13 @@
     renderGear(); $('gbSetSel').value = String(at >= 0 ? at : gbSets.length - 1);
   }
   function gbSetLoad() {
-    var s = gbSets[+$('gbSetSel').value]; if (!s) return;
+    var v = $('gbSetSel').value, bis = /^bis:/.test(v) && (WL.PRE_RAID_BIS || {})[v.slice(4)], s;
+    if (bis) {                                                // round 211: a pre-raid BiS list — its items; your enchants stay
+      var bb = WL.BUILDS.filter(function (b) { return b.key === v.slice(4); })[0], sl = {};
+      Object.keys(bis).forEach(function (k) { sl[k] = { id: bis[k] }; });
+      s = { name: 'Pre-raid BiS · ' + (bb ? bb.short : v.slice(4)), slots: sl, enchants: gb().enchants || {} };
+    } else s = gbSets[+v];
+    if (!s) return;
     readSettings();
     var g = gb(); g.slots = JSON.parse(JSON.stringify(s.slots || {})); g.enchants = JSON.parse(JSON.stringify(s.enchants || {})); g.manual = {}; g.on = true; gbSel = null; gbCmp = null;
     gbSave(); gbSync(); renderTotals(); markDirty(); renderGear(); renderGearEdit();
@@ -4389,7 +4403,7 @@
   $('gbSetSave').addEventListener('click', gbSetSave);
   $('gbSetLoad').addEventListener('click', gbSetLoad);
   $('gbSetDel').addEventListener('click', function () {
-    var i = +$('gbSetSel').value, s = gbSets[i]; if (!s || !armed('gbSetDel')) return;
+    var v = $('gbSetSel').value, i = +v, s = /^bis:/.test(v) ? null : gbSets[i]; if (!s || !armed('gbSetDel')) return;   // round 211: the BiS lists are not deleted
     gbSets.splice(i, 1); gbKeep('wfs.gbSets', gbSets); gbMsgText = 'Gear set "' + s.name + '" deleted.'; renderGear();
   });
   $('gbSetName').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); gbSetSave(); } });

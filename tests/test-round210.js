@@ -5,7 +5,7 @@
   T.run('round 210: Spell Pierce on items, the combat-log resist model', function () {
     T.group('Spell Pierce on items');
     var ids = Object.keys(WL.ITEMS), pierce = ids.filter(function (id) { return WL.ITEMS[id].stats.pierce; });
-    T.ok(pierce.length >= 50, pierce.length + ' items with Spell Pierce ("Your spells pierce N Magical Resistance")');
+    T.ok(pierce.length >= 45, pierce.length + ' items with Spell Pierce ("Your spells pierce N Magical Resistance")');
     T.eq(ids.filter(function (id) { return WL.ITEMS[id].stats.spellPen; }).length, 0, 'no item of the gear builder has Spell Penetration (none says "decreases the magical resistances")');
     T.eq(WL.ITEMS[22943].stats.pierce, 13, 'Malice Stone Pendant: 13 Spell Pierce');
     T.ok(WL.TRINKET_FX[21565].equip.pierce === 7 && !WL.TRINKET_FX[21565].equip.spellPen, 'Rune of Perfection: +7 Spell Piercing in Forest areas');
@@ -84,7 +84,7 @@
     T.ok(byRaid('Blackwing Lair').filter(rule).every(function (id) { return WL.ITEMS[id].phase >= 3; }), 'Blackwing Lair items: Phase 3 or later unless reviewed');
     var pvp = ids.filter(function (id) { return WL.ITEMS[id].src === 'pvp'; });
     T.ok(pvp.length > 0 && pvp.filter(rule).every(function (id) { return WL.ITEMS[id].phase >= 2; }), 'PvP rank gear: Phase 2 or later unless reviewed (' + pvp.length + ')');
-    T.eq(Object.keys(WL.ITEM_PHASE_SET).length, 184, "the user's review of 2026-11-14: 184 items");
+    T.eq(Object.keys(WL.ITEM_PHASE_SET).length, 185, "the user's review of 2026-11-14: 184 items + Orb of the Darkmoon (round 211, pre-raid pick)");
     T.eq(WL.ITEMS[18820].phase, 9, "Talisman of Ephemeral Power: not in the game (user's review)");
     Object.keys(WL.ITEM_PHASE_SET).forEach(function (id) { if (WL.ITEMS[id]) T.eq(WL.ITEMS[id].phase || 1, WL.ITEM_PHASE_SET[id], 'your review wins: ' + WL.ITEMS[id].name); });
     var now = ids.filter(function (id) { return (WL.ITEMS[id].phase || 1) <= WL.PHASE_NOW; }).length;

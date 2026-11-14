@@ -48,7 +48,15 @@ function clean(h) {
   return out.replace(/\s*\n\s*/g, ' ').replace(/(<br>\s*){3,}/g, '<br><br>').replace(/(<br>\s*)+(<\/td>)/g, '$2').replace(/<span>\s*<\/span>|<span class="q1"><\/span>/g, '')
     .replace(/(<\/span>)<br><br>(<span class="q2">)/g, '$1<br>$2').trim();   // no empty line between Equip / Use lines (as in the game)
 }
-module.exports = { clean };
+// Round 211: a set whose bonuses come from the game (WL.ITEM_SETS[id].game): its piece list = the set's items by name, its
+// bonus lines = the set's bonuses ("(2) Set: …", grey; the page colours the ones you have).
+function gameSet(h, set, items) {
+  const e = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return h.replace(/<div class="q0 indent">[\s\S]*?<\/div>/, '<div class="q0 indent">' + set.items.map(i => '<span>' + e(items[i].name) + '</span>').join('<br>') + '</div>')
+    .replace(/<span class="q0">(?:(?!<span class="q0">)[\s\S])*<\/span>(<\/td><\/tr><\/table>)$/, (m, end) =>
+      '<span class="q0">' + set.bonuses.map(b => '<span>(' + b.n + ') Set: ' + e(b.text) + '</span>').join('<br>') + '</span>' + end);
+}
+module.exports = { clean, gameSet };
 
 if (require.main === module) {
   const raw = JSON.parse(fs.readFileSync(RAW, 'utf8'));
@@ -61,7 +69,9 @@ if (require.main === module) {
   const lacks = (it, h) => (it.stats.int && !/Intellect/.test(h)) || (it.stats.spi && !/Spirit/.test(h)) || (it.stats.sta && !/Stamina/.test(h)) || (it.stats.sp && !/damage/i.test(h));
   Object.keys(items).forEach(id => {
     const t = raw.tips[id]; if (!t || !t.h) { miss.push(id); return; }
-    const h = clean(t.h); if (lacks(items[id], h)) { off.push(items[id].name); return; }
+    let h = clean(t.h); if (lacks(items[id], h)) { off.push(items[id].name); return; }
+    const set = items[id].set && (box.WL.ITEM_SETS || {})[items[id].set];
+    if (set && set.game) h = gameSet(h, set, items);   // round 211: the set bonuses as the game shows them (tools/gen-items.js SET_GAME)
     tips[id] = h; n++;
   });
   if (off.length) console.log('tooltips left out (a stat of the item list is missing in them): ' + off.join(', '));

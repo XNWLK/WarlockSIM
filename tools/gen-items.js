@@ -26,6 +26,9 @@ const raw = JSON.parse(fs.readFileSync(RAW, 'utf8'));
 const cb = WL.DEFAULT_CONFIG.combat;
 
 const EXCLUDE = { 276765: 'Leafre\'s Ring of Precise Spell Power: 100 spell power at level 1, no source (user: remove it)' };
+// Round 211 (user: "the vendor version of deathmist can be tossed. only keep the quest versions and put the set bonus i gave
+// you on those"): the vendor Deathmist pieces (set 1681) are out; the quest pieces (set 518, 22070–22077) stay.
+[226905, 226906, 226907, 226908, 226909, 226910, 226911, 226912].forEach(id => { EXCLUDE[id] = 'Deathmist (vendor version, set 1681): not in the game (user: toss it)'; });
 // Stats where Wowhead's item list disagrees with the item's own tooltip: the tooltip's numbers are used.
 const STATS_FIX = { 254013: { s: { splpwr: 18, spldmg: 6, spi: 7 }, why: 'Earthen Silk Slippers: tooltip +24 damage / +18 healing; the list said 6 / 11 on 2026-11-13' } };
 const WARLOCK_BIT = 256;                                   // class mask bit of the Warlock (class 9)
@@ -258,6 +261,19 @@ Object.keys(items).forEach(id => {
   if (b.length > s.bonuses.length) s.bonuses = b;
   const sz = h.match(/\(\d+\/(\d+)\)<\/span>/); if (sz) s.size = +sz[1];
 });
+// Round 211 (user, with an in-game tooltip of Dreadmist Belt: "these are the dreadmist set bonuses. and deathmist is the
+// other way around, so the 2 piece deathmist is the 6 piece dreadmist etc"): the game's bonuses win over Wowhead's. Dreadmist
+// (3) is 12 spell power in the game (Wowhead: 18); Deathmist has Dreadmist's bonuses in reverse order: (n) = Dreadmist (8 − n)
+// — the quest pieces (set 518; user: "only keep the quest versions and put the set bonus i gave you on those"), in place of
+// Wowhead's (2) resistances, (4) fear, (6) 23 spell power, (8) 200 armor. The vendor pieces (1681) are left out (EXCLUDE).
+// game: true → tools/gen-tooltips.js rewrites these sets' piece list and bonus lines in the item tooltips.
+const SET_GAME = {
+  183: [[2, 18679, '+8 All Resistances.'], [3, 9346, 'Increases damage and healing done by magical spells and effects by up to 12.'],
+    [4, 27780, 'When struck in combat has a 2% chance of causing the attacker to flee in terror for 2 sec. Can only occur once every 60 sec.'],
+    [5, 450585, 'Your spellcasts have a 5% chance to heal you for 270 to 330.'], [6, 18378, 'Restores 8 mana per 5 sec.']],
+};
+SET_GAME[518] = SET_GAME[183].map(b => [8 - b[0], b[1], b[2]]).reverse();
+Object.keys(SET_GAME).forEach(sid => { if (itemSets[sid]) { itemSets[sid].bonuses = SET_GAME[sid].map(b => ({ n: b[0], spell: b[1], text: b[2] })); itemSets[sid].game = true; } });
 Object.keys(itemSets).forEach(sid => itemSets[sid].bonuses.forEach(b => { const st = setStats(b.text); if (Object.keys(st).length) b.stats = st; }));
 console.log('item sets: ' + Object.keys(itemSets).length + ', with bonuses ' + Object.keys(itemSets).filter(k => itemSets[k].bonuses.length).length);
 

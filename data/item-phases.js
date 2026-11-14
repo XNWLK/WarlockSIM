@@ -214,4 +214,5 @@ WL.ITEM_PHASE_SET = {
   288836: 9,   // Felheart Horns
   288838: 9,   // Felheart Pants
   288925: 9,   // Fireproof Cloak
+  19426: 1,   // Orb of the Darkmoon — round 211: the user picked it for every build's Phase 1 pre-raid list (data/pre-raid-bis.js)
 };

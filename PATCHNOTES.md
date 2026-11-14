@@ -3,6 +3,16 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v180
+- **Spell Pierce in the build table:** the stat-weight columns at the top now include Spell Pierce (spell power per
+  1 Spell Pierce), next to Int. Compare two builds lists it too.
+- **Dreadmist / Deathmist set bonuses as in the game:** Dreadmist Raiment's 3-piece bonus is 12 spell power (was 18).
+  Deathmist Raiment (the quest pieces) now has Dreadmist's bonuses in reverse: (2) 8 MP5, (3) heal on spellcast, (4) fear when
+  struck, (5) 12 spell power, (6) +8 All Resistances — and its tooltip counts the pieces you wear. The vendor copies of the Deathmist pieces are gone from the item list.
+- **Pre-raid BiS lists (Phase 1):** a realistic pre-raid list for every build, picked by hand from the gear search (no
+  raid items, no hard reputation grinds). In the gear builder, pick "Pre-raid BiS · <build>" in the gear sets menu and
+  press Load set. Orb of the Darkmoon now counts as Phase 1.
+
 ## v179
 - **Item search:** 11 new items (among them Felheart Bracers, Gloves, Belt, Shoulder Pads, Horns and Pants, Conqueror's
   Medallion, Shroud of Arcane Mastery, Band of the Damned, Fireproof Cloak); enchants refreshed. 2,409 items.
