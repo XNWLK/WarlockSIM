@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v192
+- **Tearfall Bracers of Shadow Wrath** (+22 Shadow, The Unforgiven in Stratholme) are in the gear builder and the main wrist of Shadow Demo and Wrack DS, with Sublime Wristguards as the alternative. New default DPS: Shadow Demo 907.4, Wrack DS 933.4.
+- **Pre-raid page:** a slot never shows two Shadow Wrath items (main, upgrade and alternative).
+
 ## v191
 - **Activate trinket:** a new priority action that uses your on-use trinkets (off the global cooldown). Their effect now shows in the timeline. Shadow Demo, Incinerate DS and Wrack DS press it right before a filler cast, Fire Demo after the first minute; Incinerate Pandemic keeps the old timing. New default DPS: Wrack DS 932.6.
 - **Tooltips:** Shadow and Flame shows 4–20% (it already did 20% in the fight), Touch of the Grave a 15 s cooldown and Berserking 15 s.

@@ -15,7 +15,7 @@ WL.PRE_RAID_BIS = {
     shoulder: 19050,    // Mantle of the Timbermaw
     back: 272411,       // Arcanoweave Cloak
     chest: 280057,      // Robes of Dark Summons (round 216: closest blue, was Robe of the Void)
-    wrist: 18497,       // Sublime Wristguards
+    wrist: 13409,       // Tearfall Bracers of Shadow Wrath (round 220, user: "those bracers can roll up to 22. put them on the bis list"; +22 Shadow, +2.0 DPS over Sublime Wristguards)
     hands: 13253,       // Hands of Power
     waist: 11662,       // Ban'thok Sash
     legs: 13170,        // Skyshroud Leggings
@@ -91,7 +91,7 @@ WL.PRE_RAID_BIS = {
     shoulder: 19050,    // Mantle of the Timbermaw
     back: 272411,       // Arcanoweave Cloak
     chest: 14136,       // Robe of Winter Night (round 216: closest blue for Wrack DS, was Robe of the Void)
-    wrist: 11766,       // Flameweave Cuffs of Shadow Wrath (round 217, user: "use 21 shadow wrath bracers as main for wrack and sublime als alternative"; +21 Shadow)
+    wrist: 13409,       // Tearfall Bracers of Shadow Wrath (round 220, user: "those bracers can roll up to 22. put them on the bis list"; +22 Shadow, +0.8 DPS over Flameweave Cuffs of Shadow Wrath +21, round 217's pick)
     hands: 18407,       // Felcloth Gloves
     waist: 10255,       // Master's Belt of Shadow Wrath (round 218, user: "yes make the belt main for wrack, waistcord as alternative"; +30 Shadow, +6.5 DPS over Black Waistcord, 4 seeds x 4000)
     legs: 22342,        // Leggings of Torment (round 217, user: "swap wrack main to leggings of torment and the alternative to skyshroud"; +4.4 DPS, 4 seeds x 4000)

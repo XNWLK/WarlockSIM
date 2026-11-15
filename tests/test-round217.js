@@ -11,7 +11,7 @@
       'Flameweave Cuffs: kept as the +21 Shadow Wrath roll, nothing else');
     T.group('list');
     T.eq(W.legs, 22342, 'Wrack DS legs: Leggings of Torment');
-    T.eq(W.wrist, 11766, 'Wrack DS wrist: Flameweave Cuffs of Shadow Wrath');
+    T.eq(W.wrist, 13409, 'Wrack DS wrist: Shadow Wrath bracers (round 220: Tearfall Bracers +22 replaced Flameweave Cuffs +21)');
     T.ok(Object.keys(WL.PRE_RAID_BIS).every(function (k) { return k === 'wrack_ds' || (WL.PRE_RAID_BIS[k].legs !== 22342 && WL.PRE_RAID_BIS[k].wrist !== 11766); }),
       'the other builds keep their legs and wrist');
     T.group('Rugged Mantle of the Timbermaw');
