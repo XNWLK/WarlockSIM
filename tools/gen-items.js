@@ -36,7 +36,17 @@ const STATS_FIX = { 254013: { s: { splpwr: 18, spldmg: 6, spi: 7 }, why: 'Earthe
   260212: { s: { splpwr: 12, splheal: 25, int: 17, spi: 17 }, why: 'Bad Hat: no Shadow damage in the game any more (user); Wowhead still lists +23' },
   // Round 216 (user: "when i hover over channeler's it shows a different tooltip than when i click on it"): Wowhead changed it after
   // our list of 2026-11-14 — now +14 Intellect, 1% hit, +9 spell damage and healing, no Spirit (its page, read 2026-11-15).
-  272406: { s: { int: 14, hitrtng: 10, splpwr: 9 }, why: "Channeler's Ring: changed on Wowhead after 2026-11-14 (+9 spell power, no Spirit)" } };
+  272406: { s: { int: 14, hitrtng: 10, splpwr: 9 }, why: "Channeler's Ring: changed on Wowhead after 2026-11-14 (+9 spell power, no Spirit)" },
+  // Round 217 (user: "use 21 shadow wrath bracers as main for wrack"): a random-suffix item, kept as its "of Shadow Wrath" roll —
+  // +21 Shadow damage (Wowhead Classic's random enchantments; Wowhead Forever lists none).
+  11766: { s: { shasplpwr: 21 }, name: 'Flameweave Cuffs of Shadow Wrath', why: 'random suffix: the user picked the +21 Shadow Wrath roll' } };
+// Round 217 (user: "swap wrack main to leggings of torment"): items missing from our Wowhead list (stats hidden when it was
+// collected), as raw records from their Wowhead Forever page (read 2026-11-15).
+const EXTRA = [
+  { id: 22342, n: 'Leggings of Torment', l: 63, r: 58, q: 3, sl: 7, sub: 1, cls: 4, ic: 'inv_pants_09', set: 0, mx: 0, rc: 0, rr: 0, rf: 0,
+    s: { shasplpwr: 34, int: 16, sta: 16 }, src: [2], sm: [{ n: 'Lord Valthalak', t: 1, z: 1583 }], cat: 'armor/cloth/slot:7' },
+];
+EXTRA.forEach(x => { if (!raw.items.some(y => y.id === x.id)) raw.items.push(x); });
 const WARLOCK_BIT = 256;                                   // class mask bit of the Warlock (class 9)
 const ALLIANCE = 1 | 4 | 8 | 64 | 1024, HORDE = 2 | 16 | 32 | 128 | 512;   // race mask bits
 const SLOT = { 1: 'head', 2: 'neck', 3: 'shoulder', 4: 'shirt', 5: 'chest', 20: 'chest', 6: 'waist', 7: 'legs', 8: 'feet', 9: 'wrist', 10: 'hands',
@@ -139,7 +149,7 @@ raw.items.slice().sort((a, b) => a.id - b.id).forEach(x => {
   if (st.pierce && TIP[x.id] && PEN_TIP.test(TIP[x.id]) && !/Your spells pierce/.test(TIP[x.id])) { st.spellPen = st.pierce; delete st.pierce; }   // round 210
   if (tfx && tfx.stats) st = Object.assign({}, tfx.stats);   // round 209: a trinket's own stats where Wowhead's list counts a zone bonus always
   if (!USEFUL.some(k => st[k]) && !(WL.TRINKET_FX && WL.TRINKET_FX[x.id])) { dropped.noStat++; return; }   // round 166: a trinket with an effect in data/trinkets.js stays
-  const it = { name: x.n, slot, quality: QUALITY[x.q] || 'common', ilvl: x.l || 0, req: x.r || 0, stats: st, icon: iconOf(x.ic) };
+  const it = { name: (STATS_FIX[x.id] && STATS_FIX[x.id].name) || x.n, slot, quality: QUALITY[x.q] || 'common', ilvl: x.l || 0, req: x.r || 0, stats: st, icon: iconOf(x.ic) };
   if (WEAPON[x.cat]) it.weapon = WEAPON[x.cat];
   if (x.set) it.set = x.set;
   if (x.mx === 1) it.unique = true;

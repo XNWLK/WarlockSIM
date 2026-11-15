@@ -91,10 +91,10 @@ WL.PRE_RAID_BIS = {
     shoulder: 19050,    // Mantle of the Timbermaw
     back: 272411,       // Arcanoweave Cloak
     chest: 14136,       // Robe of Winter Night (round 216: closest blue for Wrack DS, was Robe of the Void)
-    wrist: 18497,       // Sublime Wristguards
+    wrist: 11766,       // Flameweave Cuffs of Shadow Wrath (round 217, user: "use 21 shadow wrath bracers as main for wrack and sublime als alternative"; +21 Shadow)
     hands: 18407,       // Felcloth Gloves
     waist: 254087,      // Black Waistcord
-    legs: 13170,        // Skyshroud Leggings
+    legs: 22342,        // Leggings of Torment (round 217, user: "swap wrack main to leggings of torment and the alternative to skyshroud"; +4.4 DPS, 4 seeds x 4000)
     feet: 11822,        // Omnicast Boots
     finger1: 12543,     // Songstone of Ironforge
     finger2: 22433,     // Don Mauricio's Band of Domination

@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v188
+- **Wrack DS legs and wrist:** Leggings of Torment (Lord Valthalak) and Flameweave Cuffs of Shadow Wrath (+21 Shadow, Lord Incendius) in Wrack DS's Realistic Pre-BiS list; both items now in the gear builder. New default DPS: Wrack DS 919.8 (other builds unchanged).
+
 ## v187
 - **Off-hand enchant:** every Pre-BiS off hand gets +9 Intellect (Superior Intellect). New default DPS: Wrack DS 911.4, Shadow Demo 904.5, Fire Demo 884.3, Incinerate 873.2, Incinerate DS 849.7.
 

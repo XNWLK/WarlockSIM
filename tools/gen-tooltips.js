@@ -62,6 +62,13 @@ const DROP = { 260212: '<br><span class="q2">Equip: Increases damage done by Sha
 // Round 216: a tooltip Wowhead changed after our list (Channeler's Ring, its page read 2026-11-15): [old, new] pairs.
 const FIX = { 272406: [['<br><span>+8 Spirit</span>', ''], ['Improves your chance to hit by 1.0%.</span>', 'Improves your chance to hit by 1.0%.</span><br><span class="q2">Equip: Increases damage and healing done by magical spells and effects by up to 9.</span>']] };
 
+// Round 217: items we have no Wowhead tooltip for (tools/gen-items.js EXTRA / a random suffix kept as one roll), written from
+// their Wowhead Forever pages (read 2026-11-15); the Shadow Wrath line as the game shows a random suffix.
+const ADD = {
+  22342: '<table><tr><td><b class="q3">Leggings of Torment</b><br>Binds when picked up<table width="100%"><tr><td>Legs</td><th><span class="q1">Cloth</span></th></tr></table><span>78 Armor</span><br><span>+16 Stamina</span><br><span>+16 Intellect</span></td></tr></table><table><tr><td>Requires Level 58<br><span class="q2">Equip: Increases damage done by Shadow spells and effects by up to <span>34</span>.</span></td></tr></table>',
+  11766: '<table><tr><td><b class="q3">Flameweave Cuffs of Shadow Wrath</b><br>Binds when picked up<table width="100%"><tr><td>Wrist</td><th><span class="q1">Cloth</span></th></tr></table><span>35 Armor</span><br><span>+21 Shadow Spell Damage</span><br><span>+10 Fire Resistance</span><br>Durability 30 / 30</td></tr></table><table><tr><td>Requires Level 52</td></tr></table>',
+};
+
 if (require.main === module) {
   const raw = JSON.parse(fs.readFileSync(RAW, 'utf8'));
   const box = { window: {} }; box.WL = box.window.WL = {};
@@ -72,7 +79,7 @@ if (require.main === module) {
   // builds that item's tooltip from the stats the sim counts.
   const lacks = (it, h) => (it.stats.int && !/Intellect/.test(h)) || (it.stats.spi && !/Spirit/.test(h)) || (it.stats.sta && !/Stamina/.test(h)) || (it.stats.sp && !/damage/i.test(h));
   Object.keys(items).forEach(id => {
-    const t = raw.tips[id]; if (!t || !t.h) { miss.push(id); return; }
+    const t = raw.tips[id] && !ADD[id] ? raw.tips[id] : ADD[id] ? { h: ADD[id] } : null; if (!t || !t.h) { miss.push(id); return; }
     let h0 = t.h; (FIX[id] || []).forEach(p => { if (h0.indexOf(p[0]) < 0) throw new Error('tooltip fix does not match: ' + id); h0 = h0.split(p[0]).join(p[1]); });   // round 216
     let h = clean(h0); if (lacks(items[id], h)) { off.push(items[id].name); return; }
     const set = items[id].set && (box.WL.ITEM_SETS || {})[items[id].set];
