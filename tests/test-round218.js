@@ -5,7 +5,7 @@
     var SD = WL.BUILDS.filter(function (b) { return b.key === 'demo_pact_succ_sb'; })[0];
     T.group('Shadow Demo');
     T.ok(SD && SD.rotation.indexOf('immolate') < 0, 'Shadow Demo: no Immolate in the priority');
-    T.eq(SD.rotation.join(), 'deathCoilFinisher,bane,curseOfElements,searingPainBrand,corruption,lifeTapNeed,shadowBolt', 'Shadow Demo: the rest of the priority unchanged');
+    T.eq(SD.rotation.filter(function (a) { return a !== 'activateTrinket'; }).join(), 'deathCoilFinisher,bane,curseOfElements,searingPainBrand,corruption,lifeTapNeed,shadowBolt', 'Shadow Demo: the rest of the priority unchanged (round 219: Activate trinket left out of the check)');
     T.ok(WL.BUILDS.filter(function (b) { return b.key !== 'demo_pact_succ_sb'; }).every(function (b) { return b.rotation.indexOf('immolate') >= 0 || b.key === 'wrack_ds'; }),
       'the other Immolate builds keep it');
     T.group('Wrack DS boots');

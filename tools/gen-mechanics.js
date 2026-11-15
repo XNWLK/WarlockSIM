@@ -126,6 +126,7 @@ const SPELL_NOTES = {
 
 // ---------- notes: when each priority action casts ----------
 const ACTION_NOTES = {
+  activateTrinket: 'An on-use trinket you wear (not a mana one) is off cooldown and not set to "never": it is used, off the global cooldown, and the priority goes on to the next action at once. With this action in the priority, the "Use" setting of each trinket is not read.',   // round 219
   curseOfElements: 'The option "Keep Curse of the Elements up" is on, the curse is not on the boss and more than 10 s of the fight are left.',
   shadowTrance: 'Shadow Trance (Nightfall) is up: an instant Shadow Bolt.',
   bane: 'No Bane of yours is on the boss. Bane of Doom if it is off cooldown and at least 60 s are left; otherwise Bane of Agony, near the end only while it still pays off.',

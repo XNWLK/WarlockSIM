@@ -80,7 +80,7 @@
     T.eq(w.dotSpeedSpells.slice().sort().join(','), 'baneOfAgony,corruption,siphonLife', 'Corruption, Bane of Agony and Siphon Life (not Bane of Doom, not Immolate)');
     T.ok(w.debuffPct == null && w.debuffSpells == null, 'the old 10% damage bonus is gone');
     T.eq(WL.SOUL_SIPHON_EFFECTS.slice().sort().join(','), 'baneOfAgony,corruption,siphonLife', 'Soul Siphon counts Corruption, Bane of Agony and Siphon Life only');
-    T.eq(WL.findBuild('wrack_ds').rotation.join(','), 'deathCoilFinisher,corruption,baneOfAgony,shadowTrance,siphonLife,curseOfElements,lifeTapNeed,wrack', 'Wrack DS: Bane of Agony and Siphon Life (round 200: Corruption first)');
+    T.eq(WL.findBuild('wrack_ds').rotation.filter(function (a) { return a !== 'activateTrinket'; }).join(','), 'deathCoilFinisher,corruption,baneOfAgony,shadowTrance,siphonLife,curseOfElements,lifeTapNeed,wrack', 'Wrack DS: Bane of Agony and Siphon Life (round 200: Corruption first)');
     T.eq(JSON.stringify(WL.findBuild('wrack_ds').actWhen.shadowTrance), JSON.stringify({ t: 'aura', aura: 'shadowTrance', op: '<=', v: 8 }), 'Wrack DS holds a Shadow Trance proc until it has 8 s left (round 200)');
     // Round 200 (user): Amplify Curse stays up when its Bane of Agony misses; the next Bane that lands gets it.
     (function () {

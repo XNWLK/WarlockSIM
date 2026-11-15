@@ -42,6 +42,14 @@ WL.ACTIONS = {
     label: 'Curse of the Elements if missing',
     pick: function (S) { return S.cfg.options.useCurseOfElements && !S.buff('coe') && S.remaining > 10 ? 'curseOfElements' : null; },
   },
+  // Round 219 (user: "make the sim use trinkets that have an on use effect … add the APL for it. make the APL a global
+  // 'activate trinket'"): every on-use trinket you wear (not the mana ones) that is ready — off the global cooldown, so the
+  // priority goes on to the next action at once. With it in the priority, the trinkets' own "Use" settings are not read
+  // (except "never"). Give it a condition (APL) to time it.
+  activateTrinket: {
+    label: 'Activate trinket (every on-use trinket that is ready; off the GCD)',
+    pick: function (S) { return S.trinketReady && S.trinketReady() ? 'trinket:use' : null; },
+  },
   // Nightfall proc: instant Shadow Bolt.
   shadowTrance: {
     label: 'Shadow Bolt (max rank) if Shadow Trance (Nightfall) is up',
@@ -93,7 +101,7 @@ WL.ACTIONS = {
     label: 'Shadowburn on cooldown (needs a Soul Shard)',
     pick: function (S) { return S.has('shadowburn') && S.ready('shadowburn') && S.shards > 0 ? 'shadowburn' : null; },
   },
-  // Shadowburn only to keep Shadow and Flame's Fire buff (+10% Fire, 20 s) up: cast when the buff is missing or has
+  // Shadowburn only to keep Shadow and Flame's Fire buff (+20% Fire at 5/5 since the patch of 2026-11-03, 20 s) up: cast when the buff is missing or has
   // ≤ 3 s left (≈ one filler cast, so the refresh is not pushed past the expiry), instead of on every 15 s cooldown
   // (user, round 25). Tested thresholds 1 GCD / 2.5 / 3 / 4 s: all within noise of "on cooldown" (04_EXPLORATION §14).
   shadowburnSnF: {
@@ -104,7 +112,7 @@ WL.ACTIONS = {
       return left <= 3 ? 'shadowburn' : null;
     },
   },
-  // Conflagrate only to keep Shadow and Flame's Shadow buff (+10% Shadow, 20 s) up (round 67, user; like shadowburnSnF):
+  // Conflagrate only to keep Shadow and Flame's Shadow buff (+20% Shadow at 5/5 since the patch of 2026-11-03, 20 s) up (round 67, user; like shadowburnSnF):
   // cast when the buff is missing or has ≤ 3 s left, instead of on every 10 s cooldown. Needs Immolate on the target.
   conflagrateSnF: {
     label: 'Conflagrate only to keep Shadow and Flame (Shadow bonus) up (≤ 3 s left)',
@@ -511,6 +519,7 @@ WL.APL_TEMPLATES = {
   shadowburnSnF: [{ spell: 'shadowburn', when: aplAll(aplTal('shadowAndFlame'), { t: 'shards', op: '>', v: 0 }, aplAura('snfFire', '<=', 3)) }],
   conflagrateSnF: [{ spell: 'conflagrate', when: aplAll(aplTal('shadowAndFlame'), aplDot('immolate', '>', 0), aplAura('snfShadow', '<=', 3)) }],
   multiDot: [{ special: true }], shadowBoltSpread: [{ special: true }], swapToImp: [{ special: true }], swapToSuccubus: [{ special: true }],
+  activateTrinket: [{ special: true }],   // round 219: uses items, not a spell
   isbUpkeep: [{ spell: 'shadowBolt', when: aplAll(aplTal('improvedShadowBolt'), aplAura('isb', '<=', { cast: 'shadowBolt' })) }],
   deathCoil: [{ spell: 'deathCoil', when: { t: 'cd', spell: 'deathCoil', op: '<=', v: 0 } }],
   deathCoilFinisher: [{ spell: 'deathCoil', when: { t: 'check', act: 'deathCoilFinisher' } }],

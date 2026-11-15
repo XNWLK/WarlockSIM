@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v191
+- **Activate trinket:** a new priority action that uses your on-use trinkets (off the global cooldown). Their effect now shows in the timeline. Shadow Demo, Incinerate DS and Wrack DS press it right before a filler cast, Fire Demo after the first minute; Incinerate Pandemic keeps the old timing. New default DPS: Wrack DS 932.6.
+- **Tooltips:** Shadow and Flame shows 4–20% (it already did 20% in the fight), Touch of the Grave a 15 s cooldown and Berserking 15 s.
+
 ## v190
 - **Shadow Demo** no longer casts Immolate (it was worth nothing at Pre-BiS gear). New default DPS: 905.5.
 - **Wrack DS:** Master's Boots and Master's Belt of Shadow Wrath (+30 Shadow each, world drops) in its Realistic Pre-BiS list; Omnicast Boots and Black Waistcord as the alternatives. New default DPS: 931.1 (best race Human).

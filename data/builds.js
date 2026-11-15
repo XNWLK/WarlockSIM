@@ -47,7 +47,9 @@ WL.BUILDS = [
     pet: 'succubus', sacrifice: 'imp', oil: 'spellstone',
     // Round 218 (user: "drop immolate from shadow demo"): Immolate out of the priority. At the page's defaults (Pre-BiS gear) it was
     // worth −0.03% ±0.03 at 180 s, −0.07% at 120 s and 300 s, −0.73% at 60 s (tools/explore-apl.js, 20,000 / 10,000 fights, Orc).
-    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'searingPainBrand', 'corruption', 'lifeTapNeed', 'shadowBolt'],
+    // Round 219 (user chose "best per build"): Activate trinket right above the filler — on-use trinkets right before a Shadow Bolt,
+    // from the pull (Weakness Analyzer vs the old "with your other cooldowns": ±0.00% / +0.13% / +0.06% at 180 / 120 / 300 s; tools/explore-trinket.js).
+    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'searingPainBrand', 'corruption', 'lifeTapNeed', 'activateTrinket', 'shadowBolt'],
     params: { lifeTapNeed: { pct: 80, sec: 45 } },   // round 168 (user): Life Tap only when the rest of the fight needs it and no free mana is ready, same numbers (default settings ±0.00%, max buffs +0.1 … +5.9%). Round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.59% (10,000 fights)
   },
   {
@@ -62,7 +64,10 @@ WL.BUILDS = [
       bane: 5, aftermath: 5, ruin: 5, agonizingFlames: 3,
     },
     pet: 'imp', sacrifice: 'succubus', oil: 'firestone',
-    rotation: ['deathCoilFinisher', 'searingPainBrand', 'lifeTapPet', 'bane', 'curseOfElements', 'immolate', 'soulFire', 'corruption', 'lifeTapNeed', 'searingPain'],
+    // Round 219 (user chose "best per build"): Activate trinket on top, only once 60 s have gone (ties the old rule: +0.00% / −0.03% / +0.00%;
+    // right above the filler −0.12%).
+    rotation: ['activateTrinket', 'deathCoilFinisher', 'searingPainBrand', 'lifeTapPet', 'bane', 'curseOfElements', 'immolate', 'soulFire', 'corruption', 'lifeTapNeed', 'searingPain'],
+    actWhen: { activateTrinket: { t: 'fight', what: 'elapsed', op: '>=', v: 60 } },
     params: { lifeTapNeed: { pct: 80, sec: 45 } },   // round 168 (user): Life Tap only when the rest of the fight needs it and no free mana is ready, same numbers (default settings ±0.00%, max buffs +0.1 … +5.9%). Round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.95% (10,000 fights)
   },
   {
@@ -89,7 +94,9 @@ WL.BUILDS = [
       baneOfHavoc: 1, fireAndBrimstone: 3, shadowAndFlame: 5, incinerate: 1,
     },
     pet: null, sacrifice: 'succubus', oil: 'firestone',
-    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'immolate', 'corruption', 'conflagrate', 'shadowburn', 'lifeTapNeed', 'incinerate'],
+    // Round 219 (user chose "best per build"): Activate trinket right above the filler (−0.01% / +0.16% / +0.04%). Incinerate Pandemic
+    // keeps the old rule: no place in its priority beat it (above the filler −0.11% / −0.01% / −0.05%).
+    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'immolate', 'corruption', 'conflagrate', 'shadowburn', 'lifeTapNeed', 'activateTrinket', 'incinerate'],
     params: { lifeTapNeed: { pct: 50, sec: 25 } },
   },
   {
@@ -115,7 +122,8 @@ WL.BUILDS = [
     // Round 200 (user chose it; +0.27 … +0.39% on 4 test sets of 10,000 fights: default gear, a second seed, 250 SP, 1000 SP):
     // a Shadow Trance proc is used only once it has 8 s or less left, so a proc during Wrack does not cut the channel at once
     // (the DoTs tick twice as fast only while Wrack channels), and Corruption comes before Bane of Agony.
-    rotation: ['deathCoilFinisher', 'corruption', 'baneOfAgony', 'shadowTrance', 'siphonLife', 'curseOfElements', 'lifeTapNeed', 'wrack'],
+    // Round 219 (user chose "best per build"): Activate trinket right above the filler (+0.17% / +0.22% / +0.13%).
+    rotation: ['deathCoilFinisher', 'corruption', 'baneOfAgony', 'shadowTrance', 'siphonLife', 'curseOfElements', 'lifeTapNeed', 'activateTrinket', 'wrack'],
     actWhen: { lifeTapNeed: { t: 'fsr', op: '>=', v: 6 }, shadowTrance: { t: 'aura', aura: 'shadowTrance', op: '<=', v: 8 } },
     params: { lifeTapNeed: { pct: 40, sec: 25 } },
   },

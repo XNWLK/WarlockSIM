@@ -94,7 +94,7 @@
     T.ok(th.length >= 12 && th.length <= 600 / tg.icd, th.length + ' hits in 600 s (at most ' + (600 / tg.icd) + ' with the ' + tg.icd + ' s cooldown)');
     T.ok(th.every(function (e, i) { return i === 0 || e.t - th[i - 1].t >= tg.icd - 1e-6; }), 'at least ' + tg.icd + ' s between two hits');
     T.ok(th.every(function (e) { return e.dmg === Math.round(hpU * 0.05); }), 'every hit = 5% of ' + hpU.toFixed(0) + ' health = ' + Math.round(hpU * 0.05) + ', with Curse of the Elements, Improved Shadow Bolt, Master Demonologist and Power Infusion all in play');
-    T.ok(/30% chance/.test(WL.SPELL_TEXT[1260201]) && /25 sec/.test(WL.SPELL_TEXT[1260201]), 'tooltip text', WL.SPELL_TEXT[1260201]);
+    T.ok(/30% chance/.test(WL.SPELL_TEXT[1260201]) && new RegExp(tg.icd + ' sec cooldown').test(WL.SPELL_TEXT[1260201]), 'tooltip text: the ' + tg.icd + ' s cooldown (round 219: was the old 25 sec)', WL.SPELL_TEXT[1260201]);
 
     T.group('totems and Salvation');
     ['windfuryTotem', 'flametongueTotem', 'tranquilAir'].forEach(function (k) { T.ok(!WL.DEFAULT_CONFIG.buffs[k], k + ' is gone'); });

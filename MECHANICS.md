@@ -784,6 +784,7 @@ The last entry is a filler that is always possible.
 | Priority action | It casts when |
 |---|---|
 | Curse of the Elements if missing | The option "Keep Curse of the Elements up" is on, the curse is not on the boss and more than 10 s of the fight are left. |
+| Activate trinket (every on-use trinket that is ready; off the GCD) | An on-use trinket you wear (not a mana one) is off cooldown and not set to "never": it is used, off the global cooldown, and the priority goes on to the next action at once. With this action in the priority, the "Use" setting of each trinket is not read. |
 | Shadow Bolt (max rank) if Shadow Trance (Nightfall) is up | Shadow Trance (Nightfall) is up: an instant Shadow Bolt. |
 | Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) | No Bane of yours is on the boss. Bane of Doom if it is off cooldown and at least 60 s are left; otherwise Bane of Agony, near the end only while it still pays off. |
 | Bane of Agony if no Bane (never Bane of Doom) | No Bane of yours is on the boss; near the end only while it still pays off. Never casts Bane of Doom. |
@@ -942,14 +943,14 @@ every target, as "Keep DoTs on the extra targets"; Bane of Havoc as usual).
 - Affliction: Suppression 1/5, Improved Corruption 1/5.
 - Demonology: Demonic Embrace 3/5, Unholy Power 5/5, Fel Vitality 3/3, Demonic Energies 1/2, Improved Sayaad 3/3, Demonic Sacrifice 1/1, Decimation 2/2, Demonic Brand 3/3, Soul Link 1/1, Demonic Knowledge 3/3, Master Demonologist 5/5, Demonic Pact 1/1.
 - Destruction: Improved Shadow Bolt 5/5, Bane 5/5, Ruin 5/5, Agonizing Flames 3/3.
-- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Curse of the Elements if missing · 4. Searing Pain to (re)apply Demonic Brand when it is down · 5. Corruption if missing/expiring · 6. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 80% mana, more than 45 s left) · 7. Shadow Bolt (filler).
+- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Curse of the Elements if missing · 4. Searing Pain to (re)apply Demonic Brand when it is down · 5. Corruption if missing/expiring · 6. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 80% mana, more than 45 s left) · 7. Activate trinket (every on-use trinket that is ready; off the GCD) · 8. Shadow Bolt (filler).
 
 ### Fire Demo (2/31/18)
 - Imp out, Succubus sacrificed, Major Firestone.
 - Affliction: Suppression 1/5, Improved Corruption 1/5.
 - Demonology: Improved Imp 3/3, Demonic Embrace 4/5, Unholy Power 5/5, Fel Vitality 3/3, Demonic Energies 1/2, Demonic Sacrifice 1/1, Decimation 2/2, Demonic Brand 2/3, Soul Link 1/1, Demonic Knowledge 3/3, Master Demonologist 5/5, Demonic Pact 1/1.
 - Destruction: Bane 5/5, Aftermath 5/5, Ruin 5/5, Agonizing Flames 3/3.
-- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Searing Pain to (re)apply Demonic Brand when it is down · 3. Life Tap to feed the pet (Demonic Energies) when it is nearly out of mana · 4. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 5. Curse of the Elements if missing · 6. Immolate if missing/expiring · 7. Soul Fire while Decimation buff is up · 8. Corruption if missing/expiring · 9. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 80% mana, more than 45 s left) · 10. Searing Pain (filler).
+- Priority: 1. Activate trinket (every on-use trinket that is ready; off the GCD) — only when fight time gone >= 60 s · 2. Death Coil as the finisher (when the filler would not land before the boss dies) · 3. Searing Pain to (re)apply Demonic Brand when it is down · 4. Life Tap to feed the pet (Demonic Energies) when it is nearly out of mana · 5. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 6. Curse of the Elements if missing · 7. Immolate if missing/expiring · 8. Soul Fire while Decimation buff is up · 9. Corruption if missing/expiring · 10. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 80% mana, more than 45 s left) · 11. Searing Pain (filler).
 
 ### Incinerate Pandemic (14/4/33)
 - Succubus out, nothing sacrificed, Major Firestone.
@@ -963,14 +964,14 @@ every target, as "Keep DoTs on the extra targets"; Bane of Havoc as usual).
 - Affliction: Suppression 5/5, Improved Corruption 2/5.
 - Demonology: Demonic Embrace 5/5, Demonic Aegis 2/2, Fel Vitality 3/3, Demonic Sacrifice 1/1.
 - Destruction: Bane 5/5, Cataclysm 3/3, Aftermath 5/5, Ruin 5/5, Shadowburn 1/1, Agonizing Flames 3/3, Conflagrate 1/1, Bane of Havoc 1/1, Fire and Brimstone 3/3, Shadow and Flame 5/5, Incinerate 1/1.
-- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Curse of the Elements if missing · 4. Immolate if missing/expiring · 5. Corruption if missing/expiring · 6. Conflagrate on cooldown while Immolate is up · 7. Shadowburn on cooldown (needs a Soul Shard) · 8. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 50% mana, more than 25 s left) · 9. Incinerate (filler).
+- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Curse of the Elements if missing · 4. Immolate if missing/expiring · 5. Corruption if missing/expiring · 6. Conflagrate on cooldown while Immolate is up · 7. Shadowburn on cooldown (needs a Soul Shard) · 8. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 50% mana, more than 25 s left) · 9. Activate trinket (every on-use trinket that is ready; off the GCD) · 10. Incinerate (filler).
 
 ### Wrack DS (35/11/5)
 - no demon out, Imp sacrificed, Major Spellstone.
 - Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 5/5, Improved Bane of Agony 2/2, Amplify Curse 1/1, Pandemic 3/3, Malevolence 5/5, Nightfall 2/2, Siphon Life 1/1, Soul Siphon 3/3, Shadow Mastery 5/5, Wrack 1/1.
 - Demonology: Demonic Embrace 5/5, Demonic Aegis 2/2, Fel Vitality 3/3, Demonic Sacrifice 1/1.
 - Destruction: Improved Shadow Bolt 5/5.
-- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Corruption if missing/expiring · 3. Bane of Agony if no Bane (never Bane of Doom) · 4. Shadow Bolt (max rank) if Shadow Trance (Nightfall) is up — only when Shadow Trance (Nightfall) time left <= 8 s · 5. Siphon Life if missing/expiring · 6. Curse of the Elements if missing · 7. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 40% mana, more than 25 s left) — only when time since you last spent mana >= 6 s · 8. Wrack (filler channel).
+- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Corruption if missing/expiring · 3. Bane of Agony if no Bane (never Bane of Doom) · 4. Shadow Bolt (max rank) if Shadow Trance (Nightfall) is up — only when Shadow Trance (Nightfall) time left <= 8 s · 5. Siphon Life if missing/expiring · 6. Curse of the Elements if missing · 7. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 40% mana, more than 25 s left) — only when time since you last spent mana >= 6 s · 8. Activate trinket (every on-use trinket that is ready; off the GCD) · 9. Wrack (filler channel).
 <!-- /gen:builds -->
 
 ---

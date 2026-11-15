@@ -10,7 +10,7 @@
     var keys = Object.keys(WL.ACTIONS);
     T.ok(keys.every(function (k) { return WL.APL_TEMPLATES[k]; }), 'all ' + keys.length + ' built-in actions have APL lines');
     var special = keys.filter(function (k) { return WL.aplTemplate(k, {})[0].special; });
-    T.eq(special.sort().join(','), 'multiDot,shadowBoltSpread,swapToImp,swapToSuccubus', 'only the actions that pick their own target or swap the pet have no single-spell form');
+    T.eq(special.sort().join(','), 'activateTrinket,multiDot,shadowBoltSpread,swapToImp,swapToSuccubus', 'only the actions that pick their own target, swap the pet or use trinkets (round 219) have no single-spell form');
     var w = sheet('wrack_succubus');
     T.eq(WL.aplLines('shadowTrance', w).map(function (l) { return l.spell + ' if ' + WL.condText(l.when, w); }).join(), 'shadowBolt if Shadow Trance (Nightfall) time left > 0 s', 'Shadow Bolt on Nightfall: "Shadow Bolt if Shadow Trance time left > 0 s"');
     T.ok(/mana % < 60 and fight time left > 25 s and not free mana is ready and the rest of the fight needs more mana/.test(WL.condText(WL.aplLines('lifeTapNeed', w)[0].when, w)), 'Life Tap by need, with the build\'s own numbers (60 / 25)');

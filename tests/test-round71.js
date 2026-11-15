@@ -57,8 +57,8 @@
         if (d2.length) fights++;
         if (d2.length > 1 || d2.some(function (e) { return e.t < 180 - 3.5; })) bad++;
       }
-      T.ok(bb.rotation[0] === 'deathCoilFinisher' && fights > 0 && bad === 0,
-        bb.short + ': finisher first; Death Coil at the very end of ' + fights + ' of 40 fights, never earlier or twice');
+      T.ok(bb.rotation.filter(function (a) { return a !== 'activateTrinket'; })[0] === 'deathCoilFinisher' && fights > 0 && bad === 0,   // round 219: Activate trinket (off the GCD) may come first
+        bb.short + ': finisher first (Activate trinket aside); Death Coil at the very end of ' + fights + ' of 40 fights, never earlier or twice');
     });
   });
 })();

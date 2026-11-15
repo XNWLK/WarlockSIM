@@ -182,6 +182,7 @@ window.WL = window.WL || {};
       for (var d in S.dots) { var x = S.dots[d]; if (x.expires > prev + EPS) auraAdd(DOTK[d] || (DOTK[d] = 'dot:' + d), prev, Math.min(t, x.expires)); }
       for (var tj in S.xdots) for (var d2 in S.xdots[tj]) { var y = S.xdots[tj][d2]; if (y.expires > prev + EPS) auraAdd('dot' + tj + ':' + d2, prev, Math.min(t, y.expires)); }
       for (var tk in S.xdeb) for (var nm in S.xdeb[tk]) { var ex = S.xdeb[tk][nm]; if (ex > prev + EPS) auraAdd('deb' + tk + ':' + nm, prev, Math.min(t, ex)); }
+      if (trs) for (var ts in trs) if (trs[ts].until > prev + EPS) auraAdd('tr:' + ts, prev, Math.min(t, trs[ts].until));   // round 219: an on-use trinket's effect (the timeline)
     }
 
     // Spirit regeneration per second outside the 5-second rule: (base + per Spirit × Spirit) per 2 s, accrued continuously
@@ -459,6 +460,10 @@ window.WL = window.WL || {};
     // hit and crit (×1.5) and takes Curse of the Elements.
     var TRK = (WL.equippedTrinkets ? WL.equippedTrinkets(cfg) : []).concat(WL.equippedSetFx ? WL.equippedSetFx(cfg) : []), TRU = (cfg.options && cfg.options.trinketUse) || {}, trs = {};
     TRK.forEach(function (x) { trs[x.slot] = { until: -1, n: 0, pending: 0, procUntil: -1, icdUntil: -1, intUntil: -1 }; });
+    res.trNames = {}; TRK.forEach(function (x) { if (x.fx.use && x.fx.use.duration) res.trNames[x.slot] = x.fx.name; });   // round 219: timeline rows of the trinket effects
+    // Round 219 (user: "make the APL a global 'activate trinket'"): with "Activate trinket" in the priority, the priority uses the
+    // on-use trinkets (not mana ones) instead of options.trinketUse ('never' still keeps one unused). Set once ROT is built.
+    var TRK_APL = false;
     var TRD = TRK.filter(function (x) { return x.fx.proc && x.fx.proc.onDamage; });   // round 209: procs on any damage of yours (Bolt's Charged Eyeball)
     // Weapon enchant effects (round 167) [A106]: procs on your landed damaging casts; Revelation on direct hits that do not crit.
     var EPR = WL.equippedEnchantFx ? WL.equippedEnchantFx(cfg) : [], eps = {};
@@ -583,7 +588,11 @@ window.WL = window.WL || {};
     }
     // Round 210: Violet Sorcerer's Vestments 4 — the part of Spirit regeneration that goes on while casting (0 = none).
     function castRegenPct() { var c = 0; TRK.forEach(function (x) { var p = x.fx.proc; if (p && p.kind === 'castRegen' && trs[x.slot].procUntil > S.t + EPS) c += p.pct * trMult(p); }); return Math.min(100, c); }
-    function useTrinkets(key) { TRK.forEach(function (x) { var u = x.fx.use; if (u && u.kind !== 'mana' && trWhen(x, key) && trUse(x)) slotUsed(x.slot); }); }
+    function useTrinkets(key) { if (TRK_APL) return; TRK.forEach(function (x) { var u = x.fx.use; if (u && u.kind !== 'mana' && trWhen(x, key) && trUse(x)) slotUsed(x.slot); }); }
+    // Round 219: "Activate trinket" — every on-use trinket that is ready (off the global cooldown).
+    function trAplOk(x) { var u = x.fx.use; return !!u && u.kind !== 'mana' && (TRU[x.slot] || 'cds') !== 'never' && S.ready('tr:' + x.slot) && S.t < dur - EPS; }
+    S.trinketReady = function () { for (var i = 0; i < TRK.length; i++) if (trAplOk(TRK[i])) return true; return false; };
+    function useTrinketsApl() { TRK.forEach(function (x) { if (trAplOk(x)) trUse(x); }); }
     function useManaTrinkets() {
       TRK.forEach(function (x) {
         var u = x.fx.use; if (!u || u.kind !== 'mana' || (TRU[x.slot] || 'cds') === 'never') return;
@@ -629,6 +638,7 @@ window.WL = window.WL || {};
     var HAV_T = HAV ? 2 : 0;
     var ROT = WL.effectiveRotation(build, cfg);
     var ACTS = ROT.map(function (k) { return WL.actionOf(k, build); });   // round 157: built-in actions and the build's rules
+    TRK_APL = ROT.indexOf('activateTrinket') >= 0;                         // round 219
     // Decision search (round 186, user: "find the perfect rotation global to global"; tools/explore-oracle.js). Off unless
     // opt.ctl is given. Every decision is numbered: 'd' = a free decision (the priority list is asked), 'c' = a tick of a
     // running channel (keep channelling or clip). ctl.observe(info) sees each one; ctl.at / ctl.key replaces decision
@@ -1431,6 +1441,7 @@ window.WL = window.WL || {};
         S.actionIndex = i;                                               // lets the DoT check find the filler below (round 53)
         var k = a.pick(S);
         if (k && k.indexOf('swap:') === 0) return { key: k, index: i, target: 0 };   // pet swap (instant summon, round 35)
+        if (k === 'trinket:use') { useTrinketsApl(); continue; }         // round 219: Activate trinket — off the GCD, the priority goes on
         if (k && fitBy != null && table[k] && SPELLS[k].kind !== 'channel' && S.t + tlOccupies(k) > fitBy + EPS) continue;   // does not fit the gap
         if (k === 'lifeTap' && !canTap()) continue;                      // an optional Life Tap is skipped without the health for it (round 119)
         if (k && table[k] && canCastNow(k) && healthOk(k)) return { key: k, index: i, target: S.nextTarget || 0 };   // movement: only instants while moving (W11)

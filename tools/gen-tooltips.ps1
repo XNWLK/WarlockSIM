@@ -34,6 +34,9 @@ $talOverride = @{
   'shadowMastery' = @(2, 4, 6, 8, 10 | ForEach-Object { "Increases the damage dealt or life drained by your Shadow spells by $_%." })
   'grimReach' = @(10, 20 | ForEach-Object { "Increases the range of your Affliction spells by $_%." })
   'destructiveReach' = @(10, 20 | ForEach-Object { "Increases the range of your Destruction spells by $_%." })   # was 'your damaging spells'
+  # Patch of 2026-11-03 (round 219, user: "shadow and flame still shows the old 10% tooltip instead of 20"): 4-20% (was 2-10%);
+  # the chances unchanged (data/talents.js schoolPct / procPct).
+  'shadowAndFlame' = @(@(4, 20), @(8, 40), @(12, 60), @(16, 80), @(20, 100) | ForEach-Object { "Hitting an enemy with Conflagrate increases all Shadow damage you deal by $($_[0])% for 20 sec, and hitting an enemy with Shadowburn increases all Fire damage you deal by $($_[0])% for 20 sec. In addition, Conflagrate has a $($_[1])% chance not to consume Immolate, and Shadowburn has a $($_[1])% chance to instantly refund a Soul Shard." })
   # Patch of 2026-11-10 (official notes + live Wowhead Forever 2026-11-11, spell 17804 / 1316697):
   'soulSiphon' = @(@(4, 12), @(8, 24), @(12, 36) | ForEach-Object { "Increases the damage done or health drained by your Drain Life, Drain Soul, and Wrack spells by $($_[0])% per each of your Corruption, Siphon Life, and Bane of Agony effects active on the target, up to a maximum increase of $($_[1])%." })
   'wrack' = @('Tears the target apart from within for 6 sec, inflicting 60 Shadow damage (+20% of Spell Power) every 1 sec. While channeling, your Siphon Life, Corruption, and Bane of Agony effects on the target deal their periodic damage 100% faster.')
@@ -62,7 +65,8 @@ $override = @{
   # their Mana cost reduced by 10% and deal 10% more damage.', beta build 2026-09-24). Its 8 s are not in the text.
   '1316697' = 'Tears the target apart from within for 6 sec, inflicting 60 Shadow damage (+20% of Spell Power) every 1 sec. While channeling, your Siphon Life, Corruption, and Bane of Agony effects on the target deal their periodic damage 100% faster.'   # Wrack, patch of 2026-11-10 (live Wowhead Forever 2026-11-11)
   '1259821' = 'Your non-periodic damaging abilities have their Mana cost reduced by 10% and deal 10% more damage.'   # Eureka!
-  '1260201' = 'Your spells and attacks have a 30% chance to drain Health from the target, up to 5% of your maximum Health. (25 sec cooldown)'   # Touch of the Grave
+  '1260201' = 'Your spells and attacks have a 30% chance to drain Health from the target, up to 5% of your maximum Health. (15 sec cooldown)'   # Touch of the Grave (round 219: 15 s since the patch notes of round 164, A102; was 25 s)
+  '20554' = 'Increases your spellcasting and attack speed by 10% for 15 sec.'   # Berserking (round 219: 15 s since the patch note of round 165, A103; was 10 sec)
   '20597' = 'Increases your critical strike chance with all spells and attacks by 1%.'   # Ruthless (was Sword Specialization; 2% until the patch notes of 2026-10-26, round 161)
   '20598' = 'Spirit increased by 10%.'   # The Human Spirit (patch notes of 2026-10-26, round 161; was 5%)
   '20575' = 'Damage dealt by Warlock and Hunter pets increased by 5%.'   # Command (back with the patch notes of 2026-10-26, round 161; not in the archive)

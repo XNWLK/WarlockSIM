@@ -121,6 +121,12 @@
         'Summon ' + to + ' (10 s − 6 s Fel Domination − 4 s Master Summoner 2/2 = instant, one GCD; mana −50% −40%). From then on the new pet fights and the new sacrifice buff applies.</div>' +
         '<div class="tt-rule">Priority rule: ' + esc(WL.ACTIONS[a].label) + '</div>';
     }
+    if (a === 'activateTrinket') {                                    // round 219
+      return '<div class="tt-name">Activate trinket</div><div class="tt-meta">Off the global cooldown · every on-use trinket you wear</div>' +
+        '<div class="tt-body">Uses each on-use trinket of your gear that is ready (not the mana ones — those are used when their mana is missing). ' +
+        'It takes no time: the priority goes on to the next action at once. With it in the priority, the "Use" setting of each trinket in the gear builder is not read, except "never". ' +
+        'Its effect shows as a row of its own in the timeline.</div><div class="tt-rule">Priority rule: ' + esc(actLabel(a, b)) + '</div>';
+    }
     return (ACTION_SPELLS[a] || ownSpells(a, b) || [a]).filter(function (k) { return WL.SPELLS[k]; }).map(spellBlock).join('<hr>') + '<div class="tt-rule">Priority rule: ' + esc(actLabel(a, b)) + '</div>';
   }
   function racialTip(rc) {
@@ -1199,8 +1205,11 @@
     spPotion: ['Spellblasting Potion', 'consumable_majorSpellblasting', 'you'], powerInfusion: ['Power Infusion', 'buff_powerInfusion', 'you'],
   };
   // [label, icon, group] for an aura key; 'dot2:corruption' = a DoT on extra target 2 (multi-DoT, group 'extra').
+  // Round 219: an on-use trinket's effect ('tr:trinket1' / 'tr:trinket2'), named after the trinket of the results shown.
+  var TR_NAMES = {};
   function auraInfo(k) {
     if (AURAS[k]) return AURAS[k];
+    var tr = /^tr:(trinket\d)$/.exec(k); if (tr) return [(TR_NAMES[tr[1]] || 'Trinket') + ' (on-use trinket)', '', 'you'];
     var xt = /^dot(\d):(\w+)$/.exec(k);
     if (xt) { var base = AURAS['dot:' + xt[2]]; return [(base ? base[0] : spellName(xt[2])) + ' (target ' + xt[1] + ')', base ? base[1] : xt[2], 'extra']; }
     var xd = /^deb(\d):(\w+)$/.exec(k);                              // CoE / ISB on an extra target (round 39)
@@ -1636,6 +1645,7 @@
   }
   // W4: average uptime of every tracked buff / debuff over all fights.
   function uptimeBlock(r) {
+    TR_NAMES = (r.firstFight && r.firstFight.trNames) || {};          // round 219
     var u = r.uptimePct || {}, keys = auraKeys(u).filter(function (k) { return u[k] > 0.05; });
     if (!keys.length) return '';
     var grp = '';
@@ -1714,6 +1724,7 @@
     render();
   });
   function timelineBlock(r) {
+    TR_NAMES = (r.firstFight && r.firstFight.trNames) || {};          // round 219
     var ff = r.firstFight, log = r.log || [], D = ff.duration, rowH = 16, gap = 4, lanes = [];
     var casts = [], clips = log.filter(function (e) { return e.type === 'clip' || e.type === 'recast'; });
     log.forEach(function (e) {
@@ -2254,6 +2265,7 @@
     ['Curses & DoTs', ['curseOfElements', 'bane', 'baneOfAgony', 'corruption', 'siphonLife', 'immolate']],
     ['Multi-target', ['multiDot', 'shadowBoltSpread']],
     ['Cooldowns & procs', ['shadowTrance', 'isbUpkeep', 'deathCoil', 'deathCoilFinisher', 'conflagrate', 'conflagrateExpire', 'conflagrateSnF', 'shadowburn', 'shadowburnSnF', 'soulFire', 'searingPainBrand', 'searingPainExecute', 'searingPainDecimation', 'wrackDots']],
+    ['Trinkets', ['activateTrinket']],   // round 219
     ['Pet & mana', ['lifeTapPet', 'lifeTapNeed', 'lifeTapBelow', 'swapToImp', 'swapToSuccubus']],
     ['Fillers (the last entry)', ['shadowBolt', 'incinerate', 'searingPain', 'drainLife', 'wrack', 'hellfire', 'rainOfFire']],
   ];
@@ -2266,6 +2278,7 @@
     shadowburnSnF: 'Shadowburn for Shadow and Flame', conflagrateSnF: 'Conflagrate for Shadow and Flame', conflagrateExpire: 'Conflagrate when Immolate is about to expire', soulFire: 'Soul Fire during Decimation', searingPainBrand: 'Searing Pain for Demonic Brand',
     searingPainExecute: 'Searing Pain in the execute phase', searingPainDecimation: 'Searing Pain to trigger Decimation', lifeTapPet: 'Life Tap to feed the pet', lifeTapNeed: 'Life Tap when the rest of the fight needs it (you set the cap)', lifeTapBelow: 'Life Tap below a mana % (you set it)', wrackDots: 'Wrack while the DoTs have time left (you set it)',
     swapToImp: 'Pet swap at execute → Imp', swapToSuccubus: 'Pet swap at execute → Succubus',
+    activateTrinket: 'Activate trinket (your on-use trinkets)',
     shadowBolt: 'Shadow Bolt (Rank 9)', incinerate: 'Incinerate', searingPain: 'Searing Pain',
     drainLife: 'Drain Life', wrack: 'Wrack', hellfire: 'Hellfire (hits every target)', rainOfFire: 'Rain of Fire (hits every target)',
   };
@@ -4102,7 +4115,7 @@
         : 'a direct hit that does not crit: ' + (cfg.combat.revelationChancePct || 0) + '% × (1 − your crit) chance (a guess) that the next direct hit gets +' + p.pct + '% crit';
       return '<div class="trk"><b>' + esc(fx.name) + '</b> <span class="meta">(weapon enchant)</span><span>' + esc(t) + '</span></div>';
     }).join('');
-    box.innerHTML = rows ? '<h3 class="meta">Trinkets and enchants in the fight' + (G.on ? '' : ' (switch the gear builder on to use them)') + '</h3>' + rows + '<p class="meta">"With your other cooldowns" follows Pop cooldowns (Fight &amp; pets), and its custom timeline has a row for each trinket.</p>' : '';
+    box.innerHTML = rows ? '<h3 class="meta">Trinkets and enchants in the fight' + (G.on ? '' : ' (switch the gear builder on to use them)') + '</h3>' + rows + '<p class="meta">"With your other cooldowns" follows Pop cooldowns (Fight &amp; pets), and its custom timeline has a row for each trinket. A build with "Activate trinket" in its priority uses the on-use trinkets from there instead ("never" still holds).</p>' : '';
   }
   document.addEventListener('change', function (e) {
     var s = e.target.getAttribute && e.target.getAttribute('data-trkuse'); if (!s) return;
