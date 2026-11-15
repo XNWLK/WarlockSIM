@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v185
+- **Realistic Pre-BiS is all blue:** Nacreous Shell Necklace, Channeler's Ring, Robes of Dark Summons (Wrack DS: Robe of
+  Winter Night) and Hands of Power replace the epics and Blessed Band of Light. New default DPS: Wrack DS 908.7, Shadow Demo 901.9, Fire Demo 883.1, Incinerate 870.3, Incinerate DS 847.5.
+
 ## v184
 - **Realistic Pre-BiS:** the quick setup's default gear is now called Realistic Pre-BiS. The pre-raid page
   (https://xnwlk.github.io/BIS/) also shows Real Pre-BiS: the best Phase 1 pieces and enchants whatever they cost.

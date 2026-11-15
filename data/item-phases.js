@@ -216,4 +216,5 @@ WL.ITEM_PHASE_SET = {
   288925: 9,   // Fireproof Cloak
   18316: 1,   // Obsidian Bauble — round 213 (user: "make it phase 1"; added by hand, Dire Maul)
   19426: 1,   // Orb of the Darkmoon — round 211: the user picked it for every build's Phase 1 pre-raid list (data/pre-raid-bis.js)
+  23125: 6,   // Chains of the Lich — round 216 (user: "Chains of the Lich is Phase 6 so scrap that one")
 };

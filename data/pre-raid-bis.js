@@ -11,36 +11,36 @@ WL.PRE_RAID_BIS_PHASE = 1;
 WL.PRE_RAID_BIS = {
   demo_pact_succ_sb: { // Demonology – Pact, Succubus out, Shadow Bolt
     head: 22267,        // Spellweaver's Turban
-    neck: 19426,        // Orb of the Darkmoon
+    neck: 22403,        // Nacreous Shell Necklace (round 216: all blue, was Orb of the Darkmoon)
     shoulder: 19050,    // Mantle of the Timbermaw
     back: 272411,       // Arcanoweave Cloak
-    chest: 14153,       // Robe of the Void
+    chest: 280057,      // Robes of Dark Summons (round 216: closest blue, was Robe of the Void)
     wrist: 18497,       // Sublime Wristguards
     hands: 13253,       // Hands of Power
     waist: 11662,       // Ban'thok Sash
     legs: 13170,        // Skyshroud Leggings
     feet: 11822,        // Omnicast Boots
     finger1: 12543,     // Songstone of Ironforge
-    finger2: 272407,    // Blessed Band of Light
+    finger2: 272406,    // Channeler's Ring (round 216, user; was Blessed Band of Light)
     trinket1: 18467,    // Royal Seal of Eldre'Thalas
     trinket2: 272438,   // Weakness Analyzer
     mainHand: 13964,    // Witchblade
-    offHand: 11904,     // Spirit of Aquementas
+    offHand: 18316,     // Obsidian Bauble (round 216: +1.4 DPS over Spirit of Aquementas, 8 seeds × 4000; user: "go with your suggestion")
     ranged: 13938,      // Bonecreeper Stylus
   },
   demo_pact_fire: { // Demonology – Pact, Imp out, Fire
     head: 22267,        // Spellweaver's Turban
-    neck: 19426,        // Orb of the Darkmoon
+    neck: 22403,        // Nacreous Shell Necklace (round 216: all blue, was Orb of the Darkmoon)
     shoulder: 19050,    // Mantle of the Timbermaw
     back: 272411,       // Arcanoweave Cloak
-    chest: 14153,       // Robe of the Void
+    chest: 280057,      // Robes of Dark Summons (round 216: closest blue, was Robe of the Void)
     wrist: 18497,       // Sublime Wristguards
-    hands: 22077,       // Deathmist Wraps
+    hands: 13253,       // Hands of Power (round 216: all blue, was Deathmist Wraps)
     waist: 11662,       // Ban'thok Sash
     legs: 13170,        // Skyshroud Leggings
     feet: 11822,        // Omnicast Boots
-    finger1: 272407,    // Blessed Band of Light
-    finger2: 12543,     // Songstone of Ironforge
+    finger1: 12543,     // Songstone of Ironforge (round 216, user: "put the songstone always in the top slot")
+    finger2: 272406,    // Channeler's Ring (round 216, user; was Blessed Band of Light)
     trinket1: 18467,    // Royal Seal of Eldre'Thalas
     trinket2: 272438,   // Weakness Analyzer
     mainHand: 13964,    // Witchblade
@@ -49,17 +49,17 @@ WL.PRE_RAID_BIS = {
   },
   destro_incin_succ: { // Destruction – Incinerate, Succubus out
     head: 22267,        // Spellweaver's Turban
-    neck: 19426,        // Orb of the Darkmoon
+    neck: 22403,        // Nacreous Shell Necklace (round 216: all blue, was Orb of the Darkmoon)
     shoulder: 19050,    // Mantle of the Timbermaw
     back: 272411,       // Arcanoweave Cloak
-    chest: 14153,       // Robe of the Void
+    chest: 280057,      // Robes of Dark Summons (round 216: closest blue, was Robe of the Void)
     wrist: 18497,       // Sublime Wristguards
-    hands: 22077,       // Deathmist Wraps
+    hands: 13253,       // Hands of Power (round 216: all blue, was Deathmist Wraps)
     waist: 11662,       // Ban'thok Sash
     legs: 13170,        // Skyshroud Leggings
     feet: 11822,        // Omnicast Boots
     finger1: 12543,     // Songstone of Ironforge
-    finger2: 272407,    // Blessed Band of Light
+    finger2: 272406,    // Channeler's Ring (round 216, user; was Blessed Band of Light)
     trinket1: 18467,    // Royal Seal of Eldre'Thalas
     trinket2: 272438,   // Weakness Analyzer
     mainHand: 13964,    // Witchblade
@@ -68,17 +68,17 @@ WL.PRE_RAID_BIS = {
   },
   destro_incin_ds: { // Destruction – Incinerate, Succubus sacrificed
     head: 22267,        // Spellweaver's Turban
-    neck: 19426,        // Orb of the Darkmoon
+    neck: 22403,        // Nacreous Shell Necklace (round 216: all blue, was Orb of the Darkmoon)
     shoulder: 19050,    // Mantle of the Timbermaw
     back: 272411,       // Arcanoweave Cloak
-    chest: 14153,       // Robe of the Void
+    chest: 280057,      // Robes of Dark Summons (round 216: closest blue, was Robe of the Void)
     wrist: 18497,       // Sublime Wristguards
-    hands: 22077,       // Deathmist Wraps
+    hands: 13253,       // Hands of Power (round 216: all blue, was Deathmist Wraps)
     waist: 11662,       // Ban'thok Sash
     legs: 13170,        // Skyshroud Leggings
     feet: 11822,        // Omnicast Boots
-    finger1: 272407,    // Blessed Band of Light
-    finger2: 12543,     // Songstone of Ironforge
+    finger1: 12543,     // Songstone of Ironforge (round 216, user: "put the songstone always in the top slot")
+    finger2: 272406,    // Channeler's Ring (round 216, user; was Blessed Band of Light)
     trinket1: 18467,    // Royal Seal of Eldre'Thalas
     trinket2: 272438,   // Weakness Analyzer
     mainHand: 13964,    // Witchblade
@@ -87,10 +87,10 @@ WL.PRE_RAID_BIS = {
   },
   wrack_ds: { // Wrack DS – Affliction (Wrack), Imp sacrificed
     head: 22267,        // Spellweaver's Turban (round 211, user: "change wrack ds to turban as well"; was Bad Hat)
-    neck: 19426,        // Orb of the Darkmoon
+    neck: 22403,        // Nacreous Shell Necklace (round 216: all blue, was Orb of the Darkmoon)
     shoulder: 19050,    // Mantle of the Timbermaw
     back: 272411,       // Arcanoweave Cloak
-    chest: 14153,       // Robe of the Void
+    chest: 14136,       // Robe of Winter Night (round 216: closest blue for Wrack DS, was Robe of the Void)
     wrist: 18497,       // Sublime Wristguards
     hands: 18407,       // Felcloth Gloves
     waist: 254087,      // Black Waistcord
@@ -101,7 +101,7 @@ WL.PRE_RAID_BIS = {
     trinket1: 18467,    // Royal Seal of Eldre'Thalas
     trinket2: 272438,   // Weakness Analyzer
     mainHand: 18372,    // Blade of the New Moon
-    offHand: 11904,     // Spirit of Aquementas
+    offHand: 18316,     // Obsidian Bauble (round 216: +1.5 DPS over Spirit of Aquementas, 8 seeds × 4000; user: "go with your suggestion")
     ranged: 13396,      // Skul's Ghastly Touch
   },
 };

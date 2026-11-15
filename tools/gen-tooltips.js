@@ -59,6 +59,8 @@ function gameSet(h, set, items) {
 module.exports = { clean, gameSet };
 // Round 211: tooltip lines the game no longer has (user). Bad Hat: "looks like bad hat lost the shadow dmg on it".
 const DROP = { 260212: '<br><span class="q2">Equip: Increases damage done by Shadow spells and effects by up to 23.</span>' };
+// Round 216: a tooltip Wowhead changed after our list (Channeler's Ring, its page read 2026-11-15): [old, new] pairs.
+const FIX = { 272406: [['<br><span>+8 Spirit</span>', ''], ['Improves your chance to hit by 1.0%.</span>', 'Improves your chance to hit by 1.0%.</span><br><span class="q2">Equip: Increases damage and healing done by magical spells and effects by up to 9.</span>']] };
 
 if (require.main === module) {
   const raw = JSON.parse(fs.readFileSync(RAW, 'utf8'));
@@ -71,7 +73,8 @@ if (require.main === module) {
   const lacks = (it, h) => (it.stats.int && !/Intellect/.test(h)) || (it.stats.spi && !/Spirit/.test(h)) || (it.stats.sta && !/Stamina/.test(h)) || (it.stats.sp && !/damage/i.test(h));
   Object.keys(items).forEach(id => {
     const t = raw.tips[id]; if (!t || !t.h) { miss.push(id); return; }
-    let h = clean(t.h); if (lacks(items[id], h)) { off.push(items[id].name); return; }
+    let h0 = t.h; (FIX[id] || []).forEach(p => { if (h0.indexOf(p[0]) < 0) throw new Error('tooltip fix does not match: ' + id); h0 = h0.split(p[0]).join(p[1]); });   // round 216
+    let h = clean(h0); if (lacks(items[id], h)) { off.push(items[id].name); return; }
     const set = items[id].set && (box.WL.ITEM_SETS || {})[items[id].set];
     if (set && set.game) h = gameSet(h, set, items);   // round 211: the set bonuses as the game shows them (tools/gen-items.js SET_GAME)
     if (DROP[id]) h = h.split(DROP[id]).join('');      // round 211: a line the game no longer shows

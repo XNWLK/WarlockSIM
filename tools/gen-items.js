@@ -29,10 +29,14 @@ const EXCLUDE = { 276765: 'Leafre\'s Ring of Precise Spell Power: 100 spell powe
 // Round 211 (user: "the vendor version of deathmist can be tossed. only keep the quest versions and put the set bonus i gave
 // you on those"): the vendor Deathmist pieces (set 1681) are out; the quest pieces (set 518, 22070–22077) stay.
 [226905, 226906, 226907, 226908, 226909, 226910, 226911, 226912].forEach(id => { EXCLUDE[id] = 'Deathmist (vendor version, set 1681): not in the game (user: toss it)'; });
+EXCLUDE[254013] = 'Earthen Silk Slippers: wrong stats on Wowhead (user, round 216: "scrap them completely")';
 // Stats where Wowhead's item list disagrees with the item's own tooltip: the tooltip's numbers are used.
 const STATS_FIX = { 254013: { s: { splpwr: 18, spldmg: 6, spi: 7 }, why: 'Earthen Silk Slippers: tooltip +24 damage / +18 healing; the list said 6 / 11 on 2026-11-13' },
   // Round 211 (user: "looks like bad hat lost the shadow dmg on it"): in the game it no longer has its +23 Shadow damage.
-  260212: { s: { splpwr: 12, splheal: 25, int: 17, spi: 17 }, why: 'Bad Hat: no Shadow damage in the game any more (user); Wowhead still lists +23' } };
+  260212: { s: { splpwr: 12, splheal: 25, int: 17, spi: 17 }, why: 'Bad Hat: no Shadow damage in the game any more (user); Wowhead still lists +23' },
+  // Round 216 (user: "when i hover over channeler's it shows a different tooltip than when i click on it"): Wowhead changed it after
+  // our list of 2026-11-14 — now +14 Intellect, 1% hit, +9 spell damage and healing, no Spirit (its page, read 2026-11-15).
+  272406: { s: { int: 14, hitrtng: 10, splpwr: 9 }, why: "Channeler's Ring: changed on Wowhead after 2026-11-14 (+9 spell power, no Spirit)" } };
 const WARLOCK_BIT = 256;                                   // class mask bit of the Warlock (class 9)
 const ALLIANCE = 1 | 4 | 8 | 64 | 1024, HORDE = 2 | 16 | 32 | 128 | 512;   // race mask bits
 const SLOT = { 1: 'head', 2: 'neck', 3: 'shoulder', 4: 'shirt', 5: 'chest', 20: 'chest', 6: 'waist', 7: 'legs', 8: 'feet', 9: 'wrist', 10: 'hands',
@@ -117,11 +121,16 @@ try {
   ((box0.WL.ITEM_ICONS || {}).names || []).forEach(n => { if (iconAt[n] == null) { iconAt[n] = icons.length; icons.push(n); } });
 } catch (e) { /* no list yet */ }
 const iconOf = ic => { ic = ic || 'inv_misc_questionmark'; if (iconAt[ic] == null) { iconAt[ic] = icons.length; icons.push(ic); } return iconAt[ic]; };
-const dropped = { otherClass: 0, otherClassSet: 0, excluded: 0, test: 0, slot: 0, noStat: 0 }, items = {};
+// Round 216 (user: "arcane crystal pendant is a mage item"): an item whose every source is another class's quest (Wowhead's
+// quest category: -161 Mage, -262 Priest, …) carries no class flag, but a Warlock cannot get it — left out.
+const CLASS_QUEST = { '-81': 'Warrior', '-82': 'Shaman', '-141': 'Paladin', '-161': 'Mage', '-162': 'Rogue', '-261': 'Hunter', '-262': 'Priest', '-263': 'Druid' };
+const otherClassQuest = x => x.sm && x.sm.length && x.sm.every(s => s.t === 5 && CLASS_QUEST[s.c]);
+const dropped = { otherClass: 0, otherClassSet: 0, otherClassQuest: 0, excluded: 0, test: 0, slot: 0, noStat: 0 }, items = {};
 raw.items.slice().sort((a, b) => a.id - b.id).forEach(x => {
   if (EXCLUDE[x.id]) { dropped.excluded++; return; }
   if (x.rc && !(x.rc & WARLOCK_BIT)) { dropped.otherClass++; return; }
   if (otherClassPiece[x.id] || otherClassSet[x.set]) { dropped.otherClassSet++; return; }
+  if (otherClassQuest(x)) { dropped.otherClassQuest++; return; }
   if (TEST_NAME.test(x.n)) { dropped.test++; return; }
   const slot = SLOT[x.sl];
   if (!slot || !WL.GEAR_SLOTS.some(s => s.fits.indexOf(slot) >= 0)) { dropped.slot++; return; }
@@ -206,6 +215,9 @@ const ZG_CLASS_ENCHANT = { 'Presence of Might': 'Warrior', "Syncretist's Sigil":
 // Stats a Warlock enchant can give the sim (round 166: Stamina too — it feeds health, Life Tap and Touch of the Grave);
 // an enchant with none of them (resistances, armor, movement, melee-only, healing-only …) is left out.
 const ENCH_USEFUL = USEFUL.concat(['sta']);
+// round 216 (user: "show the enchant as a clickable thing too so it goes to the wowhead link"): the Wowhead page of an
+// enchant — the item that applies it when it is not an Enchanting recipe (kit, arcanum: item=…), else its spell (spell=…)
+const whOf = e => { const ench = /^Enchant/.test(e.from || ''); return e.item && !ench ? 'item=' + e.item : e.spell ? 'spell=' + e.spell : e.item ? 'item=' + e.item : null; };   // kits / arcanums: their item
 const enchants = {}, enchDropped = { noSlot: 0, otherClass: 0, noStat: 0 };
 (raw.enchants || []).forEach(e => {
   const text = decode(e.desc), slots = enchSlots(text);
@@ -218,9 +230,11 @@ const enchants = {}, enchDropped = { noSlot: 0, otherClass: 0, noStat: 0 };
     slots.forEach(s => { if (cur.slots.indexOf(s) < 0) cur.slots.push(s); });
     if (slots.indexOf('mainHand') >= 0) cur.mh.push(twoHandOnly(text));
     if (cur.from.indexOf(src) < 0) cur.from.push(src);
+    if (!cur.wh) cur.wh = whOf(e);
     return;
   }
   const en = { name, slots, stats: enchStats(name, text), text, from: [src], icon: iconOf(e.ic), mh: slots.indexOf('mainHand') >= 0 ? [twoHandOnly(text)] : [] };
+  const w = whOf(e); if (w) en.wh = w;
   enchants[e.id] = en;
 });
 Object.keys(enchants).forEach(id => { if (!ENCH_USEFUL.some(k => enchants[id].stats[k]) && !(WL.ENCHANT_FX && WL.ENCHANT_FX[id])) { delete enchants[id]; enchDropped.noStat++; } });   // round 166; round 167: an enchant with an effect in data/trinkets.js stays
