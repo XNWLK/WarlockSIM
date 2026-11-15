@@ -120,6 +120,7 @@ WL.PRE_RAID_BIS_ENCHANTS = {
   legs: 2544,         // Arcanum of Focus: +8 spell damage and healing
   feet: { custom: { name: 'Minor Speed', stats: {}, text: 'Run speed increased slightly (no effect in the sim).' } },
   mainHand: 8217,     // Revelation
+  offHand: 7659,      // +9 Intellect: Enchant Off-Hand - Superior Intellect (round 216, user: "add this enchant to the offhands")
 };
 // Round 214 (user: "use mystic rugged armor kits for the available slots … except boots. use 16 spell power on bracers" →
 // "it replaces the enchant. calculate if it's better than the haste. for legs keep 8 spellpower. for boots keep speed"):

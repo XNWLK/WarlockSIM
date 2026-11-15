@@ -33,11 +33,11 @@ the fights.
 
 | Build | Spell power | Hit | Crit | Intellect | Spirit | Stamina | Spell Pierce |
 |---|---|---|---|---|---|---|---|
-| Shadow Demo | 398 | 6.8% | 7.12% | 125 | 27 | 56 | 6 |
-| Fire Demo | 410 | 6.8% | 6.47% | 116 | 27 | 56 | 6 |
-| Incinerate Pandemic | 404 | 6.8% | 6.47% | 116 | 27 | 56 | 6 |
-| Incinerate DS | 404 | 6.8% | 6.47% | 116 | 27 | 56 | 6 |
-| Wrack DS | 267 + 194 Shadow | 3% | 7.7% | 100 | 19 | 78 | 2 |
+| Shadow Demo | 398 | 6.8% | 7.27% | 134 | 27 | 56 | 6 |
+| Fire Demo | 410 | 6.8% | 6.62% | 125 | 27 | 56 | 6 |
+| Incinerate Pandemic | 404 | 6.8% | 6.62% | 125 | 27 | 56 | 6 |
+| Incinerate DS | 404 | 6.8% | 6.62% | 125 | 27 | 56 | 6 |
+| Wrack DS | 267 + 194 Shadow | 3% | 7.85% | 109 | 19 | 78 | 2 |
 
 - **Fight:** 180 s ± 10%, 1,000 fights per build and race, 1 target, execute phase below 35% boss health, healing on you 1,000 every 10 s.
 - **Custom** (the other gear button): your own gear, starting naked — every gear value 0; the level-60 base Intellect, Spirit, Stamina and crit stay.
@@ -244,14 +244,14 @@ Pandemic names. No spell gets both: Ruin covers Destruction spells, Pandemic cov
 The examples use the build **Shadow Demo** as an Undead in its Pre-BiS gear with the default raid buffs and boss debuffs. Every number below is checked against the sim's own value when this document is generated.
 
 #### 1. The character's stats
-- Intellect: (110 base − 2 Undead + 125 gear + 31 Arcane Intellect / Brilliance + 16 Mark / Gift of the Wild + 25 Elixir of the Owl) × 1.10 Blessing of Kings = **335.5**
+- Intellect: (110 base − 2 Undead + 134 gear + 31 Arcane Intellect / Brilliance + 16 Mark / Gift of the Wild + 25 Elixir of the Owl) × 1.10 Blessing of Kings = **345.4**
 - Spirit: (115 base + 5 Undead + 27 gear + 16 Mark / Gift of the Wild + 40 Divine Spirit / Prayer of Spirit + 25 Elixir of Sages) × 1.10 Blessing of Kings = **250.8**
 - Stamina: (65 base + 1 Undead + 56 gear + 16 Mark / Gift of the Wild + 70 Power Word: Fortitude) × 1.09 Demonic Embrace × 1.10 Blessing of Kings = **249.4**
-- Maximum mana: (1,373 + 20 + 15 × (335.5 − 20)) × 1.15 Fel Vitality = **7,044.3**
+- Maximum mana: (1,373 + 20 + 15 × (345.4 − 20)) × 1.15 Fel Vitality = **7,215.1**
 - Maximum health: 1,414 + 20 + 10 × (249.4 − 20) = **3,727.9**
 - Spell power: 398 gear + 150 Flask of Supreme Power + 35 Greater Arcane Elixir + 22 Nightfin Soup + 24 Wizard Oil + 60 Demonic Knowledge = **689**; Shadow spells: + 21 Major Spellstone + 40 Elixir of Shadow Power = **750**
 - Hit: 83 base against a level-63 boss + 1 Suppression + 6.8 gear = **90.8%**
-- Crit: 7.12 sheet + 1.71 from 102.5 Intellect above the sheet ÷ 60 + 3 Moonkin Form aura + 2 Elixir of the Owl (does not stack with Elixir of Sages) = **13.83%**
+- Crit: 7.27 sheet + 1.72 from 103.4 Intellect above the sheet ÷ 60 + 3 Moonkin Form aura + 2 Elixir of the Owl (does not stack with Elixir of Sages) = **13.99%**
 - Haste: **3%** (Major Spellstone + Wizard Oil).
 
 #### 2. Shadow Bolt
@@ -260,7 +260,7 @@ The examples use the build **Shadow Demo** as an Undead in its Pre-BiS gear with
 3. Auras (each multiplies): 1.15 Demonic Sacrifice (Imp) × 1.10 Master Demonologist (Succubus) × 1.03 Soul Link = × 1.3029
 4. Hit before the boss's debuffs: 893.8 × 1.10 × 1.3029 = **1,281**
 5. With Curse of the Elements (× 1.10) and Improved Shadow Bolt (× 1.20) on the boss: **1,690.9**
-6. A crit (chance 13.83%) deals × 2 with Ruin: **3,381.7**
+6. A crit (chance 13.99%) deals × 2 with Ruin: **3,381.7**
 7. Cast time: 3 s − 0.5 s Bane = 2.5 s, ÷ 1.03 haste = 2.43 s. It misses 9.2% of the time.
 
 #### 3. Corruption
@@ -268,7 +268,7 @@ The examples use the build **Shadow Demo** as an Undead in its Pre-BiS gear with
 2. Periodic talent group: Improved Corruption +2% → × 1.02
 3. Auras: × 1.3029 as above → **275.1** per tick
 4. With the curse and Improved Shadow Bolt on the boss: **363.1** per tick, 6 ticks = 2,178.8 before crits
-5. Every tick rolls its own crit (13.83%, × 1.5). The spell power is read at each tick, so a potion or Blood Fury that starts later still counts for the ticks after it.
+5. Every tick rolls its own crit (13.99%, × 1.5). The spell power is read at each tick, so a potion or Blood Fury that starts later still counts for the ticks after it.
 
 #### 4. Bane of Doom
 (1,742 + 4 × 750) × 1.3029 auras = **6,178.6**; with the curse and Improved Shadow Bolt on the boss **8,155.7**; a crit deals × 1.5.
@@ -277,12 +277,12 @@ The examples use the build **Shadow Demo** as an Undead in its Pre-BiS gear with
 3,727.9 health × 5% = **186.4**. Nothing multiplies it: no aura, no curse, no Improved Shadow Bolt, no Power Infusion. No spell power, no crit, no resist roll. 30% chance per landed damaging cast, then nothing for 15 s.
 
 #### 6. The Succubus
-- Attack table of one swing: her melee hit = 8/17 × your spell hit 7.8% = 3.67%; miss 8% − 3.67% = **4.33%**, dodge **6.5%**, glancing blow **40%** (at 65% damage), crit your spell crit 13.83 − 4.8 = **9.03%** (× 2), normal hit the remaining **40.14%**.
+- Attack table of one swing: her melee hit = 8/17 × your spell hit 7.8% = 3.67%; miss 8% − 3.67% = **4.33%**, dodge **6.5%**, glancing blow **40%** (at 65% damage), crit your spell crit 13.99 − 4.8 = **9.19%** (× 2), normal hit the remaining **39.98%**.
 - Attack power from you: 689 spell power ÷ 6 = 114.9. Damage per second: 73.5 + 114.9 ÷ 14 = 81.7.
 - Boss armor: 3,731 − armor debuffs = 976 → 976 ÷ (976 + 5,500) = 15.07% less physical damage.
 - One normal swing: 81.7 × 2 s × (1 − 0.1507) × 1.10 Unholy Power × 1.03 Soul Link = **157.2**. Master Demonologist and Curse of the Elements do not apply to melee.
 - Her spell power: 10% of 689 + 60 Demonic Knowledge = 128.9.
-- Lash of Pain: (50 × 1.30 Improved Sayaad + 0.429 × 128.9) × 1.10 × 1.03 × 1.10 Master Demonologist × 1.10 curse = **164.9**; it crits with your spell crit (13.83%) for × 1.5.
+- Lash of Pain: (50 × 1.30 Improved Sayaad + 0.429 × 128.9) × 1.10 × 1.03 × 1.10 Master Demonologist × 1.10 curse = **164.9**; it crits with your spell crit (13.99%) for × 1.5.
 - Demonic Brand hit: (66.5 + 0.078 × 750 Shadow spell power) × the same four multipliers = **171.4**. It cannot miss or crit.
 
 #### 7. Life Tap
@@ -292,7 +292,7 @@ The examples use the build **Shadow Demo** as an Undead in its Pre-BiS gear with
 Build **Incinerate Pandemic**, Undead, default settings; Fire spell power 635 + 31 Major Firestone + Wizard Oil = 666. No auras: this build has no Demonology points.
 - Immolate's hit: (146 + 0.2 × 666) × (1 + 10% Agonizing Flames + 50% Aftermath) = 279.2 × 1.60 = **446.7**. The two talents add to 60%; they do not multiply to 65%.
 - Immolate's burn, per tick: (52 + 0.13 × 666) × (1 + 10% Agonizing Flames) = **152.4**; 5 ticks.
-- Incinerate: (217 + 0.714 × 666) × 1.10 Agonizing Flames = 761.8; × 1.25 with Immolate on the boss × 1.10 curse × 1.20 Shadow and Flame (after a Shadowburn) = **1,256.9**; a crit (15.16%) deals × 2.
+- Incinerate: (217 + 0.714 × 666) × 1.10 Agonizing Flames = 761.8; × 1.25 with Immolate on the boss × 1.10 curse × 1.20 Shadow and Flame (after a Shadowburn) = **1,256.9**; a crit (15.33%) deals × 2.
 
 #### 9. Resistance before the curse, and Spell Pierce
 - Before Curse of the Elements is up the boss has 24 level resistance: on average 4.59% of each hit or tick is resisted - 65.6% of them lose 0%, 22.9% of them lose 10%, 11.5% of them lose 20%.

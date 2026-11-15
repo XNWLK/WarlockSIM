@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v187
+- **Off-hand enchant:** every Pre-BiS off hand gets +9 Intellect (Superior Intellect). New default DPS: Wrack DS 911.4, Shadow Demo 904.5, Fire Demo 884.3, Incinerate 873.2, Incinerate DS 849.7.
+
 ## v186
 - **Draconic Infused Emblem:** an 8% chance on each damaging cast, with no internal cooldown.
 - **Pre-raid page:** builds sorted by DPS, All builds last.

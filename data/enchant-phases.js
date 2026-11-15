@@ -58,7 +58,7 @@ WL.ENCHANT_PHASE_GUESS = {
   2721: 6,  // Spell Damage +15 and +1% Spell Critical Strike (shoulder) — Power of the Scourge: Naxxramas
   7645: 2,  // Living Stats (chest) — Living Stats (+4): the user has +3 in Phase 1, so this comes later
   7655: 1,  // +12 Spell Power (wrist) — the lower rank of +16 Spell Power, which the user has in Phase 1 (round 214): guess
-  7659: 2,  // +9 Intellect (offHand) — Forever 76xx set: later, guess
+  7659: 1,  // +9 Intellect (offHand) — Phase 1: the user put it on every off hand (round 216)
   7660: 2,  // +12 Spirit (offHand) — Forever 76xx set: later, guess
   7661: 2,  // +6 Intellect and +5 Spirit (offHand) — Forever 76xx set: later, guess
   7662: 2,  // +65 Spell Power (mainHand) — Forever 76xx set: later, guess
