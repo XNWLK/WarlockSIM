@@ -47,6 +47,9 @@ const EXTRA = [
     s: { shasplpwr: 34, int: 16, sta: 16 }, src: [2], sm: [{ n: 'Lord Valthalak', t: 1, z: 1583 }], cat: 'armor/cloth/slot:7' },
 ];
 EXTRA.forEach(x => { if (!raw.items.some(y => y.id === x.id)) raw.items.push(x); });
+// Round 217: where an item comes from, where Wowhead's list names a vendor's NPC as a drop (Rugged Mantle of the Timbermaw: sold
+// by Meilosh, the Timbermaw Hold quartermaster; Wowhead lists only a vendor source).
+const FROM_FIX = { 227808: 'Vendor: Meilosh' };
 const WARLOCK_BIT = 256;                                   // class mask bit of the Warlock (class 9)
 const ALLIANCE = 1 | 4 | 8 | 64 | 1024, HORDE = 2 | 16 | 32 | 128 | 512;   // race mask bits
 const SLOT = { 1: 'head', 2: 'neck', 3: 'shoulder', 4: 'shirt', 5: 'chest', 20: 'chest', 6: 'waist', 7: 'legs', 8: 'feet', 9: 'wrist', 10: 'hands',
@@ -155,7 +158,7 @@ raw.items.slice().sort((a, b) => a.id - b.id).forEach(x => {
   if (x.mx === 1) it.unique = true;
   const side = x.rr && !(x.rr & HORDE) ? 'Alliance' : x.rr && !(x.rr & ALLIANCE) ? 'Horde' : '';
   if (side) it.side = side;
-  const f = from(x); if (f) it.from = f;
+  const f = FROM_FIX[x.id] || from(x); if (f) it.from = f;
   const sc = srcKind(x); if (sc) it.src = sc;
   const rd = raidOf(x); if (rd) it.raid = rd;
   const ph = phaseOf(x.id, x, sc); if (ph.p !== 1) it.phase = ph.p;   // round 210

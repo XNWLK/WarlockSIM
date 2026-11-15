@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v189
+- **Rugged Mantle of the Timbermaw** (Requires Tailoring, sold by Meilosh for Timbermaw reputation) is now in the Phase 1 gear builder; on the pre-raid page it is every build's shoulder upgrade (+7 to +9 DPS). Default DPS unchanged.
+
 ## v188
 - **Wrack DS legs and wrist:** Leggings of Torment (Lord Valthalak) and Flameweave Cuffs of Shadow Wrath (+21 Shadow, Lord Incendius) in Wrack DS's Realistic Pre-BiS list; both items now in the gear builder. New default DPS: Wrack DS 919.8 (other builds unchanged).
 

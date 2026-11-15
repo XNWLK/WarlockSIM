@@ -1599,7 +1599,7 @@ WL.ITEMS = {
   227099: {"name":"Blood Guard's Dreadweave Handwraps","slot":"hands","quality":"rare","ilvl":66,"req":60,"stats":{"sp":21,"int":4,"sta":21},"icon":140,"set":1760,"from":"Drop: Lady Palanseer","src":"pvp","phase":2},
   227100: {"name":"Knight-Lieutenant's Dreadweave Handwraps","slot":"hands","quality":"rare","ilvl":66,"req":60,"stats":{"sp":21,"int":4,"sta":21},"icon":140,"set":1774,"from":"Drop: Captain Dirgehammer","src":"pvp","phase":2},
   227101: {"name":"Knight-Lieutenant's Dreadweave Walkers","slot":"feet","quality":"rare","ilvl":66,"req":60,"stats":{"sp":18,"int":13,"sta":26},"icon":55,"set":1774,"from":"Drop: Captain Dirgehammer","src":"pvp","phase":2},
-  227808: {"name":"Rugged Mantle of the Timbermaw","slot":"shoulder","quality":"epic","ilvl":65,"req":60,"stats":{"sp":27,"critPct":1,"int":15},"icon":374,"from":"Drop: Meilosh","src":"vendor","phase":9},
+  227808: {"name":"Rugged Mantle of the Timbermaw","slot":"shoulder","quality":"epic","ilvl":65,"req":60,"stats":{"sp":27,"critPct":1,"int":15},"icon":374,"from":"Vendor: Meilosh","src":"vendor"},
   227816: {"name":"Argent Elite Boots","slot":"feet","quality":"epic","ilvl":65,"req":60,"stats":{"hitPct":1,"sta":21},"icon":397,"from":"Vendor","src":"vendor"},
   227862: {"name":"Incandescent Mooncloth Boots","slot":"feet","quality":"epic","ilvl":65,"req":60,"stats":{"int":14,"spi":14,"sta":12},"icon":55,"from":"Drop: Meilosh","src":"vendor","phase":9},
   227888: {"name":"Argent Elite Shoulders","slot":"shoulder","quality":"epic","ilvl":65,"req":60,"stats":{"spi":10,"mp5":6},"icon":296,"from":"Vendor","src":"vendor"},

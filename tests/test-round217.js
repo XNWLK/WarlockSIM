@@ -14,6 +14,11 @@
     T.eq(W.wrist, 11766, 'Wrack DS wrist: Flameweave Cuffs of Shadow Wrath');
     T.ok(Object.keys(WL.PRE_RAID_BIS).every(function (k) { return k === 'wrack_ds' || (WL.PRE_RAID_BIS[k].legs !== 22342 && WL.PRE_RAID_BIS[k].wrist !== 11766); }),
       'the other builds keep their legs and wrist');
+    T.group('Rugged Mantle of the Timbermaw');
+    var R = WL.ITEMS[227808];
+    T.ok(R && (R.phase || 1) === 1, 'Rugged Mantle of the Timbermaw: Phase 1 (user: "include these shoulders as an upgrade alternative for all builds"; was 9)');
+    T.eq(R.from, 'Vendor: Meilosh', 'Rugged Mantle: sold by Meilosh, not a drop');
+    T.ok(Object.keys(WL.PRE_RAID_BIS).every(function (k) { return WL.PRE_RAID_BIS[k].shoulder !== 227808; }), 'no main list wears it (an upgrade only)');
     T.group('tooltips');
     var tl = WL.ITEM_TIPS && WL.ITEM_TIPS[22342], tf = WL.ITEM_TIPS && WL.ITEM_TIPS[11766];
     if (!WL.ITEM_TIPS) { T.ok(true, 'item tooltips not loaded on this page'); return; }
