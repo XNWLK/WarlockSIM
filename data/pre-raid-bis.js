@@ -87,7 +87,7 @@ WL.PRE_RAID_BIS = {
   },
   wrack_ds: { // Wrack DS – Affliction (Wrack), Imp sacrificed
     head: 22267,        // Spellweaver's Turban (round 211, user: "change wrack ds to turban as well"; was Bad Hat)
-    neck: 22403,        // Nacreous Shell Necklace (round 216: all blue, was Orb of the Darkmoon)
+    neck: 22403,        // Nacreous Shell Necklace (round 216: all blue; user: "keep vectus as the upgrade and nacreous as main")
     shoulder: 19050,    // Mantle of the Timbermaw
     back: 272411,       // Arcanoweave Cloak
     chest: 14136,       // Robe of Winter Night (round 216: closest blue for Wrack DS, was Robe of the Void)

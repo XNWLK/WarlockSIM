@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v186
+- **Draconic Infused Emblem:** an 8% chance on each damaging cast, with no internal cooldown.
+- **Pre-raid page:** builds sorted by DPS, All builds last.
+
 ## v185
 - **Realistic Pre-BiS is all blue:** Nacreous Shell Necklace, Channeler's Ring, Robes of Dark Summons (Wrack DS: Robe of
   Winter Night) and Hands of Power replace the epics and Blessed Band of Light. New default DPS: Wrack DS 908.7, Shadow Demo 901.9, Fire Demo 883.1, Incinerate 870.3, Incinerate DS 847.5.
