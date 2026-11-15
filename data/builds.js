@@ -45,7 +45,9 @@ WL.BUILDS = [
       improvedShadowBolt: 5, bane: 5, ruin: 5, agonizingFlames: 3,   // round 61: -3 Cataclysm +3 Improved Shadow Bolt
     },
     pet: 'succubus', sacrifice: 'imp', oil: 'spellstone',
-    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'searingPainBrand', 'immolate', 'corruption', 'lifeTapNeed', 'shadowBolt'],
+    // Round 218 (user: "drop immolate from shadow demo"): Immolate out of the priority. At the page's defaults (Pre-BiS gear) it was
+    // worth −0.03% ±0.03 at 180 s, −0.07% at 120 s and 300 s, −0.73% at 60 s (tools/explore-apl.js, 20,000 / 10,000 fights, Orc).
+    rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'searingPainBrand', 'corruption', 'lifeTapNeed', 'shadowBolt'],
     params: { lifeTapNeed: { pct: 80, sec: 45 } },   // round 168 (user): Life Tap only when the rest of the fight needs it and no free mana is ready, same numbers (default settings ±0.00%, max buffs +0.1 … +5.9%). Round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.59% (10,000 fights)
   },
   {

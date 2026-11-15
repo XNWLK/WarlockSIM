@@ -39,7 +39,13 @@ const STATS_FIX = { 254013: { s: { splpwr: 18, spldmg: 6, spi: 7 }, why: 'Earthe
   272406: { s: { int: 14, hitrtng: 10, splpwr: 9 }, why: "Channeler's Ring: changed on Wowhead after 2026-11-14 (+9 spell power, no Spirit)" },
   // Round 217 (user: "use 21 shadow wrath bracers as main for wrack"): a random-suffix item, kept as its "of Shadow Wrath" roll —
   // +21 Shadow damage (Wowhead Classic's random enchantments; Wowhead Forever lists none).
-  11766: { s: { shasplpwr: 21 }, name: 'Flameweave Cuffs of Shadow Wrath', why: 'random suffix: the user picked the +21 Shadow Wrath roll' } };
+  11766: { s: { shasplpwr: 21 }, name: 'Flameweave Cuffs of Shadow Wrath', why: 'random suffix: the user picked the +21 Shadow Wrath roll' },
+  // Round 218 (user: "use shadow wrath for wrack and have omnicast as the alternative"): boots kept as their top "of Shadow Wrath"
+  // roll, +30 Shadow damage (Wowhead Classic: +29 – 30, 8.3%; the user: "i think they go up to 30").
+  10247: { s: { shasplpwr: 30 }, name: "Master's Boots of Shadow Wrath", why: 'random suffix: the user picked the Shadow Wrath roll (+30)' },
+  // Round 218 (user: "yes make the belt main for wrack, waistcord as alternative"; asked which belt: "Master's Belt"): +30 Shadow.
+  // Wowhead Classic lists no Shadow Wrath roll for it (only Fiery Wrath, +29 – 30); the user says Forever has one.
+  10255: { s: { shasplpwr: 30 }, name: "Master's Belt of Shadow Wrath", why: 'random suffix: the user picked the Shadow Wrath roll (+30; Forever only)' } };
 // Round 217 (user: "swap wrack main to leggings of torment"): items missing from our Wowhead list (stats hidden when it was
 // collected), as raw records from their Wowhead Forever page (read 2026-11-15).
 const EXTRA = [
@@ -49,7 +55,11 @@ const EXTRA = [
 EXTRA.forEach(x => { if (!raw.items.some(y => y.id === x.id)) raw.items.push(x); });
 // Round 217: where an item comes from, where Wowhead's list names a vendor's NPC as a drop (Rugged Mantle of the Timbermaw: sold
 // by Meilosh, the Timbermaw Hold quartermaster; Wowhead lists only a vendor source).
-const FROM_FIX = { 227808: 'Vendor: Meilosh' };
+// Round 218: Master's Boots are a world drop (109 creatures on its Wowhead Forever page, 2026-11-15); the list names only
+// Gahz'ranka (Zul'Gurub), which would mark it as a raid item.
+const FROM_FIX = { 227808: 'Vendor: Meilosh', 10247: 'World drop', 10255: 'World drop' };   // Master's Belt: 112 creatures
+const WORLD_DROP = { 10247: 1, 10255: 1 };
+raw.items.forEach(x => { if (WORLD_DROP[x.id]) x.sm = []; });
 const WARLOCK_BIT = 256;                                   // class mask bit of the Warlock (class 9)
 const ALLIANCE = 1 | 4 | 8 | 64 | 1024, HORDE = 2 | 16 | 32 | 128 | 512;   // race mask bits
 const SLOT = { 1: 'head', 2: 'neck', 3: 'shoulder', 4: 'shirt', 5: 'chest', 20: 'chest', 6: 'waist', 7: 'legs', 8: 'feet', 9: 'wrist', 10: 'hands',

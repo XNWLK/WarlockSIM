@@ -93,9 +93,9 @@ WL.PRE_RAID_BIS = {
     chest: 14136,       // Robe of Winter Night (round 216: closest blue for Wrack DS, was Robe of the Void)
     wrist: 11766,       // Flameweave Cuffs of Shadow Wrath (round 217, user: "use 21 shadow wrath bracers as main for wrack and sublime als alternative"; +21 Shadow)
     hands: 18407,       // Felcloth Gloves
-    waist: 254087,      // Black Waistcord
+    waist: 10255,       // Master's Belt of Shadow Wrath (round 218, user: "yes make the belt main for wrack, waistcord as alternative"; +30 Shadow, +6.5 DPS over Black Waistcord, 4 seeds x 4000)
     legs: 22342,        // Leggings of Torment (round 217, user: "swap wrack main to leggings of torment and the alternative to skyshroud"; +4.4 DPS, 4 seeds x 4000)
-    feet: 11822,        // Omnicast Boots
+    feet: 10247,        // Master's Boots of Shadow Wrath (round 218, user: "use shadow wrath for wrack and have omnicast as the alternative"; +30 Shadow, +4.9 DPS over Omnicast Boots, 4 seeds x 4000)
     finger1: 12543,     // Songstone of Ironforge
     finger2: 22433,     // Don Mauricio's Band of Domination
     trinket1: 18467,    // Royal Seal of Eldre'Thalas

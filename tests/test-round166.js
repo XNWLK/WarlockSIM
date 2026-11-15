@@ -64,7 +64,7 @@
   });
 
   T.run('round 166: a condition on a built-in action', function () {
-    var b = sheet('demo_pact_succ_sb'), c = det();
+    var b = sheet('demo_pact_fire'), c = det();   // round 218: Fire Demo (Shadow Demo has no Immolate any more)
     b.actWhen = { immolate: { t: 'fight', what: 'remaining', op: '>', v: 150 } };
     T.eq(WL.validateBuild(b).length, 0, 'a legal build');
     T.ok(/^Immolate if missing\/expiring — only when fight time left > 150 s$/.test(WL.actionLabel(b, 'immolate')), 'its label: ' + WL.actionLabel(b, 'immolate'));

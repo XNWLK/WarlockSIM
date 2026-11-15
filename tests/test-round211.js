@@ -51,7 +51,9 @@
     });
     T.eq(P.wrack_ds.neck, 22403, 'Wrack DS neck: Nacreous Shell Necklace (round 216, user: "keep vectus as the upgrade and nacreous as main")');
     T.ok(['demo_pact_succ_sb', 'demo_pact_fire', 'destro_incin_succ', 'destro_incin_ds'].every(function (k) { return P[k].neck === 22403; }), 'the other builds: Nacreous Shell Necklace (round 216, user)');
-    T.ok(Object.keys(P).every(function (k) { return Object.keys(P[k]).every(function (s) { return WL.ITEMS[P[k][s]].quality === 'rare'; }); }), 'round 216: every item of every main list is blue (user)');
+    // round 218: the user's two green Shadow Wrath pieces for Wrack DS (Master's Boots / Belt of Shadow Wrath) are the exception
+    var GREEN_OK = { 10247: 1, 10255: 1 };
+    T.ok(Object.keys(P).every(function (k) { return Object.keys(P[k]).every(function (s) { return WL.ITEMS[P[k][s]].quality === 'rare' || (k === 'wrack_ds' && GREEN_OK[P[k][s]]); }); }), 'round 216: every item of every main list is blue (user; round 218: but the two Wrack DS Shadow Wrath greens)');
     T.ok(Object.keys(P).every(function (k) { return P[k].finger1 !== 272407 && P[k].finger2 !== 272407; }) && P.demo_pact_fire.finger2 === 272406 && Object.keys(P).every(function (k) { return P[k].finger1 === 12543; }), 'round 216: Songstone of Ironforge in the top ring slot of every list; Channeler\'s Ring instead of Blessed Band of Light (user)');
     T.ok(P.demo_pact_succ_sb.offHand === 18316 && P.wrack_ds.offHand === 18316 && P.demo_pact_fire.offHand === 11904 && P.destro_incin_succ.offHand === 11904 && P.destro_incin_ds.offHand === 11904, 'round 216: Obsidian Bauble for Shadow Demo and Wrack DS, Spirit of Aquementas for the others (the sim, user OK)');
     T.eq(WL.ITEMS[19426].phase || 1, 1, 'Orb of the Darkmoon is Phase 1 (the user\'s pick)');

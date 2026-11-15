@@ -29,7 +29,9 @@
     T.ok(on.idle < off.idle - 1, 'idle time falls (' + off.idle.toFixed(1) + ' s → ' + on.idle.toFixed(1) + ' s)');
     var stillOff = taps(off).length, stillOn = taps(on).filter(function (e) { return !e.moving; }).length;
     T.ok(stillOn < stillOff, 'fewer Life Taps while standing (' + stillOff + ' → ' + stillOn + '), so more casting time');
-    T.ok(on.dps > off.dps, 'more DPS in that fight (' + off.dps.toFixed(1) + ' → ' + on.dps.toFixed(1) + ')');
+    // round 218: over 6 fights (seeds 12–17) — one fight alone can go either way (Shadow Demo without Immolate: seed 12 alone −3.8)
+    var sOff = 0, sOn = 0; for (var sd = 12; sd < 18; sd++) { sOff += WL.simulateOnce(b, 'human', cfgM(20, 3, false), { seed: sd }).dps; sOn += WL.simulateOnce(b, 'human', cfgM(20, 3, true), { seed: sd }).dps; }
+    T.ok(sOn > sOff, 'more DPS over 6 such fights (' + (sOff / 6).toFixed(1) + ' → ' + (sOn / 6).toFixed(1) + ')');
 
     T.group('instants in the priority still come first while moving');
     // Corruption is instant with Improved Corruption 5/5: during movement it is cast before any tap when it is missing

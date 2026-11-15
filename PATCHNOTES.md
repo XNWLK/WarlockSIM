@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v190
+- **Shadow Demo** no longer casts Immolate (it was worth nothing at Pre-BiS gear). New default DPS: 905.5.
+- **Wrack DS:** Master's Boots and Master's Belt of Shadow Wrath (+30 Shadow each, world drops) in its Realistic Pre-BiS list; Omnicast Boots and Black Waistcord as the alternatives. New default DPS: 931.1 (best race Human).
+
 ## v189
 - **Rugged Mantle of the Timbermaw** (Requires Tailoring, sold by Meilosh for Timbermaw reputation) is now in the Phase 1 gear builder; on the pre-raid page it is every build's shoulder upgrade (+7 to +9 DPS). Default DPS unchanged.
 

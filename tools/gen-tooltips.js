@@ -67,6 +67,10 @@ const FIX = { 272406: [['<br><span>+8 Spirit</span>', ''], ['Improves your chanc
 const ADD = {
   22342: '<table><tr><td><b class="q3">Leggings of Torment</b><br>Binds when picked up<table width="100%"><tr><td>Legs</td><th><span class="q1">Cloth</span></th></tr></table><span>78 Armor</span><br><span>+16 Stamina</span><br><span>+16 Intellect</span></td></tr></table><table><tr><td>Requires Level 58<br><span class="q2">Equip: Increases damage done by Shadow spells and effects by up to <span>34</span>.</span></td></tr></table>',
   11766: '<table><tr><td><b class="q3">Flameweave Cuffs of Shadow Wrath</b><br>Binds when picked up<table width="100%"><tr><td>Wrist</td><th><span class="q1">Cloth</span></th></tr></table><span>35 Armor</span><br><span>+21 Shadow Spell Damage</span><br><span>+10 Fire Resistance</span><br>Durability 30 / 30</td></tr></table><table><tr><td>Requires Level 52</td></tr></table>',
+  // Round 218: Master's Boots (Wowhead Forever: 56 Armor, Durability 35, Requires Level 58) with the +30 Shadow Wrath roll.
+  10247: '<table><tr><td><b class="q2">Master\'s Boots of Shadow Wrath</b><br>Binds when equipped<table width="100%"><tr><td>Feet</td><th><span class="q1">Cloth</span></th></tr></table><span>56 Armor</span><br><span>+30 Shadow Spell Damage</span><br>Durability 35 / 35</td></tr></table><table><tr><td>Requires Level 58</td></tr></table>',
+  // Round 218: Master's Belt (Wowhead Forever: 45 Armor, Durability 25, Requires Level 57) with the +30 Shadow Wrath roll.
+  10255: '<table><tr><td><b class="q2">Master\'s Belt of Shadow Wrath</b><br>Binds when equipped<table width="100%"><tr><td>Waist</td><th><span class="q1">Cloth</span></th></tr></table><span>45 Armor</span><br><span>+30 Shadow Spell Damage</span><br>Durability 25 / 25</td></tr></table><table><tr><td>Requires Level 57</td></tr></table>',
 };
 
 if (require.main === module) {

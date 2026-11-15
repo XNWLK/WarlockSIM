@@ -37,7 +37,7 @@ the fights.
 | Fire Demo | 410 | 6.8% | 6.62% | 125 | 27 | 56 | 6 |
 | Incinerate Pandemic | 404 | 6.8% | 6.62% | 125 | 27 | 56 | 6 |
 | Incinerate DS | 404 | 6.8% | 6.62% | 125 | 27 | 56 | 6 |
-| Wrack DS | 225 + 249 Shadow | 3% | 7.75% | 103 | 13 | 77 | 2 |
+| Wrack DS | 205 + 290 Shadow | 3% | 7.4% | 82 | 13 | 57 | 2 |
 
 - **Fight:** 180 s ± 10%, 1,000 fights per build and race, 1 target, execute phase below 35% boss health, healing on you 1,000 every 10 s.
 - **Custom** (the other gear button): your own gear, starting naked — every gear value 0; the level-60 base Intellect, Spirit, Stamina and crit stay.
@@ -942,7 +942,7 @@ every target, as "Keep DoTs on the extra targets"; Bane of Havoc as usual).
 - Affliction: Suppression 1/5, Improved Corruption 1/5.
 - Demonology: Demonic Embrace 3/5, Unholy Power 5/5, Fel Vitality 3/3, Demonic Energies 1/2, Improved Sayaad 3/3, Demonic Sacrifice 1/1, Decimation 2/2, Demonic Brand 3/3, Soul Link 1/1, Demonic Knowledge 3/3, Master Demonologist 5/5, Demonic Pact 1/1.
 - Destruction: Improved Shadow Bolt 5/5, Bane 5/5, Ruin 5/5, Agonizing Flames 3/3.
-- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Curse of the Elements if missing · 4. Searing Pain to (re)apply Demonic Brand when it is down · 5. Immolate if missing/expiring · 6. Corruption if missing/expiring · 7. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 80% mana, more than 45 s left) · 8. Shadow Bolt (filler).
+- Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Curse of the Elements if missing · 4. Searing Pain to (re)apply Demonic Brand when it is down · 5. Corruption if missing/expiring · 6. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 80% mana, more than 45 s left) · 7. Shadow Bolt (filler).
 
 ### Fire Demo (2/31/18)
 - Imp out, Succubus sacrificed, Major Firestone.
