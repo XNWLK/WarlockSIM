@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v193
+- **Gear tab:** a build's details now have a Gear tab (between Overview and Damage) with the items, enchants and stats that build fought in — with Realistic Pre-BiS each build's own list. Hover an item for its tooltip; "Show it in the gear builder" loads that list there.
+
 ## v192
 - **Tearfall Bracers of Shadow Wrath** (+22 Shadow, The Unforgiven in Stratholme) are in the gear builder and the main wrist of Shadow Demo and Wrack DS, with Sublime Wristguards as the alternative. New default DPS: Shadow Demo 907.4, Wrack DS 933.4.
 - **Pre-raid page:** a slot never shows two Shadow Wrath items (main, upgrade and alternative).

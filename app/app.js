@@ -1452,7 +1452,8 @@
     var b = r.build, st = r.stats, top = best(), dur = (r.avgDuration || r.firstFight.duration);
     var total = Object.keys(r.bySpell).reduce(function (a, k) { return a + r.bySpell[k].dmg; }, 0);
     // Round 177 (user): headline numbers on top, the rest in tabs (dTab = the open one, kept while the page is open).
-    var h = '', T = { overview: '', damage: '', fight: '', mana: '', stats: '', build: '', log: '' };
+    var h = '', T = { overview: '', gear: '', damage: '', fight: '', mana: '', stats: '', build: '', log: '' };
+    T.gear = gearTabHtml(r);                                  // round 221
     // edit a copy of this build / compare it with another one (round 44)
     h += '<div class="dactions">' +
       '<button type="button" data-editcopy="' + esc(b.key) + '">' + (b.custom ? 'Edit this build' : 'Edit a copy in the build editor') + '</button>' +
@@ -1599,7 +1600,7 @@
       tile('Casts per minute', fmt(apm, 1), fmt(casts, 0) + ' casts per fight', 'Your casts, Life Taps included (not the pet\'s)') +
       tile('Dmg split', 'You ' + fmt(100 - petPct, 0) + '% · Pet ' + fmt(petPct, 0) + '%', b.pet ? fmt(petDmg / dur, 1) + ' DPS from the ' + (PET_NAMES[b.pet] || 'pet') : 'no pet out',
         'Share of the total damage: yours (spells, DoTs, items, racials) and your pet\'s (its attacks and spells, and Demonic Brand\'s bonus hits)') + '</div>';
-    var TABS = [['overview', 'Overview'], ['damage', 'Damage'], ['fight', 'DoTs & timeline'], ['mana', 'Mana & health'], ['stats', 'Stats'], ['build', 'Talents & rotation'], ['log', 'Log']];
+    var TABS = [['overview', 'Overview'], ['gear', 'Gear'], ['damage', 'Damage'], ['fight', 'DoTs & timeline'], ['mana', 'Mana & health'], ['stats', 'Stats'], ['build', 'Talents & rotation'], ['log', 'Log']];
     if (!T[dTab]) dTab = 'overview';
     h += '<div class="dtabs" role="tablist" aria-label="Details">' + TABS.map(function (x) {
       return '<button type="button" role="tab" data-dtab="' + x[0] + '" aria-selected="' + (x[0] === dTab) + '">' + x[1] + '</button>'; }).join('') + '</div>';
@@ -1607,6 +1608,57 @@
     return h;
   }
   var dTab = 'overview';                                    // the details' open tab (round 177)
+  // Round 221 (user: "when you open a build, i want there to be a gear tab between overview and damage that shows the gear
+  // it's wearing … right now if i open lets say the demo build, the gear builder still shows wrack ds"): the gear this row
+  // fought in — with Realistic Pre-BiS the build's own list (WL.cfgFor), else the gear builder as it was for the run (the same
+  // for every build), or only the typed-in Stats values. Hover an item: its in-game tooltip (data-gitem).
+  function runGear(b) {
+    var c = WL.cfgFor(b, runCfg), g = c && c.gearBuilder;
+    return { g: g && g.on && g.slots && Object.keys(g.slots).length ? g : null, preBis: !!(runCfg && runCfg.gearMode === 'preBis'), cfg: c };
+  }
+  function gearTabHtml(r) {
+    var b = r.build, G = runGear(b), g = G.g;
+    var head = G.preBis ? 'Realistic Pre-BiS · ' + esc(b.short) : 'Your gear builder';
+    var note = G.preBis ? 'Each build fights in its own Realistic Pre-BiS list (with its enchants); this is ' + esc(b.short) + '\'s.'
+      : 'This run used your own gear (Custom): every build wore the same items.';
+    if (!g) return '<div class="wide dgear"><h2>Gear</h2><p class="meta">This run used the gear numbers typed in the Stats panel, not items (the gear builder was off), so there are no items to show.</p></div>';
+    var slot = function (s) {
+      var e = g.slots[s.key], it = WL.gearItem(e), off = s.key === 'offHand' && WL.gearOffHandBlocked(g);
+      var en = it && !off && s.enchant ? WL.gearEnchant(g.enchants && g.enchants[s.key]) : null, id = e && !e.custom ? e.id : null;
+      var name = off ? 'Blocked by a two-handed weapon' : it ? esc(it.name) : 'Empty';
+      var gx = it && !off ? [en ? 'Enchant: ' + en.name + (gbStatText(en.stats) ? ' (' + gbStatText(en.stats) + ')' : '') : '', it.from || ''].filter(Boolean).join('\n') : '';
+      return '<div class="gbslot' + (it && !off ? ' full' : '') + '"' + (it && !off && id != null ? ' data-gitem="' + esc(id) + '" tabindex="0"' : '') + (gx ? ' data-gx="' + esc(gx) + '"' : '') + '>' +
+        gbIconHtml(it && !off ? it : null, 34, it && !off ? it.name.charAt(0).toUpperCase() : '') +
+        '<span class="gbtxt"><span class="gbsn">' + esc(s.name) + (it && !off && it.from ? ' · <span class="dgfrom">' + esc(it.from) + '</span>' : '') + '</span>' +
+        '<span class="gbin"' + (it && !off ? ' style="color:' + (GB_QUALITY[it.quality] || 'var(--ink)') + '"' : '') + '>' + name + '</span>' +
+        (en ? '<span class="gben">' + esc(en.name) + '</span>' : '') + '</span></div>';
+    };
+    var col = function (c) { return WL.GEAR_SLOTS.filter(function (s) { return s.col === c && (g.slots[s.key] || (s.key !== 'shirt' && s.key !== 'tabard')); }).map(slot).join(''); };
+    var sh = WL.gearSheet(g, G.cfg), keys = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'int', 'spi', 'sta', 'mp5'];
+    var sums = keys.filter(function (k) { return sh.sheet[k]; }).map(function (k) { return '<span><b>' + gbNum(sh.sheet[k], k) + '</b> ' + esc(statLabel(k)) + '</span>'; }).join('');
+    var btn = G.preBis && cfg.gearMode === 'preBis' && WL.PRE_BIS_GEAR[b.key] ? '<button type="button" data-gearshow="' + esc(b.key) + '">Show it in the gear builder</button>' : '';
+    return '<div class="wide dgear"><h2>Gear · ' + head + '</h2><p class="meta">' + note + ' Hover an item for its tooltip.</p>' +
+      '<div class="dgcols"><div class="gbcol">' + col('left') + '</div><div class="gbcol">' + col('right') + '</div><div class="gbcol">' + col('weapons') + '</div></div>' +
+      '<p class="dgsums">' + sums + '</p><p class="meta">Items, enchants and set bonuses together, crit with Intellect / 60 (as the character sheet). ' + btn + '</p>' +
+      gbSetsHtml(sh.setList) + '</div>';
+  }
+  // Round 221: "Show it in the gear builder" — the gear builder shows that build's Realistic Pre-BiS list ("Value for" = that build).
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest && e.target.closest('[data-gearshow]'); if (!t) return;
+    var k = t.getAttribute('data-gearshow'), vs = $('gbValFor');
+    gbValKey = k; if (vs) vs.value = k;
+    if (cfg.gearMode === 'preBis') { preBisShow(true); renderTotals(); }
+    renderGear();
+    var gr = $('gear'); if (gr) { if (gr.tagName === 'DETAILS') gr.open = true; gr.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  });
+  // Round 221: the item tooltip on the Gear tab's items (the gear builder's own listeners only cover #gear).
+  document.addEventListener('mouseover', function (e) {
+    var el = e.target.closest && e.target.closest('[data-gitem]');
+    if (!el) { if (gbTipFor && gbTipFor.el.hasAttribute('data-gitem')) gbTipHide(); return; }
+    if (!gbTipFor || gbTipFor.el !== el) gbTipShow(el, e.clientX, e.clientY);
+  });
+  document.addEventListener('mousemove', function (e) { if (gbTipFor && gbTipFor.el.hasAttribute('data-gitem')) { gbTipFor.x = e.clientX; gbTipFor.y = e.clientY; gbTipPlace(e.clientX, e.clientY, gbTipFor.el); } });
+  document.addEventListener('focusin', function (e) { var el = e.target.closest && e.target.closest('[data-gitem]'); if (el && el.matches(':focus-visible')) gbTipShow(el, null, null); else if (gbTipFor && gbTipFor.el.hasAttribute('data-gitem')) gbTipHide(); });
   // Show the maths (round 138, user): one damage source of a build, step by step with its own stats and the run's settings
   // (engine/explain.js). Opened by clicking its row in the details' spell table; which ones are open is kept per row.
   var mathOpen = {};
@@ -3791,6 +3843,7 @@
   function gbTipShow(el, x, y) {
     var it = null, id = null, ent = null, gx = el.getAttribute('data-gx') || '';
     if (el.hasAttribute('data-gpick')) { id = el.getAttribute('data-gpick'); it = WL.ITEMS[id]; }
+    else if (el.hasAttribute('data-gitem')) { id = el.getAttribute('data-gitem'); it = WL.ITEMS[id]; }   // round 221: the details' Gear tab
     else if (el.hasAttribute('data-gslot')) { ent = gb().slots[el.getAttribute('data-gslot')]; it = WL.gearItem(ent); id = ent && !ent.custom ? ent.id : null; }
     if (!it) return gbTipHide();
     gbTipFor = { el: el, x: x, y: y };
@@ -3799,7 +3852,9 @@
     var game = id != null && WL.ITEM_TIPS && WL.ITEM_TIPS[id] ? WL.ITEM_TIPS[id] : gbTipMade(it);   // data/item-tips.js: made safe by tools/gen-tooltips.js
     gbTipEl.innerHTML = '<div class="gbtipg">' + game + '</div>' + (gx ? '<div class="gbtipx">' + esc(gx).replace(/\n/g, '<br>') + '</div>' : '');
     // As in the game: the set line counts the pieces you wear (gear builder), which show in white.
-    var worn = {}; Object.keys(gb().slots).forEach(function (k) { var w = WL.gearItem(gb().slots[k]); if (w) worn[w.name] = 1; });
+    var worn = {}, box = el.hasAttribute('data-gitem') && el.closest('.dgear');   // round 221: on the Gear tab, the pieces that build wears
+    if (box) Array.prototype.forEach.call(box.querySelectorAll('[data-gitem]'), function (q) { var w = WL.ITEMS[q.getAttribute('data-gitem')]; if (w) worn[w.name] = 1; });
+    else Object.keys(gb().slots).forEach(function (k) { var w = WL.gearItem(gb().slots[k]); if (w) worn[w.name] = 1; });
     Array.prototype.forEach.call(gbTipEl.querySelectorAll('.gbtipg span.q'), function (sp) {
       var m = /^(.*) \((\d+)\/(\d+)\)$/.exec(sp.textContent), list = sp.nextElementSibling; if (!m || !list || !list.classList.contains('indent')) return;
       var n = 0; Array.prototype.forEach.call(list.querySelectorAll('span'), function (p) { if (worn[p.textContent.trim()]) { p.className = 'q1'; n++; } });

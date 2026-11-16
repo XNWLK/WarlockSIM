@@ -213,6 +213,13 @@
   #gbLeft { grid-area: l; } #gbMid { grid-area: m; min-width: 0; justify-self: center; width: 100%; max-width: 520px; } #gbRight { grid-area: r; }
   #gbWeap { grid-area: w; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
   .gbcol { display: grid; gap: 4px; align-content: start; }
+  /* round 221: the details' Gear tab (the gear builder's slot look, read-only) */
+  .dgear .dgcols { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 4px 14px; align-items: start; }
+  .dgear .gbslot { border: 1px solid var(--line); border-radius: 6px; cursor: default; }
+  .dgear .gbslot[data-gitem]:hover, .dgear .gbslot[data-gitem]:focus-visible { border-color: var(--accent); }
+  .dgear .dgfrom { text-transform: none; letter-spacing: 0; }
+  .dgsums { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 10px 0 4px; font-size: 12.5px; }
+  .dgear button[data-gearshow] { margin-left: 6px; }
   .gbslot { display: flex; align-items: center; gap: 8px; width: 100%; padding: 3px 6px; text-align: left; font-weight: 500; background: var(--sunk); min-width: 0; }
   /* Round 210: the item tooltip, drawn like the game's (dark in both themes, as in the game) */
   .gbtip { position: fixed; z-index: 55; display: none; pointer-events: none; max-width: min(340px, calc(100vw - 16px)); }
