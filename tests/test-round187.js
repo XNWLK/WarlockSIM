@@ -10,8 +10,8 @@
     T.ok(/<option value="scale"(?: selected)?>Build Scaling \(DPS by gear level\)<\/option>/.test(html), 'a chart type "Build Scaling" in the Chart list');
     T.ok(/Build Scaling · what each buff is worth<\/summary>/.test(html), 'named in the folded Charts title');
     var m = /var CH_SCALE_DEF = (\{[^;]*\});/.exec(app), S = m ? JSON.parse(m[1].replace(/'/g, '"').replace(/(\w+):/g, '"$1":')) : null;   // round 188: the defaults
-    T.ok(!!S && S.levels === 7 && S.max.sp === 2000 && S.max.hitPct === 17 && S.max.critPct === 30 && S.max.hastePct === 20 && S.max.pierce === 0 && S.max.int === 600 && S.max.spi === 200 && S.max.sta === 640 && S.intSpi === true && S.race === 'listed',
-      'levels 0 … 7, top level 2000 SP / 17% hit / 30% crit / 20% haste / no Spell Pierce; Intellect 600, Spirit 200 and Stamina 640 (round 191) grow too (round 188); listed races');
+    T.ok(!!S && S.levels === 7 && S.max.sp === 2000 && S.max.hitPct === 17 && S.max.critPct === 30 && S.max.hastePct === 20 && S.max.pierce === 100 && S.max.int === 600 && S.max.spi === 200 && S.max.sta === 640 && S.intSpi === true && S.race === 'listed',
+      'levels 0 … 7, top level 2000 SP / 17% hit / 30% crit / 20% haste / 100 Spell Pierce (round 224, was none); Intellect 600, Spirit 200 and Stamina 640 (round 191) grow too (round 188); listed races');
     T.ok(/else if \(scale\) \{ Object\.assign\(c\.gear, scaleGear\(x, SC\)\); c\.gearMode = null; \}/.test(app), 'each level sets those sheet values (round 211: not the Pre-BiS lists); everything else stays as set');
     T.ok(/var n = scale \? cfg\.fight\.iterations : /.test(app), 'the full number of fights per point (the lines lie close together)');
 
@@ -26,7 +26,7 @@
     var b = WL.BUILDS.filter(function (x) { return x.key === 'wrack_ds'; })[0] || WL.BUILDS[0], c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)), prev = -1, ok = true, ys = [];
     [0, 3, 7].forEach(function (lv) {
       var cc = JSON.parse(JSON.stringify(c)), f = lv / 7;
-      cc.gear.sp = 2000 * f; cc.gear.hitPct = 17 * f; cc.gear.critPct = 30 * f; cc.gear.hastePct = 20 * f; cc.gear.pierce = 0;
+      cc.gear.sp = 2000 * f; cc.gear.hitPct = 17 * f; cc.gear.critPct = 30 * f; cc.gear.hastePct = 20 * f; cc.gear.pierce = 100 * f;
       var d = WL.statWeightRun(b, 'undead', cc, 60, null); ys.push(d.toFixed(0)); if (!(d > prev)) ok = false; prev = d;
     });
     T.ok(ok, b.short + ': level 0 < 3 < 7 (' + ys.join(' → ') + ' DPS)');

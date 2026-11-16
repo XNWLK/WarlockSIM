@@ -924,11 +924,11 @@ and no dodge; every swing that is not a glancing blow crits), to try streaks of 
 is on; these are not real numbers.
 
 **Build Scaling** (Charts): every build at gear levels 0 to 7 — level 0 has no spell power, hit, crit (character sheet), haste or
-Spell Pierce on the sheet, level 7 has 2000 spell power, 17% hit, 30% crit and 20% haste, and each level in between adds the same
+Spell Pierce on the sheet, level 7 has 2000 spell power, 17% hit, 30% crit, 20% haste and 100 Spell Pierce, and each level in between adds the same
 amount of each (the top level can be typed in). Intellect, Spirit and Stamina grow too (600, 200 and 640 at the top level; Stamina matters for Undead's Touch of
 the Grave) unless you switch that off; everything else stays as you have set it. 1,000 fights per point, each build with the race it is listed with or with
 its best race at each level. Your gear's level (the dashed line) is the mean of how much of the top level's spell power, hit,
-crit and haste your sheet has. The chart shows DPS or each build as a % of the best build at that level. The page opens with
+crit, haste and Spell Pierce your sheet has. The chart shows DPS or each build as a % of the best build at that level. The page opens with
 this chart for the default settings (shipped with the page, the same numbers as drawing it).
 
 **Racials by fight length** (the last box on the page): every built-in build and race at 60, 120, 180, 240 and 300 s, made with the

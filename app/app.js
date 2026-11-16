@@ -3470,16 +3470,19 @@
   // the best build at each level.
   // Round 191 (user: "make the chart scale with stamina too … important for undead"): Stamina grows with Intellect and Spirit
   // (the default gear's 160 per 500 SP → 640 at 2000 SP); the switch now covers all three.
-  var CH_SCALE_DEF = { levels: 7, max: { sp: 2000, hitPct: 17, critPct: 30, hastePct: 20, pierce: 0, int: 600, spi: 200, sta: 640 }, intSpi: true, race: 'listed' };
+  // Round 224 (user: "also set the default level 7 pierce to 100, and adjust the levels in between accordingly"): pierce 0 → 100
+  // (the levels between step up evenly, about 14 per level). A top level saved before (no v) with pierce 0 = the old default:
+  // it takes the new one.
+  var CH_SCALE_DEF = { levels: 7, max: { sp: 2000, hitPct: 17, critPct: 30, hastePct: 20, pierce: 100, int: 600, spi: 200, sta: 640 }, intSpi: true, race: 'listed' };
   var CH_SCALE = JSON.parse(JSON.stringify(CH_SCALE_DEF));
-  try { var scSaved = JSON.parse(localStorage.getItem('wfs.scale') || 'null'); if (scSaved && scSaved.max) { Object.keys(CH_SCALE.max).forEach(function (k) { var v = +scSaved.max[k]; if (isFinite(v) && v >= 0) CH_SCALE.max[k] = v; }); CH_SCALE.intSpi = scSaved.intSpi !== false; CH_SCALE.race = scSaved.race === 'best' ? 'best' : 'listed'; } } catch (e) { /* no storage */ }
+  try { var scSaved = JSON.parse(localStorage.getItem('wfs.scale') || 'null'); if (scSaved && scSaved.max) { Object.keys(CH_SCALE.max).forEach(function (k) { var v = +scSaved.max[k]; if (k === 'pierce' && !scSaved.v && v === 0) return; if (isFinite(v) && v >= 0) CH_SCALE.max[k] = v; }); CH_SCALE.intSpi = scSaved.intSpi !== false; CH_SCALE.race = scSaved.race === 'best' ? 'best' : 'listed'; } } catch (e) { /* no storage */ }
   var SC_INPUTS = { sp: 'scSp', hitPct: 'scHit', critPct: 'scCrit', hastePct: 'scHaste', pierce: 'scPierce', int: 'scInt', spi: 'scSpi', sta: 'scSta' };
   var SC_BASE = { int: 1, spi: 1, sta: 1 };                // the stats under the "Intellect, Spirit and Stamina grow too" switch
   function scaleFill() {
     Object.keys(SC_INPUTS).forEach(function (k) { $(SC_INPUTS[k]).value = CH_SCALE.max[k]; });
     $('scIntSpi').checked = CH_SCALE.intSpi; $('scInt').disabled = $('scSpi').disabled = $('scSta').disabled = !CH_SCALE.intSpi; $('scRace').value = CH_SCALE.race;
   }
-  function scaleSave() { try { localStorage.setItem('wfs.scale', JSON.stringify({ max: CH_SCALE.max, intSpi: CH_SCALE.intSpi, race: CH_SCALE.race })); } catch (e) { /* no storage */ } }
+  function scaleSave() { try { localStorage.setItem('wfs.scale', JSON.stringify({ v: 2, max: CH_SCALE.max, intSpi: CH_SCALE.intSpi, race: CH_SCALE.race })); } catch (e) { /* no storage */ } }
   function scaleRead() {                         // a box left empty or not a number keeps the value it had
     Object.keys(SC_INPUTS).forEach(function (k) { var v = parseFloat($(SC_INPUTS[k]).value); if (isFinite(v) && v >= 0) CH_SCALE.max[k] = v; });
     CH_SCALE.intSpi = $('scIntSpi').checked; CH_SCALE.race = $('scRace').value === 'best' ? 'best' : 'listed';
@@ -3669,7 +3672,7 @@
         (sc ? scaleTick(x, C.sc).map(function (t, k) { return '<text x="' + X(x).toFixed(1) + '" y="' + (T + ph + 30 + 13 * k) + '" text-anchor="middle">' + esc(t) + '</text>'; }).join('') : '');   // round 187 / 223: spell power, hit, crit, haste and pierce of each gear level under its number
     });
     g += '<line class="axis" x1="' + L + '" x2="' + (L + pw) + '" y1="' + (T + ph) + '" y2="' + (T + ph) + '"/>' +
-      '<text class="axl" x="' + (L + pw / 2) + '" y="' + (H - 6) + '" text-anchor="middle">' + esc(len ? 'Fight length (s)' : sc ? W < 620 ? 'Gear level' : 'Gear level (0 = no spell power, hit, crit or haste; ' + C.sc.levels + ' = ' + scaleText(C.sc.levels, false, C.sc) + ')' : C.st.axis) + '</text>' +
+      '<text class="axl" x="' + (L + pw / 2) + '" y="' + (H - 6) + '" text-anchor="middle">' + esc(len ? 'Fight length (s)' : sc ? W < 620 ? 'Gear level' : 'Gear level (0 = no spell power, hit, crit, haste or Spell Pierce; ' + C.sc.levels + ' = ' + scaleText(C.sc.levels, false, C.sc) + ')' : C.st.axis) + '</text>' +
       '<text class="axl" x="' + L + '" y="12" text-anchor="start">' + (rel ? '% of the best build at that level' : 'DPS') + '</text>' +
       (sc && C.you != null ? (function () {                            // round 188: your gear's level
         var yx = X(Math.min(C.sc.levels, Math.max(0, C.you))), lb = C.you > C.sc.levels ? 'your gear: above level ' + C.sc.levels : 'your gear ≈ level ' + fmt(C.you, 1);
@@ -3705,7 +3708,7 @@
     var cap = (C.shipped === 'default' ? 'Shipped with the page for the default settings (the same numbers as Draw chart with them). ' : C.shipped === 'other' ? 'Made with the default settings, not yours: press Draw chart to redo it with your settings. ' : '') +
       'Each point is ' + fmt(C.n) + ' simulated fights with ' + (len ? 'that fight length (± your length variation)' : sc ? 'that gear level instead of your sheet\'s spell power, hit, crit (character sheet), haste, Spell Pierce' + (C.sc.intSpi ? ', Intellect, Spirit and Stamina' : '') : 'that much ' + C.st.name + ' on your gear') + ' and everything else as you have set it; the same fights are used at every point. ' +
       (sc && C.sc.race === 'best' ? 'Every build is drawn with its best race at each level (all five simulated): ' + raceSeg.join('; ') + '. ' : 'Every build is drawn with the race it is listed with. ') +
-      (sc && C.you != null ? 'The dashed line is your gear: about level ' + fmt(C.you, 1) + ' (the mean of how much of the top level\'s spell power, hit, crit and haste your sheet has). ' : '') +
+      (sc && C.you != null ? 'The dashed line is your gear: about level ' + fmt(C.you, 1) + ' (the mean of how much of the top level\'s spell power, hit, crit, haste' + (C.sc.max.pierce ? ' and Spell Pierce' : '') + ' your sheet has). ' : '') +
       (rel ? 'Each line is a build\'s DPS as a % of the best build at that level. ' : '') +
       (C.noCur ? 'Each level adds the same amount of every stat: ' + scaleText(1, false, C.sc) + '. ' + (cross.length ? cross.join('; ') + '. ' : S.length > 1 ? 'No line clearly crosses another. ' : '') + (S.length > 1 ? 'Lines closer than about 0.4% can swap places by chance. ' : '') : 'The dashed line is your current ' + (len ? 'fight length' : 'value') + '. ') + (rel ? '' : 'The DPS axis ' + (lo > 0 ? 'does not start at 0.' : 'starts at 0.')) +
       (!$('chBuild').value && WL.BUILDS.length > CH_MAX ? ' Only the best ' + CH_MAX + ' builds are drawn.' : '');
