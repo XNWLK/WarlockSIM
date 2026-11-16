@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v195
+- **Build Scaling chart:** under each gear level the x axis now shows spell power, hit, crit, haste and Spell Pierce, not just spell power.
+
 ## v194
 - **Pre-raid BiS list** link at the top of the page, next to the other links.
 

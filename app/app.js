@@ -3498,6 +3498,12 @@
     if (def.intSpi && (def.max.int || def.max.spi || def.max.sta)) parts.push(fmt(g.int) + ' Int', fmt(g.spi) + ' Spirit', fmt(g.sta || 0) + ' Stamina');
     return short ? parts[0] : parts.join(' · ');
   }
+  // Round 223 (user: "the x axis is marked only with spellpower. instead it should be spellpower, hit, crit, haste, pierce"):
+  // the lines under each gear level's number on the Build Scaling chart.
+  function scaleTick(lv, def) {
+    var g = scaleGear(lv, def), p = function (v) { return fmt(v, v % 1 ? 1 : 0); };
+    return [fmt(g.sp) + ' SP', p(g.hitPct) + '% hit', p(g.critPct) + '% crit', p(g.hastePct) + '% haste', fmt(g.pierce || 0) + ' pierce'];
+  }
   // Your gear's level: the mean of how far each stat of the top level your sheet has (spell power, hit, crit, haste, and Spell
   // Pierce when the top level has some), × the number of levels.
   function scaleYou(gear, def) {
@@ -3639,13 +3645,13 @@
     var C = chart; if (!C) return;
     if (C.kind === 'buffs') { renderBuffChart(C); return; }
     // drawn at the width it has on the page (340 … 1100 px), so the text keeps its size on a phone; redrawn when the window changes
-    var cw = $('chOut').clientWidth || 960, W = Math.max(340, Math.min(1100, cw)), H = W < 620 ? 300 : 400;
+    var cw = $('chOut').clientWidth || 960, W = Math.max(340, Math.min(1100, cw)), H = (W < 620 ? 300 : 400) + (C.kind === 'scale' ? 46 : 0);   // round 223: room for the five stat lines under each level
     C.w = cw;
     var len = C.kind === 'len', sc = C.kind === 'scale', unit = len ? ' s' : sc ? '' : C.st.unit, S = C.series, direct = S.length <= 4 && W >= 620;
     var rel = sc && C.rel && S.length > 1, pc = rel ? '%' : '';            // round 188: % of the best build at each level
     if (rel) { var topAt = C.xs.map(function (x, i) { return Math.max.apply(null, C.series.map(function (s) { return s.y[i]; })); });
       S = C.series.map(function (s) { return Object.assign({}, s, { abs: s.y, y: s.y.map(function (v, i) { return 100 * v / topAt[i]; }) }); }); }
-    var L = 56, R = direct ? 190 : 18, T = 22, B = sc ? 58 : 44, pw = W - L - R, ph = H - T - B;
+    var L = 56, R = direct ? 190 : sc ? 36 : 18, T = 22, B = sc ? 104 : 44, pw = W - L - R, ph = H - T - B;
     var all = []; S.forEach(function (s) { s.y.forEach(function (v) { all.push(v); }); });
     var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
     if (lo < 0.4 * hi) lo = 0;
@@ -3654,16 +3660,16 @@
     var X = function (v) { return L + (x1 === x0 ? 0.5 : (v - x0) / (x1 - x0)) * pw; }, Y = function (v) { return T + (1 - (v - lo) / (hi - lo)) * ph; };
     var g = '';
     for (var v = lo; v <= hi + 1e-9; v += step) g += '<line class="grid" x1="' + L + '" x2="' + (L + pw) + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '"/><text x="' + (L - 8) + '" y="' + (Y(v) + 4).toFixed(1) + '" text-anchor="end">' + fmt(v) + pc + '</text>';
-    var every = Math.ceil(C.xs.length / (W < 620 ? 6 : 12)), lastTick = -1e9;
+    var every = Math.ceil(C.xs.length / (W < 620 ? 6 : 12)), lastTick = -1e9, gap = sc ? 72 : 30;   // round 223: Build Scaling's labels are wider ("2.9% haste")
     C.xs.forEach(function (x, i) {
       if (i % every && x !== C.cur) return;
-      if (x !== C.cur && (X(x) - lastTick < 30 || Math.abs(X(x) - X(C.cur)) < 30)) return;   // your value always gets its label; neighbours make room
+      if (x !== C.cur && (X(x) - lastTick < gap || Math.abs(X(x) - X(C.cur)) < gap)) return;   // your value always gets its label; neighbours make room
       lastTick = X(x);
       g += '<line class="axis" x1="' + X(x).toFixed(1) + '" x2="' + X(x).toFixed(1) + '" y1="' + (T + ph) + '" y2="' + (T + ph + 4) + '"/><text x="' + X(x).toFixed(1) + '" y="' + (T + ph + 17) + '" text-anchor="middle">' + fmt(x, x % 1 ? 1 : 0) + '</text>' +
-        (sc ? '<text x="' + X(x).toFixed(1) + '" y="' + (T + ph + 30) + '" text-anchor="middle">' + esc(scaleText(x, true, C.sc)) + '</text>' : '');   // round 187: the spell power of each gear level under its number
+        (sc ? scaleTick(x, C.sc).map(function (t, k) { return '<text x="' + X(x).toFixed(1) + '" y="' + (T + ph + 30 + 13 * k) + '" text-anchor="middle">' + esc(t) + '</text>'; }).join('') : '');   // round 187 / 223: spell power, hit, crit, haste and pierce of each gear level under its number
     });
     g += '<line class="axis" x1="' + L + '" x2="' + (L + pw) + '" y1="' + (T + ph) + '" y2="' + (T + ph) + '"/>' +
-      '<text class="axl" x="' + (L + pw / 2) + '" y="' + (H - 6) + '" text-anchor="middle">' + esc(len ? 'Fight length (s)' : sc ? 'Gear level (0 = no spell power, hit, crit or haste; ' + C.sc.levels + ' = ' + scaleText(C.sc.levels, false, C.sc) + ')' : C.st.axis) + '</text>' +
+      '<text class="axl" x="' + (L + pw / 2) + '" y="' + (H - 6) + '" text-anchor="middle">' + esc(len ? 'Fight length (s)' : sc ? W < 620 ? 'Gear level' : 'Gear level (0 = no spell power, hit, crit or haste; ' + C.sc.levels + ' = ' + scaleText(C.sc.levels, false, C.sc) + ')' : C.st.axis) + '</text>' +
       '<text class="axl" x="' + L + '" y="12" text-anchor="start">' + (rel ? '% of the best build at that level' : 'DPS') + '</text>' +
       (sc && C.you != null ? (function () {                            // round 188: your gear's level
         var yx = X(Math.min(C.sc.levels, Math.max(0, C.you))), lb = C.you > C.sc.levels ? 'your gear: above level ' + C.sc.levels : 'your gear ≈ level ' + fmt(C.you, 1);
