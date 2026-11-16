@@ -29,16 +29,16 @@ WL.ENCHANT_PHASE_GUESS = {
   928: 1,   // All Stats +3 (chest) — user: chest 3 stats
   929: 1,   // Stamina +7 (wrist, feet) — classic enchanting, guess
   931: 1,   // Haste +1% (hands) — user: gloves haste
-  1507: 2,  // Stamina +8 (head, legs) — Lesser Arcanum of Voracity: Dire Maul
-  1509: 2,  // Intellect +8 (head, legs) — Lesser Arcanum of Voracity: Dire Maul
-  1510: 2,  // Spirit +8 (head, legs) — Lesser Arcanum of Voracity: Dire Maul
+  1507: 1,  // Stamina +8 (head, legs) — Phase 1: user (round 225: "put +8 arcanums ins, +4 stats, bracers 9 int")
+  1509: 1,  // Intellect +8 (head, legs) — Phase 1: user (round 225: "put +8 arcanums ins, +4 stats, bracers 9 int")
+  1510: 1,  // Spirit +8 (head, legs) — Phase 1: user (round 225: "put +8 arcanums ins, +4 stats, bracers 9 int")
   1883: 1,  // Intellect +7 (wrist) — classic enchanting, guess
   1884: 1,  // Spirit +9 (wrist) — classic enchanting, guess
   1886: 1,  // Stamina +9 (wrist) — classic enchanting, guess
-  1891: 2,  // All Stats +4 (chest) — chest +4 stats: the user has +3 in Phase 1, so +4 comes later
+  1891: 1,  // All Stats +4 (chest) — Phase 1: user (round 225: "put +8 arcanums ins, +4 stats, bracers 9 int")
   1892: 2,  // +10 Stamina (chest) — not in the classic list (Forever): later, guess
   1893: 2,  // Intellect +10 (chest) — not in the classic list (Forever): later, guess
-  1901: 2,  // Intellect +9 (wrist) — bracer +9 Intellect is not in the classic list (Forever): later, guess
+  1901: 1,  // Intellect +9 (wrist) — Phase 1: user (round 225: "put +8 arcanums ins, +4 stats, bracers 9 int")
   1903: 1,  // Spirit +9 (mainHand) — classic enchanting, guess
   1904: 1,  // Intellect +9 (mainHand) — classic enchanting, guess
   2504: 1,  // Spell Power +30 (mainHand) — classic enchanting, guess
@@ -59,9 +59,9 @@ WL.ENCHANT_PHASE_GUESS = {
   7645: 2,  // Living Stats (chest) — Living Stats (+4): the user has +3 in Phase 1, so this comes later
   7655: 1,  // +12 Spell Power (wrist) — the lower rank of +16 Spell Power, which the user has in Phase 1 (round 214): guess
   7659: 1,  // +9 Intellect (offHand) — Phase 1: the user put it on every off hand (round 216)
-  7660: 2,  // +12 Spirit (offHand) — Forever 76xx set: later, guess
-  7661: 2,  // +6 Intellect and +5 Spirit (offHand) — Forever 76xx set: later, guess
-  7662: 2,  // +65 Spell Power (mainHand) — Forever 76xx set: later, guess
+  7660: 1,  // +12 Spirit (offHand) — round 225: the same recipe set as +9 Intellect and +65 Spell Power (spells 1219577–1219580), guess
+  7661: 1,  // +6 Intellect and +5 Spirit (offHand) — round 225: the same recipe set as +9 Intellect and +65 Spell Power (spells 1219577–1219580), guess
+  7662: 1,  // +65 Spell Power (mainHand) — Phase 1: user (round 225: "i think the 65sp 2h enchant is missing in the sim")
   7665: 1,  // +16 Spell Power (wrist) — Phase 1: the user put it on the Pre-BiS bracers (round 214)
   7941: 2,  // Grand Arcanist (mainHand) — Grand Arcanist (Forever): later, guess
   7942: 2,  // Grand Sorcerer (mainHand) — Grand Sorcerer (Forever): later, guess

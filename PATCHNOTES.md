@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v197
+- **Enchants in Phase 1:** the gear builder now offers +65 Spell Power for two-handed weapons, the +8 Lesser Arcanums, chest All Stats +4, bracer Intellect +9 and the +12 Spirit / +6 Intellect +5 Spirit off-hand enchants with the Phase 1 filter on. Wowhead's enchanting list was checked: no enchant is missing.
+
 ## v196
 - **Build Scaling chart:** the top level now has 100 Spell Pierce (was none), and each level in between adds the same share of it.
 
