@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v194
+- **Pre-raid BiS list** link at the top of the page, next to the other links.
+
 ## v193
 - **Gear tab:** a build's details now have a Gear tab (between Overview and Damage) with the items, enchants and stats that build fought in — with Realistic Pre-BiS each build's own list. Hover an item for its tooltip; "Show it in the gear builder" loads that list there.
 
