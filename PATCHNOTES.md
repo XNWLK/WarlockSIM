@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v198
+- **Premier Dreadweave in Phase 1:** the eight blue Premier Dreadweave pieces (Cowl, Mantle, Robe, Gloves, Belt, Bracers, Legguards, Boots) are in the game now and show in the gear builder with the Phase 1 filter on. Six of them form Lieutenant Commander's Threads: 2 pieces +23 spell power, 6 pieces +20 Stamina. The pre-raid BiS lists don't change: no 2-piece pair beats them.
+
 ## v197
 - **Enchants in Phase 1:** the gear builder now offers +65 Spell Power for two-handed weapons, the +8 Lesser Arcanums, chest All Stats +4, bracer Intellect +9 and the +12 Spirit / +6 Intellect +5 Spirit off-hand enchants with the Phase 1 filter on. Wowhead's enchanting list was checked: no enchant is missing.
 

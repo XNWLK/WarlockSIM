@@ -217,4 +217,14 @@ WL.ITEM_PHASE_SET = {
   18316: 1,   // Obsidian Bauble — round 213 (user: "make it phase 1"; added by hand, Dire Maul)
   19426: 1,   // Orb of the Darkmoon — round 211: the user picked it for every build's Phase 1 pre-raid list (data/pre-raid-bis.js)
   23125: 6,   // Chains of the Lich — round 216 (user: "Chains of the Lich is Phase 6 so scrap that one")
+  // round 228 (user: "the blue items in this list are ingame now" — wowhead.com/forever/search?q=premier+dreadweave; "add the
+  // premier dreadweave items to the sim, but dont change the bis list"): the blue Premier Dreadweave pieces, Phase 1 (PvP rule: 2)
+  272657: 1,   // Premier Dreadweave Legguards
+  272671: 1,   // Premier Dreadweave Cowl
+  272794: 1,   // Premier Dreadweave Boots
+  272795: 1,   // Premier Dreadweave Bracers
+  272796: 1,   // Premier Dreadweave Gloves
+  272797: 1,   // Premier Dreadweave Belt
+  272800: 1,   // Premier Dreadweave Robe
+  272801: 1,   // Premier Dreadweave Mantle
 };
