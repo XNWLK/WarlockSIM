@@ -30,6 +30,8 @@ const EXCLUDE = { 276765: 'Leafre\'s Ring of Precise Spell Power: 100 spell powe
 // you on those"): the vendor Deathmist pieces (set 1681) are out; the quest pieces (set 518, 22070–22077) stay.
 [226905, 226906, 226907, 226908, 226909, 226910, 226911, 226912].forEach(id => { EXCLUDE[id] = 'Deathmist (vendor version, set 1681): not in the game (user: toss it)'; });
 EXCLUDE[254013] = 'Earthen Silk Slippers: wrong stats on Wowhead (user, round 216: "scrap them completely")';
+EXCLUDE[237820] = 'Outrider\'s Silk Leggings ilvl 78: no source or reputation on Wowhead; the in-game Warsong Exalted pants are 22747 (user, round 232: "change pants in the sim")';
+EXCLUDE[237815] = 'Sentinel\'s Silk Leggings ilvl 78: the Alliance twin of 237820, no reputation on Wowhead; the Silverwing Exalted pants are 22752 (round 232)';
 // Stats where Wowhead's item list disagrees with the item's own tooltip: the tooltip's numbers are used.
 const STATS_FIX = { 254013: { s: { splpwr: 18, spldmg: 6, spi: 7 }, why: 'Earthen Silk Slippers: tooltip +24 damage / +18 healing; the list said 6 / 11 on 2026-11-13' },
   // Round 211 (user: "looks like bad hat lost the shadow dmg on it"): in the game it no longer has its +23 Shadow damage.

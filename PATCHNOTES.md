@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v200
+- **Warsong / Silverwing Exalted pants:** the gear builder now has only the version sold in the game, Outrider's / Sentinel's Silk Leggings with 28 spell power, 19 Intellect, 10 Spirit and 23 Stamina. The ilvl 78 version (32 spell power, 2% crit) has no source and is gone. The pre-raid BiS lists show the real pants as the legs upgrade (+0.9 to +2.0 DPS for Shadow Demo and both Incinerate builds, none for Fire Demo or Wrack).
+
 ## v199
 - **Bolt's Charged Eyeball:** about a third of its procs now hit you (was half), as a combat log of 210 procs showed (68 on the warlock, 142 on the target). The log also confirmed its 3 s cooldown and its chance on DoT ticks. It is still no upgrade for any build's pre-raid list.
 
