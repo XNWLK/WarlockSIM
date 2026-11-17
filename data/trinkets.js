@@ -102,7 +102,7 @@ WL.TRINKET_FX = {
   10577:  { name: 'Goblin Mortar',                      use: { kind: 'dmg', min: 393, max: 531, school: 'fire', cd: 600 } },
   260802: { name: 'EZ-Thro Bronze Mortar',              use: { kind: 'dmg', min: 85, max: 115, school: 'fire', cd: 600 } },
   22268:  { name: 'Draconic Infused Emblem',            proc: { kind: 'sp', chancePct: 8, sp: 35, duration: 10, vs: { dragonkin: 2 } } },   // 8% per damaging cast, no internal cooldown (user, round 216: "draconic infused emblem is an 8% proc with no ICD. i just learned that"; was 100% + 75 s, rounds 209 / 211) [A113]
-  280032: { name: "Bolt's Charged Eyeball",             proc: { kind: 'dmg', onDamage: true, chancePct: 15, icd: 3, min: 60, max: 60, school: 'nature', selfPct: 50, vs: { dinosaur: 3 } } },   // "to you or your current target": half each [A113]
+  280032: { name: "Bolt's Charged Eyeball",             proc: { kind: 'dmg', onDamage: true, chancePct: 15, icd: 3, min: 60, max: 60, school: 'nature', selfPct: 32, vs: { dinosaur: 3 } } },   // "to you or your current target" [A113]; round 229 (user, via a combat log of 210 procs, 2026-11-17): 68% the target, 32% you; 3.0 s cooldown and ~14% per tick confirmed
   273840: { name: 'Cursed Murloc Eye',                  proc: { kind: 'dmg', chancePct: 100, min: 2, max: 2, school: 'shadow', vs: { murloc: 4 } } },
   18371:  { name: 'Mindtap Talisman',                   use: { kind: 'mana', amount: 1250, int: 60, intDuration: 120, cd: 420 } },   // "over 10 sec": counted at once
   11832:  { name: 'Burst of Knowledge',                 use: { kind: 'costRed', amount: 150, duration: 10, cd: 360 } },

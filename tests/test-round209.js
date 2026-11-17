@@ -70,7 +70,8 @@
     T.near(WL.trinketSpWorth(WL.TRINKET_FX[22268], det()), 35 * 0.32, 1e-9, 'its worth in the list: 35 × 8% × about 4 casts in its 10 s');
     T.near(WL.trinketSpWorth(WL.TRINKET_FX[22268], det(function (c) { c.fight.bossType = 'dragonkin'; })), 70 * 0.32, 1e-9, '… twice against Dragonkin');
 
-    T.group("Bolt's Charged Eyeball: 15% per damage you deal, 3 s cooldown, half of it on you; ×3 against Dinosaurs");
+    T.group("Bolt's Charged Eyeball: 15% per damage you deal, 3 s cooldown, 32% of it on you (round 229, combat log); ×3 against Dinosaurs");
+    T.eq(WL.TRINKET_FX[280032].proc.selfPct, 32, 'round 229: 32% of the procs hit you (combat log: 68 of 210)');
     var rb = run(280032), bh = lines(rb, 'trinket:280032').filter(function (e) { return e.type === 'hit' || e.type === 'miss'; }), me = rb.log.filter(function (e) { return e.type === 'buff' && /Bolt's Charged Eyeball \(hits you\)/.test(e.spell); });
     var all = bh.concat(me).map(function (e) { return e.t; }).sort(function (a, z) { return a - z; });
     T.ok(all.length > 10 && all.every(function (t, i) { return !i || t - all[i - 1] >= 3 - 1e-6; }), all.length + ' procs, never two within 3 s');

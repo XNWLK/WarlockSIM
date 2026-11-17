@@ -896,7 +896,7 @@ Desert, Wasteland, Haunted, Stronghold / City. Nothing else in the sim depends o
 | Heart of the Primeval | +19 spell power for 30 s, 6 min cooldown. |
 | Cannonball Runner | A cannon for 10 s: 10 shots of 85–139 Holy damage, one per second (its Cannon Fire is a 1 s cast), each like a trinket hit above but without Curse of the Elements (Holy); twice against Undead. 5 min cooldown. |
 | Draconic Infused Emblem | 8% chance on a damaging cast: +35 spell power for 10 s, no internal cooldown (a new proc renews it); 70 against Dragonkin. |
-| Bolt's Charged Eyeball | 15% chance on any damage you deal (hits and ticks), at most every 3 s: 60 Nature damage, half the time to the boss (180 against Dinosaurs), half the time to you. |
+| Bolt's Charged Eyeball | 15% chance on any damage you deal (hits and ticks), at most every 3 s: 60 Nature damage, 68% of the time to the boss (180 against Dinosaurs), 32% of the time to you (a combat log of 210 procs, round 229; it confirmed the 3 s cooldown and about 14% per tick). |
 | Cursed Murloc Eye | 2 Shadow damage with each damaging cast (8 against Murlocs). |
 | Mindtap Talisman | 1,250 mana (counted at once), but −60 Intellect for 2 min (less crit; the lower maximum mana is not counted), 7 min cooldown. |
 | Burst of Knowledge | Your spells cost 150 less mana for 10 s, 6 min cooldown. |
