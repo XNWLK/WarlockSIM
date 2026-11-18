@@ -25,10 +25,10 @@
   T.run('round 119: health, Voidwalker / Felhunter sacrifice, threat', function () {
     T.group('health: settings and Life Tap');
     T.eq(WL.DEFAULT_CONFIG.fight.healAmount + '/' + WL.DEFAULT_CONFIG.fight.healEvery, '1000/10', 'default: healed for 1000 every 10 s');
-    T.eq(WL.SPELLS.lifeTap.healthCost, 430, 'Life Tap costs 430 health');
+    T.eq(WL.SPELLS.lifeTap.healthCost, 424, 'Life Tap costs 424 health (round 233: level-60 value; tooltip 430)');
     var c1 = det(), b1 = tb(['shadowBolt']), r1 = run(b1, c1, 120), st1 = WL.computeStats(b1, 'human', c1), H = r1.health;
     T.ok(r1.lifeTaps >= 5, r1.lifeTaps + ' Life Taps in a 2-minute Shadow Bolt fight');
-    T.eq(H.tap, 430 * r1.lifeTaps, 'health spent on them: 430 each = ' + H.tap);
+    T.eq(H.tap, 424 * r1.lifeTaps, 'health spent on them: 424 each = ' + H.tap);
     T.ok(near(st1.maxHealth - H.tap - H.self + H.healed + H.leech + H.sac, H.end), 'the books balance: ' + st1.maxHealth + ' − spent + healed = ' + H.end.toFixed(0) + ' at the end');
     var heals = r1.log.filter(function (e) { return e.type === 'heal'; });
     T.eq(heals.length, 11, 'a heal every 10 s: 11 in a 120 s fight (10 s … 110 s)');
@@ -37,10 +37,10 @@
     T.eq(H.blocked, 0, 'with the default healing no Life Tap ever has to wait');
 
     T.group('health: without healing Life Tap runs out');
-    var c0 = det(function (c) { c.fight.healAmount = 0; }), r0 = run(b1, c0, 300), maxTaps = Math.ceil(st1.maxHealth / 430) - 1;
+    var c0 = det(function (c) { c.fight.healAmount = 0; }), r0 = run(b1, c0, 300), maxTaps = Math.ceil(st1.maxHealth / 424) - 1;
     T.eq(r0.log.filter(function (e) { return e.type === 'heal'; }).length, 0, 'healing 0: no heals');
     T.eq(r0.lifeTaps, maxTaps, 'only ' + maxTaps + ' Life Taps fit into ' + st1.maxHealth + ' health (one more would kill you)');
-    T.ok(r0.health.min > 0 && r0.health.min <= 430, 'health never reaches 0 (lowest: ' + r0.health.min + ')');
+    T.ok(r0.health.min > 0 && r0.health.min <= 424, 'health never reaches 0 (lowest: ' + r0.health.min + ')');
     T.ok(r0.health.blocked > 30, 'after that the fight is spent waiting: ' + r0.health.blocked.toFixed(0) + ' s without mana or health');
     var rr = run(b1, c1, 300);
     T.ok(rr.total > r0.total * 1.2, 'so healing is worth damage: ' + Math.round(rr.total) + ' vs ' + Math.round(r0.total) + ' without');
@@ -60,10 +60,10 @@
     var runes = rrn.log.filter(function (e) { return e.type === 'consumable'; }).length;
     T.ok(runes === 1 && rrn.health.self === 800, 'a Demonic Rune costs 800 health (' + runes + ' used, ' + rrn.health.self + ' lost)');
     var ch = det(function (c) { c.fight.healAmount = 0; c.fight.targets = 3; }), bh = tb(['hellfire']), sth = WL.computeStats(bh, 'human', ch);
-    var tickSelf = Math.round(206 + 0.022 * sth.sp), rh = run(bh, ch, 60);
+    var tickSelf = Math.round(210.2 + 0.022 * sth.sp), rh = run(bh, ch, 60);
     T.ok(WL.SPELLS.hellfire.selfDamage === true && !WL.SPELLS.rainOfFire.selfDamage, 'Hellfire burns you, Rain of Fire does not');
     T.eq(casts(rh, 'hellfire').length, 1, 'no healing: one Hellfire, then not enough health for another whole channel (' + sth.maxHealth + ' health, ' + (15 * tickSelf) + ' per channel)');
-    T.eq(rh.health.self, 15 * tickSelf, 'it cost 15 ticks × ' + tickSelf + ' (206 + 2.2% of spell power, no talents) = ' + 15 * tickSelf);
+    T.eq(rh.health.self, 15 * tickSelf, 'it cost 15 ticks × ' + tickSelf + ' (210.2 + 2.2% of spell power, no talents) = ' + 15 * tickSelf);
     T.ok(rh.health.min > 0, 'you survive (' + rh.health.min + ' health left)');
     var chh = det(function (c) { c.fight.healAmount = 5000; c.fight.healEvery = 5; c.fight.targets = 3; }), rhh = run(bh, chh, 60);
     T.eq(casts(rhh, 'hellfire').length, 4, 'with plenty of healing: back to back, 4 channels in 60 s');

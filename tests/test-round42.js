@@ -18,13 +18,14 @@
       ['shadowburn', 'base', 267], ['soulFire', 'base', 432], ['baneOfAgony', 'tickBase', 47], ['baneOfDoom', 'tickBase', 1743],
       ['siphonLife', 'tickBase', 42], ['drainLife', 'tickBase', 52], ['drainSoul', 'tickBase', 85],
       ['deathCoil', 'base', 455]];
-    T.eq(WL.SPELLS.wrack.tickBase + ' + ' + WL.SPELLS.wrack.tickCoef, '60 + 0.2002', 'Wrack 60 + 0.2002 × SP per second (patch of 2026-11-10: 70% of 86 + 0.286 from the patch of 2026-11-03; was 36 + 0.143, Value 37 − 1)');
+    T.eq(WL.SPELLS.wrack.tickBase + ' + ' + WL.SPELLS.wrack.tickCoef, '60.2 + 0.2002', 'Wrack 60.2 + 0.2002 × SP per second (patch of 2026-11-10: 70% of 86 + 0.286 from the patch of 2026-11-03; was 36 + 0.143, Value 37 − 1)');
     V.forEach(function (v) {
       var s = WL.SPELLS[v[0]];
-      T.eq(s[v[1]], v[2] - 1, v[0] + '.' + v[1] + ' = ' + (v[2] - 1) + ' (Value ' + v[2] + ' − 1)');
+      // round 233: a spell learned below 60 adds its per-level bonus on top (s.lvl, test-round233.js)
+      T.eq(s.lvl ? s.lvl.base : s[v[1]], v[2] - 1, v[0] + '.' + v[1] + ' = ' + (v[2] - 1) + ' (Value ' + v[2] + ' − 1)' + (s.lvl ? ' before the level bonus (' + s[v[1]] + ' at 60)' : ''));
       if (v[3]) T.eq(s.id, v[3], v[0] + ' uses spell ' + v[3]);
     });
-    T.eq(WL.DEFAULT_CONFIG.pets.imp.spell.base, 44, 'Firebolt 44 (Value 45 − 1)');
+    T.eq(WL.DEFAULT_CONFIG.pets.imp.spell.base, 45.2, 'Firebolt 45.2 (Value 45 − 1 = 44, + 0.6 × 2 levels, round 233)');
     T.eq(WL.DEFAULT_CONFIG.pets.succubus.spell.base, 50, 'Lash of Pain 50 (Value 51 − 1)');
     T.eq(WL.SPELLS.incinerate.immolateBonusPct, 25, 'Incinerate +25% vs Immolate (Value 26 − 1)');
     T.eq([WL.SPELLS.shadowBolt.cost, WL.SPELLS.immolate.cost, WL.SPELLS.corruption.cost].join('/'), '370/370/290', 'trainer-rank mana costs 370 / 370 / 290');

@@ -25,7 +25,14 @@
 //   projectile  travels to the target: lands fight.travelMs after the cast (round 39, A65)
 //   healthCost  health the spell costs you (Life Tap) · selfDamage  every tick also hits you for its base damage (Hellfire)
 //   leech       share of the damage dealt that you get back as health · threatMult  threat per damage (default 1)   (round 119)
+//   lvl         round 233 (user: "yes add the per-level bonus to the sim"): the per-level bonus of the Forever client data
+//               (the game client's data tables, build 1.60.1.70959: SpellEffect.EffectRealPointsPerLevel + SpellLevels): { base, per, from, to } =
+//               client base value, bonus per level, BaseLevel, MaxLevel. The number above is the value at level 60:
+//               base + per × (min(60, to) − from) (WL.levelValue). Proof: Life Tap R1 = 20 + 1 × (16 − 6) = 30 at level 16,
+//               the user's in-game test; Wrack = 25.2 + 1.75 × 20 = 60.2 (tooltip 60).
 window.WL = window.WL || {};
+WL.PLAYER_LEVEL = 60;
+WL.levelValue = function (l) { return +(l.base + l.per * Math.max(0, Math.min(WL.PLAYER_LEVEL, l.to || WL.PLAYER_LEVEL) - l.from)).toFixed(4); };
 
 WL.SPELLS = {
   shadowBolt:   { id: 11661,   name: 'Shadow Bolt',    school: 'shadow', tree: 'destruction', kind: 'direct', rank: 9,
@@ -35,22 +42,22 @@ WL.SPELLS = {
   incinerate:   { id: 1293813, name: 'Incinerate',     school: 'fire',   tree: 'destruction', kind: 'direct',
                   base: 217, coef: 0.714, cast: 2.5, cost: 325, range: 30, immolateBonusPct: 25, talent: 'incinerate', projectile: true },
   searingPain:  { id: 17923,   name: 'Searing Pain',   school: 'fire',   tree: 'destruction', kind: 'direct',
-                  base: 114, coef: 0.429, cast: 1.5, cost: 168, range: 30, threatMult: 2 },   // "Causes a high amount of threat" = twice its damage (Classic) [A84]
+                  base: 116.4, coef: 0.429, cast: 1.5, cost: 168, range: 30, threatMult: 2, lvl: { base: 114, per: 1.2, from: 58, to: 64 } },   // "Causes a high amount of threat" = twice its damage (Classic) [A84]
   conflagrate:  { id: 18932,   name: 'Conflagrate',    school: 'fire',   tree: 'destruction', kind: 'direct',
                   base: 282, coef: 0.429, cast: 0, cost: 255, range: 30, cd: 10, talent: 'conflagrate' },
   shadowburn:   { id: 18871,   name: 'Shadowburn',     school: 'shadow', tree: 'destruction', kind: 'direct',
-                  base: 266, coef: 0.429, cast: 0, cost: 365, range: 30, cd: 15, shards: 1, talent: 'shadowburn' },
+                  base: 273.2, coef: 0.429, cast: 0, cost: 365, range: 30, cd: 15, shards: 1, talent: 'shadowburn', lvl: { base: 266, per: 1.8, from: 56, to: 62 } },
   soulFire:     { id: 17924,   name: 'Soul Fire',      school: 'fire',   tree: 'destruction', kind: 'direct',
-                  base: 431, coef: 1.0, cast: 6.0, cost: 335, range: 30, cd: 60, shards: 1, projectile: true },
+                  base: 438.6, coef: 1.0, cast: 6.0, cost: 335, range: 30, cd: 60, shards: 1, projectile: true, lvl: { base: 431, per: 1.9, from: 56, to: 62 } },
   // AoE channels (round 100, user; A79). Damage = the triggered spell's Effect Value − 1 per tick and target. Hellfire
   // also hits you with every tick (selfDamage, round 119: your health is simulated). Talents from the spell data: Cataclysm, Ruin, Intensity, Destructive Reach
   // (both); Agonizing Flames lists Rain of Fire but not Hellfire.
   hellfire:     { id: 11684,   name: 'Hellfire',       school: 'fire',   tree: 'destruction', kind: 'channel', aoe: true, rank: 3,
-                  tickBase: 206, tickCoef: 0.022, tickEvery: 1, duration: 15, cast: 0, cost: 1300, range: 0, radius: 10,
-                  effectSpell: 11682, noAgonizingFlames: true, selfDamage: true },   // selfDamage: every tick also hits you for its base damage (round 119), reduced by Molten Skin and Soul Link (round 132)
+                  tickBase: 210.2, tickCoef: 0.022, tickEvery: 1, duration: 15, cast: 0, cost: 1300, range: 0, radius: 10,
+                  effectSpell: 11682, noAgonizingFlames: true, selfDamage: true, lvl: { base: 206, per: 0.7, from: 54, to: 64 } },   // selfDamage: every tick also hits you for its base damage (round 119), reduced by Molten Skin and Soul Link (round 132)
   rainOfFire:   { id: 11678,   name: 'Rain of Fire',   school: 'fire',   tree: 'destruction', kind: 'channel', aoe: true, rank: 4,
-                  tickBase: 220, tickCoef: 0.083, tickEvery: 2, duration: 8, cast: 0, cost: 1185, range: 30, radius: 8,
-                  effectSpell: 1282385 },
+                  tickBase: 221.2, tickCoef: 0.083, tickEvery: 2, duration: 8, cast: 0, cost: 1185, range: 30, radius: 8,
+                  effectSpell: 1282385, lvl: { base: 220, per: 0.6, from: 58, to: 63 } },
   corruption:   { id: 11672,   name: 'Corruption',     school: 'shadow', tree: 'affliction',  kind: 'dot', rank: 6,
                   tickBase: 57, tickCoef: 0.20, tickEvery: 3, duration: 18, cast: 2.0, cost: 290, range: 30 },
   baneOfAgony:  { id: 11713,   name: 'Bane of Agony',  school: 'shadow', tree: 'affliction',  kind: 'dot', bane: true,
@@ -70,14 +77,14 @@ WL.SPELLS = {
   drainSoul:    { id: 11675,   name: 'Drain Soul',     school: 'shadow', tree: 'affliction',  kind: 'channel', drain: true,
                   tickBase: 84, tickCoef: 0.10, tickEvery: 3, duration: 15, cast: 0, cost: 290, range: 30 },
   wrack:        { id: 1316697, name: 'Wrack',          school: 'shadow', tree: 'affliction',  kind: 'channel', drain: true,
-                  tickBase: 60, tickCoef: 0.2002, tickEvery: 1, duration: 6, cast: 0, cost: 200, range: 30, talent: 'wrack', noImprovedDrains: true, patch: '2026-11-03',   // 2026-11-03 patch: 36 + 0.143 → 86 + 0.286 per s; Improved Drains no longer counts [A108]. Patch of 2026-11-10: 70% of that
+                  tickBase: 60.2, tickCoef: 0.2002, tickEvery: 1, duration: 6, cast: 0, cost: 200, range: 30, talent: 'wrack', noImprovedDrains: true, patch: '2026-11-03', lvl: { base: 25.2, per: 1.75, from: 40, to: 60 },   // 2026-11-03 patch: 36 + 0.143 → 86 + 0.286 per s; Improved Drains no longer counts [A108]. Patch of 2026-11-10: 70% of that
                   dotSpeedPct: 100, dotSpeedSpells: ['corruption', 'baneOfAgony', 'siphonLife'] },   // official tooltip (Wowhead Forever 2026-11-11): 60 per 1 s tick, SP mod 0.2002 (round 199; 60.2 = 70% of 86 until then). Patch of 2026-11-10: while it channels these tick 100% faster, same duration (was: +10% damage to them and Bane of Doom) [A18]
   deathCoil:    { id: 17926,   name: 'Death Coil',     school: 'shadow', tree: 'affliction',  kind: 'direct',
-                  base: 454, coef: 0.214, cast: 0, cost: 600, range: 30, cd: 120, projectile: true, leech: 1 },
+                  base: 460, coef: 0.214, cast: 0, cost: 600, range: 30, cd: 120, projectile: true, leech: 1, lvl: { base: 454, per: 3, from: 58, to: 64 } },
   curseOfElements: { id: 1311680, name: 'Curse of the Elements', school: 'shadow', tree: 'affliction', kind: 'utility',
                   cast: 0, cost: 200, range: 30, duration: 300, dmgTakenPct: 10 },            // [A34]
   lifeTap:      { id: 11689,   name: 'Life Tap',       school: 'shadow', tree: 'affliction',  kind: 'utility',
-                  cast: 0, cost: 0, range: 0, manaBase: 430, healthCost: 430 },   // round 119: "Converts 430 health into …"                                  // [A12] mana = (430 + Spirit) * (1 + ImpLT)
+                  cast: 0, cost: 0, range: 0, manaBase: 424, healthCost: 424, lvl: { base: 420, per: 1, from: 56, to: 66 } },   // round 233: 424 at level 60 (client data; the tooltip text says 430); round 119: "Converts 430 health into …"                                  // [A12] mana = (430 + Spirit) * (1 + ImpLT)
 };
 
 // AQ20 book ranks (round 42, user): taught only by Grimoire items that drop in Ruins of Ahn'Qiraj (Wowhead Forever:

@@ -31,12 +31,15 @@ const COLLECT = `(async () => {
   if (!/(^|\\.)wowhead\\.com$/.test(location.hostname)) throw new Error("run this in a www.wowhead.com/forever tab");   // round 166: nowhere else
   function arr(t, from) { const s = t.indexOf('[', from); let d = 0, e = s; for (; e < t.length; e++) { const c = t[e]; if (c === '[') d++; else if (c === ']') { d--; if (!d) break; } } return Function('return ' + t.slice(s, e + 1))(); }
   const pause = ms => new Promise(r => setTimeout(r, ms));
+  // round 233 (user: "look at how the XNAH project does a visual for progress and do the same here"): live progress for the progress window
+  const P = window.__wlxProgress = { step: 'lists', steps: { lists: [0, 18], trinkets: [0, 0], sets: [0, 1], recipes: [0, 0], enhancements: [0, 0] }, refused: 0, error: '', started: Date.now() };
+  const tick = (s, n, of) => { P.step = s; P.steps[s] = [n, of == null ? P.steps[s][1] : of]; };
   async function page(p) {                                         // refused (403): wait a minute and try again, up to 5 times
     for (let k = 0; ; k++) {                                       // round 193: a "Human Verification" page (status 405) is a refusal too
       await pause(700); const r = await fetch(p);
       if (r.status !== 403 && r.status !== 405) { const t = await r.text(); if (!/<title>Human Verification/.test(t)) return t; }
-      if (k >= 5) throw new Error('Wowhead keeps refusing ' + p + ' (human check: open any wowhead.com/forever page, answer it, run COLLECT again; what was read is kept)');
-      await pause(60000);
+      if (k >= 5) { P.error = 'Wowhead keeps refusing ' + p + ' (human check?)'; throw new Error('Wowhead keeps refusing ' + p + ' (human check: open any wowhead.com/forever page, answer it, run COLLECT again; what was read is kept)'); }
+      P.refused++; await pause(60000);
     }
   }
   let cache = {}; try { cache = JSON.parse(localStorage.getItem('__wlx_cache') || '{}'); } catch (e) { cache = {}; }
@@ -63,7 +66,7 @@ const COLLECT = `(async () => {
     cache['t' + itemId] = t; keep(); return t;
   }
   for (const c of cats) {
-    const { lv, g } = await get(c); counts[c] = lv.length;
+    const { lv, g } = await get(c); counts[c] = lv.length; tick('lists', cats.indexOf(c) + 1);
     lv.forEach(x => {
       if (x.reqclass && !(x.reqclass & 256)) return;            // 256 = Warlock
       const gi = g[x.id] || {}, eq = gi.jsonequip || {}, s = {};
@@ -74,11 +77,12 @@ const COLLECT = `(async () => {
     });
   }
   counts.trinketTips = 0;
-  for (const id of Object.keys(items)) if (items[id].cat === 'armor/trinkets') { items[id].tt = await tipText(id); counts.trinketTips++; }
+  const trs = Object.keys(items).filter(id => items[id].cat === 'armor/trinkets'); tick('trinkets', 0, trs.length);
+  for (const id of trs) { items[id].tt = await tipText(id); counts.trinketTips++; tick('trinkets', counts.trinketTips); }
   // item sets: which class each is for
   const st = await page('/forever/item-sets'), sb = st.indexOf('var itemSets = ');
   const sets = (sb >= 0 ? arr(st, sb) : []).map(x => ({ id: x.id, n: x.name, rc: x.reqclass || 0, p: x.pieces || [] }));
-  counts.sets = sets.length;
+  counts.sets = sets.length; tick('sets', 1);
   // enchants: the spell page names the enchant ("Enchant Item: <name> (<enchant id>)"); temporary enchants are left out
   async function enchOf(spellId) {
     if (cache['s' + spellId]) return cache['s' + spellId];
@@ -99,12 +103,13 @@ const COLLECT = `(async () => {
   }
   const et = await page('/forever/spells/professions/enchanting'), eb = et.indexOf('var listviewspells = ');
   const recipes = (eb >= 0 ? arr(et, eb) : []).filter(x => /^Enchant /.test(x.name));
-  counts.recipes = recipes.length;
+  counts.recipes = recipes.length; tick('recipes', 0, recipes.length);
   const enchants = [];
-  for (const r of recipes) { const e = await enchOf(r.id); e.ef.forEach(x => enchants.push({ id: x.id, n: x.n, spell: r.id, sn: r.name, desc: e.desc, ic: e.ic, from: 'Enchanting', skill: r.learnedat || 0 })); }
+  for (const r of recipes) { const e = await enchOf(r.id); tick('recipes', recipes.indexOf(r) + 1); e.ef.forEach(x => enchants.push({ id: x.id, n: x.n, spell: r.id, sn: r.name, desc: e.desc, ic: e.ic, from: 'Enchanting', skill: r.learnedat || 0 })); }
   const pt = await page('/forever/items=0.6'), pb = pt.indexOf('var listviewitems = '), perm = pb >= 0 ? arr(pt, pb) : [];
-  counts.enhancements = perm.length;
+  counts.enhancements = perm.length; tick('enhancements', 0, perm.length);
   for (const it of perm) {
+    tick('enhancements', perm.indexOf(it) + 1);
     const tip = await tipOf(it.id); if (!tip || !tip.spell) continue;
     const e = await enchOf(tip.spell);
     e.ef.forEach(x => enchants.push({ id: x.id, n: x.n, spell: tip.spell, sn: it.name, desc: e.desc, ic: tip.icon || e.ic, from: it.name, item: it.id, req: it.reqlevel || 0 }));
@@ -115,7 +120,7 @@ const COLLECT = `(async () => {
   const gz = new Uint8Array(await new Response(new Blob([txt]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer());
   let bin = ''; for (let i = 0; i < gz.length; i += 0x8000) bin += String.fromCharCode.apply(null, gz.subarray(i, i + 0x8000));
   const z = btoa(bin).replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/, '');
-  localStorage.setItem('__wlx', z);
+  localStorage.setItem('__wlx', z); P.step = 'sending';
   const parts = Math.ceil(z.length / 1500000);
   if (parts === 1) setTimeout(() => { location.href = 'http://127.0.0.1:8799/save?part=0&of=1&z=' + z; }, 300);
   return { items: Object.keys(items).length, counts, packed: z.length, parts, next: parts === 1 ? 'jumping to the receiver' : 'too big for one jump: paste SEND(0) … SEND(' + (parts - 1) + ')' };

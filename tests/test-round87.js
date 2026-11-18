@@ -58,7 +58,8 @@
     var rac = l.log.filter(function (e) { return e.type === 'racial'; }).map(function (e) { return e.t; });
     var pot = l.log.filter(function (e) { return e.type === 'consumable'; }).map(function (e) { return e.t; });
     T.ok((rac.length >= 2 && rac.every(function (x, i) { return i === 0 || (x - rac[i - 1] >= WL.RACES.orc.racials.filter(function (q) { return q.name === 'Blood Fury'; })[0].cd - 1e-6 && x - rac[i - 1] < WL.RACES.orc.racials.filter(function (q) { return q.name === 'Blood Fury'; })[0].cd + 4); })), 'Blood Fury again one cooldown after each use (' + rac.join(', ') + '; 2 min — 3 min from the patch of 2026-10-16 until round 164)');
-    T.ok(pot.length === 2 && pot[1] - pot[0] >= 120 - 1e-6 && pot[1] - pot[0] < 124, 'potion again 2 min after the first use (' + pot.join(', ') + ')');
+    // round 233: a third use can fit in the 300 s (Life Tap 424 moved the casts: 57, 178.5, 298.5) — every gap is checked
+    T.ok(pot.length >= 2 && pot.every(function (x, i) { return i === 0 || (x - pot[i - 1] >= 120 - 1e-6 && x - pot[i - 1] < 124); }), 'potion again 2 min after the first use (' + pot.join(', ') + ')');
     T.near(l.uptime.powerInfusion, 30, 1e-6, 'Power Infusion at ~60 s and again 3 min later (2 × 15 s)');
 
     T.group('races without a cooldown and no potion / Power Infusion: the setting changes nothing');

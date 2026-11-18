@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v201
+- **Spells gain their level bonus:** spells you learn below level 60 grow a little with each level, as the game's own data shows. At 60: Searing Pain 116 (was 114), Soul Fire 439 (431), Death Coil 460 (454), Shadowburn 273 (266), Hellfire 210 per tick (206, also on you), Rain of Fire 221 per tick (220), Wrack 60.2 per tick (60), the Imp's Firebolt 45 (44). Life Tap gives and costs 424 (was 430; its tooltip text says 430). Fire Demo gains about 2–3 DPS; the other builds barely move.
+- **New items:** the Upper Blackrock Spire summon bosses' drops (Blade of Necromancy, Lord Valthalak's Staff of Command, Rune Band of Wizardry, Band of Mending, Pendant of Celerity, Amulet of the Redeemed, Amalgam's Band, Scepter of Interminable Focus, Tome of Divine Right), Testament of Hope and Diabolic Mantle (Phase 2) are in the gear builder.
+- **Item updates from Wowhead:** Crackling Staff 74 spell power + 25 Stamina, Whiteout Staff 25 Intellect, lower Mp5 on Darkspear Signet and Militant's Band, Blessed Band of Light without hit, Everstaring Abomination Eye 6 Spirit; about 30 items now show where they drop.
+- **Pre-raid BiS lists:** Rune Band of Wizardry is the ring upgrade for Shadow Demo, Fire Demo and both Incinerate builds; Orb of the Darkmoon is Fire Demo's neck upgrade.
+
 ## v200
 - **Warsong / Silverwing Exalted pants:** the gear builder now has only the version sold in the game, Outrider's / Sentinel's Silk Leggings with 28 spell power, 19 Intellect, 10 Spirit and 23 Stamina. The ilvl 78 version (32 spell power, 2% crit) has no source and is gone. The pre-raid BiS lists show the real pants as the legs upgrade (+0.9 to +2.0 DPS for Shadow Demo and both Incinerate builds, none for Fire Demo or Wrack).
 

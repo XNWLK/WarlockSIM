@@ -22,11 +22,11 @@
     T.group('spell data');
     var H = WL.SPELLS.hellfire, F = WL.SPELLS.rainOfFire;
     T.ok(H && H.kind === 'channel' && H.aoe && H.school === 'fire' && H.tree === 'destruction', 'Hellfire: Fire, Destruction, area channel');
-    T.eq([H.id, H.rank, H.tickBase, H.tickCoef, H.tickEvery, H.duration, H.cost, H.range, H.radius, H.effectSpell].join('/'), '11684/3/206/0.022/1/15/1300/0/10/11682',
-      'Hellfire R3: 206 + 2.2% of spell power per second for 15 s, 1300 mana, 10 yd around you');
+    T.eq([H.id, H.rank, H.tickBase, H.tickCoef, H.tickEvery, H.duration, H.cost, H.range, H.radius, H.effectSpell].join('/'), '11684/3/210.2/0.022/1/15/1300/0/10/11682',
+      'Hellfire R3: 210.2 + 2.2% of spell power per second for 15 s, 1300 mana, 10 yd around you');
     T.ok(F && F.kind === 'channel' && F.aoe && F.school === 'fire' && F.tree === 'destruction', 'Rain of Fire: Fire, Destruction, area channel');
-    T.eq([F.id, F.rank, F.tickBase, F.tickCoef, F.tickEvery, F.duration, F.cost, F.range, F.radius, F.effectSpell].join('/'), '11678/4/220/0.083/2/8/1185/30/8/1282385',
-      'Rain of Fire R4: 220 + 8.3% of spell power every 2 s for 8 s, 1185 mana, 30 yd, 8 yd radius');
+    T.eq([F.id, F.rank, F.tickBase, F.tickCoef, F.tickEvery, F.duration, F.cost, F.range, F.radius, F.effectSpell].join('/'), '11678/4/221.2/0.083/2/8/1185/30/8/1282385',
+      'Rain of Fire R4: 221.2 + 8.3% of spell power every 2 s for 8 s, 1185 mana, 30 yd, 8 yd radius');
     T.ok(!H.talent && !F.talent, 'both are trained spells (no talent needed)');
 
     T.group('talents (from each talent\'s list of affected spells)');
@@ -48,15 +48,15 @@
 
     T.group('ticks, one target');
     var c1 = det(1), sp = table({}, c1).hellfire.sp;
-    var h1 = run(['hellfire'], {}, c1), ht = ticks(h1, 'hellfire'), hv = Math.round(206 + 0.022 * sp);
-    T.ok(ht.length >= 30 && ht.every(function (e) { return e.dmg === hv; }), 'Hellfire: every tick 206 + 0.022 × ' + sp + ' = ' + hv);
+    var h1 = run(['hellfire'], {}, c1), ht = ticks(h1, 'hellfire'), hv = Math.round(210.2 + 0.022 * sp);
+    T.ok(ht.length >= 30 && ht.every(function (e) { return e.dmg === hv; }), 'Hellfire: every tick 210.2 + 0.022 × ' + sp + ' = ' + hv);
     T.eq(ht.slice(0, 15).map(function (e) { return e.t; }).join(','), '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15', 'one tick a second for 15 s');
-    var f1 = run(['rainOfFire'], {}, c1), ft = ticks(f1, 'rainOfFire'), fv = Math.round(220 + 0.083 * sp);
-    T.ok(ft.length >= 12 && ft.every(function (e) { return e.dmg === fv; }), 'Rain of Fire: every tick 220 + 0.083 × ' + sp + ' = ' + fv);
+    var f1 = run(['rainOfFire'], {}, c1), ft = ticks(f1, 'rainOfFire'), fv = Math.round(221.2 + 0.083 * sp);
+    T.ok(ft.length >= 12 && ft.every(function (e) { return e.dmg === fv; }), 'Rain of Fire: every tick 221.2 + 0.083 × ' + sp + ' = ' + fv);
     T.eq(ft.slice(0, 4).map(function (e) { return e.t; }).join(','), '2,4,6,8', 'a tick every 2 s for 8 s');
     T.ok(!h1.bySpell['x2:hellfire'] && !f1.bySpell['x2:rainOfFire'], 'one target: nothing else is hit');
     var cc = det(1, function (c) { c.gear.critPct = 100; }), hc = ticks(run(['hellfire'], { ruin: 5 }, cc), 'hellfire');
-    T.ok(hc.every(function (e) { return e.crit && e.dmg === Math.round((206 + 0.022 * sp) * 2); }), 'ticks can crit (100% crit, Ruin 5/5: ' + Math.round((206 + 0.022 * sp) * 2) + ')');
+    T.ok(hc.every(function (e) { return e.crit && e.dmg === Math.round((210.2 + 0.022 * sp) * 2); }), 'ticks can crit (100% crit, Ruin 5/5: ' + Math.round((210.2 + 0.022 * sp) * 2) + ')');
 
     T.group('several targets');
     [['hellfire', 2], ['hellfire', 3], ['rainOfFire', 3]].forEach(function (x) {
@@ -72,7 +72,7 @@
       '50% hit: every tick rolls to hit on every target (' + rows.map(function (r) { return r.ticks + ' hit / ' + r.misses + ' missed'; }).join('; ') + ')');
     T.ok(!(rows[0].ticks === rows[1].ticks && rows[1].ticks === rows[2].ticks), 'the rolls are separate per target');
     var cx = det(2, function (c) { c.options.useCurseOfElements = true; }), hx = run(['curseOfElements', 'hellfire'], {}, cx);
-    var hcoe = Math.round((206 + 0.022 * sp) * 1.1);
+    var hcoe = Math.round((210.2 + 0.022 * sp) * 1.1);
     T.ok(ticks(hx, 'hellfire').every(function (e) { return e.dmg === hcoe; }) && ticks(hx, 'x2:hellfire').every(function (e) { return e.dmg === hv; }),
       'Curse of the Elements counts only on the target that has it (' + hcoe + ' vs ' + hv + ')');
     var hh = run(['hellfire'], { baneOfHavoc: 1 }, det(2));
@@ -81,7 +81,7 @@
 
     T.group('live effects');
     var ge = run(['hellfire'], {}, det(1), 'gnome'), gt = ticks(ge, 'hellfire');
-    T.eq(gt[0].dmg, Math.round((206 + 0.022 * table({}, det(1)).hellfire.sp) * 1.1), 'Eureka!: the ticks of the channel it was popped for get +10% (channel ticks, not DoT ticks)');
+    T.eq(gt[0].dmg, Math.round((210.2 + 0.022 * table({}, det(1)).hellfire.sp) * 1.1), 'Eureka!: the ticks of the channel it was popped for get +10% (channel ticks, not DoT ticks)');
     var ci = det(1, function (c) { c.fight.hitEvery = 2; });
     var p0 = run(['hellfire'], {}, ci, 'human', 120), p3 = run(['hellfire'], { intensity: 3 }, ci, 'human', 120);
     T.ok(p0.pushbacks > 0 && p0.pushResisted === 0 && p3.pushResisted > 0, 'Intensity protects the channel from pushback (' + p3.pushResisted + ' of ' + (p3.pushResisted + p3.pushbacks) + ' hits resisted; none without it)');

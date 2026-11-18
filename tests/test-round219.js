@@ -75,9 +75,10 @@
     T.group('Shadow and Flame works in the fight (Incinerate DS, 5/5)');
     var b = WL.BUILDS.filter(function (x) { return x.key === 'destro_incin_ds'; })[0], c = WL.pageDefaultConfig(); c.fight.durationVarPct = 0;
     T.eq(b.talents.shadowAndFlame, 5, 'Incinerate DS has 5/5');
-    var a = WL.simulateOnce(b, 'undead', c, { seed: 5, log: true });
+    // round 233: 150 s — near the end the rotation's damage-based choices differ with the bonus at 0 (Incinerate vs Bane of Agony at 164 s)
+    var a = WL.simulateOnce(b, 'undead', c, { seed: 5, log: true, duration: 150 });
     var T5 = WL.TALENT_BY_KEY.shadowAndFlame, keep = T5.v.schoolPct.slice(); T5.v.schoolPct = [0, 0, 0, 0, 0];
-    var z; try { z = WL.simulateOnce(b, 'undead', c, { seed: 5, log: true }); } finally { T5.v.schoolPct = keep; }
+    var z; try { z = WL.simulateOnce(b, 'undead', c, { seed: 5, log: true, duration: 150 }); } finally { T5.v.schoolPct = keep; }
     var hits = function (r) { return r.log.filter(function (e) { return e.dmg > 0 && e.type !== 'pet'; }); }, A = hits(a), Z = hits(z);
     T.ok(A.length > 50 && A.length === Z.length && A.every(function (e, i) { return Z[i].spell === e.spell && Math.abs(Z[i].t - e.t) < 1e-9; }), 'the same fight with the bonus at 0 (' + A.length + ' hits)');
     var up = function (k, t) { return ((a.auras || {})[k] || []).some(function (x) { return t >= x[0] - 1e-9 && t < x[1] - 1e-9; }); };

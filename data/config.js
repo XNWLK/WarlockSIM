@@ -21,7 +21,7 @@ WL.DEFAULT_CONFIG = {
     targets: 1,             // 2-3 targets: Bane of Havoc (talent) on target 2 copies 15% of your damage to it
     multiDot: false,        // with 2-3 targets: keep your DoTs on the extra targets too (A61)
     // Healing you receive (round 119, user): healAmount health every healEvery seconds, first at healEvery. Your health pays
-    // for Life Tap (430), Hellfire's damage to yourself, the Demonic Rune and the Goblin Sapper. 0 = nobody heals you. [A83]
+    // for Life Tap (424), Hellfire's damage to yourself, the Demonic Rune and the Goblin Sapper. 0 = nobody heals you. [A83]
     healAmount: 1000, healEvery: 10,
     // Round 209 (user): what the boss is and where the fight is — only trinket effects depend on them (WL.BOSS_TYPES,
     // WL.ZONE_TYPES in data/trinkets.js; '' = not set). [A113]
@@ -219,7 +219,7 @@ WL.DEFAULT_CONFIG = {
   pets: {
     imp: {
       name: 'Imp', mana: 2000, manaRegen: 8,                       // [A45] mana pool / regen per second
-      spell: { key: 'firebolt', name: 'Firebolt', id: 11763, school: 'fire', base: 44, coef: 0.571, cast: 2.0, cost: 115, range: 30, projectile: true },   // Effect Value 45 − 1 (round 42, SPELLVALUES.md)
+      spell: { key: 'firebolt', name: 'Firebolt', id: 11763, school: 'fire', base: 45.2, lvl: { base: 44, per: 0.6, from: 58, to: 63 }, coef: 0.571, cast: 2.0, cost: 115, range: 30, projectile: true },   // Effect Value 45 − 1 (round 42, SPELLVALUES.md)
     },
     succubus: {
       name: 'Succubus', mana: 2000, manaRegen: 8,                   // [A45]

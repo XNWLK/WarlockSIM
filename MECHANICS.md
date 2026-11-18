@@ -286,7 +286,7 @@ The examples use the build **Shadow Demo** as an Undead in its Pre-BiS gear with
 - Demonic Brand hit: (66.5 + 0.078 × 760 Shadow spell power) × the same four multipliers = **172.4**. It cannot miss or crit.
 
 #### 7. Life Tap
-430 + 244.2 Spirit = **674.2 mana** for 430 health and one global cooldown (this build has no Improved Life Tap; with 2/2 it would be 809).
+424 + 244.2 Spirit = **668.2 mana** for 424 health and one global cooldown (this build has no Improved Life Tap; with 2/2 it would be 801.8).
 
 #### 8. Talents of one group add up: Immolate and Incinerate
 Build **Incinerate Pandemic**, Undead, default settings; Fire spell power 635 + 31 Major Firestone + Wizard Oil = 666. No auras: this build has no Demonology points.
@@ -313,12 +313,12 @@ tooltip says 246 to 274). A spell's "family" decides which talents count it as a
 | Shadow Bolt (Rank 9) | Shadow | Destruction | 251 + 0.857 × SP | 3 s | 370 | — | 30 yd |
 | Immolate (Rank 7) | Fire | Destruction | 146 + 0.2 × SP, then 5 ticks of 52 + 0.13 × SP, one every 3 s | 2 s | 370 | — | 30 yd |
 | Incinerate | Fire | Destruction | 217 + 0.714 × SP | 2.5 s | 325 | — | 30 yd |
-| Searing Pain | Fire | Destruction | 114 + 0.429 × SP | 1.5 s | 168 | — | 30 yd |
+| Searing Pain | Fire | Destruction | 116.4 + 0.429 × SP | 1.5 s | 168 | — | 30 yd |
 | Conflagrate | Fire | Destruction | 282 + 0.429 × SP | instant | 255 | 10 s | 30 yd |
-| Shadowburn | Shadow | Destruction | 266 + 0.429 × SP | instant | 365 | 15 s | 30 yd |
-| Soul Fire | Fire | Destruction | 431 + 1 × SP | 6 s | 335 | 60 s | 30 yd |
-| Hellfire (Rank 3) | Fire | Destruction | 15 ticks of 206 + 0.022 × SP, one every 1 s | channel, 15 s | 1300 | — | self |
-| Rain of Fire (Rank 4) | Fire | Destruction | 4 ticks of 220 + 0.083 × SP, one every 2 s | channel, 8 s | 1185 | — | 30 yd |
+| Shadowburn | Shadow | Destruction | 273.2 + 0.429 × SP | instant | 365 | 15 s | 30 yd |
+| Soul Fire | Fire | Destruction | 438.6 + 1 × SP | 6 s | 335 | 60 s | 30 yd |
+| Hellfire (Rank 3) | Fire | Destruction | 15 ticks of 210.2 + 0.022 × SP, one every 1 s | channel, 15 s | 1300 | — | self |
+| Rain of Fire (Rank 4) | Fire | Destruction | 4 ticks of 221.2 + 0.083 × SP, one every 2 s | channel, 8 s | 1185 | — | 30 yd |
 | Corruption (Rank 6) | Shadow | Affliction | 6 ticks of 57 + 0.2 × SP, one every 3 s | 2 s | 290 | — | 30 yd |
 | Bane of Agony | Shadow | Affliction | 12 ticks of 46 + 0.133 × SP, one every 2 s | instant | 215 | — | 30 yd |
 | Bane of Doom | Shadow | Affliction | 1742 + 4 × SP, once, after 60 s | instant | 300 | 60 s | 30 yd |
@@ -326,10 +326,10 @@ tooltip says 246 to 274). A spell's "family" decides which talents count it as a
 | Siphon Life | Shadow | Affliction | 10 ticks of 41 + 0.05 × SP, one every 3 s | instant | 365 | — | 30 yd |
 | Drain Life | Shadow | Affliction | 5 ticks of 51 + 0.1 × SP, one every 1 s | channel, 5 s | 300 | — | 20 yd |
 | Drain Soul | Shadow | Affliction | 5 ticks of 84 + 0.1 × SP, one every 3 s | channel, 15 s | 290 | — | 30 yd |
-| Wrack | Shadow | Affliction | 6 ticks of 60 + 0.2002 × SP, one every 1 s | channel, 6 s | 200 | — | 30 yd |
-| Death Coil | Shadow | Affliction | 454 + 0.214 × SP | instant | 600 | 120 s | 30 yd |
+| Wrack | Shadow | Affliction | 6 ticks of 60.2 + 0.2002 × SP, one every 1 s | channel, 6 s | 200 | — | 30 yd |
+| Death Coil | Shadow | Affliction | 460 + 0.214 × SP | instant | 600 | 120 s | 30 yd |
 | Curse of the Elements | Shadow | Affliction | — | instant | 200 | — | 30 yd |
-| Life Tap | Shadow | Affliction | — | instant | 430 health | — | self |
+| Life Tap | Shadow | Affliction | — | instant | 424 health | — | self |
 
 **Destruction spells** (Ruin, Agonizing Flames, Cataclysm, Intensity): Shadow Bolt, Immolate, Incinerate, Searing Pain, Conflagrate, Shadowburn, Soul Fire, Hellfire, Rain of Fire.
 **Affliction spells:** Corruption, Bane of Agony, Bane of Doom, Siphon Life, Drain Life, Drain Soul, Wrack, Death Coil.
@@ -461,7 +461,7 @@ Demons are simulated as their own actors: they cast, swing, miss, crit and run o
 <!-- gen:pets -->
 | Demon | Spell | Melee | Mana |
 |---|---|---|---|
-| Imp | Firebolt: 44 + 0.571 × demon SP, Fire, 2 s cast, 115 mana | — | 2,000, +8 per second |
+| Imp | Firebolt: 45.2 + 0.571 × demon SP, Fire, 2 s cast, 115 mana | — | 2,000, +8 per second |
 | Succubus | Lash of Pain: 50 + 0.429 × demon SP, Shadow, instant, 12 s cooldown, 160 mana | 73.5 base DPS, one swing every 2 s, crit = your spell crit, 5 yd range | 2,000, +8 per second |
 | Felhunter | — | 40 base DPS, one swing every 2 s, crit = your spell crit | 2,000, +8 per second |
 | Voidwalker | — | 30 base DPS, one swing every 2 s, crit = your spell crit | 2,000, +8 per second |

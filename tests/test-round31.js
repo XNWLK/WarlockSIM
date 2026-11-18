@@ -17,7 +17,7 @@
     T.group('Demonic Knowledge reaches the pet in full; the rest is 10% of your SP');
     var c = shipped(); c.options.useCurseOfElements = false; c.combat.levelResist.on = false;
     // Demonic Knowledge 3/3 (+60 SP to you and the pet) and only talents without a damage effect (no Soul Link / Unholy
-    // Power / Improved Imp / Master Demonologist), so Firebolt = 44 + 0.571 × pet SP exactly (base 44 = Effect Value 45 − 1
+    // Power / Improved Imp / Master Demonologist), so Firebolt = 45.2 + 0.571 × pet SP exactly (base 44 = Effect Value 45 − 1
     // since round 42). (The engine does not
     // check legality; the point total does not matter here.)
     var b = impBuild({ demonicEmbrace: 5, improvedHealthFunnel: 2, felVitality: 3, demonicAegis: 2, improvedVoidwalker: 1, masterSummoner: 2,
@@ -26,12 +26,12 @@
     var r = WL.simulateOnce(b, 'human', c, { seed: 3, duration: 60, log: true }), fb = r.bySpell['pet:firebolt'];
     var petSp = st.sp * 0.10 + 60;                                   // st.sp already includes Demonic Knowledge's 60
     var nonCrit = r.log.filter(function (e) { return e.type === 'pet' && e.spell === 'pet:firebolt' && !e.crit; });
-    T.ok(nonCrit.length > 0 && nonCrit.every(function (e) { return Math.abs(e.dmg - Math.round(44 + 0.571 * petSp)) <= 1; }),
-      'each non-crit Firebolt = 44 + 0.571 × (10% × ' + st.sp + ' + 60) = ' + (44 + 0.571 * petSp).toFixed(1) + ' (' + nonCrit.length + ' checked)');
+    T.ok(nonCrit.length > 0 && nonCrit.every(function (e) { return Math.abs(e.dmg - Math.round(45.2 + 0.571 * petSp)) <= 1; }),
+      'each non-crit Firebolt = 45.2 + 0.571 × (10% × ' + st.sp + ' + 60) = ' + (45.2 + 0.571 * petSp).toFixed(1) + ' (' + nonCrit.length + ' checked)');
     var b0 = impBuild({ demonicEmbrace: 5, improvedHealthFunnel: 2, felVitality: 3 }), st0 = WL.computeStats(b0, 'human', c);
     var r0 = WL.simulateOnce(b0, 'human', c, { seed: 3, duration: 60, log: true });
     var nc0 = r0.log.filter(function (e) { return e.type === 'pet' && e.spell === 'pet:firebolt' && !e.crit; })[0];
-    T.near(nc0.dmg, Math.round(44 + 0.571 * st0.sp * 0.10), 1, 'without Demonic Knowledge: Firebolt = 44 + 0.571 × 10% × ' + st0.sp);
+    T.near(nc0.dmg, Math.round(45.2 + 0.571 * st0.sp * 0.10), 1, 'without Demonic Knowledge: Firebolt = 45.2 + 0.571 × 10% × ' + st0.sp);
     T.ok(fb.hits > 0, 'Imp cast Firebolts (' + fb.hits + ')');
 
     T.group('Succubus melee: 1 pet AP per 6 SP');

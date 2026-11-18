@@ -262,7 +262,7 @@ window.WL = window.WL || {};
     var PI = buffList.filter(function (b) { return b.spellDmgPct; })[0] || null;
     var manaBuffs = buffList.filter(function (b) { return b.tide || b.innervate; }).map(function (b) { return { b: b, left: Math.max(1, Math.round(b.count || 1)), until: 0 }; });   // round 157: count
     // ---------- health (round 119, user) [A83] ----------
-    // Your health starts full. It pays for Life Tap (430), Hellfire's ticks on yourself, the Demonic Rune (800) and the Goblin
+    // Your health starts full. It pays for Life Tap (424), Hellfire's ticks on yourself, the Demonic Rune (800) and the Goblin
     // Sapper; it comes back from the healing setting (fight.healAmount every fight.healEvery s), from Drain Life, Siphon Life,
     // Death Coil and Touch of the Grave (their damage) and from the Felhunter sacrifice. Nothing may take you to 0: a Life Tap
     // waits for health, a rune / Sapper is not used, Hellfire is only started when the whole channel is affordable (counting

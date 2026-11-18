@@ -57,6 +57,6 @@
 
     T.group('Life Tap is not reduced');
     var t0 = run(tb(), det(), 120), tB = run(tb(BOTH, 'imp'), det(), 120);
-    T.ok(t0.lifeTaps > 0 && tB.lifeTaps > 0 && t0.health.tap / t0.lifeTaps === 430 && tB.health.tap / tB.lifeTaps === 430, 'Life Tap costs 430 health with and without both talents (' + t0.lifeTaps + ' / ' + tB.lifeTaps + ' taps)');
+    T.ok(t0.lifeTaps > 0 && tB.lifeTaps > 0 && t0.health.tap / t0.lifeTaps === 424 && tB.health.tap / tB.lifeTaps === 424, 'Life Tap costs 424 health with and without both talents (' + t0.lifeTaps + ' / ' + tB.lifeTaps + ' taps)');
   });
 })();

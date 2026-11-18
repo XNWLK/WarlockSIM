@@ -50,12 +50,12 @@
   });
 
   T.run('imp', function () {
-    T.group('pet: Imp (Firebolt R7 = 44 + 0.571 × SP, 2 s, 115 mana; Effect Value 45 − 1 since round 42)');
+    T.group('pet: Imp (Firebolt R7 = 45.2 + 0.571 × SP, 2 s, 115 mana; Effect Value 45 − 1 since round 42)');
     var c = detCfg(); c.fight.duration = 60;
     var b = tb(['shadowBolt'], {}, { pet: 'imp' });
     var r = WL.simulateOnce(b, 'human', c, { log: true });
     var fb = r.bySpell['pet:firebolt'];
-    T.near(fb.dmg / fb.hits, 44 + 0.571 * 700, 1e-6, 'each Firebolt = 44 + 0.571 × 700 = 443.7 (no talents)');
+    T.near(fb.dmg / fb.hits, 45.2 + 0.571 * 700, 1e-6, 'each Firebolt = 44 + 0.571 × 700 = 444.9 (no talents)');
     // Mana: 2000 pool, 115/cast, +8/s. Casts at 0,2,4,… until mana < 115, then one cast per (115−m)/8 s.
     var mana = 2000, t = 0, casts = 0, last = 0;
     while (t < 60 - 1e-9) {
@@ -96,7 +96,7 @@
     var feed = tb(['lifeTapPet', 'shadowBolt'], { demonicEnergies: 2 }, { pet: 'imp' });
     var r0 = WL.simulateOnce(base, 'human', c, { log: true }), r1 = WL.simulateOnce(feed, 'human', c, { log: true });
     T.ok(r1.bySpell['pet:firebolt'].hits > r0.bySpell['pet:firebolt'].hits, 'feeding taps give more Firebolts (' + r1.bySpell['pet:firebolt'].hits + ' vs ' + r0.bySpell['pet:firebolt'].hits + ')', '');
-    var st = WL.computeStats(feed, 'human', c), full = Math.round(430 + st.spi);
+    var st = WL.computeStats(feed, 'human', c), full = Math.round(424 + st.spi);
     var taps = r1.log.filter(function (e) { return e.spell === 'lifeTap'; });
     T.ok(taps.every(function (e) { return Math.abs(e.gain - full) <= 1; }), 'every tap gains the full ' + full + ' mana (never wasted at the cap)', taps.map(function (e) { return e.gain; }).join(','));
     var noDE = tb(['lifeTapPet', 'shadowBolt'], {}, { pet: 'imp' }), r2 = WL.simulateOnce(noDE, 'human', c, {});

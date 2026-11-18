@@ -15,7 +15,7 @@
   T.run('round 71: Death Coil', function () {
     T.group('Death Coil data (spell 17926 Rank 3, Effect Value 455 − 1)');
     var s = WL.SPELLS.deathCoil;
-    T.eq([s.id, s.base, s.coef, s.cost, s.cd, s.cast, s.school].join(','), '17926,454,0.214,600,120,0,shadow', 'id 17926, 454 + 21.4% SP, 600 mana, 2 min cooldown, instant, Shadow');
+    T.eq([s.id, s.base, s.coef, s.cost, s.cd, s.cast, s.school].join(','), '17926,460,0.214,600,120,0,shadow', 'id 17926, 460 (454 + 3 × 2 levels, round 233) + 21.4% SP, 600 mana, 2 min cooldown, instant, Shadow');
 
     T.group('Death Coil on cooldown');
     var c = det(), b = tb(['deathCoil', 'shadowBolt']), sp = WL.buildSpellTable(b, WL.computeStats(b, 'human', c), c).deathCoil.sp;
@@ -24,7 +24,7 @@
     T.ok(dt.length === 3 && dt[0] === 0 && dt.slice(1).every(function (x, i) { return x - dt[i] >= 120 - 1e-6 && x - dt[i] <= 120 + sbc + 1e-6; }),
       'cast at 0 s and again as soon as it is ready (120 s, at most one Shadow Bolt cast later): ' + dt.map(function (x) { return x.toFixed(1); }).join(', '));
     var hits = r.log.filter(function (e) { return e.type === 'hit' && e.spell === 'deathCoil'; });
-    T.ok(hits.length === 3 && hits.every(function (e) { return e.dmg === Math.round(454 + 0.214 * sp); }), 'each hit = 454 + 0.214 × ' + sp + ' SP = ' + Math.round(454 + 0.214 * sp));
+    T.ok(hits.length === 3 && hits.every(function (e) { return e.dmg === Math.round(460 + 0.214 * sp); }), 'each hit = 460 + 0.214 × ' + sp + ' SP = ' + Math.round(460 + 0.214 * sp));
 
     T.group('Death Coil as the finisher');
     // Round 161: plenty of mana and a 61 s fight — 20 Shadow Bolts end at 60 s, leaving 1 s for the finisher. Before, it

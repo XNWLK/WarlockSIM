@@ -20,7 +20,7 @@
   function dmg(r) { return (r.bySpell.hellfire || { dmg: 0 }).dmg; }
   // one whole channel in a 16 s fight: what each tick does to you (Soul Link's +3% damage does not touch it: no damage talents)
   function self(b, c) { var r = run(b, c); return { r: r, perTick: r.health.self / ticks(r), n: ticks(r) }; }
-  function raw(b, c) { return 206 + 0.022 * WL.computeStats(b, 'human', c || det()).sp; }
+  function raw(b, c) { return 210.2 + 0.022 * WL.computeStats(b, 'human', c || det()).sp; }
 
   T.run('round 132: Molten Skin and Soul Link reduce Hellfire\'s damage to yourself', function () {
     T.group('the talent values');
@@ -30,7 +30,7 @@
 
     T.group('Molten Skin');
     var b0 = tb(), s0 = self(b0), base = Math.round(raw(b0));
-    T.eq(s0.n + ' × ' + s0.perTick, '15 × ' + base, 'no talents: 15 ticks of ' + base + ' to yourself (206 + 2.2% of spell power), as before');
+    T.eq(s0.n + ' × ' + s0.perTick, '15 × ' + base, 'no talents: 15 ticks of ' + base + ' to yourself (210.2 + 2.2% of spell power), as before');
     [1, 2, 3, 4, 5].forEach(function (p) {
       var s = self(tb({ moltenSkin: p }));
       T.eq(s.perTick, Math.round(raw(b0) * (1 - 0.02 * p)), p + ' / 5: ' + s.perTick + ' per tick (−' + 2 * p + '%)');
@@ -55,7 +55,7 @@
     var bBoth = tb({ demonicSacrifice: 1, soulLink: 1, moltenSkin: 5 }, 'imp'), sBoth = self(bBoth);
     T.eq(sBoth.perTick, Math.round(raw(bBoth) * 0.90 * 0.70), 'Molten Skin 5 / 5 + Soul Link: ' + sBoth.perTick + ' per tick (× 0.90 × 0.70 = −37%, not −40%)');
     var hi = det(function (c) { c.gear.sp = 2000; }), sHi = self(bBoth, hi);
-    T.eq(sHi.perTick, Math.round((206 + 0.022 * WL.computeStats(bBoth, 'human', hi).sp) * 0.63), 'the spell power part is reduced too (' + sHi.perTick + ' at 2,000 spell power)');
+    T.eq(sHi.perTick, Math.round((210.2 + 0.022 * WL.computeStats(bBoth, 'human', hi).sp) * 0.63), 'the spell power part is reduced too (' + sHi.perTick + ' at 2,000 spell power)');
 
     T.group('what follows from it: more Hellfire on the same health');
     var some = det(function (c) { c.fight.healAmount = 500; c.fight.healEvery = 10; }), long0 = run(b0, some, 120), longB = run(bBoth, some, 120);
@@ -65,7 +65,7 @@
 
     T.group('nothing else changes');
     var tap = function (t) { var r = run(tb(t, t.soulLink ? 'imp' : null, null, ['shadowBolt']), det(), 120); return r.lifeTaps + ' taps / ' + r.health.tap; };
-    T.eq(tap({ demonicSacrifice: 1, soulLink: 1, moltenSkin: 5 }).split(' / ')[1] / parseInt(tap({ demonicSacrifice: 1, soulLink: 1, moltenSkin: 5 }), 10), 430, 'Life Tap still costs 430 health with both talents (a cost, not damage)');
+    T.eq(tap({ demonicSacrifice: 1, soulLink: 1, moltenSkin: 5 }).split(' / ')[1] / parseInt(tap({ demonicSacrifice: 1, soulLink: 1, moltenSkin: 5 }), 10), 424, 'Life Tap still costs 424 health with both talents (a cost, not damage)');
     var rune = function (t, pet) { return run(tb(t, pet, null, ['shadowBolt']), det(function (c) { c.consumables.demonicRune.on = true; }), 60).health.self; };
     T.eq(rune({}, null) + ' / ' + rune({}, 'imp'), '800 / 800', 'the Demonic Rune costs 800 without the talents (round 133: less with them)');
     T.eq(self(tb({ moltenSkin: 5 }, null, null, ['rainOfFire'])).r.health.self, 0, 'Rain of Fire does not hurt you, talents or not');

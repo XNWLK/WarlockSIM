@@ -24,7 +24,7 @@
     // Corruption 10 = +20%; the Demonic Sacrifice aura (×1.15) multiplies.
     T.near(co.tickDmg, (57 + 0.2 * 721) * 1.15 * (1 + 0.10 + 0.10), 1e-9, 'Corruption tick = 201.2 × DS 1.15 × (1 + SM 10% + ImpCorr 10%)');
     var wr = t.wrack;
-    T.near(wr.tickDmg, (60 + 0.2002 * 721) * 1.15 * (1 + 0.10), 1e-9, 'Wrack tick = (60 + 0.2002 × SP) × DS × (1 + SM 10%) — Improved Drains does not count (patch of 2026-11-10: 70% of 86 + 0.286)');
+    T.near(wr.tickDmg, (60.2 + 0.2002 * 721) * 1.15 * (1 + 0.10), 1e-9, 'Wrack tick = (60.2 + 0.2002 × SP) × DS × (1 + SM 10%) — Improved Drains does not count (patch of 2026-11-10: 70% of 86 + 0.286)');
     T.near(t.drainLife.tickDmg, (51 + 0.10 * 721) * 1.15 * (1 + 0.10 + 0.20), 1e-9, '… but still raises Drain Life: × (1 + SM 10% + Improved Drains 20%)');
     T.near(wr.critMult, 2.0, 1e-12, 'Wrack crit mult 2.0 (Pandemic)');
     T.near(t.baneOfAgony.tickDmg, (46 + 0.133 * 721) * 1.15 * (1 + 0.10 + 0.10), 1e-9, 'BoA avg tick = DS × (1 + SM 10% + Improved BoA 10%)');
@@ -44,7 +44,7 @@
     T.near(t.immolate.tickDmg, (52 + 0.13 * 721) * 1.15 * 1.10, 1e-9, 'Immolate tick: no Aftermath');
     T.near(t.conflagrate.critPct, 22 + 25, 1e-9, 'Conflagrate crit 22 (incl. Firestone; no Savage since round 161) + Fire and Brimstone 25');
     T.near(t.soulFire.cast, 4.0, 1e-9, 'Soul Fire cast 6 − 2 (Bane)');
-    T.near(t.shadowburn.directDmg, (266 + 0.429 * 700) * 1.10, 1e-9, 'Shadowburn: no Spellstone SP, AgF only');
+    T.near(t.shadowburn.directDmg, (273.2 + 0.429 * 700) * 1.10, 1e-9, 'Shadowburn: no Spellstone SP, AgF only (273.2 = 266 + 1.8 × 4 levels, round 233)');
     T.near(t.corruption.cast, 1.2, 1e-9, 'Corruption cast 2.0 − 0.8 (Improved Corruption 2/5)');
   });
 
