@@ -470,6 +470,29 @@ window.WL = window.WL || {};
     EPR.forEach(function (x) { eps[x.id] = { until: -1 }; });
     var REV = EPR.filter(function (x) { return x.fx.proc.kind === 'crit'; })[0] || null;
     var TRX = TRK.length > 0 || EPR.length > 0;
+    // Other gear with an effect (round 235, user: Blade of Eternal Darkness) [A127]: 'ppmCast' rolls on each landed spell you
+    // cast at an enemy (curses, DoT / channel casts included, once per target; never ticks), at procsPerMin × max(minCast,
+    // the cast time of the cast that launched it) / 60. landCT: that cast time, set right before each landing.
+    var IFX = WL.equippedItemFx ? WL.equippedItemFx(cfg) : [], ifs = {}, landCT = 0;
+    IFX.forEach(function (x) { ifs[x.id] = { icdUntil: -1 }; });
+    function itemOnLand(ti, castT) {
+      IFX.forEach(function (x) {
+        var p = x.fx.proc, st = ifs[x.id];
+        if (p.kind !== 'ppmCast' || S.t < st.icdUntil - EPS) return;
+        if (R.proc() >= p.procsPerMin * Math.max(p.minCast, castT || 0) / 60) return;
+        st.icdUntil = S.t + p.icd;
+        var g = Math.min(p.mana, stats.maxMana - S.mana); S.mana += g; res.manaFromItems = (res.manaFromItems || 0) + g;   // also when its hit is resisted
+        var key = 'trinket:' + x.id, r = row(key); r.casts++;                 // one row for every target (it hits target ti)
+        if (R.hit() * 100 >= hitNow()) { r.misses++; L('miss', key, { mana: g }); return; }
+        r.landed++;
+        var amt = p.min + (p.max - p.min) * R.proc();
+        var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe');
+        if (coe && COE_SCHOOLS[p.school]) amt *= 1 + SPELLS.curseOfElements.dmgTakenPct / 100;
+        var crit = R.crit() * 100 < stats.critPct; if (crit) amt *= cb.critMultiplier;
+        deal(key, amt, crit, false, ti > 1 ? ti : undefined);
+        L('hit', key, { dmg: Math.round(amt), crit: crit, mana: g });
+      });
+    }
     // Round 209 (user) [A113]: the fight's boss type / zone multiply an effect (WL.fxMult); new kinds hit, stats, costRed,
     // dmgOver, the Intellect a trinket adds or takes (crit), procs that deal damage.
     var KM = 1 + WL.activeBuffs(cfg).reduce(function (a, b) { return a + (b.statPct || 0); }, 0) / 100;   // Kings on a trinket's attributes
@@ -854,6 +877,7 @@ window.WL = window.WL || {};
       var s = SPELLS[key], e = table[key], rk = xkey(ti, key), r = row(rk);
       if (missRoll(key)) { r.misses++; L('miss', rk); return false; }
       r.landed++;
+      if (IFX.length) itemOnLand(ti, landCT);                              // Blade of Eternal Darkness (round 235)
       if (key === 'baneOfAgony') S.ampUp = false;                                        // Amplify Curse spent on a landed Bane (round 200)
       if (s.kind === 'utility') {                                         // your Curse of the Elements on this target
         if (key === 'curseOfElements') { S.xdeb[ti].coe = S.t + s.duration; L('debuff', rk); }
@@ -925,6 +949,7 @@ window.WL = window.WL || {};
       var s = SPELLS[key], e = table[key], r = row(key);
       if (missRoll(key)) { r.misses++; L('miss', key); return false; }                  // [A01][A17]; cheat mode (round 166)
       r.landed++;
+      if (IFX.length) itemOnLand(0, landCT);                              // Blade of Eternal Darkness (round 235) [A127]
       if (key === 'baneOfAgony') S.ampUp = false;                                        // Amplify Curse spent on a landed Bane (round 200)
       if (s.kind === 'utility') {
         if (key === 'curseOfElements') { S.buffs.coe = S.t + s.duration; L('debuff', key); }
@@ -1050,6 +1075,7 @@ window.WL = window.WL || {};
           r.misses++; L('miss', key); if (fromTL) TL.turn = true; S.busyUntil = S.t; S.gcdReady = S.t + gcdT; scheduleDecide(S.gcdReady); return;
         }
         r.landed++;
+        if (IFX.length) itemOnLand(0, 0);                                 // on cast (a channel prices as an instant), not on its ticks [A127]
         touchOfTheGrave();                                                // on cast, not on the channel's ticks [A29]
         jowProc(false);                                                   // [A64]
         var id = ++inst;
@@ -1064,15 +1090,16 @@ window.WL = window.WL || {};
         S.busyUntil = S.t + castT; S.gcdReady = S.t + gcdT;
         row(rk).castTime += castT;
         // projectiles land `TRAVEL` s after the cast ends (round 39; the caster is free at cast end)
-        var ce = { t: S.busyUntil + (s.projectile ? TRAVEL : 0), o: 1, type: 'castEnd', key: key, castMult: castMult, target: target, tl: fromTL };
+        var ce = { t: S.busyUntil + (s.projectile ? TRAVEL : 0), o: 1, type: 'castEnd', key: key, castMult: castMult, target: target, tl: fromTL, castT: castT };
         H.push(ce);
         S.cast = { key: key, rk: rk, full: castT, end: S.busyUntil, ev: ce, n: 0 };     // pushback (round 78)
         scheduleDecide(Math.max(S.busyUntil, S.gcdReady));
       } else {
         S.busyUntil = S.t; S.gcdReady = S.t + gcdT;
         row(rk).castTime += gcdT;
-        if (s.projectile && TRAVEL > EPS) H.push({ t: S.t + TRAVEL, o: 1, type: 'castEnd', key: key, castMult: castMult, target: target, tl: fromTL });
+        if (s.projectile && TRAVEL > EPS) H.push({ t: S.t + TRAVEL, o: 1, type: 'castEnd', key: key, castMult: castMult, target: target, tl: fromTL, castT: castT });
         else {
+          landCT = castT;
           if (!land(key, eurekaAt(key, S.t), castMult, target) && fromTL) TL.turn = true;
         }
         scheduleDecide(S.gcdReady);
@@ -1457,6 +1484,7 @@ window.WL = window.WL || {};
         S.mana -= table.baneOfHavoc.cost; S.buffs.havoc = S.t + SPELLS.baneOfHavoc.duration;
         if (table.baneOfHavoc.cost > 0) S.lastSpend = S.t;
         row('baneOfHavoc').casts++; row('baneOfHavoc').castTime += hg; L('cast', 'baneOfHavoc', { castTime: 0, gcd: +hg.toFixed(3) });
+        if (IFX.length) itemOnLand(HAV_T, 0);                            // a curse on target 2 (round 235)
         S.busyUntil = S.t; S.gcdReady = S.t + hg; scheduleDecide(S.gcdReady); return;
       }
       manaBuffCheck();
@@ -1546,7 +1574,7 @@ window.WL = window.WL || {};
       row(PRE).casts++; row(PRE).castTime += preGcd;
       S.minManaCheck();
       L('cast', PRE, { castTime: 0, gcd: +preGcd.toFixed(3), precast: +preCast.toFixed(3) });
-      H.push({ t: SPELLS[PRE].projectile ? TRAVEL : 0, o: -1, type: 'castEnd', key: PRE, castMult: 1, target: 0 });
+      H.push({ t: SPELLS[PRE].projectile ? TRAVEL : 0, o: -1, type: 'castEnd', key: PRE, castMult: 1, target: 0, castT: preCast });
       decideToken++; H.push({ t: preGcd + LAT, o: 2, type: 'decide', token: decideToken });   // your next cast: after the GCD and your reaction time, as after every cast
     } else scheduleDecide(0);
     if (HEAL) for (var ht = HEAL.every; ht < dur - EPS; ht += HEAL.every) H.push({ t: ht, o: 0, type: 'heal' });
@@ -1573,6 +1601,7 @@ window.WL = window.WL || {};
       } else if (ev.type === 'castEnd') {
         if (ev.dead) continue;                                // pushed back: a later copy of this event lands it (round 78)
         var fin = ev.t - (SPELLS[ev.key].projectile && TRAVEL > EPS ? TRAVEL : 0);   // when the cast finished (a projectile flies on)
+        landCT = ev.castT || 0;                               // the cast time of this cast (Blade of Eternal Darkness, round 235)
         if (!land(ev.key, eurekaAt(ev.key, fin), ev.castMult, ev.target) && ev.tl && TL) TL.turn = true;   // missed timeline cast → priority turn
       } else if (ev.type === 'mana') {
         var before = S.mana; S.mana = Math.min(stats.maxMana, S.mana + ev.amount); res.manaFromBuffs = (res.manaFromBuffs || 0) + (S.mana - before);

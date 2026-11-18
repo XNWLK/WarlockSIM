@@ -1169,7 +1169,7 @@
     if (k.indexOf('pet_') === 0) return (PET_NAMES[k.slice(4)] || k.slice(4)) + ' arrives';
     if (k.indexOf('item:') === 0) { var c = WL.CONSUMABLES[k.slice(5)]; return c ? c.name : k; }   // Engineering explosives
     if (k.indexOf('trinket:set') === 0) { var sf = (WL.SET_FX || {})[k.slice(11)]; return sf ? sf.name + ' (set bonus)' : k; }   // round 210
-    if (k.indexOf('trinket:') === 0) { var tf = (WL.TRINKET_FX || {})[k.slice(8)]; return tf ? tf.name : k; }
+    if (k.indexOf('trinket:') === 0) { var tf = (WL.TRINKET_FX || {})[k.slice(8)] || (WL.ITEM_FX || {})[k.slice(8)]; return tf ? tf.name : k; }   // round 235: other gear (Blade of Eternal Darkness)
     if (k === 'isb') return 'Improved Shadow Bolt';                                               // per-target ISB (round 39)
     var xt = /^x(\d):(\w+)$/.exec(k);                                                              // multi-DoT extra target
     if (xt) return spellName(xt[2]) + ' (target ' + xt[1] + ')';
@@ -1759,6 +1759,7 @@
       (m.spiritRegenAvg != null ? '<span title="5-second rule: Spirit only regenerates mana while you have spent none for 5 seconds. Life Tap does not restart the 5 seconds.">Mana from Spirit per fight (outside the 5-second rule)</span><span class="n">' +
         fmt(m.spiritRegenAvg, 0) + ' <span class="meta">in ' + fmt(m.fsrOutSecAvg, 1) + ' s</span></span>' : '') +
       (m.sacAvg > 0.5 ? kv('Mana from the Voidwalker sacrifice per fight', fmt(m.sacAvg, 0)) : '') + healthRows(r) +
+      (r.firstFight.manaFromItems ? kv('Mana from item procs (fight #1)', '+' + fmt(r.firstFight.manaFromItems, 0)) : '') +   // round 235
       (r.firstFight.manaFromJow || r.firstFight.petManaFromJow ? kv('Judgement of Wisdom (fight #1)', '+' + fmt(r.firstFight.manaFromJow || 0) + ' you' +
         (r.build.pet ? ' · +' + fmt(r.firstFight.petManaFromJow || 0) + ' pet' : '')) : '') +
       (r.build.pet ? kv('Fights where the pet ran out of mana', fmt(m.petOomFightsPct, 0) + '%' + (m.petOomFightsPct > 0 ? ' (avg ' + fmt(m.petOomSecAvg, 0) + ' s)' : '')) : '') +
@@ -4026,6 +4027,7 @@
     var hits = list.filter(function (x) { return (!q || x.it.name.toLowerCase().indexOf(q) >= 0) && (!isItem || gbPasses(x.id, x.it)); }).map(function (x) {
       var v = ctx ? WL.gearValue(x.it.stats, ctx.w, ctx.share) : null;
       if (v && isItem && WL.TRINKET_FX && WL.TRINKET_FX[x.id] && ctx.w.sp > 0) { var tw = WL.trinketSpWorth(WL.TRINKET_FX[x.id], cfg); v.dps += tw * ctx.w.sp; v.sp = (v.sp || 0) + tw; }   // round 166: a use effect, roughly
+      if (v && isItem && WL.ITEM_FX && WL.ITEM_FX[x.id] && ctx.w.sp > 0) { var iw = WL.ITEM_FX[x.id].about || 0; v.dps += iw * ctx.w.sp; v.sp = (v.sp || 0) + iw; }   // round 235: a weapon's proc, roughly
       if (v && !isItem && WL.ENCHANT_FX && WL.ENCHANT_FX[x.id] && ctx.w.sp > 0) { var ew = WL.ENCHANT_FX[x.id].about || 0; v.dps += ew * ctx.w.sp; v.sp = (v.sp || 0) + ew; }   // round 167: a weapon enchant's effect, roughly
       return { x: x, v: v };
     }).sort(function (a, b) {
@@ -4035,7 +4037,7 @@
     var head = '<p class="meta gbhitsum">' + fmt(hits.length) + ' ' + what + (hits.length === 1 ? '' : 's') + (q ? ' with that name' : ' for this slot') + (phN ? ' in ' + phN : '') + (filtered ? ' (filtered)' : '') +
       (ctx && hits.length > 1 ? ', best first for ' + esc(ctx.b.short) : '') + (hits.length > GB_HITS ? '. The first ' + GB_HITS + ' are shown: type a name to narrow it down.' : '.') + '</p>';
     return head + '<ul class="gblist">' + (hits.length ? hits.slice(0, GB_HITS).map(function (h) {
-      var it = h.x.it, st = gbStatText(it.stats), fxT = isItem && WL.TRINKET_FX && WL.TRINKET_FX[h.x.id] ? trkText(WL.TRINKET_FX[h.x.id]) : '';   // round 209: a trinket's effect
+      var it = h.x.it, st = gbStatText(it.stats), fxT = isItem && WL.TRINKET_FX && WL.TRINKET_FX[h.x.id] ? trkText(WL.TRINKET_FX[h.x.id]) : isItem && WL.ITEM_FX && WL.ITEM_FX[h.x.id] ? WL.itemFxText(WL.ITEM_FX[h.x.id]) : '';   // round 209: a trinket's effect; round 235: a weapon's
       var meta = [it.ilvl ? 'iLvl ' + it.ilvl : '', it.req ? 'Req ' + it.req : '', st || it.text || '', fxT].filter(Boolean).join(' · ');
       var tip = it.name + (st ? '\n' + st : '') + (it.text ? '\n' + it.text : '') + (fxT ? '\n' + fxT : '') + (it.twoHand ? '\nTwo-handed weapons only' : '') + (it.from ? '\n' + it.from : '') + (it.side ? '\n' + it.side + ' only' : '') + (it.unique ? '\nUnique' : '') +
         (h.v && h.v.sp != null ? '\n' + gbValText(it.stats, ctx, true) : '');
@@ -4172,6 +4174,8 @@
       var sel = fx.use && fx.use.kind !== 'mana' ? '<label class="c">Use <select data-trkuse="' + slot + '" aria-label="When to use ' + esc(it.name) + '">' + TRK_WHEN.map(function (w) { return '<option value="' + w[0] + '"' + ((use[slot] || 'cds') === w[0] ? ' selected' : '') + '>' + w[1] + '</option>'; }).join('') + '</select></label>'
         : fx.use ? '<label class="c"><input type="checkbox" data-trkuse="' + slot + '"' + ((use[slot] || 'cds') !== 'never' ? ' checked' : '') + '> use it</label>' : '';
       return '<div class="trk"><b>' + esc(it.name) + '</b><span>' + esc(trkText(fx)) + '</span>' + sel + '</div>';
+    }).join('') + WL.equippedItemFx({ gearBuilder: Object.assign({}, G, { on: true }) }).map(function (x) {   // round 235: gear with a proc (Blade of Eternal Darkness)
+      return '<div class="trk"><b>' + esc(x.fx.name) + '</b><span>' + esc(WL.itemFxText(x.fx)) + '</span></div>';
     }).join('') + ['mainHand'].map(function (slot) {                // round 167: the weapon enchant's effect
       var en = G.enchants && G.enchants[slot], fx = en && en.id != null && WL.ENCHANT_FX[en.id]; if (!fx || !(G.slots && G.slots[slot])) return '';
       var p = fx.proc, t = p.kind === 'sp' ? p.chancePct + '% chance per landed spell: +' + p.sp + ' spell power and ' + p.mana + ' mana for ' + p.duration + ' s'

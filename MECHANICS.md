@@ -919,6 +919,12 @@ stats.
 | Insight | 35% chance per landed damaging spell: Spirit +100% for 10 s (more mana from Life Tap). |
 | Revelation | A direct hit that does not crit has a chance to trigger it; the next direct hit within 15 s gets +100% crit chance. The chance is set to 10% × (1 − your crit chance), a guess: the game's rule is not in the spell data. |
 
+**Other gear with an effect** (worn in the gear builder, while the builder is on):
+
+| Item | In the sim |
+|---|---|
+| Blade of Eternal Darkness (main hand, +62 spell power) | Each spell you cast that lands on an enemy rolls, whether it deals damage or not: direct spells, curses, DoTs and channels when they land or start, Bane of Havoc; never a DoT or channel tick, Life Tap or your demon. The chance follows the cast time of that cast: 1.8 procs a minute, so 1.8 × max(1.5 s, cast time) / 60 — 4.5% on an instant, a channel or a 1.5 s cast, 7.5% on a 2.5 s Shadow Bolt. A proc deals 112 Shadow damage (no spell power; your spell hit and crit ×1.5; Curse of the Elements) and restores 104 mana, also when the hit is resisted; then 100 ms without a proc. Measured in game (2026-11-14 to 11-17): 554 procs of a mage, 49 of two warlocks and a priest. |
+
 **Cheat mode** (Fight & pets): ticked spells always hit and / or always crit, your demon's attacks too (its melee: no miss
 and no dodge; every swing that is not a glancing blow crits), to try streaks of luck. The results say "cheat mode" while it
 is on; these are not real numbers.

@@ -198,6 +198,38 @@ WL.equippedEnchantFx = function (cfg) {
   }).filter(Boolean);
 };
 
+// Other gear with an effect in the fight (round 235, user: "implement blade of eternal darkness with its stats and its
+// proc"). [A127] Keyed by item id; slot: the gear builder slot it must be worn in. Its stats are item stats (data/item-db.js).
+// proc kinds:
+//   'ppmCast' procsPerMin procs a minute, priced on the cast time of the cast that launched each landed harmful spell
+//             (at least minCast s): chance = procsPerMin × max(minCast, cast time) / 60. It rolls on every landed spell
+//             you cast at an enemy, whether it deals damage or not (curses, DoT and channel casts, Bane of Havoc), once per
+//             target; never on DoT or channel ticks, Life Tap or your demon. icd: not again for that long. It deals
+//             min…max (school), like a trinket's hit (no spell power, your spell hit and crit, Curse of the Elements),
+//             and restores `mana` even when that hit is resisted.
+WL.ITEM_FX = {
+  // "Chance on landing a damaging spell to deal 112 Shadow damage and restore 104 mana to you. (100ms cooldown)".
+  // Measured in game: 1.8 a minute on cast time (1.65 to 1.96), at least 1.5 s: 4.5% on an instant or a 1.5 s cast,
+  // 9% on a 3 s cast; harmful spells that deal no damage roll too (Corruption, Bane of Agony, Wrack and curse casts:
+  // 34 procs in 963 landings, 3.5%); DoT ticks never.
+  17780: { name: 'Blade of Eternal Darkness', slot: 'mainHand', about: 7,   // about: its rough worth in spell power for the list (round 235: 3.6 to 10.2 by build, 4 × 1000 fights)
+           proc: { kind: 'ppmCast', procsPerMin: 1.8, minCast: 1.5, icd: 0.1, min: 112, max: 112, school: 'shadow', mana: 104 } },
+};
+// The gear builder's items with an effect here: [{ slot, id, fx }] (only while the builder is on).
+WL.equippedItemFx = function (cfg) {
+  var gb = cfg && cfg.gearBuilder; if (!gb || !gb.on || !gb.slots) return [];
+  return Object.keys(WL.ITEM_FX).map(function (id) {
+    var fx = WL.ITEM_FX[id], e = gb.slots[fx.slot], wid = e && (e.id != null ? e.id : e.custom && e.custom.id);
+    return wid != null && +wid === +id ? { slot: fx.slot, id: +id, fx: fx } : null;
+  }).filter(Boolean);
+};
+// What an item's effect does, for the gear builder.
+WL.itemFxText = function (fx) {
+  var p = fx.proc;
+  return p.procsPerMin + ' a minute on your cast time (at least ' + p.minCast + ' s): ' + (p.min === p.max ? p.min : p.min + '–' + p.max) + ' ' +
+    p.school.charAt(0).toUpperCase() + p.school.slice(1) + ' damage and ' + p.mana + ' mana, on any landed spell you cast at an enemy (not on DoT ticks)';
+};
+
 // The trinkets in the gear builder's trinket slots that have an effect here: [{ slot, id, fx }].
 WL.equippedTrinkets = function (cfg) {
   var gb = cfg && cfg.gearBuilder; if (!gb || !gb.on || !gb.slots) return [];
