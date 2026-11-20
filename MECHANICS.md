@@ -249,50 +249,50 @@ The examples use the build **Shadow Demo** as an Undead in its Pre-BiS gear with
 - Stamina: (65 base + 1 Undead + 50 gear + 16 Mark / Gift of the Wild + 70 Power Word: Fortitude) × 1.09 Demonic Embrace × 1.10 Blessing of Kings = **242.2**
 - Maximum mana: (1,373 + 20 + 15 × (334.4 − 20)) × 1.15 Fel Vitality = **7,025.4**
 - Maximum health: 1,414 + 20 + 10 × (242.2 − 20) = **3,656**
-- Spell power: 386 gear + 150 Flask of Supreme Power + 35 Greater Arcane Elixir + 22 Nightfin Soup + 24 Wizard Oil + 60 Demonic Knowledge = **677**; Shadow spells: + 22 gear + 21 Major Spellstone + 40 Elixir of Shadow Power = **760**
+- Spell power: 386 gear + 150 Flask of Supreme Power + 35 Greater Arcane Elixir + 28 Baked Salmon / Lobster Stew + 24 Wizard Oil + 60 Demonic Knowledge = **683**; Shadow spells: + 22 gear + 21 Major Spellstone + 40 Elixir of Shadow Power = **766**
 - Hit: 83 base against a level-63 boss + 1 Suppression + 6.8 gear = **90.8%**
 - Crit: 7.1 sheet + 1.71 from 102.4 Intellect above the sheet ÷ 60 + 3 Moonkin Form aura + 2 Elixir of the Owl (does not stack with Elixir of Sages) = **13.81%**
 - Haste: **3%** (Major Spellstone + Wizard Oil).
 
 #### 2. Shadow Bolt
-1. Base hit: 251 + 0.857 × 760 = 902.3
+1. Base hit: 251 + 0.857 × 766 = 907.5
 2. Direct talent group (these add up): Agonizing Flames +10% → × 1.10
 3. Auras (each multiplies): 1.15 Demonic Sacrifice (Imp) × 1.10 Master Demonologist (Succubus) × 1.03 Soul Link = × 1.3029
-4. Hit before the boss's debuffs: 902.3 × 1.10 × 1.3029 = **1,293.2**
-5. With Curse of the Elements (× 1.10) and Improved Shadow Bolt (× 1.20) on the boss: **1,707.1**
-6. A crit (chance 13.81%) deals × 2 with Ruin: **3,414.2**
+4. Hit before the boss's debuffs: 907.5 × 1.10 × 1.3029 = **1,300.6**
+5. With Curse of the Elements (× 1.10) and Improved Shadow Bolt (× 1.20) on the boss: **1,716.8**
+6. A crit (chance 13.81%) deals × 2 with Ruin: **3,433.6**
 7. Cast time: 3 s − 0.5 s Bane = 2.5 s, ÷ 1.03 haste = 2.43 s. It misses 9.2% of the time.
 
 #### 3. Corruption
-1. Base tick: 57 + 0.2 × 760 = 209
+1. Base tick: 57 + 0.2 × 766 = 210.2
 2. Periodic talent group: Improved Corruption +2% → × 1.02
-3. Auras: × 1.3029 as above → **277.8** per tick
-4. With the curse and Improved Shadow Bolt on the boss: **366.6** per tick, 6 ticks = 2,199.9 before crits
+3. Auras: × 1.3029 as above → **279.4** per tick
+4. With the curse and Improved Shadow Bolt on the boss: **368.8** per tick, 6 ticks = 2,212.5 before crits
 5. Every tick rolls its own crit (13.81%, × 1.5). The spell power is read at each tick, so a potion or Blood Fury that starts later still counts for the ticks after it.
 
 #### 4. Bane of Doom
-(1,742 + 4 × 760) × 1.3029 auras = **6,230.7**; with the curse and Improved Shadow Bolt on the boss **8,224.5**; a crit deals × 1.5.
+(1,742 + 4 × 766) × 1.3029 auras = **6,262**; with the curse and Improved Shadow Bolt on the boss **8,265.8**; a crit deals × 1.5.
 
 #### 5. Touch of the Grave
 3,656 health × 5% = **182.8**. Nothing multiplies it: no aura, no curse, no Improved Shadow Bolt, no Power Infusion. No spell power, no crit, no resist roll. 30% chance per landed damaging cast, then nothing for 15 s.
 
 #### 6. The Succubus
 - Attack table of one swing: her melee hit = 8/17 × your spell hit 7.8% = 3.67%; miss 8% − 3.67% = **4.33%**, dodge **6.5%**, glancing blow **40%** (at 65% damage), crit your spell crit 13.81 − 4.8 = **9.01%** (× 2), normal hit the remaining **40.16%**.
-- Attack power from you: 677 spell power ÷ 6 = 112.9. Damage per second: 73.5 + 112.9 ÷ 14 = 81.56.
+- Attack power from you: 683 spell power ÷ 6 = 113.9. Damage per second: 73.5 + 113.9 ÷ 14 = 81.63.
 - Boss armor: 3,731 − armor debuffs = 976 → 976 ÷ (976 + 5,500) = 15.07% less physical damage.
-- One normal swing: 81.56 × 2 s × (1 − 0.1507) × 1.10 Unholy Power × 1.03 Soul Link = **157**. Master Demonologist and Curse of the Elements do not apply to melee.
-- Her spell power: 10% of 677 + 60 Demonic Knowledge = 127.7.
-- Lash of Pain: (50 × 1.30 Improved Sayaad + 0.429 × 127.7) × 1.10 × 1.03 × 1.10 Master Demonologist × 1.10 curse = **164.2**; it crits with your spell crit (13.81%) for × 1.5.
-- Demonic Brand hit: (66.5 + 0.078 × 760 Shadow spell power) × the same four multipliers = **172.4**. It cannot miss or crit.
+- One normal swing: 81.63 × 2 s × (1 − 0.1507) × 1.10 Unholy Power × 1.03 Soul Link = **157.1**. Master Demonologist and Curse of the Elements do not apply to melee.
+- Her spell power: 10% of 683 + 60 Demonic Knowledge = 128.3.
+- Lash of Pain: (50 × 1.30 Improved Sayaad + 0.429 × 128.3) × 1.10 × 1.03 × 1.10 Master Demonologist × 1.10 curse = **164.6**; it crits with your spell crit (13.81%) for × 1.5.
+- Demonic Brand hit: (66.5 + 0.078 × 766 Shadow spell power) × the same four multipliers = **173.1**. It cannot miss or crit.
 
 #### 7. Life Tap
 424 + 244.2 Spirit = **668.2 mana** for 424 health and one global cooldown (this build has no Improved Life Tap; with 2/2 it would be 801.8).
 
 #### 8. Talents of one group add up: Immolate and Incinerate
-Build **Incinerate Pandemic**, Undead, default settings; Fire spell power 635 + 31 Major Firestone + Wizard Oil = 666. No auras: this build has no Demonology points.
-- Immolate's hit: (146 + 0.2 × 666) × (1 + 10% Agonizing Flames + 50% Aftermath) = 279.2 × 1.60 = **446.7**. The two talents add to 60%; they do not multiply to 65%.
-- Immolate's burn, per tick: (52 + 0.13 × 666) × (1 + 10% Agonizing Flames) = **152.4**; 5 ticks.
-- Incinerate: (217 + 0.714 × 666) × 1.10 Agonizing Flames = 761.8; × 1.25 with Immolate on the boss × 1.10 curse × 1.20 Shadow and Flame (after a Shadowburn) = **1,256.9**; a crit (15.33%) deals × 2.
+Build **Incinerate Pandemic**, Undead, default settings; Fire spell power 641 + 31 Major Firestone + Wizard Oil = 672. No auras: this build has no Demonology points.
+- Immolate's hit: (146 + 0.2 × 672) × (1 + 10% Agonizing Flames + 50% Aftermath) = 280.4 × 1.60 = **448.6**. The two talents add to 60%; they do not multiply to 65%.
+- Immolate's burn, per tick: (52 + 0.13 × 672) × (1 + 10% Agonizing Flames) = **153.3**; 5 ticks.
+- Incinerate: (217 + 0.714 × 672) × 1.10 Agonizing Flames = 766.5; × 1.25 with Immolate on the boss × 1.10 curse × 1.20 Shadow and Flame (after a Shadowburn) = **1,264.7**; a crit (15.33%) deals × 2.
 
 #### 9. Resistance before the curse, and Spell Pierce
 - Before Curse of the Elements is up the boss has 24 level resistance: on average 4.59% of each hit or tick is resisted - 65.6% of them lose 0%, 22.9% of them lose 10%, 11.5% of them lose 20%.
@@ -751,15 +751,17 @@ exclude each other in Forever is assumed.*
 | Greater Mageblood Elixir | Elixir | off | 20 mana every 5 s | — |
 | Spirit of Zanza | Elixir | off | +50 Spirit, +50 Stamina | — |
 | Cerebral Cortex Compound | Elixir | off | +25 Intellect | — |
-| Nightfin Soup | Food | off | Well fed: +22 spell damage | Runn Tum Tuber Surprise |
-| Runn Tum Tuber Surprise | Food | off | Well fed: +15 Intellect | Nightfin Soup |
+| Baked Salmon / Lobster Stew | Food | off | Well fed: +28 spell damage | Soaring Pamplona / Bat Hachee / Prehistoric Pulled Raptor |
+| Soaring Pamplona / Bat Hachee / Prehistoric Pulled Raptor | Food | off | Well fed: +20 Intellect | Baked Salmon / Lobster Stew |
 | Kreeg's Stout Beatdown | Food | off | +25 Spirit, −5 Intellect | — |
 | Spellstone / Firestone (per build) | Weapon | on | Shadow builds: +2% haste, +21 Shadow SP · Fire builds: +2% crit, +21 Fire SP | — |
-| Brilliant Wizard Oil | Weapon | off | +36 spell damage, +1% crit | Wizard Oil |
-| Wizard Oil | Weapon | off | +24 spell damage | Brilliant Wizard Oil |
-| Major Mana Potion | Potion | off | 1800 mana, 2 min cooldown | Restored Mana Potion, Major Spellblasting Potion |
-| Restored Mana Potion | Potion | off | 20% of maximum mana, 2 min cooldown | Major Mana Potion, Major Spellblasting Potion |
-| Major Spellblasting Potion | Potion | off | +47 spell damage for 30 s (2 min cooldown); popped with your other cooldowns | Major Mana Potion, Restored Mana Potion |
+| Brilliant Wizard Oil | Weapon | off | +36 spell damage, +1% crit | Wizard Oil, Blessed Wizard Oil |
+| Wizard Oil | Weapon | off | +24 spell damage | Brilliant Wizard Oil, Blessed Wizard Oil |
+| Blessed Wizard Oil | Weapon | off | +60 spell damage against Undead; only with Boss type Undead | Brilliant Wizard Oil, Wizard Oil |
+| Major Mana Potion | Potion | off | 1800 mana, 2 min cooldown | Restored Mana Potion, Major Spellblasting Potion, Potion of Elemental Purging |
+| Restored Mana Potion | Potion | off | 20% of maximum mana, 2 min cooldown | Major Mana Potion, Major Spellblasting Potion, Potion of Elemental Purging |
+| Major Spellblasting Potion | Potion | off | +47 spell damage for 30 s (2 min cooldown); popped with your other cooldowns | Major Mana Potion, Restored Mana Potion, Potion of Elemental Purging |
+| Potion of Elemental Purging | Potion | off | +105 spell damage against Elementals for 5 min (2 min cooldown); only with Boss type Elemental | Major Mana Potion, Restored Mana Potion, Major Spellblasting Potion |
 | Goblin Sapper Charge | Engineering | off | 450–750 Fire, 5 min cooldown; 375–625 damage to you | — |
 | Dense Dynamite | Engineering | off | 340–460 Fire, 1 min cooldown | Thorium Grenade |
 | Thorium Grenade | Engineering | off | 300–500 Fire, 1 min cooldown | Dense Dynamite |

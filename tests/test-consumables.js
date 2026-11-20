@@ -33,7 +33,7 @@
     T.near(s.critPct - s0.critPct, 2 + 25 / 60, 1e-9, 'Owl: +2% crit + 25 Int / 60');
     T.eq(['flaskDistilledWisdom', 'greaterIntellect', 'elixirCunning', 'greaterSpirit', 'brilliantManaOil'].filter(function (k) { return WL.CONSUMABLES[k]; }).join(','), '', 'removed in round 90 (user): Distilled Wisdom, Greater Intellect, Cunning, Greater Spirit, Brilliant Mana Oil');
     T.near(WL.computeStats(b, 'human', only(base(), ['flaskSupremePower'])).sp - s0.sp, 150, 1e-9, 'Flask of Supreme Power +150 SP');
-    T.near(WL.computeStats(b, 'human', only(base(), ['nightfinSoup'])).sp - s0.sp, 22, 1e-9, 'Nightfin Soup +22 SP (Forever value)');
+    T.near(WL.computeStats(b, 'human', only(base(), ['bakedSalmon'])).sp - s0.sp, 28, 1e-9, 'Baked Salmon / Lobster Stew +28 SP (Forever value; round 237, was Nightfin Soup +22)');
     T.near(WL.computeStats(b, 'human', only(base(), ['greaterArcaneElixir'])).sp - s0.sp, 35, 1e-9, 'Greater Arcane Elixir +35 SP');
     T.eq(['arcaneElixir', 'minorArcaneElixir', 'magebloodElixir', 'sagefishDelight'].filter(function (k) { return WL.CONSUMABLES[k]; }).join(','), '', 'smaller versions removed: only the biggest of each consumable (user, round 87; Wizard Oil back in round 212 — Brilliant Wizard Oil is Phase 4)');
     T.ok(!WL.CONSUMABLES.superiorManaPotion, 'Superior Mana Potion removed (user round 12)');
@@ -66,7 +66,7 @@
     var fs2 = WL.computeStats(tb(['shadowBolt'], 'firestone'), 'human', only(base(), ['buildOil', 'brilliantWizardOil']));
     T.near(fs2.critPct - s0.critPct, 3, 1e-9, 'Firestone + Brilliant Wizard Oil: +2% + 1% crit');
     T.eq(WL.CONSUMABLES.buildOil.group, 'stone', 'the stone is its own group');
-    T.eq(Object.keys(WL.CONSUMABLES).filter(function (k) { return WL.CONSUMABLES[k].group === 'weapon'; }).join(','), 'brilliantWizardOil,wizardOil', 'weapon-oil group: Brilliant Wizard Oil (round 90) and Wizard Oil (round 212, user: Brilliant is Phase 4)');
+    T.eq(Object.keys(WL.CONSUMABLES).filter(function (k) { return WL.CONSUMABLES[k].group === 'weapon'; }).join(','), 'brilliantWizardOil,wizardOil,blessedWizardOil', 'weapon-oil group: Brilliant Wizard Oil (round 90), Wizard Oil (round 212, user: Brilliant is Phase 4), Blessed Wizard Oil (round 237, Undead only)');
     var sNone = WL.computeStats(ss, 'human', only(base(), []));
     T.near(sNone.hastePct + sNone.schoolSp.shadow, 0, 1e-9, 'weapon slot empty → no Spellstone');
     var noCons = base(); delete noCons.consumables;

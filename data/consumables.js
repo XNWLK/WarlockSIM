@@ -8,11 +8,12 @@
 //   options.activesPolicy, then on cooldown),
 //   manaRestore {amount | pct} (used when the missing mana ≥ the amount), cd (s), cdGroup ('potion' | 'rune').
 // Not included: Elixir of Greater Firepower (only its recipe exists in Forever; item 21546 is now Elixir of Holy Power),
-//   Blessed Wizard Oil (undead only), healing/melee/protection consumables, world buffs (not consumables),
+//   healing/melee/protection consumables, world buffs (not consumables),
 //   Superior Mana Potion (user round 12: not needed), smaller versions of a consumable (user, round 87: only the biggest of
-//   each — removed Arcane Elixir, Minor Arcane Elixir, Mageblood Elixir, Sagefish Delight, Wizard Oil; the smaller
+//   each — removed Arcane Elixir, Minor Arcane Elixir, Mageblood Elixir, Sagefish Delight, Wizard Oil; round 237: Nightfin Soup, Runn Tum Tuber Surprise; the smaller
 //   Spellblasting potions were never added), Flask of Distilled Wisdom, Elixir of Greater Intellect, Elixir of Cunning,
-//   Elixir of Greater Spirit and Brilliant Mana Oil (user, round 90: not wanted), Elixir of the Sages (+18 Int / Spi; user,
+//   Elixir of Greater Spirit and Brilliant Mana Oil (user, round 90: not wanted), Elixir of the Whale (the same as Elixir of
+//   Sages), Wicked Smoothie (+20 Spirit food; user, round 237: not picked), world buffs (user, round 237: no), Elixir of the Sages (+18 Int / Spi; user,
 //   round 91 — Elixir of Sages, +25 Spirit +2% crit, stays), Dark Iron Bomb (Forever tooltip says 9661 Fire vs Classic 344–456:
 //   a data error, removed by the user in round 16).
 // Icons: Forever item XML `icon`, except 4 elixirs whose Forever DB icon differs from the in-game one (user, round 12):
@@ -49,10 +50,13 @@ WL.CONSUMABLES = {
                          text: 'Increases Intellect by 25 when consumed. Effect lasts for 60 minutes.' },
 
   // ---------------- Food & drink (one well-fed buff) ----------------
-  nightfinSoup:        { on: false, id: 13931, icon: 'inv_drink_17', cat: 'Food', group: 'food', name: 'Nightfin Soup', desc: 'Well fed: +22 spell damage', sp: 22,
-                         text: 'If you spend at least 10 seconds eating you will become well fed and gain 22 Spell Damage for 15 min.' },
-  runnTumTuber:        { on: false, id: 18254, icon: 'inv_misc_food_63', cat: 'Food', group: 'food', name: 'Runn Tum Tuber Surprise', desc: 'Well fed: +15 Intellect', int: 15,
-                         text: 'If you spend at least 10 seconds eating you will become well fed and gain 15 Intellect for 15 min.' },
+  // Round 237 (user, screenshot of Baked Salmon: "it seems we dont have that buff food"): the biggest of each kind (round 87
+  // rule) — Baked Salmon / Lobster Stew +28 replace Nightfin Soup (+22), the new +20 Intellect foods replace Runn Tum Tuber
+  // Surprise (+15). Old settings codes are mapped (engine/settings-code.js WL.RENAMED_SETTINGS).
+  bakedSalmon:         { on: false, id: 13935, icon: 'inv_misc_fish_20', cat: 'Food', group: 'food', name: 'Baked Salmon / Lobster Stew', desc: 'Well fed: +28 spell damage', sp: 28,
+                         text: 'If you spend at least 10 sec eating, you will become well fed and gain 28 Spell Damage for 15 min. (Lobster Stew 13933: the same)' },
+  soaringPamplona:     { on: false, id: 250066, icon: 'inv_misc_food_meat_cooked_05', cat: 'Food', group: 'food', name: 'Soaring Pamplona / Bat Hachee / Prehistoric Pulled Raptor', desc: 'Well fed: +20 Intellect', int: 20,
+                         text: 'If you spend at least 10 sec eating, you will become well fed and gain 20 Intellect for 15 min. (Bat Hachee 250067, Prehistoric Pulled Raptor 250075: the same)' },
   kreegsStout:         { on: false, id: 18284, icon: 'inv_drink_05', cat: 'Food', group: 'drink', name: "Kreeg's Stout Beatdown", desc: '+25 Spirit, −5 Intellect', spi: 25, int: -5,
                          text: 'Increases Spirit by 25, but decreases Intelligence by 5 for 15 min.' },
 
@@ -68,6 +72,10 @@ WL.CONSUMABLES = {
   // (data/config.js WL.PAGE_CONSUMABLES_ON), off in the engine's own default.
   wizardOil:           { on: false, id: 20750, icon: 'inv_potion_104', cat: 'Weapon', group: 'weapon', name: 'Wizard Oil', desc: '+24 spell damage', oil: { sp: 24 },
                          text: 'While applied to target weapon it increases spell damage and healing by up to 24. Lasts for 30 minutes.' },
+  // Round 237 (user picked it; left out until now as undead-only): counts only against Undead (fight.bossType, vs as in
+  // data/trinkets.js WL.fxHolds); against anything else the weapon carries no oil.
+  blessedWizardOil:    { on: false, id: 23123, icon: 'inv_potion_26', cat: 'Weapon', group: 'weapon', name: 'Blessed Wizard Oil', desc: '+60 spell damage against Undead; only with Boss type Undead', oil: { sp: 60 }, vs: { undead: 1 },
+                         text: 'While applied to target weapon it increases spell damage against undead by up to 60. Lasts for 1 hour.' },
 
   // ---------------- Potions (shared 2 min cooldown) ----------------
   majorManaPotion:     { on: false, id: 13444, icon: 'inv_potion_76', cat: 'Potion', group: 'potion', name: 'Major Mana Potion', desc: '1800 mana, 2 min cooldown', manaRestore: { amount: 1800 }, cd: 120, cdGroup: 'potion',
@@ -76,6 +84,10 @@ WL.CONSUMABLES = {
                          text: 'Restores 20% mana. (2 Min Cooldown)' },
   majorSpellblasting:  { on: false, id: 250937, icon: 'inv_potione_4', cat: 'Potion', group: 'potion', name: 'Major Spellblasting Potion', desc: '+47 spell damage for 30 s (2 min cooldown); popped with your other cooldowns', spPotion: { sp: 47, duration: 30 }, cd: 120, cdGroup: 'potion',
                          text: 'Increases Spell Damage by 47 for 30 sec.' },   // 47 since the Wowhead Forever tooltip of 2026-10-04 (40 before)
+  // Round 237 (user picked it): only against Elementals (fight.bossType; vs as in data/trinkets.js WL.fxHolds), else it is not
+  // used. Drunk with your other cooldowns like a Spellblasting Potion; its 5 min cover a whole fight of up to 5 min.
+  elementalPurging:    { on: false, id: 250954, icon: 'inv_alchemy_80_potion02blue', cat: 'Potion', group: 'potion', name: 'Potion of Elemental Purging', desc: '+105 spell damage against Elementals for 5 min (2 min cooldown); only with Boss type Elemental', spPotion: { sp: 105, duration: 300 }, cd: 120, cdGroup: 'potion', vs: { elemental: 1 },
+                         text: 'Increases Spell Damage by 105 against Elementals. Lasts 5 min.' },
 
   // ---------------- Engineering explosives (require the Engineering profession, W14 / A59) ----------------
   // Damage is fixed (no spell power / talents); explosives share a 1 min cooldown, the Sapper has its own 5 min cooldown.

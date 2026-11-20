@@ -16,7 +16,7 @@
       'the other builds keep their legs and wrist');
     T.group('Rugged Mantle of the Timbermaw');
     var R = WL.ITEMS[227808];
-    T.ok(R && (R.phase || 1) === 1, 'Rugged Mantle of the Timbermaw: Phase 1 (user: "include these shoulders as an upgrade alternative for all builds"; was 9)');
+    T.ok(R && R.phase === 9, 'Rugged Mantle of the Timbermaw: not in the game (round 236, user: "we dont think it\'s in the game"; round 217–235: Phase 1)');
     T.eq(R.from, 'Vendor: Meilosh', 'Rugged Mantle: sold by Meilosh, not a drop');
     T.ok(Object.keys(WL.PRE_RAID_BIS).every(function (k) { return WL.PRE_RAID_BIS[k].shoulder !== 227808; }), 'no main list wears it (an upgrade only)');
     T.group('tooltips');

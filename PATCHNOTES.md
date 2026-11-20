@@ -3,6 +3,11 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v203
+- **Baked Salmon:** the well-fed food with 28 spell damage (or Lobster Stew, the same) replaces Nightfin Soup (22) and is the page's default food, so every build gains about 4.5 DPS. The new +20 Intellect foods (Soaring Pamplona, Bat Hachee, Prehistoric Pulled Raptor) replace Runn Tum Tuber Surprise (15). Old settings codes switch to the new foods by themselves.
+- **Potion of Elemental Purging and Blessed Wizard Oil:** +105 spell damage against Elementals for 5 min, and +60 against Undead. They count only when the fight's Boss type (Fight & pets) is Elemental or Undead.
+- **Rugged Mantle of the Timbermaw:** shown as not in the game (under All items only), and no longer the shoulder upgrade on the pre-raid BiS lists.
+
 ## v202
 - **Blade of Eternal Darkness:** its proc now works in the gear builder, as measured in game: 1.8 procs a minute, priced on the cast time of each spell you land on an enemy (at least 1.5 s, so 4.5% on instants and channels, more on long casts), on curses, DoT and channel casts too but never on ticks; each proc deals 112 Shadow damage and gives 104 mana. It is worth about 3 to 8 DPS, which still leaves it below Witchblade and Blade of the New Moon.
 

@@ -40,6 +40,10 @@ WL.activeConsumables = function (cfg) {
   }).map(function (k) { var c = C[k]; c.key = k; return c; });
 };
 
+// Round 237: a consumable that works only against a boss type (vs: Blessed Wizard Oil, Potion of Elemental Purging) — does it
+// hold in this fight (fight.bossType)? Without the boss-type data (data/trinkets.js) it does not.
+WL.consumableHolds = function (cfg, c) { return !c.vs || (WL.fxHolds ? WL.fxHolds(cfg, c) : false); };
+
 // Weapon effects for a build (round 86, user: stone and oil are not exclusive in Forever): the per-build Spellstone /
 // Firestone (consumable group 'stone') and a weapon oil (group 'weapon') — both count. Returns the active ones as a list
 // of { name, sp, critPct, mp5, hastePct, schoolSp }; empty = nothing on the weapon.
@@ -49,7 +53,7 @@ WL.weaponEffects = function (build, cfg) {
   if (!cfg.consumables || !Object.keys(cfg.consumables).length) stone = { buildOil: true };   // configs without consumables
   if (stone && stone.buildOil && WL.OILS[build.oil] && build.oil !== 'none') out.push(WL.OILS[build.oil]);
   var w = act.filter(function (c) { return c.group === 'weapon'; })[0];
-  if (w && w.oil) out.push({ name: w.name, sp: w.oil.sp || 0, critPct: w.oil.critPct || 0, mp5: w.oil.mp5 || 0, hastePct: 0 });
+  if (w && w.oil && WL.consumableHolds(cfg, w)) out.push({ name: w.name, sp: w.oil.sp || 0, critPct: w.oil.critPct || 0, mp5: w.oil.mp5 || 0, hastePct: 0 });   // round 237: Blessed Wizard Oil only vs Undead
   return out;
 };
 

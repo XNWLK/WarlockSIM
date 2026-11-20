@@ -13,6 +13,10 @@ WL.RETIRED_SETTINGS = ['options.eurekaPolicy',    // round 88: Eureka! follows t
   'gear.agi', 'buffs.graceOfAir', 'buffs.scrollOfAgility',                  // round 152: Agility does nothing (demons crit with your spell crit)
   'buffs.blessingOfSalvation'];                                             // round 184: Salvation removed from the game (patch 2026-11-03)
 
+// Round 237: settings that moved to a new key (an old code turns on the new one): Baked Salmon replaced Nightfin Soup, the
+// +20 Intellect foods Runn Tum Tuber Surprise.
+WL.RENAMED_SETTINGS = { 'cons.nightfinSoup': 'bakedSalmon', 'cons.runnTumTuber': 'soaringPamplona' };
+
 WL.settingsSnapshot = function (c) {
   var on = function (o) { return Object.keys(o || {}).filter(function (k) { return o[k].on; }); };
   var snap = {
@@ -60,7 +64,7 @@ WL.applySettings = function (c, o) {
     Object.keys(o[sec] || {}).forEach(function (k) { if (k in c[sec]) c[sec][k] = o[sec][k]; else if (WL.RETIRED_SETTINGS.indexOf(sec + '.' + k) < 0) unknown.push(sec + '.' + k); });
   });
   [['buffs', 'buffs'], ['debuffs', 'debuffs'], ['cons', 'consumables']].forEach(function (p) {
-    var list = o[p[0]] || [], tgt = c[p[1]] || {};
+    var list = (o[p[0]] || []).map(function (k) { return WL.RENAMED_SETTINGS[p[0] + '.' + k] || k; }), tgt = c[p[1]] || {};   // round 237
     Object.keys(tgt).forEach(function (k) { tgt[k].on = list.indexOf(k) >= 0; });
     list.forEach(function (k) { if (!tgt[k] && WL.RETIRED_SETTINGS.indexOf(p[0] + '.' + k) < 0) unknown.push(p[0] + '.' + k); });
   });

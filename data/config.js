@@ -251,11 +251,11 @@ WL.PAGE_GEAR_MODE = 'preBis';
 // the lower tank of wizard oil and enable it" —, Major Spellblasting Potion and the Forever elixirs on, Cerebral Cortex
 // off, Curse of the Elements cast by you). The page's raid buffs and consumables; boss debuffs stay as in WL.DEFAULT_CONFIG
 // (Sunder Armor, Faerie Fire, Judgement of Wisdom). Not Phase 1: Brilliant Wizard Oil (4), Spirit of Zanza (Zul'Gurub),
-// Runn Tum Tuber Surprise / Kreeg's Stout (Dire Maul), the Atiesh auras (Naxxramas). [A118]
+// Kreeg's Stout (Dire Maul), the Atiesh auras (Naxxramas). Food: Baked Salmon (+28; round 237, was Nightfin Soup +22). [A118]
 WL.PAGE_BUFFS_ON = ['arcaneIntellect', 'markOfTheWild', 'fortitude', 'divineSpirit', 'blessingOfKings', 'concentrationAura', 'blessingOfWisdom',
   'manaSpring', 'restorativeTotems', 'moonkinAura'];
 WL.PAGE_CONSUMABLES_ON = ['flaskSupremePower', 'greaterArcaneElixir', 'shadowPower', 'firePower', 'elixirOwl', 'elixirSages', 'greaterMageblood',
-  'nightfinSoup', 'buildOil', 'wizardOil', 'majorSpellblasting', 'demonicRune'];
+  'bakedSalmon', 'buildOil', 'wizardOil', 'majorSpellblasting', 'demonicRune'];
 // The page's default settings from a copy of WL.DEFAULT_CONFIG (changed in place and returned): its gear mode, raid buffs
 // and consumables. Used by the page (WL.pageDefaultConfig), the Web Workers (pageGear jobs) and the tools that make the
 // shipped results, so all of them start from the same settings.

@@ -509,7 +509,7 @@
   // rotation), and the best consumable of every group. Potion: always Major Spellblasting (user, round 111; round 110 had
   // Major Mana Potion, which shares its cooldown — 04_EXPLORATION §44). No Engineering explosives: that is a profession, switched on in the Stats panel.
   var MAX_CONS = ['flaskSupremePower', 'greaterArcaneElixir', 'shadowPower', 'firePower', 'elixirOwl', 'elixirSages', 'greaterMageblood', 'spiritOfZanza',
-    'cerebralCortex', 'nightfinSoup', 'kreegsStout', 'buildOil', 'brilliantWizardOil', 'majorSpellblasting', 'demonicRune'];
+    'cerebralCortex', 'bakedSalmon', 'kreegsStout', 'buildOil', 'brilliantWizardOil', 'majorSpellblasting', 'demonicRune'];
   var SIDE_GROUPS = ['buffs', 'debuffs', 'consumables'];
   function gearLabel(c) { return c.gearMode === 'preBis' ? 'Realistic Pre-BiS gear (each build its own)' : gearText(c.gear); }   // round 211
   function gearText(g) { return g.sp + ' SP / ' + g.hitPct + '% hit / ' + g.critPct + '% crit / Int ' + g.int + ' / Spirit ' + g.spi + ' / Stamina ' + g.sta; }

@@ -314,7 +314,7 @@ window.WL = window.WL || {};
     }
     // Consumables used during the fight: Spellblasting Potion (SP), mana potions / runes (mana). [A57]
     var conList = WL.activeConsumables(cfg);
-    var spPot = conList.filter(function (c) { return c.spPotion; })[0] || null;
+    var spPot = conList.filter(function (c) { return c.spPotion && WL.consumableHolds(cfg, c); })[0] || null;   // round 237: Elemental Purging only vs Elementals
     var manaItems = conList.filter(function (c) { return c.manaRestore; });
     function potSp() { return spPot && S.buff('spPotion') ? spPot.spPotion.sp : 0; }
     // When the short cooldowns are popped for the first time (round 87, user; options.activesPolicy, A77): racial

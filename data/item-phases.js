@@ -146,7 +146,7 @@ WL.ITEM_PHASE_SET = {
   22757: 5,   // Sylvan Crown
   22758: 5,   // Sylvan Shoulders
   23084: 9,   // Gloves of Undead Cleansing
-  227808: 1,   // Rugged Mantle of the Timbermaw (round 217, user: "include these shoulders as an upgrade alternative for all builds"; was 9)
+  227808: 9,   // Rugged Mantle of the Timbermaw (round 217: 1, user: "include these shoulders as an upgrade alternative for all builds"; round 236: 9 again, user: "we dont think it's in the game")
   227862: 9,   // Incandescent Mooncloth Boots
   228190: 9,   // Knowledge of the Timbermaw
   234016: 5,   // Signet Ring of the Bronze Dragonflight
