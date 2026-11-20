@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v204
+- **Emperor's Seal of Magic:** now in the gear builder, as its +20 spell power roll. It is not on the pre-raid BiS lists: every ring there is better for every build.
+- **Pre-raid BiS lists:** Rune Band of Wizardry, the ring upgrade, now says you need a T0.5 summoner and that it is difficult, and it shows once per build (it is Unique-Equipped).
+
 ## v203
 - **Baked Salmon:** the well-fed food with 28 spell damage (or Lobster Stew, the same) replaces Nightfin Soup (22) and is the page's default food, so every build gains about 4.5 DPS. The new +20 Intellect foods (Soaring Pamplona, Bat Hachee, Prehistoric Pulled Raptor) replace Runn Tum Tuber Surprise (15). Old settings codes switch to the new foods by themselves.
 - **Potion of Elemental Purging and Blessed Wizard Oil:** +105 spell damage against Elementals for 5 min, and +60 against Undead. They count only when the fight's Boss type (Fight & pets) is Elemental or Undead.

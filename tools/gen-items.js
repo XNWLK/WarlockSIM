@@ -45,6 +45,9 @@ const STATS_FIX = { 254013: { s: { splpwr: 18, spldmg: 6, spi: 7 }, why: 'Earthe
   // Round 217 (user: "use 21 shadow wrath bracers as main for wrack"): a random-suffix item, kept as its "of Shadow Wrath" roll —
   // +21 Shadow damage (Wowhead Classic's random enchantments; Wowhead Forever lists none).
   11766: { s: { shasplpwr: 21 }, name: 'Flameweave Cuffs of Shadow Wrath', why: 'random suffix: the user picked the +21 Shadow Wrath roll' },
+  // Round 238 (user, in-game screenshot: "add this to the bis list as an upgrade, not as a default"): Emperor's Seal kept as its
+  // "of Magic" roll, +20 spell damage and healing (and +6 Arcane / Frost Resistance, not used).
+  11934: { s: { splpwr: 20 }, name: "Emperor's Seal of Magic", why: 'random suffix: the of Magic roll (+20; user, in-game tooltip)' },
   13409: { s: { shasplpwr: 22 }, name: 'Tearfall Bracers of Shadow Wrath', why: 'random suffix: the +22 Shadow Wrath roll (round 220, user: "looks like those bracers can roll up to 22"; in-game tooltip)' },
   // Round 218 (user: "use shadow wrath for wrack and have omnicast as the alternative"): boots kept as their top "of Shadow Wrath"
   // roll, +30 Shadow damage (Wowhead Classic: +29 – 30, 8.3%; the user: "i think they go up to 30").

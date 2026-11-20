@@ -70,6 +70,8 @@ const ADD = {
   // Round 220: Tearfall Bracers with the +22 Shadow Wrath roll, as the user's in-game screenshot shows it (2026-11-16; the roll as an
   // Equip line there; no Durability line in the screenshot).
   13409: '<table><tr><td><b class="q3">Tearfall Bracers of Shadow Wrath</b><br>Binds when picked up<table width="100%"><tr><td>Wrist</td><th><span class="q1">Cloth</span></th></tr></table><span>35 Armor</span><br><span>+11 Shadow Resistance</span></td></tr></table><table><tr><td>Requires Level 52<br><span class="q2">Equip: Increases damage done by Shadow spells and effects by up to <span>22</span>.</span></td></tr></table>',
+  // Round 238: Emperor's Seal of Magic as the user's in-game screenshot shows it (2026-11-20).
+  11934: '<table><tr><td><b class="q3">Emperor\'s Seal of Magic</b><br>Binds when picked up<table width="100%"><tr><td>Finger</td></tr></table>+6 Arcane Resistance<br>+6 Frost Resistance</td></tr></table><table><tr><td><span class="q2">Equip: Increases damage and healing done by magical spells and effects by up to 20.</span><br>Requires Level 55</td></tr></table>',
   // Round 218: Master's Boots (Wowhead Forever: 56 Armor, Durability 35, Requires Level 58) with the +30 Shadow Wrath roll.
   10247: '<table><tr><td><b class="q2">Master\'s Boots of Shadow Wrath</b><br>Binds when equipped<table width="100%"><tr><td>Feet</td><th><span class="q1">Cloth</span></th></tr></table><span>56 Armor</span><br><span>+30 Shadow Spell Damage</span><br>Durability 35 / 35</td></tr></table><table><tr><td>Requires Level 58</td></tr></table>',
   // Round 218: Master's Belt (Wowhead Forever: 45 Armor, Durability 25, Requires Level 57) with the +30 Shadow Wrath roll.
