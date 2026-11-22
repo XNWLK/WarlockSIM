@@ -36,9 +36,14 @@ WL.DEFAULT_CONFIG = {
     ratingPerCritPct: 14,   // [A04]
     ratingPerHastePct: 10,  // [A05]
     critMultiplier: 1.5,    // 150% unless a talent says otherwise (user-confirmed) [A06]
-    // Round 167: Revelation (weapon enchant) triggers on a non-periodic spell that does not crit at this % × (1 − your crit %).
-    // GUESS: the game's chance is a server-side script ("diminished as your critical strike chance increases"). [A106]
-    revelationChancePct: 10,
+    // Revelation (weapon enchant) triggers on a direct hit / Hellfire or Rain of Fire tick that does not crit at
+    // revelationChancePct × max(0, 1 − revelationCritFactor × your crit) (WL.revelationChancePct, data/trinkets.js).
+    // Round 243 (the user's choice: "Chance 11% × (1 − 2C)"): 11 = the enchant's "Value: 11" in the game files; factor 2 fits
+    // players' in-game counts on Forever (207 procs in 2,300 non-crit casts at 3.5–13.5% crit; this gives 217). Rounds
+    // 167–242: 10% × (1 − crit), a guess. The game's rule is a server-side script ("diminished as your critical strike
+    // chance increases"). [A106]
+    revelationChancePct: 11,
+    revelationCritFactor: 2,
     // Round 241 (user: "implement everything"): Dismantle (weapon enchant) deals 60–90 Nature to Mechanical bosses at this % per
     // landed damaging cast. GUESS: its aura's value 10 (Wowhead lists 100% on one aura, 30% on another; a server script). [A129]
     dismantleChancePct: 10,
@@ -72,8 +77,9 @@ WL.DEFAULT_CONFIG = {
     // miss → dodge → glancing → crit → hit. Miss 8% minus the pet's melee hit. Round 158 (user): pet melee hit = 8/17 of
     // your spell hit above the base (gear, Suppression, buffs; not capped) — before, all of it; round 159 (user): no hit
     // suppression any more, so 17% spell hit → 8% → no misses (rounds 42–158: the first 1% did not count) [A99]; dodge 6.5%; glancing 40% of swings at 65% damage (never crit);
-    // crit = your spell crit (round 152, user: nothing of the pet's own; rounds 75–151 own + your melee crit, rounds 32–74
-    // own + your spell crit) − 4.8% (3% skill gap + 1.8% vs a +3 boss). No parry / block from behind.
+    // crit = the demon's crit (round 244, petCrit below: live = its own 0.7% + your gear's crit; rounds 152–243 your spell crit,
+    // user: nothing of the pet's own; rounds 75–151 own + your melee crit, rounds 32–74 own + your spell crit) − 4.8% (3% skill
+    // gap + 1.8% vs a +3 boss). No parry / block from behind.
     petMelee: { missPct: 8, dodgePct: 6.5, hitFromSpell: 8 / 17, glancePct: 40, glanceDmgPct: 65, critSuppressionPct: 4.8 },
   },
   // Gear (user, 2026-09-23; round 13: SP 500). Percentages are character-sheet values BEFORE talents, racials and weapon oil. [A35][A42]
@@ -108,15 +114,18 @@ WL.DEFAULT_CONFIG = {
     // Round 78 (user): pushback protection for the whole party; adds to Intensity / Fel Concentration, at most 100%.
     // Classic value (Concentration Aura, all ranks 35%), not checked in Forever [A76].
     concentrationAura: { on: false, id: 19746, name: 'Concentration Aura',          cls: 'Paladin', desc: '35% chance to ignore pushback from damage', pushbackResistPct: 35 },
-    blessingOfWisdom: { on: true, id: 25290, name: 'Blessing of Wisdom',            cls: 'Paladin', desc: '40 mana every 5 s', mp5: 40 },
-    manaSpring:       { on: false, id: 10497, name: 'Mana Spring Totem',             cls: 'Shaman',  desc: '10 mana every 2 s (25 MP5)', mp5: 25 },
-    restorativeTotems:{ on: false, id: 16187, name: 'Restorative Totems (on Mana Spring)', cls: 'Shaman', desc: 'Mana Spring +25%', mp5: 6.25, requires: 'manaSpring' },
+    blessingOfWisdom: { on: true, id: 25290, name: 'Blessing of Wisdom',            cls: 'Paladin', desc: '40 mana every 5 s', mp5: 40, tick: true },
+    manaSpring:       { on: false, id: 10497, name: 'Mana Spring Totem',             cls: 'Shaman',  desc: '10 mana every 2 s (25 MP5)', mp5: 25, tick: true },
+    restorativeTotems:{ on: false, id: 16187, name: 'Restorative Totems (on Mana Spring)', cls: 'Shaman', desc: 'Mana Spring +25%', mp5: 6.25, tick: true, requires: 'manaSpring' },
     // Patch 2026-10-16 (user): Windfury Totem and Flametongue Totem only affect players now, so they no longer help your demon
     // — both removed (rounds 124–148 they did). Tranquil Air Totem removed too (every Paladin had Salvation then; Salvation itself is gone since 2026-11-03). [A93]
     // Round 152 (user): demons crit with your spell crit only, so Agility does nothing — Grace of Air Totem and Scroll of
     // Agility IV removed (rounds 75–151 they raised the melee crit the Succubus inherited). [A95]
     manaTide:         { on: false, id: 17359, name: 'Mana Tide Totem',               cls: 'Shaman',  desc: '290 mana every 3 s for 12 s, once, when you drop below 50% mana', tide: { amount: 290, every: 3, ticks: 4 } },
-    innervate:        { on: false, id: 29166, name: 'Innervate',                     cls: 'Druid',   desc: '5× mana regen while casting for 20 s, when you drop below 50% mana (once per Innervate)', innervate: { mult: 5, duration: 20 }, count: 1, maxCount: 5 },   // count: round 157
+    // Round 244 (the user's pick "The small ones"; a public combat-log study, a druid's regen ledger: regen = 5 × (Spirit regen
+    // + MP5) on 31 of 31 lines): 5 × (your Spirit regeneration + your MP5) while casting; the periodic energize ticks (tick:
+    // true — Blessing of Wisdom, Mana Spring, Restorative Totems) are not scaled. Rounds 114–243: 5 × Spirit regeneration only.
+    innervate:        { on: false, id: 29166, name: 'Innervate',                     cls: 'Druid',   desc: '5× mana regen (Spirit and MP5, not Blessing of Wisdom / Mana Spring ticks) while casting for 20 s, when you drop below 50% mana (once per Innervate)', innervate: { mult: 5, duration: 20 }, count: 1, maxCount: 5 },   // count: round 157
     moonkinAura:      { on: true, id: 24858, name: 'Moonkin Form aura',             cls: 'Druid',   desc: '+3% spell crit (raid)', critPct: 3 },
     // Round 157 (user: ideas from another sim): Atiesh, Greatstaff of the Guardian's party auras — one per holder in your
     // party (Classic values; Forever's not checked) [A97]; Blood Pact of another Warlock's Imp in your party (Rank 5, Classic).
@@ -212,6 +221,17 @@ WL.DEFAULT_CONFIG = {
   // (rounds 16–30, Season of Discovery value for the hidden "Warlock Pet Scaling" 416189). Demonic Knowledge adds its bonus to
   // the pet's spell power directly (tooltip: "your spell damage and your Demon pet's spell damage"). [A26]
   petSpPct: 10,
+  // Round 244 (the user's pick "The small ones"; a public combat-log study, a Sayaad at level 30): the "your spell power" the
+  // demon takes its tenth (and its attack power) from is your SCHOOL total — generic spell power + the better of your Shadow
+  // and Fire spell power (the Sayaad's 42 at the warlock's Shadow total 126 = 12.6 + 30 Demonic Knowledge; a demon has one
+  // spell damage value for every school, so the Imp's Firebolt reads the same number). Rounds 31–243: generic only. [A26]
+  petSchoolSp: true,
+  // Demon crit (round 244, the user's pick: "Demon crit as live"; a public combat-log study): live, a demon has its own crit
+  // (melee ~0.7% on Succubus logs; its own spell crit 0, as confirmed by the user 2026-10-08 [A26]) plus only your "+X%
+  // critical strike" GEAR (stats.gearCritPct: the gear's crit, not your Intellect, buffs or consumables) — fromOwner false.
+  // fromOwner true = the change announced on the community bug tracker and not live: your whole spell crit (rounds 152–243).
+  // Melee keeps the attack table's −4.8% against a +3 boss (combat.petMelee). [A95]
+  petCrit: { fromOwner: false, ownMeleePct: 0.7, ownSpellPct: 0 },
   // Mid-fight pet swap (round 35, A63; Wowhead Forever spell pages, 2026-09-25): Summon Imp 688 = 80% of base mana,
   // Summon Succubus 712 = 100%, 10 s cast, 1.5 s GCD; Demonic Sacrifice 18788 and Fel Domination 18708 are instant and
   // off the GCD; Fel Domination: next summon −6 s cast, −50% mana, 5 min cooldown; Master Summoner: −2/−4 s, −20/−40%
@@ -220,12 +240,17 @@ WL.DEFAULT_CONFIG = {
              felDom: { castRed: 6, costRedPct: 50, cd: 300 }, masterSummoner: { castRed: [2, 4], costRedPct: [20, 40] } },
   // Pets are simulated as their own actors [A26]. Spells from Wowhead Forever; melee/mana are informed assumptions.
   pets: {
+    // Mana regen (round 244, the user's pick "Imp regen from your Int"; a public combat-log study, level 30 pet panes and
+    // tooltips: "Increased by 30% / 10% of Master's Intellect"): mp5PerOwnerInt × your Intellect as MP5, all the time (MP5,
+    // no 5-second rule), nothing from the demon's own stats. Imp 30%, Voidwalker and Succubus 10%; the Felhunter's share
+    // was not read, so it keeps manaRegen (per second). Rounds 1–243: 8 mana a second for every demon. Pools unchanged
+    // (2000, the notes cannot split the warlock's share of a demon's maximum mana). [A45]
     imp: {
-      name: 'Imp', mana: 2000, manaRegen: 8,                       // [A45] mana pool / regen per second
+      name: 'Imp', mana: 2000, mp5PerOwnerInt: 0.30,                // [A45] mana pool / regen = 30% of your Int as MP5
       spell: { key: 'firebolt', name: 'Firebolt', id: 11763, school: 'fire', base: 45.2, lvl: { base: 44, per: 0.6, from: 58, to: 63 }, coef: 0.571, cast: 2.0, cost: 115, range: 30, projectile: true },   // Effect Value 45 − 1 (round 42, SPELLVALUES.md)
     },
     succubus: {
-      name: 'Succubus', mana: 2000, manaRegen: 8,                   // [A45]
+      name: 'Succubus', mana: 2000, mp5PerOwnerInt: 0.10,           // [A45] 10% of your Int as MP5 (round 244)
       spell: { key: 'lashOfPain', name: 'Lash of Pain', id: 11780, school: 'shadow', base: 50, coef: 0.429, cast: 0, cd: 12, cost: 160, range: 5 },   // Effect Value 51 − 1 (round 42)
       // [A46] Base: Season of Discovery values (L60 Succubus base stats, identical in Classic and Season of Discovery):
       // weapon 95–131 per 2.0 s = 56.5 DPS + own AP (Str 129 × 2 − 20 = 238) / 14 = 17.0 → 73.5 DPS.
@@ -238,8 +263,12 @@ WL.DEFAULT_CONFIG = {
                inheritSpellCrit: true,                   // round 152 (user): crit = your spell crit, nothing of her own [A95]   // crit ×2; armor from boss armor − debuffs
                range: 5 },                               // round 136 (user): her melee reaches 5 yards, the same as Lash of Pain. Data only: the fight engine never checks range [A78]
     },
-    felhunter: { name: 'Felhunter', mana: 2000, manaRegen: 8, melee: { baseDps: 40, swing: 2.0, apPerSp: 0.1667, apPerDps: 14, inheritSpellCrit: true } },   // round 152: your spell crit [A95]
-    voidwalker:{ name: 'Voidwalker',mana: 2000, manaRegen: 8, melee: { baseDps: 30, swing: 2.0, apPerSp: 0.1667, apPerDps: 14, inheritSpellCrit: true } },
+    felhunter: { name: 'Felhunter', mana: 2000, manaRegen: 8, melee: { baseDps: 40, swing: 2.0, apPerSp: 0.1667, apPerDps: 14, inheritSpellCrit: true } },   // round 152: your spell crit [A95]; regen: its share of your Int was never read (round 244 keeps 8 a second) [A45]
+    // Round 244 (the user's pick "The small ones"; a public combat-log study, one set of level 30 sheets: LOW confidence): the
+    // Voidwalker's weapon is 0.494 × the creature auto-attack DPS (60.45 at 60) = 29.9 DPS (±26.4% a swing; the sim uses the
+    // average) plus its own 186 attack power (3 × level + 6 at 60) / 14 = 13.3 → 43.2, and ALL its melee is halved (dmgPct
+    // 50; the AP it gets from you too). Rounds 1–243: 30 DPS, not halved. No default build keeps it out. [A46]
+    voidwalker:{ name: 'Voidwalker',mana: 2000, mp5PerOwnerInt: 0.10, melee: { baseDps: 43.2, dmgPct: 50, swing: 2.0, apPerSp: 0.1667, apPerDps: 14, inheritSpellCrit: true } },
   },
 };
 

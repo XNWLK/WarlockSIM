@@ -40,7 +40,7 @@
     T.ok(br.kind === 'dmg' && br.chancePct === 100 && br.min === 84 && br.max === 126 && br.school === 'nature' && br.vs.furbolg === 1 && br.onlyVs, 'Scented Runewood Brooch: 84–126 Nature per damaging cast, only against Furbolg');
     var dm = WL.ENCHANT_FX[7210];
     T.ok(dm && dm.name === 'Dismantle' && dm.about === 0 && dm.proc.kind === 'dmg' && dm.proc.min === 60 && dm.proc.max === 90 && dm.proc.school === 'nature' && dm.proc.vs.mechanical === 1 && dm.proc.onlyVs, 'Dismantle: 60–90 Nature, only against Mechanical');
-    T.eq(WL.DEFAULT_CONFIG.combat.dismantleChancePct, 10, "Dismantle's chance: 10% (a guess, like Revelation's)");
+    T.eq(WL.DEFAULT_CONFIG.combat.dismantleChancePct, 10, "Dismantle's chance: 10% (a guess; Revelation's was one until round 243)");
     T.ok(!WL.TRINKET_FX[280074], 'Scalding Flamehoof: no effect here (a drawback on you; its stats count)');
     [13965, 274759, 276744, 269741].forEach(function (id) { T.eq(WL.trinketSpWorth(WL.TRINKET_FX[id], det()), 0, WL.TRINKET_FX[id].name + ': no spell-power worth in the list'); });
 

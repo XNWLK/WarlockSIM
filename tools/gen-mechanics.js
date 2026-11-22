@@ -230,12 +230,15 @@ B.gear = (function () {
     '- **Custom** (the other gear button): your own gear, starting naked — every gear value 0; the level-60 base Intellect, Spirit, Stamina and crit stay.';
 })();
 
+// Round 244: the demon's crit (cfg.petCrit) and your Intellect for the pets' regen (Demo Pact Shadow Bolt, Human, the engine's default gear).
+const mechSt = WL.computeStats(WL.BUILDS[0], 'human', cfg);
+function petCritWord(melee) { const pc = cfg.petCrit || { fromOwner: true }; return pc.fromOwner ? 'your spell crit' : 'its own ' + (melee ? pc.ownMeleePct : pc.ownSpellPct) + '% + your gear\'s crit'; }
 B.pets = table(['Demon', 'Spell', 'Melee', 'Mana'], Object.keys(cfg.pets).map(k => {
   const p = cfg.pets[k], s = p.spell, m = p.melee;
   return [p.name,
     s ? s.name + ': ' + s.base + ' + ' + s.coef + ' × demon SP, ' + cap(s.school) + ', ' + (s.cast ? s.cast + ' s cast' : 'instant') + (s.cd ? ', ' + s.cd + ' s cooldown' : '') + ', ' + s.cost + ' mana' : '—',
-    m ? m.baseDps + ' base DPS, one swing every ' + m.swing + ' s, crit = your spell crit' + (m.range ? ', ' + m.range + ' yd range' : '') : '—',
-    n(p.mana, 0) + ', +' + p.manaRegen + ' per second'];
+    m ? m.baseDps + ' base DPS, one swing every ' + m.swing + ' s' + (m.dmgPct != null ? ', all of it × ' + m.dmgPct + '%' : '') + ', crit = ' + petCritWord(true) + (m.range ? ', ' + m.range + ' yd range' : '') : '—',
+    n(p.mana, 0) + ', ' + (p.mp5PerOwnerInt != null ? (p.mp5PerOwnerInt * 100).toFixed(0) + '% of your Intellect as MP5 (' + n(p.mp5PerOwnerInt * mechSt.int / 5, 1) + ' a second at ' + n(mechSt.int, 0) + ' Intellect: ' + WL.BUILDS[0].short + ' in its Pre-BiS gear, Human, the page buffs)' : '+' + p.manaRegen + ' per second')];   // round 244 [A45]
 }));
 
 function onOff(x) { return x.on ? 'on' : 'off'; }
@@ -359,19 +362,21 @@ B.examples = (function () {
   const pc = cfg.pets.succubus, m = pc.melee, pm = cb.petMelee, lash = pc.spell;
   const up = 1 + tv(build, 'unholyPower', 'petDmgPct') / 100, md = 1 + tv(build, 'masterDemonologist', 'schoolPct') / 100, all = st.mult.all;
   const spellHit = Math.max(0, st.hitPctUncapped - cb.baseHitPct), petHit = WL.petMeleeHit(st, cb), miss = Math.max(0, pm.missPct - petHit);
-  const critCh = Math.max(0, st.critPct - pm.critSuppressionPct), plain = 100 - miss - pm.dodgePct - pm.glancePct - critCh;
-  const ap = m.apPerSp * st.sp, dps = m.baseDps + ap / m.apPerDps, armor = WL.bossArmor(cfg), red = WL.armorReduction(cfg), swing = dps * m.swing * (1 - red) * up * all;
-  const petSp = st.sp * cfg.petSpPct / 100 + st.dkSp, lashBase = lash.base * (1 + tv(build, 'improvedSayaad', 'lashPct') / 100);
+  const pcr = cfg.petCrit || { fromOwner: true }, petCritM = pcr.fromOwner ? st.critPct : pcr.ownMeleePct + st.gearCritPct, petCritS = pcr.fromOwner ? st.critPct : pcr.ownSpellPct + st.gearCritPct;   // round 244 [A95]
+  const ownerSp = st.sp + (cfg.petSchoolSp === false ? 0 : Math.max(st.schoolSp.shadow || 0, st.schoolSp.fire || 0));   // round 244 [A26]
+  const critCh = Math.max(0, petCritM - pm.critSuppressionPct), plain = 100 - miss - pm.dodgePct - pm.glancePct - critCh;
+  const ap = m.apPerSp * ownerSp, dps = m.baseDps + ap / m.apPerDps, armor = WL.bossArmor(cfg), red = WL.armorReduction(cfg), swing = dps * m.swing * (1 - red) * up * all;
+  const petSp = ownerSp * cfg.petSpPct / 100 + st.dkSp, lashBase = lash.base * (1 + tv(build, 'improvedSayaad', 'lashPct') / 100);
   const petShadow = up * all * md * coe, lashHit = (lashBase + lash.coef * petSp) * petShadow;
   const db = cfg.demonicBrand, brandBase = (db.baseMin + db.baseMax) / 2, brand = (brandBase + db.shadowSpCoef * (st.sp + st.schoolSp.shadow)) * petShadow;
   P('#### 6. The Succubus');
   P('- Attack table of one swing: her melee hit = 8/17 × your spell hit ' + n(spellHit) + '% = ' + n(petHit, 2) + '%; miss ' + pm.missPct + '% − ' + n(petHit, 2) + '% = **' + n(miss, 2) + '%**, dodge **' + pm.dodgePct + '%**, glancing blow **' + pm.glancePct + '%** (at ' + pm.glanceDmgPct + '% damage), crit ' +
-    'your spell crit ' + n(st.critPct, 2) + ' − ' + pm.critSuppressionPct + ' = **' + n(critCh, 2) + '%** (× 2), normal hit the remaining **' + n(plain, 2) + '%**.');
-  P('- Attack power from you: ' + n(st.sp) + ' spell power ÷ 6 = ' + n(ap) + '. Damage per second: ' + m.baseDps + ' + ' + n(ap) + ' ÷ ' + m.apPerDps + ' = ' + n(dps, 2) + '.');
+    (pcr.fromOwner ? 'your spell crit ' + n(st.critPct, 2) : 'her own ' + pcr.ownMeleePct + ' + your gear\'s crit ' + n(st.gearCritPct, 2)) + ' − ' + pm.critSuppressionPct + ' = **' + n(critCh, 2) + '%** (× 2), normal hit the remaining **' + n(plain, 2) + '%**.');
+  P('- Attack power from you: ' + n(ownerSp) + ' spell power (generic + your better school) ÷ 6 = ' + n(ap) + '. Damage per second: ' + m.baseDps + ' + ' + n(ap) + ' ÷ ' + m.apPerDps + ' = ' + n(dps, 2) + '.');
   P('- Boss armor: ' + n(cb.bossArmor, 0) + ' − armor debuffs = ' + n(armor, 0) + ' → ' + n(armor, 0) + ' ÷ (' + n(armor, 0) + ' + 5,500) = ' + n(red * 100, 2) + '% less physical damage.');
   P('- One normal swing: ' + n(dps, 2) + ' × ' + m.swing + ' s × (1 − ' + n(red, 4) + ') × ' + up.toFixed(2) + ' Unholy Power × ' + all.toFixed(2) + ' Soul Link = **' + n(swing) + '**. Master Demonologist and Curse of the Elements do not apply to melee.');
-  P('- Her spell power: ' + cfg.petSpPct + '% of ' + n(st.sp) + ' + ' + st.dkSp + ' Demonic Knowledge = ' + n(petSp) + '.');
-  P('- Lash of Pain: (' + lash.base + ' × ' + (1 + tv(build, 'improvedSayaad', 'lashPct') / 100).toFixed(2) + ' Improved Sayaad + ' + lash.coef + ' × ' + n(petSp) + ') × ' + up.toFixed(2) + ' × ' + all.toFixed(2) + ' × ' + md.toFixed(2) + ' Master Demonologist × ' + coe.toFixed(2) + ' curse = **' + n(lashHit) + '**; it crits with your spell crit (' + n(st.critPct, 2) + '%) for × ' + cb.critMultiplier + '.');
+  P('- Her spell power: ' + cfg.petSpPct + '% of ' + n(ownerSp) + ' (generic + your better school) + ' + st.dkSp + ' Demonic Knowledge = ' + n(petSp) + '.');
+  P('- Lash of Pain: (' + lash.base + ' × ' + (1 + tv(build, 'improvedSayaad', 'lashPct') / 100).toFixed(2) + ' Improved Sayaad + ' + lash.coef + ' × ' + n(petSp) + ') × ' + up.toFixed(2) + ' × ' + all.toFixed(2) + ' × ' + md.toFixed(2) + ' Master Demonologist × ' + coe.toFixed(2) + ' curse = **' + n(lashHit) + '**; it crits with ' + (pcr.fromOwner ? 'your spell crit' : 'her own ' + pcr.ownSpellPct + '% + your gear\'s crit') + ' (' + n(petCritS, 2) + '%) for × ' + cb.critMultiplier + '.');
   P('- Demonic Brand hit: (' + brandBase + ' + ' + db.shadowSpCoef + ' × ' + n(st.sp + st.schoolSp.shadow) + ' Shadow spell power) × the same four multipliers = **' + n(brand) + '**. It cannot miss or crit.');
   P('');
 

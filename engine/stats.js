@@ -225,6 +225,12 @@ WL.computeStats = function (build, raceKey, cfg) {
 
   var mp5 = add('mp5', 'Gear', gear.mp5 || 0) + buffStat('mp5') + conStat('mp5') + oilStat('mp5') + add('mp5', 'Stat-weight test', ex.mp5 || 0)
           + trEq.reduce(function (a, q) { return a + add('mp5', q.name, q.mp5); }, 0);
+  // Round 244 (Innervate scales MP5, not periodic energize ticks): the part of mp5 that comes as such ticks (buffs with tick:
+  // true — Blessing of Wisdom, Mana Spring, Restorative Totems). [A55]
+  var mp5Tick = WL.activeBuffs(cfg).reduce(function (a, b) { return a + (b.tick && b.mp5 ? b.mp5 : 0); }, 0);
+  // Round 244 (the user's pick "Demon crit as live") [A95]: your gear's "+X% critical strike" — the sheet crit less its base and
+  // your Intellect's share (in Pre-BiS gear exactly the items' and enchants' crit), what a live demon takes from you.
+  var gearCritPct = Math.max(0, (gear.critPct || 0) - cb.baseCritPct - (base.int + (gear.int || 0)) * cb.critPerInt);
 
   // --- Static caster damage AURAS per school ("Mod Damage Done %" buffs: they multiply with each other and with the
   // talent spell modifiers [A16]). Talent spell modifiers (Shadow Mastery, Agonizing Flames, Malediction, …) are not
@@ -239,7 +245,7 @@ WL.computeStats = function (build, raceKey, cfg) {
 
   return {
     race: raceKey, int: int, spi: spi, sta: sta, maxMana: maxMana, maxHealth: maxHealth,
-    sp: sp, dkSp: dkSp, schoolSp: schoolSp, hitPct: hitPct, hitPctUncapped: hitRaw, critPct: critPct, hastePct: hastePct, mp5: mp5, pierce: pierce, spellPen: spellPen,
+    sp: sp, dkSp: dkSp, schoolSp: schoolSp, hitPct: hitPct, hitPctUncapped: hitRaw, critPct: critPct, hastePct: hastePct, mp5: mp5, mp5Tick: mp5Tick, gearCritPct: gearCritPct, pierce: pierce, spellPen: spellPen,
     mult: mult, petActive: petActive, sacrificeActive: sacrificeActive, oilName: oils.length ? oils.map(function (o) { return o.name; }).join(' + ') : WL.OILS.none.name, breakdown: bd,
   };
 };

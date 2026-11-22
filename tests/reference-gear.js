@@ -8,7 +8,14 @@ WL.SHIPPED_GEAR = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG.gear));
 // Round 16 changed the pet defaults (pet SP 100% → 15%, Succubus melee 40 → 100 DPS); the pet tests' worked numbers use the old ones.
 var sm = WL.DEFAULT_CONFIG.pets.succubus.melee;
 WL.SHIPPED_PETS = { petSpPct: WL.DEFAULT_CONFIG.petSpPct, succBaseDps: sm.baseDps, succApPerSp: sm.apPerSp, succCrit: sm.critPct, succInherit: sm.inheritSpellCrit };
+WL.SHIPPED_PETS.r244 = JSON.parse(JSON.stringify({ petCrit: WL.DEFAULT_CONFIG.petCrit, petSchoolSp: WL.DEFAULT_CONFIG.petSchoolSp, pets: WL.DEFAULT_CONFIG.pets }));
 WL.DEFAULT_CONFIG.petSpPct = 100; sm.baseDps = 40; sm.apPerSp = 0.57; sm.critPct = 5; sm.inheritSpellCrit = false;   // round-2 pet values of the worked tests
+// Round 244 changed the demons' rules (regen from your Intellect, spell power from your school total, live crit; tests/
+// test-round244.js checks the shipped ones from WL.SHIPPED_PETS); the worked tests keep the rules they were written with:
+// 8 mana a second, generic spell power only, your spell crit.
+WL.DEFAULT_CONFIG.petCrit = { fromOwner: true, ownMeleePct: 0, ownSpellPct: 0 }; WL.DEFAULT_CONFIG.petSchoolSp = false;
+['imp', 'succubus', 'voidwalker'].forEach(function (k) { var p = WL.DEFAULT_CONFIG.pets[k]; delete p.mp5PerOwnerInt; p.manaRegen = 8; });
+(function (v) { v.baseDps = 30; delete v.dmgPct; })(WL.DEFAULT_CONFIG.pets.voidwalker.melee);
 // Round 60 (user): 7 raid buffs and 2 more boss debuffs are on by default. The worked tests were written with every raid
 // buff off and only Sunder Armor + Faerie Fire on, so they keep that; the shipped defaults are checked below.
 WL.SHIPPED_ON = { buffs: {}, debuffs: {} };

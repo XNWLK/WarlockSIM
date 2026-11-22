@@ -65,7 +65,8 @@
     var np = fight(122), nd = np.bySpell['trinket:set122'];
     T.ok(nd && nd.dmg > 0 && Math.abs(nd.dmg / nd.landed - 28) < 28 * 0.6, 'Necropile Raiment (3): about 28 Shadow damage per landed cast (' + (nd ? nd.landed : 0) + ' hits)');
     var vs = fight(2134);
-    T.ok(vs.manaFromSpirit > n0.manaFromSpirit + 300, "Violet Sorcerer's Vestments (4): Spirit regeneration goes on while casting (" + Math.round(n0.manaFromSpirit) + ' → ' + Math.round(vs.manaFromSpirit) + ' mana)');
+    // Round 244: it procs 1.0 a minute on cast time (a public combat-log study), no longer on every cast, so it is up far less.
+    T.ok(vs.manaFromSpirit > n0.manaFromSpirit + 50, "Violet Sorcerer's Vestments (4): Spirit regeneration goes on while casting (" + Math.round(n0.manaFromSpirit) + ' → ' + Math.round(vs.manaFromSpirit) + ' mana)');
     T.eq(WL.equippedSetFx(Object.assign(JSON.parse(JSON.stringify(D)), { gearBuilder: wearIds(WL.SET_FX[181].pieces.slice(0, 4)) })).length, 0, '4 Magister pieces: no proc');
   });
 

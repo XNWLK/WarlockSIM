@@ -329,16 +329,26 @@ Object.keys(items).forEach(id => {
 });
 // Round 211 (user, with an in-game tooltip of Dreadmist Belt: "these are the dreadmist set bonuses. and deathmist is the
 // other way around, so the 2 piece deathmist is the 6 piece dreadmist etc"): the game's bonuses win over Wowhead's. Dreadmist
-// (3) is 12 spell power in the game (Wowhead: 18); Deathmist has Dreadmist's bonuses in reverse order: (n) = Dreadmist (8 − n)
+// (3) is 12 spell power in the game (Wowhead: 18); Deathmist had Dreadmist's bonuses in reverse order: (n) = Dreadmist (8 − n)
 // — the quest pieces (set 518; user: "only keep the quest versions and put the set bonus i gave you on those"), in place of
 // Wowhead's (2) resistances, (4) fear, (6) 23 spell power, (8) 200 armor. The vendor pieces (1681) are left out (EXCLUDE).
+// Round 244 replaced Deathmist's with the reissued row 1681's (below).
 // game: true → tools/gen-tooltips.js rewrites these sets' piece list and bonus lines in the item tooltips.
 const SET_GAME = {
   183: [[2, 18679, '+8 All Resistances.'], [3, 9346, 'Increases damage and healing done by magical spells and effects by up to 12.'],
     [4, 27780, 'When struck in combat has a 2% chance of causing the attacker to flee in terror for 2 sec. Can only occur once every 60 sec.'],
     [5, 450585, 'Your spellcasts have a 5% chance to heal you for 270 to 330.'], [6, 18378, 'Restores 8 mana per 5 sec.']],
 };
-SET_GAME[518] = SET_GAME[183].map(b => [8 - b[0], b[1], b[2]]).reverse();
+// Round 244 (the user's pick "Set procs: Necropile, Deathmist"; a public combat-log study, Warcraft Logs, Forever): every
+// Deathmist wearer in the game wears the reissued pieces (226772–227023; none of the Classic quest ids), and they fire the
+// reissued set row 1681's bonuses, never a Classic row's: (2) +8 all resistances, (3) 8 MP5, (4) the heal proc, (5) the fear,
+// (6) 23 spell power. The sim keeps offering its pieces as 22070–22077 (set 518; the user's round 211 / 216 exclusions of
+// the reissued ids stand) and gives them row 1681's bonuses. Rounds 211–243: Dreadmist's in reverse ((2) 8 MP5 … (5) 12
+// spell power, (6) +8 resistances).
+SET_GAME[518] = [[2, 18679, '+8 All Resistances.'], [3, 18378, 'Restores 8 mana per 5 sec.'],
+  [4, 450585, 'Your spellcasts have a 5% chance to heal you for 270 to 330.'],
+  [5, 27780, 'When struck in combat has a 2% chance of causing the attacker to flee in terror for 2 sec. Can only occur once every 60 sec.'],
+  [6, 14047, 'Increases damage and healing done by magical spells and effects by up to 23.']];
 Object.keys(SET_GAME).forEach(sid => { if (itemSets[sid]) { itemSets[sid].bonuses = SET_GAME[sid].map(b => ({ n: b[0], spell: b[1], text: b[2] })); itemSets[sid].game = true; } });
 Object.keys(itemSets).forEach(sid => itemSets[sid].bonuses.forEach(b => { const st = setStats(b.text); if (Object.keys(st).length) b.stats = st; }));
 console.log('item sets: ' + Object.keys(itemSets).length + ', with bonuses ' + Object.keys(itemSets).filter(k => itemSets[k].bonuses.length).length);

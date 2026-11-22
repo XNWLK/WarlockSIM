@@ -3,6 +3,31 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v209
+- **Revelation, as measured in game and in a large public log study:**
+  - **Trigger chance:** 11% × (1 − 2 × your crit), so about 9.7% at 6% crit, 6.6% at 20% and nothing from 50% up. It rolls on every direct hit that doesn't crit, on every target, and now also on each Hellfire and Rain of Fire tick per target hit.
+  - **Spent at the cast:** a Shadow Bolt or Incinerate cast with it still crits when it lands, and a miss still uses it up.
+  - **Channels:** while it's up, every tick of Drain Life, Drain Soul, Wrack, Hellfire and Rain of Fire crits, and it's used up when the channel ends.
+  - **Effect:** most builds lose about 0.3–0.5%; Wrack DS gains a little, because its Wrack ticks crit.
+  - **Weapon enchant check:** with these rules, +30 Spell Power beats Revelation for every build except Shadow Demo. The pre-raid lists still show Revelation.
+- **Demons, from the same log studies:**
+  - **Mana regen:** demons now regen from your Intellect (Imp 30% of it as MP5, Succubus and Voidwalker 10%), so the Imp casts more and Fire Demo gains about 1%.
+  - **Crit:** demons use their own crit as on live servers (about 0.7% for melee, plus your gear's crit), not your spell crit. This costs the demon builds about 1%. The announced change to your spell crit is one setting away.
+  - **Spell power:** demons take their tenth from your Shadow or Fire spell power as well as general spell power.
+  - **Voidwalker:** its melee is halved.
+- **Procs:**
+  - **Hellfire's cast:** it no longer triggers Blade of Eternal Darkness, Touch of the Grave, Judgement of Wisdom or set procs, and Rain of Fire's cast no longer triggers Touch of the Grave.
+  - **Necropile Raiment's 3-piece:** 13.9% per spell instead of every spell.
+  - **Violet Sorcerer's 4-piece:** about once a minute.
+  - **Insight:** 5.4% per spell.
+  - **Deathmist:** the set now has its in-game bonuses (6-piece +23 spell damage, no 5-piece spell power).
+- **Innervate** multiplies your gear's MP5 too.
+- **Hellfire on 3 targets (measured):** with these rules, Hellfire as the filler while also DoTing the extra targets gains a little for Fire Demo and the Incinerate builds. Without DoTs on the adds it gains 5–12%, but DoTing them is still better overall.
+- **Pre-raid BiS lists rerun:**
+  - Shadow Demo: Deathmist Wraps and Master's Boots of Shadow Wrath are now its hand and feet upgrades.
+  - Incinerate Pandemic: Deathmist Wraps is now its hand upgrade.
+  - Fire Demo: its shoulder and feet upgrades dropped out.
+
 ## v208
 - **Multi-target: DoTs on the extra targets come before Life Tap.** With 2 or 3 targets and "Keep DoTs on the extra targets" on (Fight & pets), every build now keeps those DoTs up before it Life Taps for mana. Before, they came only right above the filler. Every build gains about 0.1–1.3% on 2–3 targets; single-target DPS is unchanged. Custom builds get the same, unless they place it themselves.
 - **Hellfire on 2–3 targets (measured, no change):** no build gains from Hellfire once the extra targets are DoTed.

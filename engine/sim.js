@@ -305,7 +305,10 @@ window.WL = window.WL || {};
         mb.left--; mb.until = S.t + (mb.b.innervate ? mb.b.innervate.duration : mb.b.tide.ticks * mb.b.tide.every);
         if (mb.b.tide) for (var i = 0; i < mb.b.tide.ticks; i++) H.push({ t: S.t + i * mb.b.tide.every, o: 0, type: 'mana', amount: mb.b.tide.amount, src: mb.b.name });
         if (mb.b.innervate) {
-          var perTick = (cb.spiritRegenBase + cb.spiritRegenPerSpi * stats.spi) * mb.b.innervate.mult;   // per 2 s
+          // per 2 s: mult × Spirit regeneration, and (round 244, the user's pick) mult × your MP5 less the MP5 that runs anyway —
+          // periodic energize ticks (stats.mp5Tick: Blessing of Wisdom, Mana Spring) are not scaled [A55]
+          var mp5Scaled = Math.max(0, (stats.mp5 || 0) - (stats.mp5Tick || 0));
+          var perTick = (cb.spiritRegenBase + cb.spiritRegenPerSpi * stats.spi) * mb.b.innervate.mult + mp5Scaled * 2 / 5 * (mb.b.innervate.mult - 1);
           for (var j = 1; j <= mb.b.innervate.duration / 2; j++) H.push({ t: S.t + j * 2, o: 0, type: 'mana', amount: perTick, src: mb.b.name });
           S.innervateUntil = S.t + mb.b.innervate.duration;                 // no Spirit regeneration on top of it (round 114)
         }
@@ -466,7 +469,7 @@ window.WL = window.WL || {};
     // on-use trinkets (not mana ones) instead of options.trinketUse ('never' still keeps one unused). Set once ROT is built.
     var TRK_APL = false;
     var TRD = TRK.filter(function (x) { return x.fx.proc && x.fx.proc.onDamage; });   // round 209: procs on any damage of yours (Bolt's Charged Eyeball)
-    // Weapon enchant effects (round 167) [A106]: procs on your landed damaging casts; Revelation on direct hits that do not crit;
+    // Weapon enchant effects (round 167) [A106]: procs on your landed damaging casts; Revelation (rules of round 243 below);
     // Dismantle (round 241) [A129]: a hit like a trinket's, against Mechanical bosses only.
     var EPR = WL.equippedEnchantFx ? WL.equippedEnchantFx(cfg) : [], eps = {};
     EPR.forEach(function (x) { eps[x.id] = { until: -1 }; });
@@ -534,23 +537,26 @@ window.WL = window.WL || {};
       EPR.forEach(function (x) { var p = x.fx.proc; if (p.kind === 'spiPct' && epUp(x)) s += stats.spi * p.pct / 100; });   // Insight (round 167)
       return s;
     }
-    function trHit(x, u) {                                           // a trinket's own hit
+    function trHit(x, u, ti) {                                       // a trinket's own hit (ti > 1: on that extra target, round 244)
       var key = 'trinket:' + x.id, r = row(key);
       if (R.hit() * 100 >= hitNow()) { r.misses++; L('miss', key); return; }
       r.landed++;
       var amt = (u.min + (u.max - u.min) * R.proc()) * trMult(u);            // round 209: × boss type / zone
-      if (S.buff('coe') && COE_SCHOOLS[u.school || 'fire']) amt *= 1 + SPELLS.curseOfElements.dmgTakenPct / 100;   // round 209: not on Holy / Nature
+      if ((ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe')) && COE_SCHOOLS[u.school || 'fire']) amt *= 1 + SPELLS.curseOfElements.dmgTakenPct / 100;   // round 209: not on Holy / Nature
       if (u.school === 'physical') amt *= 1 - armorRed;                       // round 241 (user: "implement everything"): Everlook Pathcarver — the boss's armor after debuffs, as for your demon's melee [A129]
       var crit = R.crit() * 100 < stats.critPct; if (crit) amt *= cb.critMultiplier;
-      deal(key, amt, crit, false);
+      deal(key, amt, crit, false, ti > 1 ? ti : undefined);
       L('hit', key, { dmg: Math.round(amt), crit: crit });
     }
-    function trOnCast() {                                            // each landed damaging cast (the Touch of the Grave hook)
+    // A proc's chance in % on a landing of spell key (round 244; WL.procChancePct, data/trinkets.js): chancePct, or ppm on the
+    // cast time of the cast that launched it (landCT) [A116]
+    function procChancePct(p, key) { return WL.procChancePct(p, key ? SPELLS[key] : null, landCT); }
+    function trOnCast(key) {                                         // each landed damaging cast (the Touch of the Grave hook)
       TRK.forEach(function (x) {
         var u = x.fx.use, p = x.fx.proc, st = trs[x.slot];
         if (u && trUp(x) && (u.kind === 'spDecay' || u.kind === 'spStack')) { st.n++; if (u.kind === 'spStack' && st.n >= u.casts) st.until = -1; }
         if (u && u.kind === 'dmgAfter' && st.pending > 0 && --st.pending === 0) trHit(x, u);
-        if (p && !p.onDamage && !(p.icd && S.t < st.icdUntil - EPS) && WL.fxOn(cfg, p) && R.proc() * 100 < p.chancePct) {   // round 241: onlyVs (Scented Runewood Brooch: Furbolg only)
+        if (p && !p.onDamage && !(p.icd && S.t < st.icdUntil - EPS) && WL.fxOn(cfg, p) && R.proc() * 100 < procChancePct(p, key)) {   // round 241: onlyVs (Scented Runewood Brooch: Furbolg only)
           if (p.icd) st.icdUntil = S.t + p.icd;                             // Draconic Infused Emblem: 60 s internal cooldown (user, round 209)
           if (p.kind === 'dmg') trHit(x, p);                                // Cursed Murloc Eye (round 209)
           else if (p.kind === 'mana') { var mg = Math.min(p.amount * trMult(p), stats.maxMana - S.mana); S.mana += mg; res.manaFromConsumables = (res.manaFromConsumables || 0) + mg; L('buff', x.fx.name); }   // round 210: Magister's / Devout 5
@@ -571,6 +577,17 @@ window.WL = window.WL || {};
         }
       });
     }
+    // Round 244: a landing on an extra target (ti > 1) rolls only the set procs that roll once per target (perTarget: Necropile
+    // Raiment 3, Violet Sorcerer's Vestments 4 — a public combat-log study, Warcraft Logs, Forever); trinkets and enchants count
+    // your casts on the boss only, as before. [A116]
+    function trOnLandX(ti, key) {
+      TRK.forEach(function (x) {
+        var p = x.fx.proc, st = trs[x.slot];
+        if (!p || !p.perTarget || !WL.fxOn(cfg, p) || R.proc() * 100 >= procChancePct(p, key)) return;
+        if (p.kind === 'dmg') trHit(x, p, ti);
+        else if (p.kind === 'castRegen') { if (st.procUntil <= S.t + EPS) L('buff', x.fx.name); st.procUntil = S.t + p.duration; }
+      });
+    }
     function trOnDamage() {                                          // round 209: Bolt's Charged Eyeball — 15% per damage event, 3 s cooldown
       TRD.forEach(function (x) {
         var p = x.fx.proc, st = trs[x.slot];
@@ -580,11 +597,38 @@ window.WL = window.WL || {};
         else trHit(x, p);
       });
     }
-    // Revelation (round 167): the next non-periodic spell + pct % crit; a non-periodic spell that does not crit may trigger it.
-    function revCritBonus() { return REV && eps[REV.id].until > S.t + EPS ? REV.fx.proc.pct : 0; }
-    function revAfter(crit, had) {
-      if (had) { eps[REV.id].until = -1; return; }                    // used up by this spell
-      if (!crit && R.proc() * 100 < (cb.revelationChancePct || 0) * Math.max(0, 1 - stats.critPct / 100)) { eps[REV.id].until = S.t + REV.fx.proc.duration; L('buff', REV.fx.name); }
+    // Revelation (round 167; rules of round 243, the user's choices, from a public log study of Warcraft Logs reports,
+    // Forever 1.60.1.70862–70959) [A106]: + pct % crit for 15 s (a new trigger while it is up resets the 15 s).
+    //  * Trigger: a landed direct hit that does not crit (any target), and each landed Hellfire / Rain of Fire tick that does
+    //    not crit, on each target, rolls 11% × (1 − 2 × crit) (WL.revelationChancePct; crit = your sheet crit, as since
+    //    round 167). Never: DoT ticks, drain / Wrack ticks, your demon, trinket and item procs.
+    //  * Spent at the cast: a direct spell (or Immolate's direct part) cast while it is up takes it when the cast completes
+    //    (instants: when cast) and crits when it lands, even after travel time — or not at all if it misses. Nothing else
+    //    can use it meanwhile. DoTs, curses and Life Tap neither use nor spend it.
+    //  * Channels: while it is up every tick of a channel crits (all of them, each target); the channel holds it (rv.ch)
+    //    and it is spent when that channel ends (completes or is cut), also a trigger gained from one of its own ticks.
+    var rv = REV ? eps[REV.id] : null;
+    if (rv) rv.ch = null;
+    function revUp() {                                               // is it up now (a holding channel that ended spent it)
+      if (rv.ch != null && !(S.channel && S.channel.inst === rv.ch)) { rv.until = -1; rv.ch = null; }
+      return rv.until > S.t + EPS;
+    }
+    function revRoll(crit, tick) {                                   // a landed direct hit / area tick (tick: of the running channel)
+      if (crit || R.proc() * 100 >= WL.revelationChancePct(cb, stats.critPct)) return;
+      revUp();                                                       // a channel that held the old one and has ended: spent first
+      rv.until = S.t + REV.fx.proc.duration; L('buff', REV.fx.name);
+      if (tick && S.channel) rv.ch = S.channel.inst;                 // that channel keeps it (spent when it ends, even after its last tick)
+    }
+    function revTake(key) {                                          // the cast of `key` completes now: does it use (and spend) it?
+      if (!REV) return false;
+      var k = SPELLS[key].kind;
+      if ((k !== 'direct' && k !== 'hybrid') || !revUp()) return false;
+      rv.until = -1; L('used', REV.fx.name, { for: key });
+      return true;
+    }
+    function revChan() {                                             // a channel tick now: + pct while it is up (and the channel holds it)
+      if (!REV || !S.channel || !revUp()) return 0;
+      rv.ch = S.channel.inst; return REV.fx.proc.pct;
     }
     function trCritDone() { TRK.forEach(function (x) { var u = x.fx.use; if (u && u.endsOnCrit && trUp(x)) trs[x.slot].until = -1; }); }   // Weakness Analyzer
     function trUse(x) {
@@ -895,7 +939,7 @@ window.WL = window.WL || {};
     }
     // A spell landing on an extra target: Curse of the Elements (round 39), a DoT, Immolate, or a direct spell (Shadow Bolt
     // spread for Improved Shadow Bolt, round 39).
-    function landExtra(key, eureka, castMult, ti) {
+    function landExtra(key, eureka, castMult, ti, rev) {             // rev: as for land (round 243)
       var s = SPELLS[key], e = table[key], rk = xkey(ti, key), r = row(rk);
       if (missRoll(key)) { r.misses++; L('miss', rk); return false; }
       if (binResisted(key, ti)) { r.misses++; r.resisted = (r.resisted || 0) + 1; L('miss', rk, { resisted: true }); return false; }   // round 239 [A128]
@@ -913,14 +957,15 @@ window.WL = window.WL || {};
           amt *= addOp0(key, tv('decimation', 'dmgPct')); S.buffs.decimation = S.t + 10;   // additive spell mod (round 43)
         }
         amt *= vulnMult(s.school, ti, false, key);
-        var crit = critRoll(key, e.critPct, ti);
+        var crit = critRoll(key, e.critPct + (rev ? REV.fx.proc.pct : 0), ti);   // Revelation on an extra target too (round 243)
+        if (REV && !rev) revRoll(crit);
         if (crit) amt *= e.critMult;
         deal(rk, amt, crit, false, ti);
-        if (logOn) L('hit', rk, Object.assign({ dmg: Math.round(amt), crit: crit }, vulnLog(amt)));
+        if (logOn) L('hit', rk, Object.assign({ dmg: Math.round(amt), crit: crit, rev: rev || undefined }, vulnLog(amt)));
         if (isSB(key) && crit && tv('improvedShadowBolt')) { S.xdeb[ti].isb = S.t + 12; L('debuff', xkey(ti, 'isb')); }
       }
       if (s.kind !== 'direct') { applyDotX(ti, key, makeSnap(castMult)); L('apply', rk); }
-      touchOfTheGrave(ti);                                                // any landed damaging cast, as on the boss [A29]
+      touchOfTheGrave(ti, key);                                           // any landed damaging cast, as on the boss [A29]
       return true;
     }
 
@@ -936,10 +981,11 @@ window.WL = window.WL || {};
       if (frac != null) amt *= frac;
       if (share) amt *= share;
       amt *= vulnMult(s.school, 0, true, key);
-      var crit = critRoll(key, e.critPct);                                                               // [A07]
+      var rvc = isChannel && REV ? revChan() : 0;                       // round 243: a channel tick crits while Revelation is up [A106]
+      var crit = critRoll(key, e.critPct + rvc);                                                         // [A07]
       if (crit) amt *= e.critMult;
       deal(key, amt, crit, true);
-      if (logOn) L('tick', key, Object.assign({ dmg: Math.round(amt), crit: crit, n: (n != null ? n : i) + 1, of: n != null ? undefined : e.ticks, part: frac != null ? +frac.toFixed(3) : undefined }, vulnLog(amt)));
+      if (logOn) L('tick', key, Object.assign({ dmg: Math.round(amt), crit: crit, rev: rvc ? true : undefined, n: (n != null ? n : i) + 1, of: n != null ? undefined : e.ticks, part: frac != null ? +frac.toFixed(3) : undefined }, vulnLog(amt)));
       if (WL.NIGHTFALL_SPELLS.indexOf(key) >= 0 && tv('nightfall') && R.proc() * 100 < tv('nightfall', 'procPct')) { // [A21]
         S.buffs.shadowTrance = S.t + 10; L('proc', 'shadowTrance');
       }
@@ -956,10 +1002,12 @@ window.WL = window.WL || {};
         if (missRoll(key)) { r.misses++; L('miss', rk, { n: i + 1, of: e.ticks }); continue; }
         var amt = (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * (ti > 1 ? liveMultX(key, ti, true) : liveMult(key, true));
         amt *= vulnMult(s.school, ti, false, key);
-        var crit = critRoll(key, e.critPct, ti);
+        var rvc = REV ? revChan() : 0;                                   // round 243 [A106]: crits while Revelation is up;
+        var crit = critRoll(key, e.critPct + rvc, ti);
+        if (REV && !rvc) revRoll(crit, true);                            // a tick that does not crit may trigger it (each target)
         if (crit) amt *= e.critMult;
         deal(rk, amt, crit, true, ti);
-        if (logOn) L('tick', rk, Object.assign({ dmg: Math.round(amt), crit: crit, n: i + 1, of: e.ticks }, vulnLog(amt)));
+        if (logOn) L('tick', rk, Object.assign({ dmg: Math.round(amt), crit: crit, rev: rvc ? true : undefined, n: i + 1, of: e.ticks }, vulnLog(amt)));
       }
       if (s.selfDamage) loseHealth(selfTick(key), 'self');     // Hellfire: the tick's base damage to yourself, no damage talents, no crit (round 119); less with Molten Skin / Soul Link (round 132)
     }
@@ -967,8 +1015,9 @@ window.WL = window.WL || {};
     // Improved Shadow Bolt (A20): every Shadow Bolt crit applies the debuff. Rounds 54–122 rolled a second spell-hit check
     // for it; round 123 (user): there is no separate roll — a crit is guaranteed to apply it.
     // Direct-damage landing (cast finished or instant). Returns true if it hit.
-    function land(key, eureka, castMult, target) {
-      if (target > 1) return landExtra(key, eureka, castMult, target);
+    // rev (round 243): this cast took Revelation when it was cast (revTake) [A106].
+    function land(key, eureka, castMult, target, rev) {
+      if (target > 1) return landExtra(key, eureka, castMult, target, rev);
       var s = SPELLS[key], e = table[key], r = row(key);
       if (missRoll(key)) { r.misses++; L('miss', key); return false; }                  // [A01][A17]; cheat mode (round 166)
       if (binResisted(key, 0)) { r.misses++; r.resisted = (r.resisted || 0) + 1; L('miss', key, { resisted: true }); return false; }   // a binary spell fully resisted (round 239) [A128]
@@ -980,7 +1029,7 @@ window.WL = window.WL || {};
         jowProc(false);                                                                                   // [A64]
         return true;
       }
-      if (s.kind === 'dot') { applyDot(key, makeSnap(castMult)); L('apply', key); touchOfTheGrave(); jowProc(false); return true; }
+      if (s.kind === 'dot') { applyDot(key, makeSnap(castMult)); L('apply', key); touchOfTheGrave(0, key); jowProc(false); return true; }
       // direct or hybrid
       var sp = spNow(e);
       var amt = (s.base + s.coef * sp) * e.directMult * liveMult(key, false) * (eureka ? eurekaMult(key, false) : 1);   // eureka: the cast finished inside Eureka!
@@ -991,13 +1040,12 @@ window.WL = window.WL || {};
         S.buffs.decimation = S.t + 10;
       }
       amt *= vulnMult(s.school, 0, false, key);
-      var revHad = REV ? revCritBonus() : 0;                                // Revelation (round 167)
-      var crit = critRoll(key, e.critPct + revHad);
-      if (REV) revAfter(crit, revHad > 0);
+      var crit = critRoll(key, e.critPct + (rev ? REV.fx.proc.pct : 0));     // Revelation (round 167; taken at the cast, round 243)
+      if (REV && !rev) revRoll(crit);
       if (crit) amt *= e.critMult;
       deal(key, amt, crit, false);
       if (crit && TRK.length) trCritDone();                                  // Weakness Analyzer ends on a direct crit (round 166)
-      if (logOn) L('hit', key, Object.assign({ dmg: Math.round(amt), crit: crit }, vulnLog(amt)));
+      if (logOn) L('hit', key, Object.assign({ dmg: Math.round(amt), crit: crit, rev: rev || undefined }, vulnLog(amt)));
       if (isSB(key) && crit && tv('improvedShadowBolt')) { S.buffs.isb = S.t + 12; L('debuff', 'isb'); }
       if (key === 'searingPain' && tv('demonicBrand') && P) {                                            // [A51] Demonic Brand
         S.buffs.brand = S.t + cfg.demonicBrand.duration; S.brandCharges = tv('demonicBrand', 'charges');
@@ -1011,7 +1059,7 @@ window.WL = window.WL || {};
         if (R.proc() * 100 < tv('shadowAndFlame', 'procPct')) { S.shards++; L('refund', 'soulShard'); }
       }
       if (s.kind === 'hybrid') applyDot(key, makeSnap(castMult));
-      touchOfTheGrave();
+      touchOfTheGrave(0, key);
       jowProc(false);                                                                                     // [A64]
       return true;
     }
@@ -1033,8 +1081,11 @@ window.WL = window.WL || {};
     // your Shadow auras, Improved Shadow Bolt, Curse of the Elements, Shadow and Flame and Power Infusion did. 30% chance
     // (was 10%), then an internal cooldown (race data: 15 s since round 164, 25 s before; no roll while it runs). No spell power, no crit, no resist / Spell Pierce
     // roll. `ti` > 1 = an extra target. [A29][A93]
-    function touchOfTheGrave(ti) {
-      if (TRX && !(ti > 1)) trOnCast();                       // trinkets count your landed damaging casts (round 166)
+    // key (round 244): the landing spell — Rain of Fire's cast never procs it (castNoTog; 0 of 171 casts in a public combat-log
+    // study) [A131]; the per-target set procs (Necropile, Violet Sorcerer's) also roll on an extra target.
+    function touchOfTheGrave(ti, key) {
+      if (TRX) { if (ti > 1) trOnLandX(ti, key); else trOnCast(key); }   // trinkets count your landed damaging casts (round 166)
+      if (key && SPELLS[key].castNoTog) return;
       if (TOG && !(S.togReady > S.t + EPS) && R.proc() * 100 < TOG.chancePct) {
         S.togReady = S.t + (TOG.icd || 0);
         var td = stats.maxHealth * TOG.maxHealthPct / 100;
@@ -1100,12 +1151,20 @@ window.WL = window.WL || {};
           r.misses++; if (chRes) r.resisted = (r.resisted || 0) + 1; L('miss', key, chRes ? { resisted: true } : undefined); if (fromTL) TL.turn = true; S.busyUntil = S.t; S.gcdReady = S.t + gcdT; scheduleDecide(S.gcdReady); return;
         }
         r.landed++;
-        if (IFX.length) itemOnLand(0, 0);                                 // on cast (a channel prices as an instant), not on its ticks [A127]
-        touchOfTheGrave();                                                // on cast, not on the channel's ticks [A29]
-        jowProc(false);                                                   // [A64]
+        landCT = 0;                                                       // a channel prices as an instant (round 244: never a stale cast time)
+        // Round 244 (the user's pick "Hellfire cast rolls no procs"; a public combat-log study, Warcraft Logs, Forever): every
+        // effect of Hellfire's cast targets you, so it rolls nothing — no Blade of Eternal Darkness, Touch of the Grave,
+        // Judgement of Wisdom, set, trinket or enchant procs (0 of 877 Judgement of Wisdom, 0 of 100 Touch of the Grave, 0 of
+        // 465 Violet Meditation). Its ticks never did. Rain of Fire's cast rolls them, except Touch of the Grave. [A131]
+        if (!s.castOnSelf) {
+          if (IFX.length) itemOnLand(0, 0);                               // on cast (a channel prices as an instant), not on its ticks [A127]
+          touchOfTheGrave(0, key);                                        // on cast, not on the channel's ticks [A29]
+          jowProc(false);                                                 // [A64]
+        }
         var id = ++inst;
         var nCh = e.ticks + (carry ? Math.floor(carry / s.tickEvery + 1e-6) : 0), chDur = carry ? nCh * s.tickEvery : s.duration;
         S.channel = { key: key, inst: id, snap: makeSnap(), start: S.t, end: S.t + chDur, ticks: nCh, tl: !!fromTL, idx: actIdx };   // timeline channels run to the end
+        if (REV) revChan();                                               // round 243: a channel started while Revelation is up holds it until it ends [A106]
         for (var i = 1; i <= nCh; i++) H.push({ t: S.t + i * s.tickEvery, o: 0, type: 'chanTick', key: key, inst: id, i: i - 1 });
         S.busyUntil = S.t + chDur; S.gcdReady = S.t + gcdT;
         r.castTime += chDur - carry;                                      // the carried part was counted with the old cast
@@ -1118,14 +1177,17 @@ window.WL = window.WL || {};
         var ce = { t: S.busyUntil + (s.projectile ? TRAVEL : 0), o: 1, type: 'castEnd', key: key, castMult: castMult, target: target, tl: fromTL, castT: castT };
         H.push(ce);
         S.cast = { key: key, rk: rk, full: castT, end: S.busyUntil, ev: ce, n: 0 };     // pushback (round 78)
+        // Round 243 [A106]: a projectile in flight took Revelation when its cast completed — checked then (revCast).
+        if (REV && s.projectile && TRAVEL > EPS) H.push({ t: S.busyUntil, o: 0, type: 'revCast', cs: S.cast });
         scheduleDecide(Math.max(S.busyUntil, S.gcdReady));
       } else {
         S.busyUntil = S.t; S.gcdReady = S.t + gcdT;
         row(rk).castTime += gcdT;
-        if (s.projectile && TRAVEL > EPS) H.push({ t: S.t + TRAVEL, o: 1, type: 'castEnd', key: key, castMult: castMult, target: target, tl: fromTL, castT: castT });
+        var rvt = REV ? revTake(key) : false;                             // round 243: an instant takes Revelation when cast [A106]
+        if (s.projectile && TRAVEL > EPS) H.push({ t: S.t + TRAVEL, o: 1, type: 'castEnd', key: key, castMult: castMult, target: target, tl: fromTL, castT: castT, rev: rvt });
         else {
           landCT = castT;
-          if (!land(key, eurekaAt(key, S.t), castMult, target) && fromTL) TL.turn = true;
+          if (!land(key, eurekaAt(key, S.t), castMult, target, rvt) && fromTL) TL.turn = true;
         }
         scheduleDecide(S.gcdReady);
       }
@@ -1172,9 +1234,10 @@ window.WL = window.WL || {};
 
     // ---------- pet actor [A26][A45][A46] ----------
     // Pet spell power = cfg.petSpPct (default 10%, measured in Forever, round 31) of the Warlock's spell power (incl. Blood
-    // Fury and the potion) + Demonic Knowledge's bonus in full (it names the pet). Pet spell hit = Warlock hit (melee: 8/17 of it, A99); pet spell crit =
-    // the Warlock's crit (character sheet incl. Int, buffs, consumables, oil — "increased by 100% of master's crit",
-    // round 31; was gear crit only), ×1.5. Not affected by ISB / Shadow and Flame / Spell Pierce.
+    // Fury and the potion; since round 244 generic + the better school, petOwnerSp) + Demonic Knowledge's bonus in full (it
+    // names the pet). Pet spell hit = Warlock hit (melee: 8/17 of it, A99); pet crit = cfg.petCrit (round 244: live = its own
+    // + your gear's crit; rounds 31–243 the Warlock's sheet crit), ×1.5. Not affected by ISB / Shadow and Flame / Spell Pierce.
+    // Pet mana: its pool, regen mp5PerOwnerInt × your Int / 5 a second (round 244) [A45].
     // Each pet gets a generation number; its scheduled events carry it, so a pet swapped out mid-fight (round 35) stops.
     var P = null, petGen = 0;
     function makePet(key) {
@@ -1182,6 +1245,10 @@ window.WL = window.WL || {};
       var pc = cfg.pets[key];
       var p = { key: key, c: pc, maxMana: pc.mana * (1 + tv('felVitality', 'manaPct') / 100), lastRegen: S.t, lashReady: 0, gen: ++petGen };
       p.regenAdd = (WL.trinketEquipFx ? WL.trinketEquipFx(cfg) : []).reduce(function (a, q) { return a + (q.petMp5 && (!q.pet || q.pet === key) ? q.petMp5 / 5 : 0); }, 0);   // Pimgib's Collar (round 209)
+      // Round 244 (the user's pick "Imp regen from your Int") [A45]: mp5PerOwnerInt × your Intellect as MP5 — per second / 5,
+      // all the time (MP5: no 5-second rule); the Felhunter (share never read) keeps manaRegen per second.
+      p.regen = (pc.mp5PerOwnerInt != null ? pc.mp5PerOwnerInt * stats.int / 5 : pc.manaRegen || 0) + p.regenAdd;
+      res.petRegen = p.regen;                                             // mana a second of the last demon summoned (round 244; tests)
       p.mana = p.maxMana;
       return p;
     }
@@ -1205,7 +1272,7 @@ window.WL = window.WL || {};
     };
     S.tapGain = function () { return (SPELLS.lifeTap.manaBase + stats.spi + (TRX ? trSpi() : 0)) * (1 + tv('improvedLifeTap', 'manaPct') / 100); };
     S.maxMana = stats.maxMana;
-    function petRegen() { P.mana = Math.min(P.maxMana, P.mana + (P.c.manaRegen + (P.regenAdd || 0)) * (S.t - P.lastRegen)); P.lastRegen = S.t; }
+    function petRegen() { P.mana = Math.min(P.maxMana, P.mana + P.regen * (S.t - P.lastRegen)); P.lastRegen = S.t; }   // round 244: P.regen (makePet)
     function petMult(school) {
       var m = (1 + tv('unholyPower', 'petDmgPct') / 100) * stats.mult.all;                             // Soul Link lives in mult.all
       var cmd = racialOf('petDmgPct'); if (cmd) m *= 1 + cmd.value / 100;                              // Command (Orc), patch notes of 2026-10-26 [A100]
@@ -1226,7 +1293,19 @@ window.WL = window.WL || {};
       return 1;
     }
     function warlockSpNow() { return (stats.sp + potSp() + (TRX ? trSp(null) : 0)) * (S.buff('bloodFury') ? 1 + racialOf('cooldown').spPct / 100 : 1); }
-    function petSp() { return warlockSpNow() * (cfg.petSpPct != null ? cfg.petSpPct : 100) / 100 + (stats.dkSp || 0); }   // [A26][A27] pet spells
+    // Round 244 (the user's pick "The small ones") [A26]: what a demon takes its tenth (and its attack power) from is your school
+    // total — generic + the better of your Shadow / Fire spell power (cfg.petSchoolSp; rounds 31–243 generic only), live.
+    function petOwnerSp() {
+      if (cfg.petSchoolSp === false) return warlockSpNow();
+      var best = 0;
+      ['shadow', 'fire'].forEach(function (sc) { best = Math.max(best, (stats.schoolSp[sc] || 0) + (TRX ? trSp({ school: sc }) - trSp(null) : 0)); });
+      return (stats.sp + best + potSp() + (TRX ? trSp(null) : 0)) * (S.buff('bloodFury') ? 1 + racialOf('cooldown').spPct / 100 : 1);
+    }
+    function petSp() { return petOwnerSp() * (cfg.petSpPct != null ? cfg.petSpPct : 100) / 100 + (stats.dkSp || 0); }   // [A26][A27] pet spells
+    // Round 244 (the user's pick "Demon crit as live") [A95]: cfg.petCrit.fromOwner false (live) = the demon's own crit + your
+    // gear's "+X% crit" (stats.gearCritPct); true (announced, not live; rounds 152–243) = your spell crit. melee: its own melee crit.
+    var PCRIT = cfg.petCrit || { fromOwner: true, ownMeleePct: 0, ownSpellPct: 0 };
+    function petCritPct(melee) { return PCRIT.fromOwner ? stats.critPct : (melee ? PCRIT.ownMeleePct : PCRIT.ownSpellPct) + (stats.gearCritPct || 0); }
     function petSpellHit(sp) {
       var key = 'pet:' + sp.key, r = row(key);
       r.casts++;
@@ -1242,7 +1321,7 @@ window.WL = window.WL || {};
       var amt = (base + sp.coef * petSp()) * petMult(sp.school);
       if (sp.key === 'firebolt') amt *= 1 + tv('improvedImp', 'firebolt') / 100;
       var pm = petResRoll(ppr); amt *= pm;                               // Lash of Pain: partial resists (round 239)
-      var cx = R.pet() * 100, crit = !!CHC[key] || cx < stats.critPct;   // master's crit (round 31) [A26]; cheat mode (round 166)
+      var cx = R.pet() * 100, crit = !!CHC[key] || cx < petCritPct(false);   // the demon's spell crit (round 244, petCrit; rounds 31–243 your crit) [A26][A95]; cheat mode (round 166)
       if (crit) amt *= cb.critMultiplier;
       deal(key, amt, crit, false);
       L('pet', key, Object.assign({ dmg: Math.round(amt), crit: crit }, pm < 1 ? { resistPct: Math.round((1 - pm) * 100) } : {}));
@@ -1268,7 +1347,7 @@ window.WL = window.WL || {};
       var sp = P.c.spell;
       if (sp.cd && P.lashReady > S.t + EPS) { H.push({ t: P.lashReady, o: 2, type: 'petAct', gen: P.gen }); return; }
       if (P.mana < sp.cost) {                             // out of mana: wait for regen
-        var wait = Math.max(0.1, (sp.cost - P.mana) / P.c.manaRegen);
+        var wait = P.regen > 0 ? Math.max(0.1, (sp.cost - P.mana) / P.regen) : dur;   // round 244: its own regen (with Pimgib's Collar)
         res.petOomTime += Math.min(wait, dur - S.t);
         H.push({ t: S.t + wait, o: 2, type: 'petAct', gen: P.gen }); return;
       }
@@ -1293,14 +1372,14 @@ window.WL = window.WL || {};
       // own 7.52% + your melee crit from Agility) [A95] → hit.
       var hitBonus = WL.petMeleeHit(stats, cb);
       var miss = Math.max(0, tb.missPct - hitBonus), dodge = tb.dodgePct;
-      var critCh = Math.max(0, (m.critPct || 0) + (m.inheritSpellCrit ? stats.critPct : 0) - tb.critSuppressionPct);
+      var critCh = Math.max(0, (m.critPct || 0) + (m.inheritSpellCrit ? petCritPct(true) : 0) - tb.critSuppressionPct);   // round 244: the demon's crit (petCrit) [A95]
       if (CHH[rk]) { miss = 0; dodge = 0; }                                   // cheat mode (round 166): every swing lands (glancing blows stay)
       if (CHC[rk]) critCh = 100;                                            // … and every one that is not a glancing blow crits
       if (roll >= miss + dodge) {
         r.landed++;
         jowProc(true);                                                   // [A64]
-        var dps = m.baseDps + m.apPerSp * warlockSpNow() / m.apPerDps;                                  // [A46] own AP rule
-        var amt = dps * m.swing * (1 - armorRed) * petMult('physical');                                  // [A54] boss armor − debuffs
+        var dps = m.baseDps + m.apPerSp * petOwnerSp() / m.apPerDps;                                    // [A46] own AP rule; your school total (round 244)
+        var amt = dps * m.swing * (1 - armorRed) * petMult('physical') * (m.dmgPct != null ? m.dmgPct / 100 : 1);   // [A54] boss armor − debuffs; the Voidwalker's melee halved (round 244) [A46]
         var glance = roll < miss + dodge + tb.glancePct;
         var crit = !glance && (CHC[rk] || roll < miss + dodge + tb.glancePct + critCh);
         if (glance) { amt *= tb.glanceDmgPct / 100; r.glances++; }
@@ -1639,7 +1718,14 @@ window.WL = window.WL || {};
         if (ev.dead) continue;                                // pushed back: a later copy of this event lands it (round 78)
         var fin = ev.t - (SPELLS[ev.key].projectile && TRAVEL > EPS ? TRAVEL : 0);   // when the cast finished (a projectile flies on)
         landCT = ev.castT || 0;                               // the cast time of this cast (Blade of Eternal Darkness, round 235)
-        if (!land(ev.key, eurekaAt(ev.key, fin), ev.castMult, ev.target) && ev.tl && TL) TL.turn = true;   // missed timeline cast → priority turn
+        // Round 243 [A106]: Revelation is taken when the cast completes — now, unless it flew (then at revCast / the instant's cast).
+        var rvl = ev.rev != null ? ev.rev : REV && !(SPELLS[ev.key].projectile && TRAVEL > EPS) ? revTake(ev.key) : false;
+        if (!land(ev.key, eurekaAt(ev.key, fin), ev.castMult, ev.target, rvl) && ev.tl && TL) TL.turn = true;   // missed timeline cast → priority turn
+      } else if (ev.type === 'revCast') {                     // a projectile's cast completes (round 243): it may take Revelation [A106]
+        var rcs = ev.cs;
+        if (S.cast !== rcs) continue;
+        if (rcs.end > S.t + EPS) { H.push({ t: rcs.end, o: 0, type: 'revCast', cs: rcs }); continue; }   // pushed back: check at the new end
+        rcs.ev.rev = revTake(rcs.key);
       } else if (ev.type === 'mana') {
         var before = S.mana; S.mana = Math.min(stats.maxMana, S.mana + ev.amount); res.manaFromBuffs = (res.manaFromBuffs || 0) + (S.mana - before);
         L('mana', ev.src, { gain: Math.round(S.mana - before) });

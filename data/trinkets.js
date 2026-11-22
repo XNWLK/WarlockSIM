@@ -92,7 +92,7 @@ WL.TRINKET_FX = {
   19950:  { name: 'Zandalarian Hero Charm',             use: { kind: 'spDecay', sp: 204, per: 17, duration: 20, cd: 120 } },
   22678:  { name: 'Talisman of Ascendance',             use: { kind: 'spStack', per: 40, max: 5, casts: 6, duration: 20, cd: 60 } },
   19957:  { name: "Hazza'rah's Charm of Destruction",   use: { kind: 'crit', pct: 10, tree: 'destruction', duration: 20, cd: 180 } },
-  272438: { name: 'Weakness Analyzer',                  use: { kind: 'crit', pct: 5, endsOnCrit: true, duration: 20, cd: 90 } },   // + 22 spell power always
+  272438: { name: 'Weakness Analyzer',                  use: { kind: 'crit', pct: 5, endsOnCrit: true, duration: 20, cd: 90 } },   // + 18 spell power always (item stats; its tooltip: "up to 18"). Round 244: the tooltip says "(6 Min Cooldown)" — cd 90 kept, flagged to the user
   19337:  { name: 'The Black Book',                     use: { kind: 'petDmg', pct: 100, duration: 30, cd: 300 } },
   272439: { name: 'Serenity Field',                     use: { kind: 'spi', spi: 72, duration: 15, cd: 90 } },
   23027:  { name: 'Warmth of Forgiveness',              use: { kind: 'mana', amount: 500, cd: 180 } },
@@ -167,21 +167,41 @@ WL.trinketEquipFx = function (cfg) {
 //   'dmg'       chancePct → a hit of min…max (school), no spell power (Necropile Drain; the healing is not counted)
 //   'castRegen' chancePct → for duration, pct % of your Spirit regeneration also while casting (inside the 5 s rule)
 //   'lowMana'   below belowPct % mana: + amount mana (counted at once), cd seconds
-// zones: × in that kind of area (fight.zone), as for trinkets. Not simulated: Violet Sorcerer's 5 (an Arcane elemental of
-// unknown damage), Dreadmist's 5 (healing), anything defensive.
+// Round 244 (the user's pick "Set procs: Necropile, Deathmist" and "The small ones"; a public combat-log study, Warcraft Logs,
+// Forever): ppm (instead of chancePct) = procs a minute on the cast time of the cast that launched the landing, at least
+// minCast s: ppm × max(minCast, cast time) / 60; a drain / Wrack cast prices as an instant, an area channel's cast rolls
+// aoeCastPct %. perTarget: it also rolls on each extra target a spell lands on (else only on the boss). A landing is a
+// direct hit or a DoT / channel applied — never a tick, Bane of Havoc or Hellfire's cast (engine/sim.js procChancePct).
+// zones: × in that kind of area (fight.zone), as for trinkets. Not simulated: Violet Sorcerer's 5 (an Arcane elemental that
+// only melees), Dreadmist's / Deathmist's heal (healing), anything defensive.
 WL.SET_FX = {
+  // Round 244: 13.9% (13.93% [12.97, 14.89] in 5,793 landings of five wearers, one a Warlock; rounds 210–243: 100%, Wowhead's
+  // listed chance). By spell 11–19%, not following cast time. Rain of Fire damage, Bane of Havoc and ticks never roll it.
   122:  { name: 'Necropile Raiment', pieces: [14626, 14629, 14631, 14632, 14633],
-          at: { 3: { kind: 'dmg', chancePct: 100, min: 28, max: 28, school: 'shadow' } } },                 // Necropile Drain 1299737 → 1299735
+          at: { 3: { kind: 'dmg', chancePct: 13.9, perTarget: true, min: 28, max: 28, school: 'shadow' } } },   // Necropile Drain 1299737 → 1299735
   181:  { name: "Magister's Regalia", pieces: [16682, 16683, 16684, 16685, 16686, 16687, 16688, 16689],
           at: { 5: { kind: 'mana', chancePct: 5, amount: 200 } } },                                         // 450527
   182:  { name: 'Vestments of the Devout', pieces: [16690, 16691, 16692, 16693, 16694, 16695, 16696, 16697],
           at: { 5: { kind: 'mana', chancePct: 5, amount: 200 } } },                                         // 450576
   2133: { name: "Rotmender's Raiment", pieces: [271207, 271214, 286978, 286979, 286980],
           at: { 4: { kind: 'lowMana', belowPct: 15, amount: 200, cd: 300, zones: { haunted: 2, wasteland: 2 } } } },   // 1321560
+  // Round 244: 1.0 a minute on cast time, instants at 1.5 s, once per target (1.009 [0.968, 1.052] on 34,999 lone landings of
+  // 214 wearers); channel ticks and Hellfire roll nothing; a Rain of Fire cast procs 8.6% (130 of 1,521). Rounds 210–243: 100%.
   2134: { name: "Violet Sorcerer's Vestments", pieces: [273044, 273051, 286987, 286988, 286989],
-          at: { 4: { kind: 'castRegen', chancePct: 100, pct: 15, duration: 15, zones: { city: 2 } } } },     // Violet Meditation 1324318
+          at: { 4: { kind: 'castRegen', ppm: 1.0, minCast: 1.5, aoeCastPct: 8.6, perTarget: true, pct: 15, duration: 15, zones: { city: 2 } } } },   // Violet Meditation 1324318
 };
-WL.SET_NOT_SIMULATED = { 2134: { 5: 'not simulated: the elemental\'s damage is unknown' } };
+// Round 244: the 5-piece's Arcane Elemental (1324322) only melees — a physical swing every 2.0 s for about 20 s, each hit about
+// 0.62 × 2 s of the creature auto-attack DPS for your level before armor, no spell power — after a 0.95-a-minute roll on cast
+// time and a 15 s cooldown. Not simulated.
+// Round 244: a set proc's chance in % on a landing of spell s (WL.SPELLS entry; null = unknown) whose cast took castT s:
+// chancePct, or ppm × max(minCast, castT) / 60 × 100; a single-target channel's cast (drains, Wrack) prices as an instant,
+// an area channel's cast rolls aoeCastPct (Rain of Fire 8.6%; Hellfire's cast never gets here — it rolls nothing).
+WL.procChancePct = function (p, s, castT) {
+  if (!p.ppm) return p.chancePct;
+  if (s && s.kind === 'channel') return s.aoe ? p.aoeCastPct || 0 : p.ppm * p.minCast / 60 * 100;
+  return p.ppm * Math.max(p.minCast, castT || 0) / 60 * 100;
+};
+WL.SET_NOT_SIMULATED = { 2134: { 5: 'not simulated: an Arcane elemental that only melees (a swing every 2 s for about 20 s, about 75 a hit at 60 before armor)' } };
 // The set effects of the gear builder's items that are on: [{ slot, id, fx: { name, proc } }] (shaped like trinkets).
 WL.equippedSetFx = function (cfg) {
   var gb = cfg && cfg.gearBuilder; if (!gb || !gb.on || !gb.slots) return [];
@@ -197,7 +217,7 @@ WL.equippedSetFx = function (cfg) {
 WL.setBonusNote = function (sid, b) {
   var s = WL.SET_FX[sid], fx = s && s.at[b.n], ns = (WL.SET_NOT_SIMULATED[sid] || {})[b.n];
   if (ns) return ns;
-  if (fx) return 'in the fight' + (fx.chancePct === 100 ? ' (on every landed damaging cast)' : '');
+  if (fx) return 'in the fight' + (fx.chancePct === 100 ? ' (on every landed damaging cast)' : fx.ppm ? ' (' + fx.ppm + ' a minute on cast time)' : fx.chancePct ? ' (' + fx.chancePct + '% per landing)' : '');   // round 244
   if (b.stats) return '';
   return 'no effect in the sim';
 };
@@ -206,9 +226,11 @@ WL.setBonusNote = function (sid, b) {
 // Keyed by enchant id (WL.ENCHANTS); Wowhead Forever spell data, 2026-10-28. proc kinds:
 //   'sp'     + sp spell power (and + mana) for duration — chancePct per landed damaging cast ('Aura proc chance')
 //   'spiPct' Spirit × (1 + pct %) for duration — chancePct per landed damaging cast
-//   'crit'   Revelation: a non-periodic spell that does not crit triggers it at chancePct × (1 − your crit %), the next
-//            non-periodic spell gets + pct % crit (within duration). The real chance is a server-side script (unknown):
-//            combat.revelationChancePct is a guess.
+//   'crit'   Revelation: + pct % crit for duration s. Round 243 (the user's choices): a direct hit or Hellfire / Rain of
+//            Fire tick that does not crit triggers it at WL.revelationChancePct (below; 11% × (1 − 2 × crit), fitted to
+//            players' in-game counts: combat.revelationChancePct, combat.revelationCritFactor); a direct spell takes it
+//            when cast and crits on landing; channel ticks crit while it is up and the channel spends it when it ends
+//            (engine/sim.js; rules from a public log study of Warcraft Logs reports, Forever 1.60.1.70862–70959).
 //   'dmg'    (round 241) a hit of min…max (school) like a trinket's: no spell power, your spell hit and crit (×1.5), Curse of
 //            the Elements on its schools — per landed damaging cast of yours (not your demon's), at combat.dismantleChancePct
 //            (a guess; chancePct when that is not set). vs / onlyVs as for trinkets.
@@ -216,7 +238,10 @@ WL.ENCHANT_FX = {
   // about: its rough worth in spell power for sorting the list (measured on Demo Pact Shadow Bolt Succubus, default settings).
   7942: { name: 'Grand Sorcerer', about: 44, proc: { kind: 'sp', chancePct: 7, sp: 70, mana: 400, duration: 20 } },          // 1231163 → 1231162 Righteous Blasting
   7941: { name: 'Grand Arcanist', about: 73, proc: { kind: 'sp', chancePct: 7, sp: 140, mana: 400, duration: 20 } },         // 1231152 → 1231138 Righteous Fire (two-handed)
-  8216: { name: 'Insight',        about: 30, proc: { kind: 'spiPct', chancePct: 35, pct: 100, duration: 10 } },              // 1248758 → 1299796
+  // Round 244 (the user's pick "The small ones"; a public combat-log study, Warcraft Logs, Forever — LOW to MEDIUM confidence,
+  // the study itself does not adopt the number): about 5.4% per damage spell of the wearer (9.5% on heals) against the
+  // row's 35% (rounds 167–243). about: rescaled by its uptime (1 − 0.946⁴ ≈ 20% against 1 − 0.65⁴ ≈ 82%).
+  8216: { name: 'Insight',        about: 7,  proc: { kind: 'spiPct', chancePct: 5.4, pct: 100, duration: 10 } },              // 1248758 → 1299796
   8217: { name: 'Revelation',     about: 33, proc: { kind: 'crit', pct: 100, duration: 15 } },                               // 1248806 → 1248808 (+100% crit, 15 s)
   // Round 241 (user: "implement everything") [A129]: Enchant Weapon - Dismantle (item 273590, spell 435481), "all spells and
   // attacks to sometimes deal 60 to 90 additional damage to mechanical creatures". Aura 435467 (all magic schools, "Aura proc
@@ -232,6 +257,13 @@ WL.equippedEnchantFx = function (cfg) {
     return id != null && WL.ENCHANT_FX[id] && gb.slots && gb.slots[slot] ? { slot: slot, id: +id, fx: WL.ENCHANT_FX[id] } : null;
   }).filter(Boolean);
 };
+// Round 243 (the user's choice: "Chance 11% × (1 − 2C)") [A106]: Revelation's trigger chance in % for a non-periodic spell
+// that does not crit, at your crit chance critPct (%): combat.revelationChancePct × max(0, 1 − revelationCritFactor ×
+// crit). 0 from 50% crit on. A config without revelationCritFactor uses 1 (the rounds 167–242 formula).
+WL.revelationChancePct = function (cb, critPct) {
+  var f = cb && cb.revelationCritFactor != null ? cb.revelationCritFactor : 1;
+  return ((cb && cb.revelationChancePct) || 0) * Math.max(0, 1 - f * (critPct || 0) / 100);
+};
 
 // Other gear with an effect in the fight (round 235, user: "implement blade of eternal darkness with its stats and its
 // proc"). [A127] Keyed by item id; slot: the gear builder slot it must be worn in. Its stats are item stats (data/item-db.js).
@@ -239,7 +271,8 @@ WL.equippedEnchantFx = function (cfg) {
 //   'ppmCast' procsPerMin procs a minute, priced on the cast time of the cast that launched each landed harmful spell
 //             (at least minCast s): chance = procsPerMin × max(minCast, cast time) / 60. It rolls on every landed spell
 //             you cast at an enemy, whether it deals damage or not (curses, DoT and channel casts, Bane of Havoc), once per
-//             target; never on DoT or channel ticks, Life Tap or your demon. icd: not again for that long. It deals
+//             target; never on DoT or channel ticks, Life Tap, your demon or (round 244) Hellfire's cast, which targets you
+//             (a public combat-log study: 0 procs on its effect's 3,027 hits). icd: not again for that long. It deals
 //             min…max (school), like a trinket's hit (no spell power, your spell hit and crit, Curse of the Elements),
 //             and restores `mana` even when that hit is resisted.
 WL.ITEM_FX = {

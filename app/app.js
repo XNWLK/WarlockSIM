@@ -1578,6 +1578,7 @@
         if (e.timeline) note.push('timeline'); if (e.trance) note.push('Shadow Trance'); if (e.moving) note.push('while moving'); if (e.eureka) note.push('Eureka!');
         if (e.n) note.push('tick ' + e.n + (e.of ? '/' + e.of : '') + (e.part != null ? ' (part ' + e.part + ')' : '')); if (e.gain) note.push('+' + e.gain + ' mana');
         if (e.for) note.push('for ' + spellName(e.for));
+        if (e.rev) note.push('Revelation: +100% crit');                     // round 243 (the user's Revelation rules)
         if (e.type === 'recast') note.push('cast again: its ' + e.left + ' s left go on in the new one'); if (e.carry) note.push('+' + e.carry + ' s from the one before');
         if (e.delay) note.push('cast +' + e.delay.toFixed(2) + ' s'); if (e.cut) note.push('channel −' + e.cut.toFixed(2) + ' s'); if (e.type === 'pushResist') note.push('no pushback (' + e.pct + '% chance)');   // round 78
         if (e.resisted) note.push('fully resisted (binary spell: the boss has resistance left)');   // round 239 [A128]
@@ -4182,7 +4183,8 @@
         : p.kind === 'spiPct' ? p.chancePct + '% chance per landed spell: Spirit +' + p.pct + '% for ' + p.duration + ' s'
         : p.kind === 'dmg' ? (cfg.combat.dismantleChancePct != null ? cfg.combat.dismantleChancePct : p.chancePct) + '% chance (a guess) per landed damaging spell: ' + (p.min === p.max ? p.min : p.min + '–' + p.max) + ' ' + cap1(p.school) + ' damage'
           + (p.vs ? ', only against ' + Object.keys(p.vs).map(function (k) { var b = WL.BOSS_TYPES.filter(function (y) { return y.key === k; })[0]; return b ? b.name : k; }).join(' / ') + (WL.fxOn(cfg, p) ? ' (now)' : ' (not in this fight: set Boss type in Fight & pets)') : '')   // round 241: Dismantle
-        : 'a direct hit that does not crit: ' + (cfg.combat.revelationChancePct || 0) + '% × (1 − your crit) chance (a guess) that the next direct hit gets +' + p.pct + '% crit';
+        // Round 243 (the user's choices: 11% × (1 − 2C); channel ticks all crit; Hellfire / Rain of Fire ticks roll it; spent at the cast)
+        : 'a direct hit or Hellfire / Rain of Fire tick (each target) that does not crit: ' + (cfg.combat.revelationChancePct || 0) + '% × (1 − ' + (cfg.combat.revelationCritFactor != null ? cfg.combat.revelationCritFactor : 1) + ' × your crit) chance (0 from ' + Math.round(100 / (cfg.combat.revelationCritFactor || 1)) + '% crit) of +' + p.pct + '% crit for ' + p.duration + ' s: the next direct spell takes it when cast and crits when it lands; a channel crits on every tick while it is up and spends it when the channel ends';
       return '<div class="trk"><b>' + esc(fx.name) + '</b> <span class="meta">(weapon enchant)</span><span>' + esc(t) + '</span></div>';
     }).join('');
     box.innerHTML = rows ? '<h3 class="meta">Trinkets and enchants in the fight' + (G.on ? '' : ' (switch the gear builder on to use them)') + '</h3>' + rows + '<p class="meta">"With your other cooldowns" follows Pop cooldowns (Fight &amp; pets), and its custom timeline has a row for each trinket. A build with "Activate trinket" in its priority uses the on-use trinkets from there instead ("never" still holds).</p>' : '';

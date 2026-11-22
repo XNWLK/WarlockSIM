@@ -164,7 +164,7 @@ crit chance = sheet crit
 - Option "Sheet crit % already includes talents, racials & oil": then Malevolence, the Firestone or oil crit, Ruthless and
   Savage are not added again. Raid buffs, consumables and the two spell-specific talents still are.
 
-**Agility** does nothing: your demon crits with your spell crit (section 7), so the sim has no Agility.
+**Agility** does nothing: your demon crits with its own crit and your gear's crit (section 7), so the sim has no Agility.
 
 **Haste** = gear + consumables + Spellstone 2%. Berserking is applied on top during the fight (section 1).
 
@@ -277,12 +277,12 @@ The examples use the build **Shadow Demo** as an Undead in its Pre-BiS gear with
 3,715.9 health × 5% = **185.8**. Nothing multiplies it: no aura, no curse, no Improved Shadow Bolt, no Power Infusion. No spell power, no crit, no resist roll. 30% chance per landed damaging cast, then nothing for 15 s.
 
 #### 6. The Succubus
-- Attack table of one swing: her melee hit = 8/17 × your spell hit 7.8% = 3.67%; miss 8% − 3.67% = **4.33%**, dodge **6.5%**, glancing blow **40%** (at 65% damage), crit your spell crit 13.88 − 4.8 = **9.08%** (× 2), normal hit the remaining **40.09%**.
-- Attack power from you: 653 spell power ÷ 6 = 108.9. Damage per second: 73.5 + 108.9 ÷ 14 = 81.28.
+- Attack table of one swing: her melee hit = 8/17 × your spell hit 7.8% = 3.67%; miss 8% − 3.67% = **4.33%**, dodge **6.5%**, glancing blow **40%** (at 65% damage), crit her own 0.7 + your gear's crit 1.5 − 4.8 = **0%** (× 2), normal hit the remaining **49.17%**.
+- Attack power from you: 770 spell power (generic + your better school) ÷ 6 = 128.4. Damage per second: 73.5 + 128.4 ÷ 14 = 82.67.
 - Boss armor: 3,731 − armor debuffs = 976 → 976 ÷ (976 + 5,500) = 15.07% less physical damage.
-- One normal swing: 81.28 × 2 s × (1 − 0.1507) × 1.10 Unholy Power × 1.03 Soul Link = **156.4**. Master Demonologist and Curse of the Elements do not apply to melee.
-- Her spell power: 10% of 653 + 60 Demonic Knowledge = 125.3.
-- Lash of Pain: (50 × 1.30 Improved Sayaad + 0.429 × 125.3) × 1.10 × 1.03 × 1.10 Master Demonologist × 1.10 curse = **162.8**; it crits with your spell crit (13.88%) for × 1.5.
+- One normal swing: 82.67 × 2 s × (1 − 0.1507) × 1.10 Unholy Power × 1.03 Soul Link = **159.1**. Master Demonologist and Curse of the Elements do not apply to melee.
+- Her spell power: 10% of 770 (generic + your better school) + 60 Demonic Knowledge = 137.
+- Lash of Pain: (50 × 1.30 Improved Sayaad + 0.429 × 137) × 1.10 × 1.03 × 1.10 Master Demonologist × 1.10 curse = **169.7**; it crits with her own 0% + your gear's crit (1.5%) for × 1.5.
 - Demonic Brand hit: (66.5 + 0.078 × 770 Shadow spell power) × the same four multipliers = **173.5**. It cannot miss or crit.
 
 #### 7. Life Tap
@@ -462,20 +462,26 @@ Demons are simulated as their own actors: they cast, swing, miss, crit and run o
 <!-- gen:pets -->
 | Demon | Spell | Melee | Mana |
 |---|---|---|---|
-| Imp | Firebolt: 45.2 + 0.571 × demon SP, Fire, 2 s cast, 115 mana | — | 2,000, +8 per second |
-| Succubus | Lash of Pain: 50 + 0.429 × demon SP, Shadow, instant, 12 s cooldown, 160 mana | 73.5 base DPS, one swing every 2 s, crit = your spell crit, 5 yd range | 2,000, +8 per second |
-| Felhunter | — | 40 base DPS, one swing every 2 s, crit = your spell crit | 2,000, +8 per second |
-| Voidwalker | — | 30 base DPS, one swing every 2 s, crit = your spell crit | 2,000, +8 per second |
+| Imp | Firebolt: 45.2 + 0.571 × demon SP, Fire, 2 s cast, 115 mana | — | 2,000, 30% of your Intellect as MP5 (20.5 a second at 341 Intellect: Shadow Demo in its Pre-BiS gear, Human, the page buffs) |
+| Succubus | Lash of Pain: 50 + 0.429 × demon SP, Shadow, instant, 12 s cooldown, 160 mana | 73.5 base DPS, one swing every 2 s, crit = its own 0.7% + your gear's crit, 5 yd range | 2,000, 10% of your Intellect as MP5 (6.8 a second at 341 Intellect: Shadow Demo in its Pre-BiS gear, Human, the page buffs) |
+| Felhunter | — | 40 base DPS, one swing every 2 s, crit = its own 0.7% + your gear's crit | 2,000, +8 per second |
+| Voidwalker | — | 43.2 base DPS, one swing every 2 s, all of it × 50%, crit = its own 0.7% + your gear's crit | 2,000, 10% of your Intellect as MP5 (6.8 a second at 341 Intellect: Shadow Demo in its Pre-BiS gear, Human, the page buffs) |
 <!-- /gen:pets -->
 
 **What a demon gets from you** (measured in Forever)
 
 - Spell power: 10% of your spell power (10 of yours = 1 for the demon), plus Demonic Knowledge's 20 / 40 / 60 in full.
-- Attack power: your spell power ÷ 6. 14 attack power = 1 damage per second.
-- Both follow your spell power as it is at that moment, including the Spellblasting potion and Blood Fury. Shadow-only or
-  Fire-only spell power does not count for these.
-- Spell hit = your hit chance. Melee hit = 8/17 of your spell hit (see the table below). Crit, for spells and melee alike = your spell crit chance (without spell-specific talents
-  such as Malevolence); a demon has no crit of its own. A demon's spell crit deals × 1.5.
+  "Your spell power" here is your generic spell power plus the better of your Shadow and Fire spell power (a demon has one
+  spell damage value for every school).
+- Attack power: that same spell power ÷ 6. 14 attack power = 1 damage per second.
+- Both follow your spell power as it is at that moment, including the Spellblasting potion and Blood Fury.
+- Spell hit = your hit chance. Melee hit = 8/17 of your spell hit (see the table below).
+- Crit, as in the game now: the demon's own crit (0.7% for melee, 0 for spells) plus your gear's "+X% crit" — the
+  character sheet's crit less its 1.7% base and your Intellect's share. Your Intellect, buffs, consumables, oils and
+  racials do not count. A demon's spell crit deals × 1.5. (A change that gives demons your whole spell crit is announced
+  but not live; the setting `petCrit.fromOwner` switches to it.)
+- Mana regeneration: a share of your Intellect as MP5 — Imp 30%, Voidwalker and Succubus 10% — all the time, nothing from
+  the demon's own stats. The Felhunter's share has not been read; it keeps 8 mana a second.
 
 **Damage multipliers of a demon:** Unholy Power × Soul Link × Command (Orc) × Master Demonologist (only the school it names: the
 Succubus' Shadow, the Imp's Fire) × Curse of the Elements (spells only, not melee). Demons get nothing from Improved
@@ -488,9 +494,10 @@ the whole hit.
 Firebolt = (44 + 0.571 × demon spell power) × (1 + Improved Imp) × demon multipliers
 ```
 
-At 115 mana per cast and 8 mana per second, the Imp's 2,000 mana (more with Fel Vitality) lasts about 40 to 46 seconds.
-Demonic Energies refills it from your Life Taps, and Judgement of Wisdom gives it 59 mana on half of its hits.
-*Mana pool and regeneration are assumed.*
+At 115 mana per cast (57.5 a second) against about 20 mana a second of regeneration (30% of ~340 Intellect ÷ 5), the Imp's
+2,000 mana (more with Fel Vitality) lasts about 50 to 60 seconds. Demonic Energies refills it from your Life Taps, and
+Judgement of Wisdom gives it 59 mana on half of its hits. *The mana pool is assumed; the regeneration shares were read on
+level 30 pet panes.*
 
 **Succubus.** Uses Lash of Pain every 12 s and swings every 2.0 s.
 
@@ -506,7 +513,7 @@ Each swing is one roll on this table, in this order:
 | Miss | 8% − her melee hit, not below 0. Her melee hit = 8/17 of your spell hit above the 83% base, so 17% spell hit → 8% → she never misses. |
 | Dodge | 6.5% |
 | Glancing blow | 40%, deals 65% damage, cannot crit |
-| Crit | your **spell** crit − 4.8%; deals × 2 |
+| Crit | her own 0.7% + your gear's crit − 4.8% (at Pre-BiS gear usually 0); deals × 2 |
 | Normal hit | the rest |
 
 *Her base damage of 73.5 per second is a Season of Discovery value (assumed).* The table is the
@@ -521,8 +528,9 @@ physical damage reduction = armor ÷ (armor + 5,500)
 
 Sunder and Expose do not stack with each other, nor do Faerie Fire and Curse of Recklessness.
 
-**Felhunter and Voidwalker** only swing (their abilities are not simulated); they crit with your spell crit, like the Succubus.
-*Their melee values are assumed.*
+**Felhunter and Voidwalker** only swing (their abilities are not simulated); they crit like the Succubus. The Voidwalker's
+weapon is 0.494 × the creature auto-attack damage at 60 plus its own 186 attack power (43.2 a second), and all its melee is
+halved. *Read on one set of level 30 sheets; the Felhunter's melee is assumed.*
 
 **Demonic Brand** (talent). A landed Searing Pain brands the boss for 10 s with 2 / 4 / 6 charges. Every landed attack of
 your demon (a swing, a Firebolt, a Lash of Pain) spends one charge and adds:
@@ -534,7 +542,7 @@ Demonic Brand hit = (66.5 + 0.078 × your Shadow spell power) × demon multiplie
 It is Fire for the Imp and Shadow for the Succubus, so Master Demonologist counts for both. It cannot miss or crit.
 
 **Shaman totems.** Windfury Totem and Flametongue Totem only affect players, so they do nothing for your demon. Grace of
-Air Totem is gone as well: Agility does nothing, because demons crit with your spell crit.
+Air Totem is gone as well: Agility does nothing for a demon's crit.
 
 **Judgement of Wisdom** on the boss gives the demon 59 mana on 50% of its landed swings and spells.
 
@@ -557,13 +565,13 @@ racials, so you can read off what each race adds.
 | Racial | In the sim |
 |---|---|
 | The Human Spirit (Human) | Spirit × 1.10. |
-| Ruthless (Human) | +1% spell crit (your demon crits with it too). |
+| Ruthless (Human) | +1% spell crit. |
 | Expansive Mind (Gnome) | Maximum mana +5% (adds with Fel Vitality). |
 | Eureka! (Gnome) | 2 min cooldown, 8 s. Every damaging spell that finishes while it is up costs 10% less mana and deals +10%, added to its talent group (section 3): a spell with a cast time when the cast is complete, an instant when it is cast. A cast that is still going when the 8 s end gets nothing. A channel costs 10% less when it starts inside the 8 s, and each of its ticks that comes while Eureka! is up gets +10%. DoT ticks get nothing. The sim starts Eureka! right before a direct spell or channel of at least 1.4 s. |
 | Command (Orc) | Your demon deals 5% more damage: its spells, its melee and the Demonic Brand bonus. |
 | Blood Fury (Orc) | 2 min cooldown, 15 s: your spell power × 1.10. That also raises what your demon gets from you, and a Bane of Doom that explodes while it is up. |
 | Berserking (Troll) | 3 min cooldown, 15 s: 10% haste. Shortens casts and the global cooldown. |
-| Touch of the Grave (Undead) | Each landed cast of a damaging spell (a direct spell, a DoT when it is applied, a channel when it starts - never a tick, a curse or Life Tap) has a 30% chance to deal 5% of your maximum health as Shadow damage and heal you for the same amount. After it happens it cannot happen again for 15 s. |
+| Touch of the Grave (Undead) | Each landed cast of a damaging spell (a direct spell, a DoT when it is applied, a drain or Wrack when it starts - never a tick, a curse, Life Tap, Hellfire's or Rain of Fire's cast) has a 30% chance to deal 5% of your maximum health as Shadow damage and heal you for the same amount. After it happens it cannot happen again for 15 s. |
 
 **Touch of the Grave in full.**
 
@@ -604,9 +612,9 @@ priority action "Life Tap when mana is below …%"), or to feed the demon (Demon
 | Source | Rule |
 |---|---|
 | MP5 | 1/5 of it every second, always. |
-| Judgement of Wisdom | 50% chance for 59 mana on every landed spell you cast at the boss (also a curse, a DoT being applied, a channel starting; not ticks, not Life Tap). |
+| Judgement of Wisdom | 50% chance for 59 mana on every landed spell you cast at the boss (also a curse, a DoT being applied, a channel starting; not ticks, not Life Tap, not Hellfire's cast, which targets you). |
 | Mana Tide Totem | Once, the first time you are below 50% mana: 4 × 290 mana, 3 s apart. |
-| Innervate | Once, the first time you are below 50% mana: 10 times 5 × (8 + Spirit ÷ 4) mana, 2 s apart. |
+| Innervate | Once, the first time you are below 50% mana: 10 times 5 × (8 + Spirit ÷ 4) mana, 2 s apart, plus 4 × your MP5 (the fifth runs anyway). The MP5 of Blessing of Wisdom, Mana Spring and Restorative Totems comes as ticks and is not multiplied. |
 | Mana potion / Demonic Rune | Used when you are missing at least what they restore; 2 min cooldown each (potions share one, the rune has its own). |
 | Voidwalker sacrifice | 2% of your maximum mana every 4 s. |
 
@@ -726,7 +734,7 @@ threat = damage × (1 − Suppression 4% per point) × spell factor
 | Mana Spring Totem | Shaman | on | 10 mana every 2 s (25 MP5) |
 | Restorative Totems (on Mana Spring) | Shaman | on | Mana Spring +25% |
 | Mana Tide Totem | Shaman | off | 290 mana every 3 s for 12 s, once, when you drop below 50% mana |
-| Innervate | Druid | off | 5× mana regen while casting for 20 s, when you drop below 50% mana (once per Innervate) |
+| Innervate | Druid | off | 5× mana regen (Spirit and MP5, not Blessing of Wisdom / Mana Spring ticks) while casting for 20 s, when you drop below 50% mana (once per Innervate) |
 | Moonkin Form aura | Druid | on | +3% spell crit (raid) |
 | Atiesh aura (Warlock) | Warlock | off | +33 spell damage and healing (another Warlock in your party holds Atiesh) |
 | Atiesh aura (Mage) | Mage | off | +2% spell crit (a Mage in your party holds Atiesh) |
@@ -948,15 +956,25 @@ Cannonball Runner's cannon and Zarla's Snack Pouch's whelp are simulated (above)
 |---|---|
 | Grand Sorcerer | 7% chance per landed damaging spell: +70 spell power and 400 mana for 20 s. |
 | Grand Arcanist (two-handed) | The same with +140 spell power. |
-| Insight | 35% chance per landed damaging spell: Spirit +100% for 10 s (more mana from Life Tap). |
-| Revelation | A direct hit that does not crit has a chance to trigger it; the next direct hit within 15 s gets +100% crit chance. The chance is set to 10% × (1 − your crit chance), a guess: the game's rule is not in the spell data. |
+| Insight | 5.4% chance per landed damaging spell: Spirit +100% for 10 s (more mana from Life Tap). The game file says 35%; 5.4% is a reading of players' logs (low to medium confidence). |
+| Revelation | +100% crit chance for 15 s (a new trigger while it is up starts the 15 s again). **Trigger:** a direct hit that lands and does not crit (on any target), and each Hellfire or Rain of Fire tick that lands and does not crit, on each target. DoT ticks, drain and Wrack ticks, your demon and trinket or item procs never trigger it; a partial resist still can, a miss or full resist cannot. The chance is 11% × (1 − 2 × your crit chance), so 0 from 50% crit on (9.68% at 6% crit). The game's rule is a server script; this formula fits players' in-game counts (207 triggers in 2,300 casts that did not crit, at 3.5–13.5% crit; the formula gives 217), and 11 is the enchant's value in the game files. Your crit here is your character sheet's spell crit (no spell-only talents or trinket crit). **Use:** a direct spell (or Immolate's direct hit) takes it when its cast completes (an instant when it is cast) and crits when it lands, even after travel time; nothing else can use it meanwhile, and it is spent even if that spell misses. Immolate's ticks, Corruption, curses and Life Tap neither use nor spend it. **Channels:** while it is up, every tick of a channel (Drain Life, Drain Soul, Wrack, Hellfire, Rain of Fire; every target) crits; it is spent when the channel ends (completes or is cut), also when it came from one of that channel's own ticks. These rules follow a public log study of Warcraft Logs reports (Forever 1.60.1.70862–70959). Not simulated: damage you take triggering it (Hellfire's damage to you included). |
 | Dismantle | Only against Mechanical bosses: 10% chance per landed damaging spell (a guess: the game's chance is a server script; its aura's value is 10) for 60–90 Nature damage, like a trinket hit (no spell power; your spell hit and crit × 1.5). |
 
 **Other gear with an effect** (worn in the gear builder, while the builder is on):
 
 | Item | In the sim |
 |---|---|
-| Blade of Eternal Darkness (main hand, +62 spell power) | Each spell you cast that lands on an enemy rolls, whether it deals damage or not: direct spells, curses, DoTs and channels when they land or start, Bane of Havoc; never a DoT or channel tick, Life Tap or your demon. The chance follows the cast time of that cast: 1.8 procs a minute, so 1.8 × max(1.5 s, cast time) / 60 — 4.5% on an instant, a channel or a 1.5 s cast, 7.5% on a 2.5 s Shadow Bolt. A proc deals 112 Shadow damage (no spell power; your spell hit and crit ×1.5; Curse of the Elements) and restores 104 mana, also when the hit is resisted; then 100 ms without a proc. Measured in game (2026-11-14 to 11-17): 554 procs of a mage, 49 of two warlocks and a priest. |
+| Blade of Eternal Darkness (main hand, +62 spell power) | Each spell you cast that lands on an enemy rolls, whether it deals damage or not: direct spells, curses, DoTs and channels when they land or start, Bane of Havoc; never a DoT or channel tick, Life Tap, your demon or Hellfire's cast (it targets you, so it rolls no proc at all). The chance follows the cast time of that cast: 1.8 procs a minute, so 1.8 × max(1.5 s, cast time) / 60 — 4.5% on an instant, a channel or a 1.5 s cast, 7.5% on a 2.5 s Shadow Bolt. A proc deals 112 Shadow damage (no spell power; your spell hit and crit ×1.5; Curse of the Elements) and restores 104 mana, also when the hit is resisted; then 100 ms without a proc. Measured in game (2026-11-14 to 11-17): 554 procs of a mage, 49 of two warlocks and a priest. |
+
+**Set bonuses with an effect** (the gear builder's items; their plain stat bonuses count like item stats):
+
+| Set | In the sim |
+|---|---|
+| Necropile Raiment (3) | 13.9% per landing (a direct hit, a DoT applied, a drain or Wrack cast, Rain of Fire's cast; on each target): 28 Shadow damage. Never a tick or Hellfire's cast. |
+| Violet Sorcerer's Vestments (4) | 1.0 a minute on cast time, so max(cast time, 1.5 s) ÷ 60 per landing on each target (2.5% on an instant, 5% on a 3 s cast), 8.6% on Rain of Fire's cast, nothing on ticks or Hellfire: 15% of your Spirit regeneration also while casting, for 15 s. (5): an Arcane elemental that only melees, not simulated. |
+| Magister's Regalia (5), Vestments of the Devout (5) | 5% per landed damaging spell: 200 mana. |
+| Rotmender's Raiment (4) | Below 15% mana: 200 mana, once every 5 min. |
+| Deathmist Raiment | The bonuses of the set as the game has it: (3) 8 MP5, (6) +23 spell power (the others: resistances, a heal, a fear). |
 
 **Cheat mode** (Fight & pets): ticked spells always hit and / or always crit, your demon's attacks too (its melee: no miss
 and no dodge; every swing that is not a glancing blow crits), to try streaks of luck. The results say "cheat mode" while it
@@ -1030,8 +1048,8 @@ every target, as "Keep DoTs on the extra targets"; Bane of Havoc as usual).
 
 **Assumed, not verified in Forever yet**
 
-- The demons' mana pool (2,000) and regeneration (8 per second).
-- The Succubus' base melee damage (73.5 per second); the Felhunter's and Voidwalker's melee.
+- The demons' mana pool (2,000), the Felhunter's regeneration (8 per second) and the other demons' regeneration at level 60 (read at level 30).
+- The Succubus' base melee damage (73.5 per second); the Felhunter's melee; the Voidwalker's (one set of level 30 sheets).
 - Spell Pierce and resistance at level 60 (the combat-log fit is measured at levels 20–50).
 - Which consumables exclude each other.
 - Values taken from Classic because Forever's are not known: base stats of a level-60 Warlock, boss armor (3,731),
@@ -1047,7 +1065,7 @@ every target, as "Keep DoTs on the extra targets"; Bane of Havoc as usual).
 
 **Not simulated**
 
-- Set bonuses. (Items and trinkets: with the gear builder; or you enter your stat totals.)
+- Set bonuses that heal or defend you. (Items, trinkets and sets: with the gear builder; or you enter your stat totals.)
 - Damage the boss does to you, and dying.
 - Range and positioning: the boss is always in range.
 - Soul shard limits (they never run out) and potions used before the pull.

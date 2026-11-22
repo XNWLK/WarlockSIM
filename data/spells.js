@@ -54,10 +54,10 @@ WL.SPELLS = {
   // (both); Agonizing Flames lists Rain of Fire but not Hellfire.
   hellfire:     { id: 11684,   name: 'Hellfire',       school: 'fire',   tree: 'destruction', kind: 'channel', aoe: true, rank: 3,
                   tickBase: 210.2, tickCoef: 0.022, tickEvery: 1, duration: 15, cast: 0, cost: 1300, range: 0, radius: 10,
-                  effectSpell: 11682, noAgonizingFlames: true, selfDamage: true, lvl: { base: 206, per: 0.7, from: 54, to: 64 } },   // selfDamage: every tick also hits you for its base damage (round 119), reduced by Molten Skin and Soul Link (round 132)
+                  effectSpell: 11682, noAgonizingFlames: true, selfDamage: true, castOnSelf: true, lvl: { base: 206, per: 0.7, from: 54, to: 64 } },   // selfDamage: every tick also hits you for its base damage (round 119), reduced by Molten Skin and Soul Link (round 132); castOnSelf (round 244): the cast targets you and rolls no procs [A131]
   rainOfFire:   { id: 11678,   name: 'Rain of Fire',   school: 'fire',   tree: 'destruction', kind: 'channel', aoe: true, rank: 4,
                   tickBase: 221.2, tickCoef: 0.083, tickEvery: 2, duration: 8, cast: 0, cost: 1185, range: 30, radius: 8,
-                  effectSpell: 1282385, lvl: { base: 220, per: 0.6, from: 58, to: 63 } },
+                  effectSpell: 1282385, castNoTog: true, lvl: { base: 220, per: 0.6, from: 58, to: 63 } },   // castNoTog (round 244): its cast never procs Touch of the Grave [A131]
   corruption:   { id: 11672,   name: 'Corruption',     school: 'shadow', tree: 'affliction',  kind: 'dot', rank: 6,
                   tickBase: 57, tickCoef: 0.20, tickEvery: 3, duration: 18, cast: 2.0, cost: 290, range: 30 },
   baneOfAgony:  { id: 11713,   name: 'Bane of Agony',  school: 'shadow', tree: 'affliction',  kind: 'dot', bane: true,

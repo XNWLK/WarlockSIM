@@ -45,11 +45,17 @@ window.WL = window.WL || {};
     }
     var partsText = function (p) { return p.map(function (q) { return q[0].toFixed(2) + ' ' + q[1]; }).join(' × '); };
     var partsMult = function (p) { return p.reduce(function (a, q) { return a * q[0]; }, 1); };
+    // Round 244: your school total — generic + the better of Shadow / Fire (cfg.petSchoolSp) [A26]
+    var petSchool = cfg.petSchoolSp === false ? 0 : Math.max(stats.schoolSp.shadow || 0, stats.schoolSp.fire || 0), ownerSp = stats.sp + petSchool;
     function petSpStep() {
-      var pct = cfg.petSpPct != null ? cfg.petSpPct : 100, sp = stats.sp * pct / 100 + (stats.dkSp || 0);
-      step('Demon\'s spell power', pct + '% of your ' + f(stats.sp) + ' spell power' + (stats.dkSp ? ' + ' + stats.dkSp + ' Demonic Knowledge' : ''), f(sp));
+      var pct = cfg.petSpPct != null ? cfg.petSpPct : 100, sp = ownerSp * pct / 100 + (stats.dkSp || 0);
+      step('Demon\'s spell power', pct + '% of your ' + f(ownerSp) + ' spell power' + (petSchool ? ' (' + f(stats.sp) + ' + ' + f(petSchool) + ' of your better school)' : '') + (stats.dkSp ? ' + ' + stats.dkSp + ' Demonic Knowledge' : ''), f(sp));
       return sp;
     }
+    // Round 244: the demon's crit (cfg.petCrit): live = its own + your gear's "+X% crit"; fromOwner = your spell crit [A95]
+    var PCR = cfg.petCrit || { fromOwner: true, ownMeleePct: 0, ownSpellPct: 0 };
+    function petCritOf(melee) { return PCR.fromOwner ? stats.critPct : (melee ? PCR.ownMeleePct : PCR.ownSpellPct) + (stats.gearCritPct || 0); }
+    function petCritText(melee) { return PCR.fromOwner ? 'your spell crit ' + f(stats.critPct, 2) + '%' : 'its own ' + (melee ? PCR.ownMeleePct : PCR.ownSpellPct) + '% + your gear\'s crit ' + f(stats.gearCritPct || 0, 2) + '%'; }
     if (bk.indexOf('pet:') === 0) {
       var pk = bk.slice(4), pc = build.pet && cfg.pets[build.pet];
       if (!pc) return null;
@@ -63,7 +69,7 @@ window.WL = window.WL || {};
         if (pp.length) step('Demon\'s damage bonuses (each multiplies)', partsText(pp), f(pv));
         values.hit = pv;
         if (hasCoe) { step('With Curse of the Elements on the boss', f(pv) + ' ' + x2(coe), f(pv * coe)); values.onBoss = pv * coe; }
-        step('A crit', 'your spell crit, ' + f(stats.critPct, 2) + '%, deals × ' + cb.critMultiplier, f((values.onBoss || pv) * cb.critMultiplier));
+        step('A crit', petCritText(false) + ' = ' + f(petCritOf(false), 2) + '%, deals × ' + cb.critMultiplier, f((values.onBoss || pv) * cb.critMultiplier));   // round 244
         notes.push('It misses with your miss chance (' + f(100 - stats.hitPct) + '%). ' + (ps.cast ? ps.cast + ' s cast, not shortened by haste' : 'Instant, ' + ps.cd + ' s cooldown') + ', ' + ps.cost + ' mana of the demon\'s own.');
         notes.push('The demon\'s spell power follows yours as it is at that moment: a Spellblasting potion or Blood Fury raises it.');
         return { title: ps.name, steps: steps, notes: notes, values: values };
@@ -72,21 +78,22 @@ window.WL = window.WL || {};
         var m = pc.melee, tbm = cb.petMelee;
         var spellHit = Math.max(0, stats.hitPctUncapped - cb.baseHitPct), petHit = WL.petMeleeHit(stats, cb);
         var miss = Math.max(0, tbm.missPct - petHit);
-        var critCh = Math.max(0, (m.critPct || 0) + (m.inheritSpellCrit ? stats.critPct : 0) - tbm.critSuppressionPct);
-        var ap = m.apPerSp * stats.sp, dps = m.baseDps + ap / m.apPerDps, armor = WL.bossArmor(cfg), red = WL.armorReduction(cfg);
-        step('Attack power from you', f(stats.sp) + ' spell power ÷ 6', f(ap));
+        var critCh = Math.max(0, (m.critPct || 0) + (m.inheritSpellCrit ? petCritOf(true) : 0) - tbm.critSuppressionPct);   // round 244: the demon's crit
+        var ap = m.apPerSp * ownerSp, dps = m.baseDps + ap / m.apPerDps, half = m.dmgPct != null ? m.dmgPct / 100 : 1, armor = WL.bossArmor(cfg), red = WL.armorReduction(cfg);
+        step('Attack power from you', f(ownerSp) + ' spell power ÷ 6', f(ap));
         step('Damage per second', m.baseDps + ' base + ' + f(ap) + ' ÷ ' + m.apPerDps, f(dps, 2));
         step('Boss armor', f(cb.bossArmor, 0) + ' − armor debuffs = ' + f(armor, 0) + '; ' + f(armor, 0) + ' ÷ (' + f(armor, 0) + ' + 5,500)', f(red * 100, 2) + '% less');
-        var mp = petMultParts('physical', false), sw = dps * m.swing * (1 - red) * partsMult(mp);
+        var mp = petMultParts('physical', false); if (half !== 1) mp.push([half, 'its melee is halved']);   // round 244: the Voidwalker [A46]
+        var sw = dps * m.swing * (1 - red) * partsMult(mp);
         step('One normal swing', f(dps, 2) + ' × ' + m.swing + ' s × (1 − ' + f(red, 4) + ')' + (mp.length ? ' × ' + partsText(mp) : ''), f(sw));
         values.swing = sw; values.miss = miss; values.crit = critCh;
         step('Her melee hit', '8/17 of your spell hit ' + f(spellHit) + '% (above the ' + cb.baseHitPct + '% base)', f(petHit, 2) + '%');
         step('Miss', tbm.missPct + '% − ' + f(petHit, 2) + '%, not below 0', f(miss, 2) + '%');
         step('Dodge', '', tbm.dodgePct + '%');
         step('Glancing blow', 'deals ' + tbm.glanceDmgPct + '% damage, cannot crit', tbm.glancePct + '% → ' + f(sw * tbm.glanceDmgPct / 100));
-        step('Crit', (m.critPct ? m.critPct + '% own + ' : '') + (m.inheritSpellCrit ? 'your spell crit ' + f(stats.critPct, 2) + '%' : '') + ' − ' + tbm.critSuppressionPct + '%; deals × 2', f(critCh, 2) + '% → ' + f(sw * 2));
+        step('Crit', (m.critPct ? m.critPct + '% own + ' : '') + (m.inheritSpellCrit ? petCritText(true) : '') + ' − ' + tbm.critSuppressionPct + '%; deals × 2', f(critCh, 2) + '% → ' + f(sw * 2));
         step('Normal hit', 'the rest', f(Math.max(0, 100 - miss - tbm.dodgePct - tbm.glancePct - critCh), 2) + '% → ' + f(sw));
-        notes.push('Master Demonologist and Curse of the Elements do not apply to melee. Her crit is your spell crit (the same as for her spells, without spell-specific talents such as Malevolence), less 4.8% against a level-63 boss.');
+        notes.push('Master Demonologist and Curse of the Elements do not apply to melee. ' + (PCR.fromOwner ? 'Her crit is your spell crit (the same as for her spells, without spell-specific talents such as Malevolence)' : 'Her crit is her own ' + PCR.ownMeleePct + '% plus your gear\'s crit (as live; your Intellect, buffs and consumables do not count)') + ', less 4.8% against a level-63 boss.');
         return { title: pc.name + ' melee', steps: steps, notes: notes, values: values };
       }
       if (pk === 'brand') {

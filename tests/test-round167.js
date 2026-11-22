@@ -25,6 +25,6 @@
     var r1 = WL.simulateOnce(b, 'human', wield(det(function (c) { c.combat.revelationChancePct = 100; c.options.cheat = { hit: { shadowBolt: true }, crit: {} }; }), 8217), { seed: 2, duration: 180, log: true });
     var hits = r1.log.filter(function (e) { return e.type === 'hit' && e.spell === 'shadowBolt'; });
     var pairs = 0; for (var i = 1; i < hits.length; i++) if (!hits[i - 1].crit && hits[i].crit) pairs++;
-    T.ok(hits.length > 20 && hits.filter(function (h) { return h.crit; }).length > hits.length * 0.4, 'Revelation at 100% × (1 − crit): a Shadow Bolt that does not crit makes the next direct hit crit (' + hits.filter(function (h) { return h.crit; }).length + ' / ' + hits.length + ' crits)');
+    T.ok(hits.length > 20 && hits.filter(function (h) { return h.crit; }).length > hits.length * 0.4, 'Revelation at 100% × (1 − 2 × crit) (round 243: the crit factor 2, the user\'s choice): a Shadow Bolt that does not crit makes the next direct hit crit (' + hits.filter(function (h) { return h.crit; }).length + ' / ' + hits.length + ' crits)');
   });
 })();
