@@ -295,8 +295,9 @@ Build **Incinerate Pandemic**, Undead, default settings; Fire spell power 641 + 
 - Incinerate: (217 + 0.714 × 672) × 1.10 Agonizing Flames = 766.5; × 1.25 with Immolate on the boss × 1.10 curse × 1.20 Shadow and Flame (after a Shadowburn) = **1,264.7**; a crit (15.33%) deals × 2.
 
 #### 9. Resistance before the curse, and Spell Pierce
-- Before Curse of the Elements is up the boss has 24 level resistance: on average 4.59% of each hit or tick is resisted - 65.6% of them lose 0%, 22.9% of them lose 10%, 11.5% of them lose 20%.
-- With the curse the resistance is 0 and nothing is resisted. With 15 Spell Pierce on top it is −15: on average +2.92% - 78.1% of hits gain 0%, 14.6% of hits gain 10%, 7.3% of hits gain 20%.
+- Before Curse of the Elements is up the boss has 24 level resistance: on average 4.59% of each direct hit is resisted - 65.6% of them lose 0%, 22.9% of them lose 10%, 11.5% of them lose 20%. A DoT or channel tick rolls a tenth of that (0.46%).
+- Binary spells (Immolate, Incinerate, Shadowburn, Death Coil, Bane of Agony, Drain Soul) land fully or are fully resisted: 4.59% of their casts are resisted, and their hits and ticks roll no partial resists. Your demon is resisted the same way (Imp Firebolt binary, Lash of Pain and Demonic Brand partial) and gets none of your Spell Pierce.
+- With the curse the resistance is 0 and nothing is resisted. With 15 Spell Pierce on top it is −15: direct hits gain on average +2.92% - 78.1% of hits gain 0%, 14.6% of hits gain 10%, 7.3% of hits gain 20%. Ticks and Rain of Fire gain nothing (Spell Piercing hotfix of 2026-11-19).
 <!-- /gen:examples -->
 
 ---
@@ -478,7 +479,7 @@ Demons are simulated as their own actors: they cast, swing, miss, crit and run o
 
 **Damage multipliers of a demon:** Unholy Power × Soul Link × Command (Orc) × Master Demonologist (only the school it names: the
 Succubus' Shadow, the Imp's Fire) × Curse of the Elements (spells only, not melee). Demons get nothing from Improved
-Shadow Bolt, Shadow and Flame, Demonic Sacrifice or Spell Pierce, and their damage is never resisted.
+Shadow Bolt, Shadow and Flame, Demonic Sacrifice or Spell Pierce. While the boss has resistance left (before Curse of the Elements) their spells are resisted: Firebolt fully or not at all, Lash of Pain and Demonic Brand partially (section 11).
 
 **Imp.** Casts Firebolt back to back (2 s cast, not shortened by haste) for as long as it has mana. Improved Imp multiplies
 the whole hit.
@@ -659,17 +660,33 @@ resistance = (boss resistance for the school + 24 level resistance − 75 with C
 - **The average share** (fitted to Forever combat logs, levels 20–50; level 60 is the fit's prediction):
   `share = resistance / (|resistance| + 8 × your level + 19)`, at level 60 `resistance / (|resistance| + 499)`.
   Above 0 it is resisted damage, below 0 (only possible with Spell Pierce) bonus damage.
-- **Each hit** rolls whole 10% steps around the share: up to 10%, 0 / 10 / 20% at `1 − 7.5 × share`, `5 × share`,
+- **Each direct hit** rolls whole 10% steps around the share: up to 10%, 0 / 10 / 20% at `1 − 7.5 × share`, `5 × share`,
   `2.5 × share` (so +10% comes twice as often as +20%); past 10%, every 10% step within 20 points of the share at
-  `0.5 − 2.5 × its distance`. Channel ticks (Drain Life, Wrack, Rain of Fire, Hellfire) roll like hits.
-- **Each DoT tick** rolls a tenth of the share (Corruption, Bane of Agony, Immolate's ticks, Siphon Life …).
-- So 15 Spell Pierce adds +2.92% to every hit and +0.29% to every DoT tick; 24 level resistance before the curse is up
-  takes 4.59% off hits. Spell Pierce gives less per point the more you have (100 → +16.7%).
-- The classic guess of rounds 39–209 (`0.25% × resistance` on hits and ticks alike, in 25% chunks above 0 and 10% steps
-  below; 15 Spell Pierce = +3.75%) is kept in the engine but no longer offered on the page (user's choice).
+  `0.5 − 2.5 × its distance`. Hellfire's and Rain of Fire's ticks hit every target and roll like hits.
+
+Every spell follows one of three rules (round 239: notes from the user, and a table of Spell Piercing before and after
+hotfix 114309, live 2026-11-19):
+
+| Rule | Spells | Resistance left (above 0) | Spell Pierce past 0 |
+|---|---|---|---|
+| **Binary** | Immolate (hit and ticks), Incinerate, Shadowburn, Death Coil, Bane of Agony, Drain Soul | the whole cast is resisted with the chance of the share; its hit and ticks roll no partial resists | bonus damage on the direct hits (Immolate's hit, Incinerate, Shadowburn, Death Coil) since the hotfix; none on ticks |
+| **Hit** | Shadow Bolt, Searing Pain, Soul Fire, Conflagrate, Hellfire | partial resists as above | bonus damage as above |
+| **Tick** | Corruption, Siphon Life, Bane of Doom, Drain Life, Wrack | partial resists at a tenth of the share | none |
+
+- Rain of Fire rolls partial resists like a hit but gets no Spell Pierce bonus (the table's ground effects).
+- Wrack's extra ticks follow the rule of the DoT they belong to. Bane of Havoc copies damage after it was resisted; it
+  has no roll of its own. Curses and Life Tap only have to hit: resistance does not change their hit chance.
+- Shadowburn and Death Coil are not in the hotfix table; they are taken to be like Immolate's hit and Incinerate.
+- So 15 Spell Pierce adds +2.92% to every direct hit and nothing to ticks; 24 level resistance before the curse is up
+  takes 4.59% off hits, resists 4.59% of binary casts and takes 0.46% off ticks. Spell Pierce gives less per point the
+  more you have (100 → +16.7%).
+- The classic guess of rounds 39–209 (`0.25% × resistance` in 25% chunks above 0 and 10% steps below; 15 Spell Pierce =
+  +3.75%) is kept in the engine but no longer offered on the page (user's choice). The rules above apply to it too.
 - **Exactly 0:** no roll at all. That is the default once the curse is on the boss.
 
-Demons, explosives and Touch of the Grave are never resisted and get nothing from Spell Pierce.
+**Demons** are resisted by the boss's resistance (after Curse of the Elements) but get none of your Spell Pierce or
+Spell Penetration: Imp Firebolt is binary, Lash of Pain and Demonic Brand are partially resisted. Explosives and Touch of
+the Grave are never resisted.
 
 ---
 

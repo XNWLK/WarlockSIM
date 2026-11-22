@@ -34,8 +34,8 @@
     for (var i = 0; i < 25; i++) {
       var fp = WL.fightParams(c1, i);
       WL.simulateOnce(b, 'undead', c1, { stats: st, table: tb, seed: fp.seed, duration: fp.duration, log: true }).log.forEach(function (e) {
-        if (e.type === 'pet' && e.spell === 'pet:lashOfPain' && !e.crit) seen.lash[e.dmg] = 1;
-        if (e.type === 'pet' && e.spell === 'pet:brand') seen.brand[e.dmg] = 1;
+        if (e.type === 'pet' && e.spell === 'pet:lashOfPain' && !e.crit && !e.resistPct) seen.lash[e.dmg] = 1;   // round 239: partial resists before the curse
+        if (e.type === 'pet' && e.spell === 'pet:brand' && !e.resistPct) seen.brand[e.dmg] = 1;
         if (e.type === 'hit' && e.spell === 'touchOfTheGrave') seen.tog[e.dmg] = 1;
       });
     }

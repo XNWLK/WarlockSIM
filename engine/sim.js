@@ -630,10 +630,22 @@ window.WL = window.WL || {};
     // Resistance / Spell Pierce roll for one Warlock damage event. [A43][A44]
     var resCache = {}, lastVulnPct = 0;                 // vulnerable (+) / partially resisted (−) step of the last roll (log marker)
     // `ti` > 1 = an extra target: its own Curse of the Elements counts (round 39; the boss's CoE does not carry over).
-    function vulnMult(school, ti, periodic) {                     // periodic: a DoT tick (round 210: rolls a tenth in the 'fitted' model)
+    // Round 239 [A128]: each spell's own rule (WL.RESIST_RULES: binary / hit / tick; engine/resist.js WL.spellResist).
+    function resProf(school, ti, periodic, sk) {
       var tp = TRK.length ? trPierce() : 0;                             // Eye of Moam (round 166): −100 resistances while up
-      var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe'), key = school + (coe ? '1' : '0') + (tp ? 'p' + tp : '') + (periodic ? 't' : '');
-      var pr = resCache[key] || (resCache[key] = WL.resistProfile(cfg, stats.pierce, school, coe, stats.spellPen + tp, periodic));
+      var rl = WL.RESIST_RULES[sk], g = rl ? (rl.binary ? 'b' : rl.noBonus ? 'n' : '') : '';
+      var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe'), key = school + (coe ? '1' : '0') + (tp ? 'p' + tp : '') + (periodic ? 't' : '') + g;
+      return resCache[key] || (resCache[key] = WL.spellResist(cfg, stats.pierce, school, coe, stats.spellPen + tp, sk, periodic));
+    }
+    // A binary spell that hit: fully resisted while the target has resistance left (round 239) [A128].
+    function binResisted(key, ti) {
+      var rl = WL.RESIST_RULES[key];
+      if (!rl || !rl.binary || CHH[key]) return false;
+      var pr = resProf(SPELLS[key].school, ti, false, key);
+      return pr.landP < 1 && R.vuln() >= pr.landP;
+    }
+    function vulnMult(school, ti, periodic, sk) {                 // periodic: a DoT / channel tick; sk: the spell (its resist rule)
+      var pr = resProf(school, ti, periodic, sk);
       var m = pr.flat;
       lastVulnPct = 0;
       if (pr.dist.length > 1) {
@@ -862,7 +874,7 @@ window.WL = window.WL || {};
       var s = SPELLS[key], e = table[key], rk = xkey(ti, key);
       var amt = (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * liveMultX(key, ti, true) * (snap.castMult || 1);
       if (s.ramp) amt *= s.ramp[i];
-      amt *= vulnMult(s.school, ti, true);
+      amt *= vulnMult(s.school, ti, true, key);
       var crit = critRoll(key, e.critPct);
       if (crit) amt *= e.critMult;
       deal(rk, amt, crit, true, ti);
@@ -876,6 +888,7 @@ window.WL = window.WL || {};
     function landExtra(key, eureka, castMult, ti) {
       var s = SPELLS[key], e = table[key], rk = xkey(ti, key), r = row(rk);
       if (missRoll(key)) { r.misses++; L('miss', rk); return false; }
+      if (binResisted(key, ti)) { r.misses++; r.resisted = (r.resisted || 0) + 1; L('miss', rk, { resisted: true }); return false; }   // round 239 [A128]
       r.landed++;
       if (IFX.length) itemOnLand(ti, landCT);                              // Blade of Eternal Darkness (round 235)
       if (key === 'baneOfAgony') S.ampUp = false;                                        // Amplify Curse spent on a landed Bane (round 200)
@@ -889,7 +902,7 @@ window.WL = window.WL || {};
         if ((isSB(key) || key === 'searingPain') && execute && tv('decimation')) {
           amt *= addOp0(key, tv('decimation', 'dmgPct')); S.buffs.decimation = S.t + 10;   // additive spell mod (round 43)
         }
-        amt *= vulnMult(s.school, ti);
+        amt *= vulnMult(s.school, ti, false, key);
         var crit = critRoll(key, e.critPct);
         if (crit) amt *= e.critMult;
         deal(rk, amt, crit, false, ti);
@@ -912,7 +925,7 @@ window.WL = window.WL || {};
       if (s.ramp) amt *= s.ramp[i];                                                                     // [A15]
       if (frac != null) amt *= frac;
       if (share) amt *= share;
-      amt *= vulnMult(s.school, 0, true);
+      amt *= vulnMult(s.school, 0, true, key);
       var crit = critRoll(key, e.critPct);                                                               // [A07]
       if (crit) amt *= e.critMult;
       deal(key, amt, crit, true);
@@ -932,7 +945,7 @@ window.WL = window.WL || {};
         var rk = ti > 1 ? xkey(ti, key) : key, r = row(rk);
         if (missRoll(key)) { r.misses++; L('miss', rk, { n: i + 1, of: e.ticks }); continue; }
         var amt = (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * (ti > 1 ? liveMultX(key, ti, true) : liveMult(key, true));
-        amt *= vulnMult(s.school, ti);
+        amt *= vulnMult(s.school, ti, false, key);
         var crit = critRoll(key, e.critPct);
         if (crit) amt *= e.critMult;
         deal(rk, amt, crit, true, ti);
@@ -948,6 +961,7 @@ window.WL = window.WL || {};
       if (target > 1) return landExtra(key, eureka, castMult, target);
       var s = SPELLS[key], e = table[key], r = row(key);
       if (missRoll(key)) { r.misses++; L('miss', key); return false; }                  // [A01][A17]; cheat mode (round 166)
+      if (binResisted(key, 0)) { r.misses++; r.resisted = (r.resisted || 0) + 1; L('miss', key, { resisted: true }); return false; }   // a binary spell fully resisted (round 239) [A128]
       r.landed++;
       if (IFX.length) itemOnLand(0, landCT);                              // Blade of Eternal Darkness (round 235) [A127]
       if (key === 'baneOfAgony') S.ampUp = false;                                        // Amplify Curse spent on a landed Bane (round 200)
@@ -966,7 +980,7 @@ window.WL = window.WL || {};
         amt *= addOp0(key, tv('decimation', 'dmgPct'));   // "Modifies Damage/Healing Done": adds to the spell's op0 (round 43)
         S.buffs.decimation = S.t + 10;
       }
-      amt *= vulnMult(s.school);
+      amt *= vulnMult(s.school, 0, false, key);
       var revHad = REV ? revCritBonus() : 0;                                // Revelation (round 167)
       var crit = critRoll(key, e.critPct + revHad);
       if (REV) revAfter(crit, revHad > 0);
@@ -1070,9 +1084,10 @@ window.WL = window.WL || {};
         // Option wrackRecast 'carry': a Wrack cast on a running Wrack takes over the ticks the old one had left (a whole number).
         var carry = key === 'wrack' && S.wrackCarry && Math.abs(S.wrackCarry.t - S.t) < EPS ? S.wrackCarry.left : 0;
         S.wrackCarry = null;
-        if (!s.aoe && missRoll(key)) {                    // area channels always start; their ticks roll per target (round 100)
+        var chMiss = !s.aoe && missRoll(key), chRes = !s.aoe && !chMiss && binResisted(key, 0);   // Drain Soul is binary (round 239) [A128]
+        if (chMiss || chRes) {
           if (carry) { res.clipped++; r.castTime -= carry; L('clip', key, { for: key }); }   // the recast missed: the old Wrack is gone
-          r.misses++; L('miss', key); if (fromTL) TL.turn = true; S.busyUntil = S.t; S.gcdReady = S.t + gcdT; scheduleDecide(S.gcdReady); return;
+          r.misses++; if (chRes) r.resisted = (r.resisted || 0) + 1; L('miss', key, chRes ? { resisted: true } : undefined); if (fromTL) TL.turn = true; S.busyUntil = S.t; S.gcdReady = S.t + gcdT; scheduleDecide(S.gcdReady); return;
         }
         r.landed++;
         if (IFX.length) itemOnLand(0, 0);                                 // on cast (a channel prices as an instant), not on its ticks [A127]
@@ -1190,12 +1205,24 @@ window.WL = window.WL || {};
       if (school !== 'physical' && S.buff('coe')) m *= 1 + SPELLS.curseOfElements.dmgTakenPct / 100;
       return m;
     }
+    // Round 239 [A128]: a demon's spell against the boss's resistance after Curse of the Elements (no Spell Pierce /
+    // Penetration of yours). R.pet rolls only while resistance is left, so the dice stay as they were when it is 0.
+    var petResCache = {};
+    function petRes(school, pk) { var coe = S.buff('coe'), k = school + (coe ? 1 : 0) + pk; return petResCache[k] || (petResCache[k] = WL.petResist(cfg, school, coe, pk)); }
+    function petResRoll(pr) {
+      if (pr.dist.length < 2) return 1;
+      var x = R.pet(), acc = 0;
+      for (var i = 0; i < pr.dist.length; i++) { acc += pr.dist[i].p; if (x < acc || i === pr.dist.length - 1) return 1 + pr.dist[i].pct / 100; }
+      return 1;
+    }
     function warlockSpNow() { return (stats.sp + potSp() + (TRX ? trSp(null) : 0)) * (S.buff('bloodFury') ? 1 + racialOf('cooldown').spPct / 100 : 1); }
     function petSp() { return warlockSpNow() * (cfg.petSpPct != null ? cfg.petSpPct : 100) / 100 + (stats.dkSp || 0); }   // [A26][A27] pet spells
     function petSpellHit(sp) {
       var key = 'pet:' + sp.key, r = row(key);
       r.casts++;
       var hx = R.pet() * 100; if (!CHH[key] && hx >= stats.hitPct) { r.misses++; L('miss', key); return; }   // cheat mode (round 166)
+      var ppr = petRes(sp.school, sp.key);                               // round 239 [A128]: the boss's resistance, none of your Pierce
+      if (ppr.landP < 1 && !CHH[key] && R.pet() >= ppr.landP) { r.misses++; r.resisted = (r.resisted || 0) + 1; L('miss', key, { resisted: true }); return; }   // Firebolt is binary
       r.landed++;
       jowProc(true);                                                     // pet attack on the judged boss → pet mana [A64]
       // Improved Imp = "Modifies Damage/Healing Done" on Firebolt (whole hit); Improved Sayaad = "Modifies Spell
@@ -1204,10 +1231,11 @@ window.WL = window.WL || {};
       var base = sp.base * (sp.key === 'lashOfPain' ? 1 + tv('improvedSayaad', 'lashPct') / 100 : 1);
       var amt = (base + sp.coef * petSp()) * petMult(sp.school);
       if (sp.key === 'firebolt') amt *= 1 + tv('improvedImp', 'firebolt') / 100;
+      var pm = petResRoll(ppr); amt *= pm;                               // Lash of Pain: partial resists (round 239)
       var cx = R.pet() * 100, crit = !!CHC[key] || cx < stats.critPct;   // master's crit (round 31) [A26]; cheat mode (round 166)
       if (crit) amt *= cb.critMultiplier;
       deal(key, amt, crit, false);
-      L('pet', key, { dmg: Math.round(amt), crit: crit });
+      L('pet', key, Object.assign({ dmg: Math.round(amt), crit: crit }, pm < 1 ? { resistPct: Math.round((1 - pm) * 100) } : {}));
       brandProc();
     }
     // Demonic Brand: a landed pet attack on a branded target spends a charge and adds bonus damage (cannot miss, no crit).
@@ -1220,8 +1248,9 @@ window.WL = window.WL || {};
       var db = cfg.demonicBrand, school = build.pet === 'imp' ? 'fire' : 'shadow';
       var m = petMult(school);
       var amt = ((db.baseMin + db.baseMax) / 2 + db.shadowSpCoef * (warlockSpNow() + (stats.schoolSp.shadow || 0))) * m;
+      var bm = petResRoll(petRes(school, 'brand')); amt *= bm;          // partial resists (round 239) [A128]
       deal('pet:brand', amt, false, false); row('pet:brand').casts++;
-      L('pet', 'pet:brand', { dmg: Math.round(amt) });
+      L('pet', 'pet:brand', Object.assign({ dmg: Math.round(amt) }, bm < 1 ? { resistPct: Math.round((1 - bm) * 100) } : {}));
     }
     function petAct() {                                   // spell-casting decision (Firebolt spam / Lash on cooldown)
       if (!P || !P.c.spell || S.t >= dur - EPS) return;   // no new pet actions at/after the end of the fight
@@ -1327,11 +1356,9 @@ window.WL = window.WL || {};
     // live buffs, SP snapshot) — the same formulas as the real hits and ticks.
     var DOT_END = !(cfg.options && cfg.options.dotEndCheck === false);
     res.dotSkips = {};
-    function expVuln(school, ti, periodic) {
-      var tp = TRK.length ? trPierce() : 0;
-      var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe'), key = school + (coe ? '1' : '0') + (tp ? 'p' + tp : '') + (periodic ? 't' : '');
-      var pr = resCache[key] || (resCache[key] = WL.resistProfile(cfg, stats.pierce, school, coe, stats.spellPen + tp, periodic));
-      return pr.flat * pr.dist.reduce(function (a, d) { return a + d.p * (1 + d.pct / 100); }, 0);
+    function expVuln(school, ti, periodic, sk) {                  // round 239: with the spell's resist rule (a binary spell's land chance)
+      var pr = resProf(school, ti, periodic, sk);
+      return pr.landP * pr.flat * pr.dist.reduce(function (a, d) { return a + d.p * (1 + d.pct / 100); }, 0);
     }
     function expCrit(critPct, critMult) { return 1 + Math.max(0, Math.min(100, critPct)) / 100 * (critMult - 1); }
     function lmult(key, ti, periodic) { return ti > 1 ? liveMultX(key, ti, periodic) : liveMult(key, periodic); }
@@ -1343,7 +1370,7 @@ window.WL = window.WL || {};
       var s = SPELLS[key], e = table[key], amt;
       if (s.aoe) {                                                          // area channel: the same ticks on every target (round 100)
         var sum = 0;
-        for (var tj = 1; tj <= NT; tj++) sum += e.ticks * (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * lmult(key, tj, true) * expVuln(s.school, tj);
+        for (var tj = 1; tj <= NT; tj++) sum += e.ticks * (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * lmult(key, tj, true) * expVuln(s.school, tj, false, key);
         return hitChance() * sum * expCrit(e.critPct, e.critMult);
       }
       if (s.kind === 'channel') {
@@ -1354,7 +1381,7 @@ window.WL = window.WL || {};
         if (key === 'incinerate' && !noImmolate && S.dotLeft('immolate') > 0) amt *= 1 + s.immolateBonusPct / 100;
         if ((isSB(key) || key === 'searingPain') && S.targetHpPct < cfg.fight.executePct && tv('decimation')) amt *= addOp0(key, tv('decimation', 'dmgPct'));
       }
-      return hitChance() * amt * expVuln(s.school, ti) * expCrit(e.critPct, e.critMult);
+      return hitChance() * amt * expVuln(s.school, ti, s.kind === 'channel', key) * expCrit(e.critPct, e.critMult);
     }
     // What the rotation would cast instead of the DoT: the first action below it that picks a damaging direct spell or
     // channel right now (Soul Fire under Decimation, Conflagrate, a Shadow Trance bolt, the filler, …). Actions that
@@ -1382,7 +1409,7 @@ window.WL = window.WL || {};
       var cost = (occupies(key) + LAT) * fRate;
       var end = Math.min(dur, tL + s.duration), gcd = S.gcd(), value = 0;
       var castMult = key === 'baneOfAgony' && tv('amplifyCurse') && (S.ampUp || (S.ready('amplifyCurse') && slotGate('amplifyCurse') !== 0)) ? 1 + tv('amplifyCurse', 'boaPct') / 100 : 1;
-      var tickAmt = (s.tickBase + s.tickCoef * spNow(e)) * castMult * e.periodicMult * lmult(key, ti, true) * expVuln(s.school, ti, true) * expCrit(e.critPct, e.critMult);
+      var tickAmt = (s.tickBase + s.tickCoef * spNow(e)) * castMult * e.periodicMult * lmult(key, ti, true) * expVuln(s.school, ti, true, key) * expCrit(e.critPct, e.critMult);
       // Wrack as the filler (patch of 2026-11-10): this DoT ticks WRACK_GAIN times as often (the check version: deals that much more).
       var wf = f === 'wrack' && ti <= 1 && tv('wrack') && SPELLS.wrack.dotSpeedSpells.indexOf(key) >= 0;
       if (wf && WRACK_DMG) tickAmt *= WRACK_GAIN;

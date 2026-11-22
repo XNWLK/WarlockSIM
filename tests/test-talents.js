@@ -85,8 +85,10 @@
     var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)); c.fight.iterations = 150; c.combat.resistModel = 'classic';   // round 210: the classic model's own numbers (the default is the combat-log fit, test-round210)
     var w = WL.statWeights(WL.TEST_BUILDS[4], 'orc', c, 150);
     T.ok(w.pierce > 0, 'DPS per 1 Spell Pierce is positive (boss at 0 resistance → vulnerable damage)', w.pierce);
-    T.ok(Math.abs(w.pierce - w.base * 0.75 / 300) < w.base * 0.75 / 300 * 0.35,
-      'weight ≈ DPS × 0.75/300 per point (Warlock spells only, pets unaffected)', w.pierce + ' vs ' + (w.base * 0.0025));
+    // Round 239 [A128]: only direct hits get the bonus (no DoT ticks, Rain of Fire or demons), so the weight is DPS ×
+    // 0.75/300 × the direct hits' share of the damage (rounds 39–238: ≈ DPS × 0.75/300).
+    T.ok(w.pierce < w.base * 0.75 / 300 && w.pierce > w.base * 0.75 / 300 * 0.2,
+      'weight < DPS × 0.75/300 per point (direct hits of Warlock spells only)', w.pierce + ' vs ' + (w.base * 0.0025));
   });
 
   T.run('amplify curse', function () {

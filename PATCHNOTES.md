@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v205
+- **Resists follow each spell's own rule:** Immolate, Incinerate, Shadowburn, Death Coil, Bane of Agony and Drain Soul are binary: while the boss has resistance left (before Curse of the Elements) the whole cast is resisted now and then (4.6% against the 24 level resistance), never partly. Direct hits (Shadow Bolt, Searing Pain, Soul Fire, Conflagrate, Hellfire, Rain of Fire) are partly resisted as before; DoT and channel ticks a tenth as much. The combat log shows a fully resisted cast.
+- **Spell Pierce:** its bonus damage now comes only on direct hits, now including Immolate's hit and Incinerate (the hotfix of 2026-11-19); never on DoT or channel ticks or Rain of Fire. It is worth a little less for every build and about half as much for Wrack DS.
+- **Your demon** is resisted like you before the curse is up (the Imp's Firebolt fully or not at all, Lash of Pain and Demonic Brand partly) and gets none of your Spell Pierce. Default DPS moves by under 1.
+- **Pre-raid BiS lists:** rerun with the new rules. New upgrades for Shadow Demo (Outrider's Silk Leggings, Master's Boots of Shadow Wrath), Fire Demo (Argent Shoulders, Deathmist Wraps) and Incinerate Pandemic (Gloves of Spell Mastery). Leggings of Torment say you need a T0.5 summoner and that it is difficult; Ironbark Staff says any good two-hander with the enchant beats a one-hander. Alternatives now show their notes too.
+
 ## v204
 - **Emperor's Seal of Magic:** now in the gear builder, as its +20 spell power roll. It is not on the pre-raid BiS lists: every ring there is better for every build.
 - **Pre-raid BiS lists:** Rune Band of Wizardry, the ring upgrade, now says you need a T0.5 summoner and that it is difficult, and it shows once per build (it is Unique-Equipped).

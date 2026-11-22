@@ -85,3 +85,42 @@ WL.resistProfile = function (cfg, pierce, school, coeActive, pen, periodic) {
   var m = cb.pierceAvgPerPoint * -R;
   return { R: R, flat: 1, dist: WL.vulnerableDist(m, cb.vulnerableStepPct / 100, cb.vulnerableSpread), mean: m };
 };
+
+// Round 239 (user pasted notes on how resists work for each Warlock spell, and a table of Spell Piercing before / after
+// hotfix 114309, live 2026-11-19 ~22:00 UTC) [A128]. Each spell follows one of three rules:
+//   binary  — the whole cast lands or is resisted: while resistance is left (R > 0) it is fully resisted with the chance of
+//             the average share (the hit-type average); its hit and ticks then roll no partial resists. Immolate (hit and
+//             ticks), Bane of Agony, Drain Soul, Death Coil, Shadowburn, Incinerate.
+//   hit     — a direct hit: partial resists, and Spell Pierce bonus damage once R < 0 (Shadow Bolt, Searing Pain, Soul Fire,
+//             Conflagrate, Hellfire's hits on enemies). Since the hotfix the binary direct hits get the bonus too (Immolate's
+//             hit, Incinerate; Shadowburn and Death Coil are not in the table and are taken to be like them). Rain of Fire
+//             rolls as a hit but gets no bonus (the table's "Ground effects: None").
+//   tick    — DoT and channel ticks (Corruption, Siphon Life, Bane of Doom, Drain Life, Wrack; Wrack's extra ticks follow the
+//             DoT they belong to): partial resists at a tenth of the average, never bonus damage.
+// Curses and Life Tap ignore resistance; Bane of Havoc copies damage after it was resisted (no roll of its own).
+WL.RESIST_RULES = {
+  immolate: { binary: 1 }, incinerate: { binary: 1 }, shadowburn: { binary: 1 }, deathCoil: { binary: 1 },
+  baneOfAgony: { binary: 1 }, drainSoul: { binary: 1 },
+  rainOfFire: { noBonus: 1 }
+};
+// { R, flat, dist, mean, landP } for one damage event of spell `key` (tick: a periodic tick). landP = chance a binary
+// spell is not resisted (1 for the others; the hit / tick dist then carries no resist).
+WL.spellResist = function (cfg, pierce, school, coeActive, pen, key, tick) {
+  var rule = WL.RESIST_RULES[key] || {}, R = WL.effectiveResist(cfg, pierce, school, coeActive, pen), none = [{ pct: 0, p: 1 }];
+  if (R > 0) {
+    if (rule.binary) { var h = WL.resistProfile(cfg, pierce, school, coeActive, pen, false); return { R: R, flat: 1, dist: none, mean: 0, landP: Math.max(0, 1 + h.mean) }; }
+    var p = WL.resistProfile(cfg, pierce, school, coeActive, pen, tick); p.landP = 1; return p;
+  }
+  if (R < 0 && !tick && !rule.noBonus) { var b = WL.resistProfile(cfg, pierce, school, coeActive, pen, false); b.landP = 1; return b; }
+  return { R: R, flat: 1, dist: none, mean: 0, landP: 1 };
+};
+// Demons (round 239): resisted by the boss's resistance (after Curse of the Elements) but get none of your Spell Pierce or
+// Spell Penetration. Imp Firebolt is binary; Lash of Pain and Demonic Brand are partially resisted.
+WL.PET_BINARY = { firebolt: 1 };
+WL.petResist = function (cfg, school, coeActive, petKey) {
+  var R = WL.effectiveResist(cfg, 0, school, coeActive, 0), none = [{ pct: 0, p: 1 }];
+  if (!(R > 0)) return { R: R, flat: 1, dist: none, mean: 0, landP: 1 };
+  var h = WL.resistProfile(cfg, 0, school, coeActive, 0, false);
+  if (WL.PET_BINARY[petKey]) return { R: R, flat: 1, dist: none, mean: 0, landP: Math.max(0, 1 + h.mean) };
+  h.landP = 1; return h;
+};

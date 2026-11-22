@@ -1579,6 +1579,7 @@
         if (e.for) note.push('for ' + spellName(e.for));
         if (e.type === 'recast') note.push('cast again: its ' + e.left + ' s left go on in the new one'); if (e.carry) note.push('+' + e.carry + ' s from the one before');
         if (e.delay) note.push('cast +' + e.delay.toFixed(2) + ' s'); if (e.cut) note.push('channel −' + e.cut.toFixed(2) + ' s'); if (e.type === 'pushResist') note.push('no pushback (' + e.pct + '% chance)');   // round 78
+        if (e.resisted) note.push('fully resisted (binary spell: the boss has resistance left)');   // round 239 [A128]
         if (e.type === 'skip') note.push('not recast: ' + e.left + ' s left, would add ' + fmt(e.value) + ' < ' + fmt(e.cost) + ' from ' + spellName(e.filler));
         return '<tr class="' + cls + '"><td class="n">' + clock(e.t) + '</td><td>' + esc(e.type) + '</td>' +
           '<td><span class="sw" style="background:' + colorOf(e.spell) + '"></span>' + esc(spellName(e.spell)) + '</td>' +
