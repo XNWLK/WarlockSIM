@@ -12,8 +12,9 @@
     T.group('list');
     T.eq(W.legs, 22342, 'Wrack DS legs: Leggings of Torment');
     T.eq(W.wrist, 13409, 'Wrack DS wrist: Shadow Wrath bracers (round 220: Tearfall Bracers +22 replaced Flameweave Cuffs +21)');
-    T.ok(Object.keys(WL.PRE_RAID_BIS).every(function (k) { return k === 'wrack_ds' || (WL.PRE_RAID_BIS[k].legs !== 22342 && WL.PRE_RAID_BIS[k].wrist !== 11766); }),
-      'the other builds keep their legs and wrist');
+    T.ok(Object.keys(WL.PRE_RAID_BIS).every(function (k) { return k === 'wrack_ds' || (WL.PRE_RAID_BIS[k].legs !== 22342 || k === 'demo_pact_succ_sb') && WL.PRE_RAID_BIS[k].wrist !== 11766; }),
+      'the other builds keep their legs and wrist (round 240: Shadow Demo also Leggings of Torment)');
+    T.eq(WL.PRE_RAID_BIS.demo_pact_succ_sb.legs, 22342, 'Shadow Demo legs: Leggings of Torment (round 240, user: "have torment be the default for shadow demo")');
     T.group('Rugged Mantle of the Timbermaw');
     var R = WL.ITEMS[227808];
     T.ok(R && R.phase === 9, 'Rugged Mantle of the Timbermaw: not in the game (round 236, user: "we dont think it\'s in the game"; round 217–235: Phase 1)');

@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v206
+- **Shadow Demo pre-raid BiS:** Leggings of Torment are now its legs (about +1 DPS), with Skyshroud Leggings as the alternative. The Pre-BiS gear set in the gear builder and Shadow Demo's default result use them too.
+
 ## v205
 - **Resists follow each spell's own rule:** Immolate, Incinerate, Shadowburn, Death Coil, Bane of Agony and Drain Soul are binary: while the boss has resistance left (before Curse of the Elements) the whole cast is resisted now and then (4.6% against the 24 level resistance), never partly. Direct hits (Shadow Bolt, Searing Pain, Soul Fire, Conflagrate, Hellfire, Rain of Fire) are partly resisted as before; DoT and channel ticks a tenth as much. The combat log shows a fully resisted cast.
 - **Spell Pierce:** its bonus damage now comes only on direct hits, now including Immolate's hit and Incinerate (the hotfix of 2026-11-19); never on DoT or channel ticks or Rain of Fire. It is worth a little less for every build and about half as much for Wrack DS.

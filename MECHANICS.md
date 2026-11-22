@@ -33,7 +33,7 @@ the fights.
 
 | Build | Spell power | Hit | Crit | Intellect | Spirit | Stamina | Spell Pierce |
 |---|---|---|---|---|---|---|---|
-| Shadow Demo | 386 + 22 Shadow | 6.8% | 7.1% | 124 | 21 | 50 | 6 |
+| Shadow Demo | 356 + 56 Shadow | 6.8% | 7.17% | 128 | 21 | 55 | 6 |
 | Fire Demo | 410 | 6.8% | 6.62% | 125 | 27 | 56 | 6 |
 | Incinerate Pandemic | 404 | 6.8% | 6.62% | 125 | 27 | 56 | 6 |
 | Incinerate DS | 404 | 6.8% | 6.62% | 125 | 27 | 56 | 6 |
@@ -244,46 +244,46 @@ Pandemic names. No spell gets both: Ruin covers Destruction spells, Pandemic cov
 The examples use the build **Shadow Demo** as an Undead in its Pre-BiS gear with the default raid buffs and boss debuffs. Every number below is checked against the sim's own value when this document is generated.
 
 #### 1. The character's stats
-- Intellect: (110 base − 2 Undead + 124 gear + 31 Arcane Intellect / Brilliance + 16 Mark / Gift of the Wild + 25 Elixir of the Owl) × 1.10 Blessing of Kings = **334.4**
+- Intellect: (110 base − 2 Undead + 128 gear + 31 Arcane Intellect / Brilliance + 16 Mark / Gift of the Wild + 25 Elixir of the Owl) × 1.10 Blessing of Kings = **338.8**
 - Spirit: (115 base + 5 Undead + 21 gear + 16 Mark / Gift of the Wild + 40 Divine Spirit / Prayer of Spirit + 25 Elixir of Sages) × 1.10 Blessing of Kings = **244.2**
-- Stamina: (65 base + 1 Undead + 50 gear + 16 Mark / Gift of the Wild + 70 Power Word: Fortitude) × 1.09 Demonic Embrace × 1.10 Blessing of Kings = **242.2**
-- Maximum mana: (1,373 + 20 + 15 × (334.4 − 20)) × 1.15 Fel Vitality = **7,025.4**
-- Maximum health: 1,414 + 20 + 10 × (242.2 − 20) = **3,656**
-- Spell power: 386 gear + 150 Flask of Supreme Power + 35 Greater Arcane Elixir + 28 Baked Salmon / Lobster Stew + 24 Wizard Oil + 60 Demonic Knowledge = **683**; Shadow spells: + 22 gear + 21 Major Spellstone + 40 Elixir of Shadow Power = **766**
+- Stamina: (65 base + 1 Undead + 55 gear + 16 Mark / Gift of the Wild + 70 Power Word: Fortitude) × 1.09 Demonic Embrace × 1.10 Blessing of Kings = **248.2**
+- Maximum mana: (1,373 + 20 + 15 × (338.8 − 20)) × 1.15 Fel Vitality = **7,101.2**
+- Maximum health: 1,414 + 20 + 10 × (248.2 − 20) = **3,715.9**
+- Spell power: 356 gear + 150 Flask of Supreme Power + 35 Greater Arcane Elixir + 28 Baked Salmon / Lobster Stew + 24 Wizard Oil + 60 Demonic Knowledge = **653**; Shadow spells: + 56 gear + 21 Major Spellstone + 40 Elixir of Shadow Power = **770**
 - Hit: 83 base against a level-63 boss + 1 Suppression + 6.8 gear = **90.8%**
-- Crit: 7.1 sheet + 1.71 from 102.4 Intellect above the sheet ÷ 60 + 3 Moonkin Form aura + 2 Elixir of the Owl (does not stack with Elixir of Sages) = **13.81%**
+- Crit: 7.17 sheet + 1.71 from 102.8 Intellect above the sheet ÷ 60 + 3 Moonkin Form aura + 2 Elixir of the Owl (does not stack with Elixir of Sages) = **13.88%**
 - Haste: **3%** (Major Spellstone + Wizard Oil).
 
 #### 2. Shadow Bolt
-1. Base hit: 251 + 0.857 × 766 = 907.5
+1. Base hit: 251 + 0.857 × 770 = 910.9
 2. Direct talent group (these add up): Agonizing Flames +10% → × 1.10
 3. Auras (each multiplies): 1.15 Demonic Sacrifice (Imp) × 1.10 Master Demonologist (Succubus) × 1.03 Soul Link = × 1.3029
-4. Hit before the boss's debuffs: 907.5 × 1.10 × 1.3029 = **1,300.6**
-5. With Curse of the Elements (× 1.10) and Improved Shadow Bolt (× 1.20) on the boss: **1,716.8**
-6. A crit (chance 13.81%) deals × 2 with Ruin: **3,433.6**
+4. Hit before the boss's debuffs: 910.9 × 1.10 × 1.3029 = **1,305.5**
+5. With Curse of the Elements (× 1.10) and Improved Shadow Bolt (× 1.20) on the boss: **1,723.3**
+6. A crit (chance 13.88%) deals × 2 with Ruin: **3,446.6**
 7. Cast time: 3 s − 0.5 s Bane = 2.5 s, ÷ 1.03 haste = 2.43 s. It misses 9.2% of the time.
 
 #### 3. Corruption
-1. Base tick: 57 + 0.2 × 766 = 210.2
+1. Base tick: 57 + 0.2 × 770 = 211
 2. Periodic talent group: Improved Corruption +2% → × 1.02
-3. Auras: × 1.3029 as above → **279.4** per tick
-4. With the curse and Improved Shadow Bolt on the boss: **368.8** per tick, 6 ticks = 2,212.5 before crits
-5. Every tick rolls its own crit (13.81%, × 1.5). The spell power is read at each tick, so a potion or Blood Fury that starts later still counts for the ticks after it.
+3. Auras: × 1.3029 as above → **280.4** per tick
+4. With the curse and Improved Shadow Bolt on the boss: **370.2** per tick, 6 ticks = 2,220.9 before crits
+5. Every tick rolls its own crit (13.88%, × 1.5). The spell power is read at each tick, so a potion or Blood Fury that starts later still counts for the ticks after it.
 
 #### 4. Bane of Doom
-(1,742 + 4 × 766) × 1.3029 auras = **6,262**; with the curse and Improved Shadow Bolt on the boss **8,265.8**; a crit deals × 1.5.
+(1,742 + 4 × 770) × 1.3029 auras = **6,282.8**; with the curse and Improved Shadow Bolt on the boss **8,293.3**; a crit deals × 1.5.
 
 #### 5. Touch of the Grave
-3,656 health × 5% = **182.8**. Nothing multiplies it: no aura, no curse, no Improved Shadow Bolt, no Power Infusion. No spell power, no crit, no resist roll. 30% chance per landed damaging cast, then nothing for 15 s.
+3,715.9 health × 5% = **185.8**. Nothing multiplies it: no aura, no curse, no Improved Shadow Bolt, no Power Infusion. No spell power, no crit, no resist roll. 30% chance per landed damaging cast, then nothing for 15 s.
 
 #### 6. The Succubus
-- Attack table of one swing: her melee hit = 8/17 × your spell hit 7.8% = 3.67%; miss 8% − 3.67% = **4.33%**, dodge **6.5%**, glancing blow **40%** (at 65% damage), crit your spell crit 13.81 − 4.8 = **9.01%** (× 2), normal hit the remaining **40.16%**.
-- Attack power from you: 683 spell power ÷ 6 = 113.9. Damage per second: 73.5 + 113.9 ÷ 14 = 81.63.
+- Attack table of one swing: her melee hit = 8/17 × your spell hit 7.8% = 3.67%; miss 8% − 3.67% = **4.33%**, dodge **6.5%**, glancing blow **40%** (at 65% damage), crit your spell crit 13.88 − 4.8 = **9.08%** (× 2), normal hit the remaining **40.09%**.
+- Attack power from you: 653 spell power ÷ 6 = 108.9. Damage per second: 73.5 + 108.9 ÷ 14 = 81.28.
 - Boss armor: 3,731 − armor debuffs = 976 → 976 ÷ (976 + 5,500) = 15.07% less physical damage.
-- One normal swing: 81.63 × 2 s × (1 − 0.1507) × 1.10 Unholy Power × 1.03 Soul Link = **157.1**. Master Demonologist and Curse of the Elements do not apply to melee.
-- Her spell power: 10% of 683 + 60 Demonic Knowledge = 128.3.
-- Lash of Pain: (50 × 1.30 Improved Sayaad + 0.429 × 128.3) × 1.10 × 1.03 × 1.10 Master Demonologist × 1.10 curse = **164.6**; it crits with your spell crit (13.81%) for × 1.5.
-- Demonic Brand hit: (66.5 + 0.078 × 766 Shadow spell power) × the same four multipliers = **173.1**. It cannot miss or crit.
+- One normal swing: 81.28 × 2 s × (1 − 0.1507) × 1.10 Unholy Power × 1.03 Soul Link = **156.4**. Master Demonologist and Curse of the Elements do not apply to melee.
+- Her spell power: 10% of 653 + 60 Demonic Knowledge = 125.3.
+- Lash of Pain: (50 × 1.30 Improved Sayaad + 0.429 × 125.3) × 1.10 × 1.03 × 1.10 Master Demonologist × 1.10 curse = **162.8**; it crits with your spell crit (13.88%) for × 1.5.
+- Demonic Brand hit: (66.5 + 0.078 × 770 Shadow spell power) × the same four multipliers = **173.5**. It cannot miss or crit.
 
 #### 7. Life Tap
 424 + 244.2 Spirit = **668.2 mana** for 424 health and one global cooldown (this build has no Improved Life Tap; with 2/2 it would be 801.8).

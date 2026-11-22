@@ -18,7 +18,7 @@ WL.PRE_RAID_BIS = {
     wrist: 13409,       // Tearfall Bracers of Shadow Wrath (round 220, user: "those bracers can roll up to 22. put them on the bis list"; +22 Shadow, +2.0 DPS over Sublime Wristguards)
     hands: 13253,       // Hands of Power
     waist: 11662,       // Ban'thok Sash
-    legs: 13170,        // Skyshroud Leggings
+    legs: 22342,        // Leggings of Torment (round 240, user: "have torment be the default for shadow demo since it's an upgrade and skyshroud be the alternative"; was Skyshroud Leggings)
     feet: 11822,        // Omnicast Boots
     finger1: 12543,     // Songstone of Ironforge
     finger2: 272406,    // Channeler's Ring (round 216, user; was Blessed Band of Light)
