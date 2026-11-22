@@ -920,7 +920,7 @@ one kind of enemy (Scented Runewood Brooch, Dismantle): with any other boss type
 | Zandalarian Hero Charm | +204 spell power for 20 s, 17 less after each of your damaging casts, 2 min cooldown. |
 | Talisman of Ascendance | +40 spell power for each damaging cast since it was used (up to 5), for 6 casts or 20 s, 1 min cooldown. |
 | Hazza'rah's Charm of Destruction | +10% crit for your Destruction spells for 20 s, 3 min cooldown. |
-| Weakness Analyzer | +5% crit for 20 s or until your next direct crit, 90 s cooldown. |
+| Weakness Analyzer | +5% crit for 20 s or until your next direct crit, 6 min cooldown. |
 | The Black Book | Your demon deals twice its damage for 30 s, 5 min cooldown. |
 | Serenity Field | +72 Spirit for 15 s (more mana from Life Tap), 90 s cooldown. |
 | Darkmoon Card: Blue Dragon | 2% chance per damaging cast: +150 Spirit for 15 s. |
@@ -974,7 +974,7 @@ Cannonball Runner's cannon and Zarla's Snack Pouch's whelp are simulated (above)
 | Violet Sorcerer's Vestments (4) | 1.0 a minute on cast time, so max(cast time, 1.5 s) ÷ 60 per landing on each target (2.5% on an instant, 5% on a 3 s cast), 8.6% on Rain of Fire's cast, nothing on ticks or Hellfire: 15% of your Spirit regeneration also while casting, for 15 s. (5): an Arcane elemental that only melees, not simulated. |
 | Magister's Regalia (5), Vestments of the Devout (5) | 5% per landed damaging spell: 200 mana. |
 | Rotmender's Raiment (4) | Below 15% mana: 200 mana, once every 5 min. |
-| Deathmist Raiment | The bonuses of the set as the game has it: (3) 8 MP5, (6) +23 spell power (the others: resistances, a heal, a fear). |
+| Deathmist Raiment | The pieces available in the game (set 1681) and its bonuses: (3) 8 MP5, (6) +23 spell power (the others: resistances, a heal, a fear). |
 
 **Cheat mode** (Fight & pets): ticked spells always hit and / or always crit, your demon's attacks too (its melee: no miss
 and no dodge; every swing that is not a glancing blow crits), to try streaks of luck. The results say "cheat mode" while it

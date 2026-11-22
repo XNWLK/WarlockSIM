@@ -1,25 +1,26 @@
 // Round 211 tests (user, with an in-game tooltip of Dreadmist Belt: "these are the dreadmist set bonuses. and deathmist is
 // the other way around, so the 2 piece deathmist is the 6 piece dreadmist etc"): the game's set bonuses for Dreadmist
-// Raiment (183) and the quest Deathmist Raiment (518; the vendor pieces, set 1681, are out), in the gear builder and the tooltips.
+// Raiment (183) and Deathmist Raiment, in the gear builder and the tooltips. Round 245 (user, with the Wowhead Forever page of
+// set 1681: "these are the ones that are available"): Deathmist is set 1681 (226905–226912); the Classic quest set 518 is out.
 (function () {
   T.run('round 211: Dreadmist / Deathmist set bonuses from the game', function () {
     var S = WL.ITEM_SETS, by = function (sid) { var o = {}; S[sid].bonuses.forEach(function (b) { o[b.n] = b; }); return o; };
-    var dr = by(183), de = by(518);
+    var dr = by(183), de = by(1681);
     T.group('set data');
-    T.ok(S[183].game && S[518].game, 'both sets carry the game\'s bonuses');
+    T.ok(S[183].game && S[1681].game, 'both sets carry the game\'s bonuses');
     T.eq(dr[3].stats.sp, 12, 'Dreadmist (3): +12 spell power, as in the game (Wowhead said 18)');
     T.eq(dr[6].stats.mp5, 8, 'Dreadmist (6): 8 MP5');
     T.ok(/All Resistances/.test(dr[2].text) && !dr[2].stats, 'Dreadmist (2): +8 All Resistances (no stat of the sim)');
     // Round 244 (the user's pick; a public combat-log study): Deathmist takes the reissued row 1681's bonuses, not Dreadmist's in reverse.
     T.ok(/All Resistances/.test(de[2].text) && de[3].stats.mp5 === 8 && !de[5].stats && de[6].stats.sp === 23, 'Deathmist (round 244, row 1681): (2) resistances, (3) 8 MP5, (5) the fear, (6) +23 spell power');
-    T.eq(S[518].items.length, 8, 'quest Deathmist: 8 pieces in the gear builder');
-    T.ok(!S[1681] && !WL.ITEMS[226905] && !WL.ITEMS[226911], 'the vendor Deathmist (set 1681) is not in the item list (user: "can be tossed")');
-    T.ok(/up to 23/.test(S[518].bonuses.map(function (b) { return b.text; }).join(' ')), 'quest Deathmist: the 23 spell power bonus is back (round 244, row 1681)');
+    T.eq(S[1681].items.length, 8, 'Deathmist (set 1681): 8 pieces in the gear builder');
+    T.ok(!S[518] && !WL.ITEMS[22070] && !WL.ITEMS[22077], 'the Classic quest Deathmist (set 518) is not in the item list (round 245; rounds 211–244 kept it and tossed set 1681)');
+    T.ok(/up to 23/.test(S[1681].bonuses.map(function (b) { return b.text; }).join(' ')), 'Deathmist: the 23 spell power bonus (round 244, row 1681)');
 
     T.group('gear builder');
     var D = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG));
     var wear = function (ids) { var s = {}; ids.forEach(function (id) { s[WL.GEAR_SLOTS.filter(function (g) { return WL.gearFits(g.key, WL.ITEMS[id]) && !s[g.key]; })[0].key] = { id: id }; }); return { on: true, slots: s, manual: {}, enchants: {} }; };
-    var d2 = WL.gearSheet(wear(S[518].items.slice(0, 2)), D), d5 = WL.gearSheet(wear(S[518].items.slice(0, 5)), D);
+    var d2 = WL.gearSheet(wear(S[1681].items.slice(0, 2)), D), d5 = WL.gearSheet(wear(S[1681].items.slice(0, 5)), D);
     T.ok(!d2.sets.mp5 && d2.sets.sp === 0, 'Deathmist 2 pieces: nothing the sim counts (round 244)');
     T.ok(d5.sets.mp5 === 8 && d5.sets.sp === 0, 'Deathmist 5 pieces: 8 MP5, no spell power (round 244; rounds 211–243 + 12)');
     var r3 = WL.gearSheet(wear(S[183].items.slice(0, 3)), D), r6 = WL.gearSheet(wear(S[183].items.slice(0, 6)), D);
@@ -27,7 +28,7 @@
 
     T.group('tooltips');
     if (!WL.ITEM_TIPS) { T.warn('data/item-tips.js not loaded'); return; }
-    var tb = WL.ITEM_TIPS[22070], dt = WL.ITEM_TIPS[16702];
+    var tb = WL.ITEM_TIPS[226905], dt = WL.ITEM_TIPS[16702];   // round 245: Deathmist Belt of set 1681 (was 22070)
     T.ok(tb && /\(3\) Set: Restores 8 mana per 5 sec\./.test(tb) && /\(6\) Set: Increases damage and healing done by magical spells and effects by up to 23\./.test(tb), 'Deathmist Belt: row 1681\'s bonuses (round 244)');
     T.ok(tb && !/Item #/.test(tb) && /<span>Deathmist Robe<\/span>/.test(tb), 'Deathmist Belt: the set\'s pieces by name, so worn pieces count');
     T.ok(dt && /\(3\) Set: Increases damage and healing done by magical spells and effects by up to 12\./.test(dt) && !/up to 18/.test(dt), 'Dreadmist Belt: (3) 12 spell power, as in the game');

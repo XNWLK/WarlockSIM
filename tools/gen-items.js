@@ -26,13 +26,17 @@ const raw = JSON.parse(fs.readFileSync(RAW, 'utf8'));
 const cb = WL.DEFAULT_CONFIG.combat;
 
 const EXCLUDE = { 276765: 'Leafre\'s Ring of Precise Spell Power: 100 spell power at level 1, no source (user: remove it)' };
-// Round 211 (user: "the vendor version of deathmist can be tossed. only keep the quest versions and put the set bonus i gave
-// you on those"): the vendor Deathmist pieces (set 1681) are out; the quest pieces (set 518, 22070–22077) stay.
-[226905, 226906, 226907, 226908, 226909, 226910, 226911, 226912].forEach(id => { EXCLUDE[id] = 'Deathmist (vendor version, set 1681): not in the game (user: toss it)'; });
+// Round 211 (user: "the vendor version of deathmist can be tossed. only keep the quest versions …") left out the set-1681
+// pieces 226905–226912 and kept the Classic quest pieces (set 518). Round 245 turns that round (user, with the Wowhead Forever
+// page of item set 1681 "Deathmist Raiment": "these are the ones that are available"): 226905–226912 are in, and the Classic
+// Deathmist 22070–22077 (set 518) is out — not in the game.
+[22070, 22071, 22072, 22073, 22074, 22075, 22076, 22077].forEach(id => { EXCLUDE[id] = 'Deathmist (Classic quest version, set 518): not in the game (round 245, user: set 1681 "these are the ones that are available")'; });
 EXCLUDE[254013] = 'Earthen Silk Slippers: wrong stats on Wowhead (user, round 216: "scrap them completely")';
 EXCLUDE[237820] = 'Outrider\'s Silk Leggings ilvl 78: no source or reputation on Wowhead; the in-game Warsong Exalted pants are 22747 (user, round 232: "change pants in the sim")';
 // round 233 (item sync of 2026-11-18): new ids without any source on Wowhead
-[226921, 226922, 226923, 226924, 226925, 226926, 226927, 226928].forEach(id => { EXCLUDE[id] = 'Deathmist (set 1681, new ids, no source): the set the user tossed in round 216'; });
+// Round 245: still out — set 1681's piece list names them, but they have no source and no tooltip on Wowhead, and their stats
+// are the Classic quest pieces'; the user's set-1681 page lists 226905–226912 (in, above).
+[226921, 226922, 226923, 226924, 226925, 226926, 226927, 226928].forEach(id => { EXCLUDE[id] = 'Deathmist (set 1681 piece list, new ids, no source): the Wowhead set page lists 226905–226912 (round 245)'; });
 [288831, 288837, 288906, 288910, 288914, 288915, 288917, 288919, 288923, 288924].forEach(id => { EXCLUDE[id] = 'Molten Core names at item level 30, required level 1, no source: template data, not in the game'; });
 EXCLUDE[237815] ='Sentinel\'s Silk Leggings ilvl 78: the Alliance twin of 237820, no reputation on Wowhead; the Silverwing Exalted pants are 22752 (round 232)';
 // Stats where Wowhead's item list disagrees with the item's own tooltip: the tooltip's numbers are used.
@@ -149,7 +153,10 @@ const otherClassSet = {}, otherClassPiece = {};
 // six other ids (280882–280889, not on Wowhead yet): wearing them gives no set bonus. Set 345 "Champion's Threads" keeps its
 // Robe and Gloves (272548, 272553) as before: Wowhead lists 4 pieces without them yet gives a (6) bonus, so they look like
 // pieces in the game (not checked in game).
-const SET_KEEP = { 345: [272548, 272553] };
+// Round 245 (user: "these are the ones that are available", the Wowhead Forever page of set 1681): that page lists
+// 226905–226912 as Deathmist Raiment's pieces; our data's piece list (and the pieces' tooltips) name 226921–226928, ids
+// without any source (left out, round 233) — so 226905–226912 count toward set 1681.
+const SET_KEEP = { 345: [272548, 272553], 1681: [226905, 226906, 226907, 226908, 226909, 226910, 226911, 226912] };
 const setPieces = {}; (raw.sets || []).forEach(s => { if (s.p && s.p.length) setPieces[s.id] = s.p; });
 const setHas = (sid, id) => !setPieces[sid] || setPieces[sid].indexOf(id) >= 0 || (SET_KEEP[sid] || []).indexOf(id) >= 0;
 const unlinked = [];
@@ -332,20 +339,20 @@ Object.keys(items).forEach(id => {
 // (3) is 12 spell power in the game (Wowhead: 18); Deathmist had Dreadmist's bonuses in reverse order: (n) = Dreadmist (8 − n)
 // — the quest pieces (set 518; user: "only keep the quest versions and put the set bonus i gave you on those"), in place of
 // Wowhead's (2) resistances, (4) fear, (6) 23 spell power, (8) 200 armor. The vendor pieces (1681) are left out (EXCLUDE).
-// Round 244 replaced Deathmist's with the reissued row 1681's (below).
+// Round 244 replaced Deathmist's with the reissued row 1681's; round 245 moved them to set 1681's own pieces (below).
 // game: true → tools/gen-tooltips.js rewrites these sets' piece list and bonus lines in the item tooltips.
 const SET_GAME = {
   183: [[2, 18679, '+8 All Resistances.'], [3, 9346, 'Increases damage and healing done by magical spells and effects by up to 12.'],
     [4, 27780, 'When struck in combat has a 2% chance of causing the attacker to flee in terror for 2 sec. Can only occur once every 60 sec.'],
     [5, 450585, 'Your spellcasts have a 5% chance to heal you for 270 to 330.'], [6, 18378, 'Restores 8 mana per 5 sec.']],
 };
-// Round 244 (the user's pick "Set procs: Necropile, Deathmist"; a public combat-log study, Warcraft Logs, Forever): every
-// Deathmist wearer in the game wears the reissued pieces (226772–227023; none of the Classic quest ids), and they fire the
-// reissued set row 1681's bonuses, never a Classic row's: (2) +8 all resistances, (3) 8 MP5, (4) the heal proc, (5) the fear,
-// (6) 23 spell power. The sim keeps offering its pieces as 22070–22077 (set 518; the user's round 211 / 216 exclusions of
-// the reissued ids stand) and gives them row 1681's bonuses. Rounds 211–243: Dreadmist's in reverse ((2) 8 MP5 … (5) 12
-// spell power, (6) +8 resistances).
-SET_GAME[518] = [[2, 18679, '+8 All Resistances.'], [3, 18378, 'Restores 8 mana per 5 sec.'],
+// Round 244 (the user's pick "Set procs: Necropile, Deathmist"; a public combat-log study, Forever): Deathmist wearers in the
+// game fire set row 1681's bonuses: (2) +8 all resistances, (3) 8 MP5, (4) the heal proc, (5) the fear, (6) 23 spell power;
+// round 244 put them on the Classic quest pieces (set 518). Rounds 211–243: Dreadmist's in reverse.
+// Round 245 (user: "these are the ones that are available", the Wowhead Forever page of set 1681): the pieces are set 1681's
+// own (226905–226912, above) and so are the bonuses — the same five as on that page. Our Wowhead tooltips of 226905–226912
+// show the set as "(0/8)" with no bonus lines, so they are written here.
+SET_GAME[1681] = [[2, 18679, '+8 All Resistances.'], [3, 18378, 'Restores 8 mana per 5 sec.'],
   [4, 450585, 'Your spellcasts have a 5% chance to heal you for 270 to 330.'],
   [5, 27780, 'When struck in combat has a 2% chance of causing the attacker to flee in terror for 2 sec. Can only occur once every 60 sec.'],
   [6, 14047, 'Increases damage and healing done by magical spells and effects by up to 23.']];

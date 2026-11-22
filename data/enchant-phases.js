@@ -41,7 +41,7 @@ WL.ENCHANT_PHASE_GUESS = {
   1901: 1,  // Intellect +9 (wrist) — Phase 1: user (round 225: "put +8 arcanums ins, +4 stats, bracers 9 int")
   1903: 1,  // Spirit +9 (mainHand) — classic enchanting, guess
   1904: 1,  // Intellect +9 (mainHand) — classic enchanting, guess
-  2504: 1,  // Spell Power +30 (mainHand) — classic enchanting, guess
+  2504: 2,  // Spell Power +30 (mainHand) — not Phase 1: user (round 245: "30 spellpower isn't available yet.")
   2505: 1,  // Healing Spells +55 (mainHand) — classic enchanting, guess
   2544: 1,  // Healing and Spell Damage +8 (head, legs) — user: head and legs 8 spell power in Phase 1
   2565: 5,  // Mana Regen 4 per 5 sec. (wrist) — bracer Mana Regeneration: Cenarion Circle

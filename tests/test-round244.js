@@ -72,9 +72,10 @@
     }); });
     T.ok(onX > 0, 'a Corruption landing on an extra target rolls it too (' + onX + ')');
 
-    T.group('Deathmist Raiment: row 1681\'s bonuses on the pieces 22070–22077');
-    var S = WL.ITEM_SETS[518], by = function (n) { return S.bonuses.filter(function (b) { return b.n === n; })[0] || {}; };
-    T.eq(S.items.join(','), '22070,22071,22072,22073,22074,22075,22076,22077', 'the eight pieces the gear builder offers');
+    // Round 245 (user: set 1681 "these are the ones that are available"): the pieces are set 1681's own, 226905–226912 (round 244: 22070–22077, set 518).
+    T.group('Deathmist Raiment: row 1681\'s bonuses on the pieces 226905–226912');
+    var S = WL.ITEM_SETS[1681], by = function (n) { return S.bonuses.filter(function (b) { return b.n === n; })[0] || {}; };
+    T.eq(S.items.join(','), '226905,226906,226907,226908,226909,226910,226911,226912', 'the eight pieces the gear builder offers');
     T.ok(/All Resistances/.test(by(2).text) && !by(2).stats, '(2) +8 all resistances (no stat of the sim)');
     T.eq((by(3).stats || {}).mp5, 8, '(3) 8 MP5');
     T.ok(/heal you/.test(by(4).text), '(4) the heal proc (healing: not simulated)');
@@ -84,7 +85,7 @@
     T.ok(g2.sets.sp === 0 && !g2.sets.mp5, '2 pieces: nothing the sim counts');
     T.ok(g5.sets.sp === 0 && g5.sets.mp5 === 8, '5 pieces: 8 MP5, no spell power');
     T.ok(g6.sets.sp === 23 && g6.sets.mp5 === 8, '6 pieces: +23 spell power and 8 MP5');
-    var tip = String(WL.ITEM_TIPS[22070]).replace(/<[^>]+>/g, '');
+    var tip = String(WL.ITEM_TIPS[226905]).replace(/<[^>]+>/g, '');
     T.ok(/\(3\) Set: Restores 8 mana per 5 sec/.test(tip) && /\(6\) Set: Increases damage and healing done by magical spells and effects by up to 23/.test(tip), 'the tooltip shows (3) 8 MP5 and (6) +23');
   });
 

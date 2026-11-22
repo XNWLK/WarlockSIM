@@ -22,9 +22,11 @@
     T.eq(WL.decodeBuild(WL.encodeBuild(b)).rotation[0], 'activateTrinket', 'build codes keep it');
 
     T.group('in a fight (Shadow Demo in its Pre-BiS gear: Weakness Analyzer)');
-    var r = WL.simulateOnce(b, 'orc', cfg(), { seed: 7, log: true }), u = uses(r);
+    // Round 245 (user: "6min cd is correct."): its cooldown is 360 s (was 90), so a 400 s fight shows the second use.
+    var r = WL.simulateOnce(b, 'orc', cfg(), { seed: 7, log: true, duration: 400 }), u = uses(r);
     T.ok(u.length >= 2 && u[0] < 1e-6, 'used at the pull (' + u.map(function (t) { return t.toFixed(1); }).join(', ') + ' s)');
-    T.ok(u.length >= 2 && u[1] - u[0] >= 90 - 1e-6 && u[1] - u[0] < 95, 'again once its 90 s cooldown is over');
+    T.ok(u.length >= 2 && u[1] - u[0] >= 360 - 1e-6 && u[1] - u[0] < 365, 'again once its 6 min cooldown is over');
+    T.eq(uses(WL.simulateOnce(b, 'orc', cfg(), { seed: 7, log: true })).length, 1, 'a 180 s fight: used once (round 245)');
     var c0 = cfg(); c0.options.trinketUse = { trinket1: 'never', trinket2: 'never' };
     T.eq(uses(WL.simulateOnce(b, 'orc', c0, { seed: 7, log: true })).length, 0, '"never" still keeps it unused');
     var late = withAct(sd(), { t: 'fight', what: 'elapsed', op: '>=', v: 1000 });

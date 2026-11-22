@@ -3,6 +3,15 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v210
+- **Weakness Analyzer:** its cooldown is now 6 minutes, as on its tooltip (was 90 s), so it's used once in a 3-minute fight. Every build loses a little (Wrack DS about 4 DPS, the others 1–2).
+- **Deathmist Raiment:** the gear builder now has the set as it is in the game (the eight pieces of set 1681), with its bonuses: 2 pieces +8 all resistances, 3 pieces 8 MP5, 6 pieces +23 spell damage. The old classic pieces are gone.
+- **+30 Spell Power weapon enchant:** not offered in Phase 1 any more (not available yet).
+- **Pre-raid BiS lists rerun:**
+  - Deathmist Wraps stay the glove upgrade.
+  - Deathmist Leggings and Bracers show up as alternatives.
+  - Shadow Demo's feet upgrade dropped out.
+
 ## v209
 - **Revelation, as measured in game and in a large public log study:**
   - **Trigger chance:** 11% × (1 − 2 × your crit), so about 9.7% at 6% crit, 6.6% at 20% and nothing from 50% up. It rolls on every direct hit that doesn't crit, on every target, and now also on each Hellfire and Rain of Fire tick per target hit.
