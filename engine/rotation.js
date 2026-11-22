@@ -619,13 +619,21 @@ WL.expandGroups = function (build, rot) {
 // inserted right before the first filler (unless the build already places it itself). (round 27)
 // Round 39: if the build has "Shadow Bolt an extra target", multi-DoT goes right above it — otherwise the spread action
 // keeps bolting target 2 and target 3 never gets its DoTs (found in the round-39 value check, MISTAKES A20).
+// Round 242 (user: "move multi-dot above life tap for all builds"): if "Life Tap when needed" (lifeTapNeed) comes before
+// that place, multi-DoT goes right above it instead — the placement measured in round 241 (docs/04_EXPLORATION.md
+// section 69, tools/explore-aoe.js "multi-DoT above Life Tap" control): +0.03 … +1.33% on 2-3 targets for every build.
+// Only "Life Tap when needed" moves it, as measured; other Life Tap actions (lifeTapPet, lifeTapBelow, …) keep their
+// place, above or below. Never below "Shadow Bolt an extra target"; a build that lists multiDot itself keeps its place.
 WL.effectiveRotation = function (build, cfg) {
   var rot = WL.expandGroups(build), f = cfg && cfg.fight || {};   // round 157: groups put in place
   if (f.multiDot && (f.targets || 1) >= 2 && rot.indexOf('multiDot') < 0) {
     var fi = rot.map(function (a) { var A = WL.actionOf(a, build); return !!(A && (A.filler || A.preFiller)); }).indexOf(true);   // before the filler and any conditional filler (round 106)
     var si = rot.indexOf('shadowBoltSpread');
     if (si >= 0 && (fi < 0 || si < fi)) fi = si;
-    rot.splice(fi < 0 ? rot.length : fi, 0, 'multiDot');
+    if (fi < 0) fi = rot.length;
+    var ti = rot.indexOf('lifeTapNeed');   // round 242: right above "Life Tap when needed" when it comes first
+    if (ti >= 0 && ti < fi) fi = ti;
+    rot.splice(fi, 0, 'multiDot');
   }
   return rot;
 };

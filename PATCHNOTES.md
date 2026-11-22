@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v208
+- **Multi-target: DoTs on the extra targets come before Life Tap.** With 2 or 3 targets and "Keep DoTs on the extra targets" on (Fight & pets), every build now keeps those DoTs up before it Life Taps for mana. Before, they came only right above the filler. Every build gains about 0.1–1.3% on 2–3 targets; single-target DPS is unchanged. Custom builds get the same, unless they place it themselves.
+- **Hellfire on 2–3 targets (measured, no change):** no build gains from Hellfire once the extra targets are DoTed.
+
 ## v207
 - **Four trinkets and an enchant now work in the gear builder:**
   - **Blackhand's Breadth:** +5% crit for your spells on your target for 20 s, doubled against Orcs and Ogres.

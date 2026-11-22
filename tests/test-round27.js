@@ -15,8 +15,11 @@
     T.near(b.dps, a.dps, 1e-9, '1 target: multi-DoT option has no effect');
     var c2 = WL.simulateOnce(top, 'gnome', cfgWith(2, false), { seed: 21, duration: 150 });
     T.near(c2.dps, a.dps, 1e-9, '2 targets without multi-DoT and without Havoc: same as 1 target');
-    T.eq(WL.effectiveRotation(top, cfgWith(2, true)).join(','), top.rotation.slice(0, -1).concat(['multiDot', top.rotation[top.rotation.length - 1]]).join(','),
-      'multi-DoT action inserted right before the filler');
+    // Round 242 (user: "move multi-dot above life tap for all builds"): right above "Life Tap when needed" (was: right
+    // before the filler); test-round242.js checks every build.
+    var ti = top.rotation.indexOf('lifeTapNeed');
+    T.eq(WL.effectiveRotation(top, cfgWith(2, true)).join(','), top.rotation.slice(0, ti).concat(['multiDot'], top.rotation.slice(ti)).join(','),
+      'multi-DoT action inserted right above Life Tap when needed (round 242)');
 
     T.group('2 targets, no Havoc: DoTs kept on target 2');
     var m = WL.simulateOnce(top, 'gnome', cfgWith(2, true), { seed: 21, duration: 150, log: true });

@@ -676,7 +676,7 @@ window.WL = window.WL || {};
     // deals to the main target is also dealt to the Havoc target. Counted as its own damage line; no AoE/multi-DoT modelled.
     var HAV = (cfg.fight.targets || 1) >= 2 && tv('baneOfHavoc') > 0 && table.baneOfHavoc ? SPELLS.baneOfHavoc.havocPct / 100 : 0;
     // Multi-DoT (round 27, A61): up to 3 targets. Extra targets (2, 3) get their own DoTs via the `multiDot` action
-    // (added before the filler when fight.multiDot is on). Havoc sits on target 2 and only copies damage dealt to OTHER
+    // (added before the filler when fight.multiDot is on; round 242: above "Life Tap when needed", WL.effectiveRotation). Havoc sits on target 2 and only copies damage dealt to OTHER
     // targets; target 2 cannot also carry Bane of Agony (one Bane per target). Extra targets live the whole fight and
     // carry none of the boss's debuffs (Curse of the Elements, Improved Shadow Bolt); your own buffs still apply.
     var NT = Math.max(1, Math.min(3, cfg.fight.targets || 1));

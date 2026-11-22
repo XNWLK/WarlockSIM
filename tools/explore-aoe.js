@@ -50,6 +50,8 @@ const VARIANTS = ['base', 'HF swap', 'HF above', 'HF > tap', 'HF > tap, no exec'
 // extra targets" is written in at the build's own place (right above its filler), so a Hellfire placed higher does not
 // drag it up with it (the engine puts it above the first filler — measured alone, multi-DoT above "Life Tap when needed"
 // is worth up to +1.3% on 3 targets, which an earlier run of this tool booked as a Hellfire gain).
+// Round 242 (user: "move multi-dot above life tap for all builds"): the engine now places it right above "Life Tap when
+// needed" itself, so the mdHigh setups below match the plain DoTs setups.
 // Setups with mdHigh: multi-DoT moved right above "Life Tap when needed" in every variant, the base included (the
 // control), so a Hellfire placed above that Life Tap still sits below multi-DoT and does not starve the extra targets'
 // DoTs (with multi-DoT at its own place, "HF > tap" puts Hellfire above it: −7 … −12%).

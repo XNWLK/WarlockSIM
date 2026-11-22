@@ -139,7 +139,7 @@ const ACTION_NOTES = {
   shadowburn: 'Shadowburn is off cooldown.',
   shadowburnSnF: 'Shadow and Flame is talented, Shadowburn is off cooldown, and its Fire buff is missing or has at most 3 s left.',
   conflagrateSnF: 'Shadow and Flame is talented, Conflagrate is off cooldown, Immolate is on the boss, and the Shadow buff is missing or has at most 3 s left.',
-  multiDot: 'With 2 or 3 targets: on each extra target, first your Curse of the Elements (if the option is on), then Corruption, Siphon Life, Bane of Agony and Immolate when missing or about to run out. No Bane of Agony on the Bane of Havoc target. Added by itself right above the filler when "Multi-DoT the extra targets" is ticked.',
+  multiDot: 'With 2 or 3 targets: on each extra target, first your Curse of the Elements (if the option is on), then Corruption, Siphon Life, Bane of Agony and Immolate when missing or about to run out. No Bane of Agony on the Bane of Havoc target. Added by itself when "Multi-DoT the extra targets" is ticked and the list does not place it: right above Life Tap when needed (round 242), or right above the filler if the list has no such Life Tap (never below Shadow Bolt an extra target).',
   shadowBoltSpread: 'With 2 or 3 targets and Improved Shadow Bolt: a Shadow Bolt at an extra target that carries one of your DoTs and whose own Improved Shadow Bolt is missing or runs out before the bolt lands.',
   isbUpkeep: 'Improved Shadow Bolt is talented and the debuff on the boss is missing or runs out within one Shadow Bolt cast.',
   deathCoil: 'Death Coil is off cooldown.',

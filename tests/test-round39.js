@@ -75,7 +75,12 @@
     // MISTAKES A20: multi-DoT must sit above the spread action, or target 3 never gets its DoTs.
     var three = det(function (c) { c.fight.targets = 3; c.fight.multiDot = true; });
     var eff = WL.effectiveRotation(sb, three);
-    T.eq(eff.indexOf('multiDot') + 1, eff.indexOf('shadowBoltSpread'), 'multi-DoT is inserted right above the spread action');
+    // Round 242 (user: "move multi-dot above life tap for all builds"): it now sits right above "Life Tap when needed",
+    // which this list has above the spread action — still above it.
+    T.ok(eff.indexOf('multiDot') >= 0 && eff.indexOf('multiDot') < eff.indexOf('shadowBoltSpread'), 'multi-DoT is inserted above the spread action', eff.join(' > '));
+    var sbNoTap = JSON.parse(JSON.stringify(sb)); sbNoTap.rotation = sb.rotation.filter(function (a) { return a !== 'lifeTapNeed'; });
+    var effN = WL.effectiveRotation(sbNoTap, three);
+    T.eq(effN.indexOf('multiDot') + 1, effN.indexOf('shadowBoltSpread'), 'without Life Tap when needed: right above the spread action');
     var r3 = WL.simulateOnce(sb, 'human', three, { seed: 6, duration: 120, log: true });
     T.ok(r3.log.some(function (e) { return e.type === 'cast' && /^x3:(corruption|immolate)$/.test(e.spell); }), 'with the spread action, target 3 still gets its DoTs');
 
