@@ -3,6 +3,24 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v207
+- **Four trinkets and an enchant now work in the gear builder:**
+  - **Blackhand's Breadth:** +5% crit for your spells on your target for 20 s, doubled against Orcs and Ogres.
+  - **Everlook Pathcarver:** a 607 Physical hit, less the boss's armor, doubled against Plants. It assumes you stand within 8 yards.
+  - **Zarla's Snack Pouch:** its Black Dragon Whelp casts 5 Fireballs of 439 Fire over 15 s.
+  - **Scented Runewood Brooch:** 84–126 Nature damage on your damaging casts, only against a Furbolg boss.
+  - **Dismantle (weapon enchant):** 60–90 Nature damage now and then, only against a Mechanical boss. The 10% chance is a guess.
+  - Set the Boss type in Fight & pets for the effects that depend on it. Scalding Flamehoof has no damage effect: its Use is a drawback on you.
+- **Resists:**
+  - Rain of Fire's ticks are now only a tenth as resisted, like DoT ticks; Hellfire stays fully.
+  - No partial resist goes above 75%.
+  - Both only matter while the boss has resistance left (before Curse of the Elements), so default DPS is unchanged.
+- **New items from Wowhead:**
+  - The three trinkets above.
+  - Four crafted Demonheart pieces (Leggings, Gloves, Spaulders, Boots). Only one "Artisan's Tier" piece can be worn at a time, and they don't count toward their set.
+  - About a dozen items now show where they drop.
+- **Unique-Equipped categories:** the gear builder warns when you wear two items of a category that allows one (Artisan's Tier, the Bronze Dragonflight signet rings, Watcher's Rings, the Undermine trinkets and others), and the gear optimizer won't suggest it.
+
 ## v206
 - **Shadow Demo pre-raid BiS:** Leggings of Torment are now its legs (about +1 DPS), with Skyshroud Leggings as the alternative. The Pre-BiS gear set in the gear builder and Shadow Demo's default result use them too.
 

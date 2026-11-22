@@ -65,6 +65,52 @@ WL.gearSets = function (gb) {
   });
 };
 
+// Round 241 (item sync): a unique-equipped category ("Unique-Equipped: Artisan's Tier (1)", item.uniqueCat / uniqueMax from
+// tools/gen-items.js): at most uniqueMax items of the category worn at once, across all slots. Only items that count.
+// gearUniqueWorn: per category the worn items, except slot `skip` → { cat: [{ slot, name, max }] }.
+WL.gearUniqueWorn = function (gb, skip) {
+  var slots = (gb || {}).slots || {}, blocked = WL.gearOffHandBlocked(gb), by = {};
+  WL.GEAR_SLOTS.forEach(function (s) {
+    var it = WL.gearItem(slots[s.key]);
+    if (s.key === skip || !it || !it.uniqueCat || !WL.gearFits(s.key, it) || (s.key === 'offHand' && blocked)) return;
+    (by[it.uniqueCat] = by[it.uniqueCat] || []).push({ slot: s.key, name: it.name, max: it.uniqueMax || 1 });
+  });
+  return by;
+};
+// The categories worn more often than they may be: [{ cat, max, names }].
+WL.gearUniqueOver = function (gb) {
+  var by = WL.gearUniqueWorn(gb);
+  return Object.keys(by).filter(function (c) { return by[c].length > by[c][0].max; })
+    .map(function (c) { return { cat: c, max: by[c][0].max, names: by[c].map(function (x) { return x.name; }) }; });
+};
+// May the gear `after` replace `now` (the gear optimizer, round 241 review)? Every category at most max(its limit, how many of
+// it `now` wears): a combination may keep a category you already wear too often, but never add to one or break another.
+WL.gearUniqueAllowed = function (now, after) {
+  var a = WL.gearUniqueWorn(now), b = WL.gearUniqueWorn(after);
+  return Object.keys(b).every(function (c) { return b[c].length <= Math.max(b[c][0].max, (a[c] || []).length); });
+};
+// Putting `item` into `slotKey`: the warning when that wears more of its category than allowed, else ''.
+// Round 241 review: judged on the gear with the item put in, so a two-hander going into the main hand no longer counts what
+// still sits in the off hand, and an item going into an off hand that a two-hander blocks does not count at all.
+WL.gearUniqueWarn = function (gb, slotKey, item) {
+  if (!item || !item.uniqueCat) return '';
+  var after = JSON.parse(JSON.stringify(gb || {})); after.slots = after.slots || {}; after.slots[slotKey] = { custom: item };
+  if (slotKey === 'offHand' && WL.gearOffHandBlocked(after)) return '';
+  var max = item.uniqueMax || 1, worn = WL.gearUniqueWorn(after, slotKey)[item.uniqueCat] || [];
+  if (worn.length < max) return '';
+  return 'Unique-Equipped: ' + item.uniqueCat + ' (' + max + '): you already wear ' + worn.map(function (x) { return x.name; }).join(', ');
+};
+// The gear builder's unique warnings for putting item `id` into `slotKey` (moved here from app.js in the round 241 review):
+// "Unique" when the same item sits in the other ring / trinket slot; else the unique-equipped category's warning. An item
+// that is both (Signet Ring of the Bronze Dragonflight) warns once.
+WL.gearUniqueWarnings = function (gb, slotKey, id, item) {
+  var other = { finger1: 'finger2', finger2: 'finger1', trinket1: 'trinket2', trinket2: 'trinket1' }[slotKey];
+  var o = other && ((gb || {}).slots || {})[other];
+  if (item && item.unique && o && String(o.id) === String(id)) return ['Unique: you already wear it in the other slot'];
+  var uw = WL.gearUniqueWarn(gb, slotKey, item);
+  return uw ? [uw] : [];
+};
+
 // Everything the builder shows: per stat the naked value, the items' sum, the enchants' sum, your own additions and the
 // resulting sheet value (rounded to 2 decimals); `crit from Int` separately; which slots / enchants count. (Until round 149
 // also the main hand's weapon type, for Sword Specialization; Ruthless needs no sword.)

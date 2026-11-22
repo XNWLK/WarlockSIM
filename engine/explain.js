@@ -232,12 +232,12 @@ window.WL = window.WL || {};
     castParts.push('misses ' + f(100 - stats.hitPct) + '% of the time' + (s.aoe ? ' (rolled for every tick and target)' : ''));
     notes.push(castParts.join(' · ') + '.');
     if (WL.levelResist(cfg) > 0 || (cb.targetResist[school] || 0) > 0 || stats.pierce > 0) {
-      // Round 239 [A128]: the spell's own rule (binary / hit / tick).
+      // Round 239 [A128]: the spell's own rule (binary / hit / tick). Round 241 [A130]: Rain of Fire's ticks (tickShare) lose a tenth.
       var rl = WL.RESIST_RULES[bk] || {}, tk = s.kind === 'dot' || (s.kind === 'channel' && !s.aoe);
       var pr = WL.spellResist(cfg, stats.pierce, school, hasCoe, stats.spellPen, bk, tk), pr0 = WL.spellResist(cfg, stats.pierce, school, false, stats.spellPen, bk, tk);
       function lost(p) { return 1 - p.landP * (1 + p.mean); }
       var how = rl.binary ? (lost(pr) > 0 ? 'fully resisted ' + f(lost(pr) * 100, 1) + '% of the time (it is binary: the whole cast lands or not).' : '')
-                          : (pr.mean < 0 ? (tk ? 'each tick loses ' + f(-pr.mean * 100, 2) + '% on average (a tenth of what a direct hit loses).' : 'on average ' + f(-pr.mean * 100, 1) + '% is resisted.') : '');
+                          : (pr.mean < 0 ? (tk || rl.tickShare ? 'each tick loses ' + f(-pr.mean * 100, 2) + '% on average (a tenth of what a direct hit loses).' : 'on average ' + f(-pr.mean * 100, 1) + '% is resisted.') : '');
       notes.push((hasCoe && lost(pr0) > 0 ? 'Before the curse is on the ' + (extra ? 'target' : 'boss') + ', ' + f(lost(pr0) * 100, 1) + '% is lost to resists on average. ' : '') +
         (how ? how.charAt(0).toUpperCase() + how.slice(1) : pr.mean > 0 ? 'Spell Pierce adds ' + f(pr.mean * 100, 2) + '% on average.' : hasCoe ? 'With the curse up nothing is resisted.' : '') +
         (pr.R < 0 && pr.mean === 0 ? (tk ? ' Ticks get no Spell Pierce bonus damage.' : rl.noBonus ? ' Rain of Fire gets no Spell Pierce bonus damage.' : '') : ''));

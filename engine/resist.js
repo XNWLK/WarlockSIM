@@ -60,7 +60,8 @@ WL.levelResist = function (cfg) {
 // Forever combat logs (levels 20–50). combat.resistModel 'fitted':
 //   average share a = R / (|R| + 8 × your level + 19)  (R as above; a > 0 resisted, a < 0 bonus damage from Spell Pierce)
 //   each hit rolls whole tenths: up to a = 10%: 0 / 1 / 2 tenths at 1 − 7.5a, 5a, 2.5a; past it every tenth within 20% of a
-//   at 0.5 − 2.5 × its distance (mirrored from 90%); a DoT tick rolls a tenth of a. [A115]
+//   at 0.5 − 2.5 × its distance (mirrored from 90%); a DoT tick rolls a tenth of a. [A115] Round 241: a resisted step
+//   above 75% is a 75% partial (WL.resistProfile) [A130].
 // 'classic' (rounds 39–209): the mean 0.75 × R / 300, 25% resist chunks / 10% bonus steps around it, ticks as hits.
 WL.fittedShare = function (R, level) { return R / (Math.abs(R) + 8 * (level || 60) + 19); };
 WL.tenthsDist = function (a) {                            // a ≥ 0 → [{ tenths, p }]
@@ -71,19 +72,30 @@ WL.tenthsDist = function (a) {                            // a ≥ 0 → [{ tent
   for (var k = 0; k <= 10; k++) { var p = 0.5 - 2.5 * Math.abs(k / 10 - a); if (p > 1e-12) out.push({ tenths: k, p: p }); }
   return out;
 };
-// Returns { R, flat, dist, mean } for one school. R > 0 → partial resists (dist of negative steps, flat 1);
-// R < 0 → vulnerable damage from Spell Pierce (positive steps). `mean` = average multiplier − 1.
+// Returns { R, flat, dist, mean, share } for one school. R > 0 → partial resists (dist of negative steps, flat 1);
+// R < 0 → vulnerable damage from Spell Pierce (positive steps). `mean` = average multiplier − 1; `share` = the average
+// share before the 75% cap (resisted > 0, bonus < 0): a binary spell's full-resist chance.
+// Round 241 (user picked "Cap partials at 75%"; public evidence notes of live-realm combat logs and Warcraft Logs reports
+// (Forever 1.60.1.70862–71037, 2026-09-27 to 2026-11-22): every partial resist on landed hits of 50+ damage falls on a
+// 10% step up to 70% or exactly 75%, none in between or above, about 25,000 resisted hits) [A130]: a resisted step
+// above 75% (an 80 / 90 / 100% tenth) is a 75% partial. Only the resisted side; Spell Pierce bonus steps are not capped.
+WL.PARTIAL_CAP_PCT = 75;
 WL.resistProfile = function (cfg, pierce, school, coeActive, pen, periodic) {
   var cb = cfg.combat, R = WL.effectiveResist(cfg, pierce, school, coeActive, pen);
   if (cb.resistModel === 'fitted') {                        // round 210 [A115]
-    var a = WL.fittedShare(R, cb.casterLevel || 60) / (periodic ? 10 : 1), sg = a > 0 ? -1 : 1;
-    var d = WL.tenthsDist(Math.abs(a)).map(function (x) { return { pct: x.tenths ? sg * x.tenths * 10 : 0, p: x.p }; });
-    return { R: R, flat: 1, dist: d, mean: -a };
+    var a = WL.fittedShare(R, cb.casterLevel || 60) / (periodic ? 10 : 1), sg = a > 0 ? -1 : 1, mean = -a, d = [];
+    WL.tenthsDist(Math.abs(a)).forEach(function (x) {
+      var pct = x.tenths ? sg * x.tenths * 10 : 0;
+      if (pct < -WL.PARTIAL_CAP_PCT) { mean += x.p * (-pct - WL.PARTIAL_CAP_PCT) / 100; pct = -WL.PARTIAL_CAP_PCT; }   // round 241 [A130]
+      var o = d.filter(function (y) { return y.pct === pct; })[0];
+      if (o) o.p += x.p; else d.push({ pct: pct, p: x.p });
+    });
+    return { R: R, flat: 1, dist: d, mean: mean, share: a };
   }
-  if (R > 0) { var mr = Math.min(0.75, cb.pierceAvgPerPoint * R); return { R: R, flat: 1, dist: WL.partialResistDist(mr), mean: -mr }; }
-  if (R === 0) return { R: 0, flat: 1, dist: [{ pct: 0, p: 1 }], mean: 0 };
+  if (R > 0) { var mr = Math.min(0.75, cb.pierceAvgPerPoint * R); return { R: R, flat: 1, dist: WL.partialResistDist(mr), mean: -mr, share: mr }; }
+  if (R === 0) return { R: 0, flat: 1, dist: [{ pct: 0, p: 1 }], mean: 0, share: 0 };
   var m = cb.pierceAvgPerPoint * -R;
-  return { R: R, flat: 1, dist: WL.vulnerableDist(m, cb.vulnerableStepPct / 100, cb.vulnerableSpread), mean: m };
+  return { R: R, flat: 1, dist: WL.vulnerableDist(m, cb.vulnerableStepPct / 100, cb.vulnerableSpread), mean: m, share: -m };
 };
 
 // Round 239 (user pasted notes on how resists work for each Warlock spell, and a table of Spell Piercing before / after
@@ -93,34 +105,40 @@ WL.resistProfile = function (cfg, pierce, school, coeActive, pen, periodic) {
 //             ticks), Bane of Agony, Drain Soul, Death Coil, Shadowburn, Incinerate.
 //   hit     — a direct hit: partial resists, and Spell Pierce bonus damage once R < 0 (Shadow Bolt, Searing Pain, Soul Fire,
 //             Conflagrate, Hellfire's hits on enemies). Since the hotfix the binary direct hits get the bonus too (Immolate's
-//             hit, Incinerate; Shadowburn and Death Coil are not in the table and are taken to be like them). Rain of Fire
-//             rolls as a hit but gets no bonus (the table's "Ground effects: None").
+//             hit, Incinerate; Shadowburn and Death Coil are not in the table and are taken to be like them).
 //   tick    — DoT and channel ticks (Corruption, Siphon Life, Bane of Doom, Drain Life, Wrack; Wrack's extra ticks follow the
 //             DoT they belong to): partial resists at a tenth of the average, never bonus damage.
+// Rain of Fire gets no bonus (the table's "Ground effects: None"). Round 241 (user picked "Rain of Fire ticks: a tenth";
+// public evidence notes of live-realm combat logs and Warcraft Logs reports (Forever 1.60.1.70862–71037, 2026-09-27 to
+// 2026-11-22): resisted share / average share = 0.12 over 738 Rain of Fire ticks, 232 of them partially resisted, while
+// Hellfire's ticks beside it gave 0.99 over 2,810) [A130]: its ticks roll partial resists at a tenth of the share, like DoT
+// ticks (tickShare); rounds 239–240 rolled them like hits. Hellfire keeps the full share.
 // Curses and Life Tap ignore resistance; Bane of Havoc copies damage after it was resisted (no roll of its own).
 WL.RESIST_RULES = {
   immolate: { binary: 1 }, incinerate: { binary: 1 }, shadowburn: { binary: 1 }, deathCoil: { binary: 1 },
   baneOfAgony: { binary: 1 }, drainSoul: { binary: 1 },
-  rainOfFire: { noBonus: 1 }
+  rainOfFire: { noBonus: 1, tickShare: 1 }
 };
 // { R, flat, dist, mean, landP } for one damage event of spell `key` (tick: a periodic tick). landP = chance a binary
 // spell is not resisted (1 for the others; the hit / tick dist then carries no resist).
 WL.spellResist = function (cfg, pierce, school, coeActive, pen, key, tick) {
   var rule = WL.RESIST_RULES[key] || {}, R = WL.effectiveResist(cfg, pierce, school, coeActive, pen), none = [{ pct: 0, p: 1 }];
   if (R > 0) {
-    if (rule.binary) { var h = WL.resistProfile(cfg, pierce, school, coeActive, pen, false); return { R: R, flat: 1, dist: none, mean: 0, landP: Math.max(0, 1 + h.mean) }; }
-    var p = WL.resistProfile(cfg, pierce, school, coeActive, pen, tick); p.landP = 1; return p;
+    // A binary spell's full resist is not a partial: the 75% cap does not touch it (round 241) [A130].
+    if (rule.binary) { var h = WL.resistProfile(cfg, pierce, school, coeActive, pen, false); return { R: R, flat: 1, dist: none, mean: 0, landP: Math.max(0, 1 - h.share) }; }
+    var p = WL.resistProfile(cfg, pierce, school, coeActive, pen, tick || !!rule.tickShare); p.landP = 1; return p;   // tickShare: Rain of Fire (round 241) [A130]
   }
   if (R < 0 && !tick && !rule.noBonus) { var b = WL.resistProfile(cfg, pierce, school, coeActive, pen, false); b.landP = 1; return b; }
   return { R: R, flat: 1, dist: none, mean: 0, landP: 1 };
 };
 // Demons (round 239): resisted by the boss's resistance (after Curse of the Elements) but get none of your Spell Pierce or
-// Spell Penetration. Imp Firebolt is binary; Lash of Pain and Demonic Brand are partially resisted.
+// Spell Penetration. Imp Firebolt is binary; Lash of Pain and Demonic Brand are partially resisted (steps capped at 75%,
+// round 241, A130).
 WL.PET_BINARY = { firebolt: 1 };
 WL.petResist = function (cfg, school, coeActive, petKey) {
   var R = WL.effectiveResist(cfg, 0, school, coeActive, 0), none = [{ pct: 0, p: 1 }];
   if (!(R > 0)) return { R: R, flat: 1, dist: none, mean: 0, landP: 1 };
   var h = WL.resistProfile(cfg, 0, school, coeActive, 0, false);
-  if (WL.PET_BINARY[petKey]) return { R: R, flat: 1, dist: none, mean: 0, landP: Math.max(0, 1 + h.mean) };
+  if (WL.PET_BINARY[petKey]) return { R: R, flat: 1, dist: none, mean: 0, landP: Math.max(0, 1 - h.share) };
   h.landP = 1; return h;
 };

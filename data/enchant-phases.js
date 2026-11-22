@@ -72,6 +72,7 @@ WL.ENCHANT_PHASE_GUESS = {
   8212: 1,  // Healing Spells +100, Damage Spells +34 (mainHand) — classic enchanting, guess
   8216: 1,  // Insight (mainHand) — classic enchanting, guess
   8217: 1,  // Revelation (mainHand) — user: weapon Revelation
+  7210: 1,  // Dismantle (mainHand) — round 241 item sync: scroll "Enchant Weapon - Dismantle" (item 273590), guess
   8218: 1,  // +6 Spell Power (neck) — user: neck 6 spell power
   8219: 1,  // Healing Spells +11, Damage Spells +4 (neck) — classic enchanting, guess
   8481: 1,  // Stamina +2 and Armor +16 (chest, hands, legs, feet) — armor kit, guess

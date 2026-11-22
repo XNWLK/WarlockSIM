@@ -295,7 +295,7 @@ Build **Incinerate Pandemic**, Undead, default settings; Fire spell power 641 + 
 - Incinerate: (217 + 0.714 × 672) × 1.10 Agonizing Flames = 766.5; × 1.25 with Immolate on the boss × 1.10 curse × 1.20 Shadow and Flame (after a Shadowburn) = **1,264.7**; a crit (15.33%) deals × 2.
 
 #### 9. Resistance before the curse, and Spell Pierce
-- Before Curse of the Elements is up the boss has 24 level resistance: on average 4.59% of each direct hit is resisted - 65.6% of them lose 0%, 22.9% of them lose 10%, 11.5% of them lose 20%. A DoT or channel tick rolls a tenth of that (0.46%).
+- Before Curse of the Elements is up the boss has 24 level resistance: on average 4.59% of each direct hit is resisted - 65.6% of them lose 0%, 22.9% of them lose 10%, 11.5% of them lose 20%. A DoT or channel tick rolls a tenth of that (0.46%); so does a Rain of Fire tick (round 241), while Hellfire's ticks roll like hits.
 - Binary spells (Immolate, Incinerate, Shadowburn, Death Coil, Bane of Agony, Drain Soul) land fully or are fully resisted: 4.59% of their casts are resisted, and their hits and ticks roll no partial resists. Your demon is resisted the same way (Imp Firebolt binary, Lash of Pain and Demonic Brand partial) and gets none of your Spell Pierce.
 - With the curse the resistance is 0 and nothing is resisted. With 15 Spell Pierce on top it is −15: direct hits gain on average +2.92% - 78.1% of hits gain 0%, 14.6% of hits gain 10%, 7.3% of hits gain 20%. Ticks and Rain of Fire gain nothing (Spell Piercing hotfix of 2026-11-19).
 <!-- /gen:examples -->
@@ -662,7 +662,11 @@ resistance = (boss resistance for the school + 24 level resistance − 75 with C
   Above 0 it is resisted damage, below 0 (only possible with Spell Pierce) bonus damage.
 - **Each direct hit** rolls whole 10% steps around the share: up to 10%, 0 / 10 / 20% at `1 − 7.5 × share`, `5 × share`,
   `2.5 × share` (so +10% comes twice as often as +20%); past 10%, every 10% step within 20 points of the share at
-  `0.5 − 2.5 × its distance`. Hellfire's and Rain of Fire's ticks hit every target and roll like hits.
+  `0.5 − 2.5 × its distance`. Hellfire's ticks hit every target and roll like hits.
+- **No partial resist above 75%** (round 241): a resisted step past 75% (80, 90 or 100%) is a 75% partial, so the steps
+  are 10 / 20 / … / 70 / 75%. Live-realm logs show no partial in between or above (about 25,000 resisted hits). It only
+  matters when the share is above about 55%. A binary spell's full resist is not a partial, and Spell Pierce bonus
+  steps are not capped. The same holds for your demon's partial resists.
 
 Every spell follows one of three rules (round 239: notes from the user, and a table of Spell Piercing before and after
 hotfix 114309, live 2026-11-19):
@@ -673,7 +677,9 @@ hotfix 114309, live 2026-11-19):
 | **Hit** | Shadow Bolt, Searing Pain, Soul Fire, Conflagrate, Hellfire | partial resists as above | bonus damage as above |
 | **Tick** | Corruption, Siphon Life, Bane of Doom, Drain Life, Wrack | partial resists at a tenth of the share | none |
 
-- Rain of Fire rolls partial resists like a hit but gets no Spell Pierce bonus (the table's ground effects).
+- Rain of Fire's ticks hit every target and roll partial resists at a tenth of the share, like DoT ticks (round 241:
+  live-realm logs gave 0.12 of the share over 738 ticks, while Hellfire's ticks beside it gave 0.99 over 2,810, so
+  Hellfire keeps the full share). Rain of Fire gets no Spell Pierce bonus (the table's ground effects).
 - Wrack's extra ticks follow the rule of the DoT they belong to. Bane of Havoc copies damage after it was resisted; it
   has no roll of its own. Curses and Life Tap only have to hit: resistance does not change their hit chance.
 - Shadowburn and Death Coil are not in the hotfix table; they are taken to be like Immolate's hit and Incinerate.
@@ -681,7 +687,8 @@ hotfix 114309, live 2026-11-19):
   takes 4.59% off hits, resists 4.59% of binary casts and takes 0.46% off ticks. Spell Pierce gives less per point the
   more you have (100 → +16.7%).
 - The classic guess of rounds 39–209 (`0.25% × resistance` in 25% chunks above 0 and 10% steps below; 15 Spell Pierce =
-  +3.75%) is kept in the engine but no longer offered on the page (user's choice). The rules above apply to it too.
+  +3.75%) is kept in the engine but no longer offered on the page (user's choice). The rules above apply to it too,
+  except that it rolls ticks like hits and keeps its own 25% chunks (its average is capped at 75%).
 - **Exactly 0:** no roll at all. That is the default once the curse is on the boss.
 
 **Demons** are resisted by the boss's resistance (after Curse of the Elements) but get none of your Spell Pierce or
@@ -893,7 +900,8 @@ or never. Trinkets are off the global cooldown. A mana trinket is used when its 
 in a kind of area. Boss type lists the creature types (Beast, Demon, Dragonkin, Elemental, Giant, Humanoid, Mechanical,
 Undead) and every kind of enemy a trinket names (a Satyr counts as a Demon too, a Murloc as a Humanoid, a Dinosaur as a
 Beast). Zone lists every kind of area a trinket names: Forest / Grassland, Marsh / Swamp, Mountainous, Snowy, Volcanic,
-Desert, Wasteland, Haunted, Stronghold / City. Nothing else in the sim depends on them.
+Desert, Wasteland, Haunted, Stronghold / City. Nothing else in the sim depends on them. A few effects work only against
+one kind of enemy (Scented Runewood Brooch, Dismantle): with any other boss type, or none set, they do nothing.
 
 | Trinket | In the sim |
 |---|---|
@@ -925,9 +933,14 @@ Desert, Wasteland, Haunted, Stronghold / City. Nothing else in the sim depends o
 | Mark of the Champion / Rune of the Dawn / Royal Seal of Eldre'Thalas | +85 spell power against Demons and Undead / +46 against Undead / +18 more against Demons. |
 | Briarwood Reed / Jewel of the Guard Captain, Cleansed Vilebranch Icon | +15 spell power, 30 in Marsh areas / +8, 24 in Forest areas. |
 | Rune of Perfection / Enriched Seal, Darkspear Voodoo Seal | +3 (level 45) or +2 Spell Pierce, 7 or 4 more in Forest areas / +5 or +3 MP5, 10 or 6 more in Forest areas. |
+| Blackhand's Breadth | Marks the boss: +5% crit for your spells on it for 20 s (10% against Orcs and Ogres), 5 min cooldown. Not for your demon, not on extra targets. |
+| Everlook Pathcarver | 607 Physical damage (split between up to 4 enemies; one boss takes it all), like a trinket hit above but less the boss's armor after Sunder Armor and the like (as for your demon's melee) and without Curse of the Elements; twice against Plants. Its range is 8 yards: the sim assumes you are that close. 5 min cooldown. |
+| Zarla's Snack Pouch | A Black Dragon Whelp for 15 s: 5 Fireballs of 439 Fire damage (3 s casts: at 3, 6, 9, 12 and 15 s), each like a trinket hit above with your hit and crit. 15 min cooldown. |
+| Scented Runewood Brooch | 84–126 Nature damage with each damaging cast, only against Furbolg (nothing otherwise). Wowhead lists a 100% chance; the tooltip says "a chance", so this is not verified. |
 
-Other trinkets (threat, defence, resistance, movement, summoned fighters, melee-range and random effects) only bring their
-stats.
+Other trinkets (threat, defence, resistance, movement, melee-range and random effects, a summoned fighter such as Abyss
+Shard's Voidwalker, and drawbacks on you such as Scalding Flamehoof's +14% Fire damage taken) only bring their stats.
+Cannonball Runner's cannon and Zarla's Snack Pouch's whelp are simulated (above).
 
 **Weapon enchants with an effect** (the gear builder's weapon enchant, while the builder is on):
 
@@ -937,6 +950,7 @@ stats.
 | Grand Arcanist (two-handed) | The same with +140 spell power. |
 | Insight | 35% chance per landed damaging spell: Spirit +100% for 10 s (more mana from Life Tap). |
 | Revelation | A direct hit that does not crit has a chance to trigger it; the next direct hit within 15 s gets +100% crit chance. The chance is set to 10% × (1 − your crit chance), a guess: the game's rule is not in the spell data. |
+| Dismantle | Only against Mechanical bosses: 10% chance per landed damaging spell (a guess: the game's chance is a server script; its aura's value is 10) for 60–90 Nature damage, like a trinket hit (no spell power; your spell hit and crit × 1.5). |
 
 **Other gear with an effect** (worn in the gear builder, while the builder is on):
 

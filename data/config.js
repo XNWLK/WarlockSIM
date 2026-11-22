@@ -39,6 +39,9 @@ WL.DEFAULT_CONFIG = {
     // Round 167: Revelation (weapon enchant) triggers on a non-periodic spell that does not crit at this % × (1 − your crit %).
     // GUESS: the game's chance is a server-side script ("diminished as your critical strike chance increases"). [A106]
     revelationChancePct: 10,
+    // Round 241 (user: "implement everything"): Dismantle (weapon enchant) deals 60–90 Nature to Mechanical bosses at this % per
+    // landed damaging cast. GUESS: its aura's value 10 (Wowhead lists 100% on one aura, 30% on another; a server script). [A129]
+    dismantleChancePct: 10,
     gcd: 1.5,
     minGcd: 1.0,            // [A08]
     manaPerInt: 15,         // [A10]

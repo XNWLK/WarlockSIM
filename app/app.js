@@ -1168,6 +1168,7 @@
     if (k.indexOf('summon:') === 0) return 'Summon ' + (PET_NAMES[k.slice(7)] || k.slice(7));
     if (k.indexOf('pet_') === 0) return (PET_NAMES[k.slice(4)] || k.slice(4)) + ' arrives';
     if (k.indexOf('item:') === 0) { var c = WL.CONSUMABLES[k.slice(5)]; return c ? c.name : k; }   // Engineering explosives
+    if (k.indexOf('trinket:ench') === 0) { var ef = (WL.ENCHANT_FX || {})[k.slice(12)]; return ef ? ef.name + ' (enchant)' : k; }   // round 241: Dismantle's hits
     if (k.indexOf('trinket:set') === 0) { var sf = (WL.SET_FX || {})[k.slice(11)]; return sf ? sf.name + ' (set bonus)' : k; }   // round 210
     if (k.indexOf('trinket:') === 0) { var tf = (WL.TRINKET_FX || {})[k.slice(8)] || (WL.ITEM_FX || {})[k.slice(8)]; return tf ? tf.name : k; }   // round 235: other gear (Blade of Eternal Darkness)
     if (k === 'isb') return 'Improved Shadow Bolt';                                               // per-target ISB (round 39)
@@ -3798,9 +3799,7 @@
       '<label class="c" title="Only the items you marked with a star"><input id="gbfFav" type="checkbox"' + (f.fav ? ' checked' : '') + '> ★ only</label></div>';
   }
   function gbWarn(id, it) {                              // what to know before putting it on (round 157)
-    var g = gb(), w = [], other = gbSel === 'finger1' ? 'finger2' : gbSel === 'finger2' ? 'finger1' : gbSel === 'trinket1' ? 'trinket2' : gbSel === 'trinket2' ? 'trinket1' : '';
-    var o = other && g.slots[other];
-    if (it.unique && o && String(o.id) === String(id)) w.push('Unique: you already wear it in the other slot');
+    var g = gb(), w = WL.gearUniqueWarnings(g, gbSel, id, it);   // "Unique" and (round 241) a unique-equipped category, not both
     var race = myRace || ($('t_race') ? $('t_race').value : '');
     if (it.side && race && WL.RACES[race] && WL.RACES[race].faction && WL.RACES[race].faction !== it.side) w.push(it.side + ' only: not for a ' + WL.RACES[race].name);
     if (it.req > 60) w.push('Requires level ' + it.req);
@@ -3836,7 +3835,7 @@
   function gbTipMade(it) {                                 // a tooltip from the item's own data
     var q = { poor: 0, common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5 }[it.quality], s = it.stats || {}, l = [], eq = [], sl = GB_TIP_SLOT[it.slot] || '';
     l.push('<b class="q' + (q == null ? 1 : q) + '">' + esc(it.name) + '</b>');
-    if (it.unique) l.push('Unique');
+    if (it.uniqueCat) l.push('Unique-Equipped: ' + esc(it.uniqueCat) + ' (' + esc(it.uniqueMax || 1) + ')'); else if (it.unique) l.push('Unique');   // round 241, item sync
     if (sl) l.push('<table class="w"><tr><td>' + sl + '</td><th>' + esc(it.weapon ? it.weapon.charAt(0).toUpperCase() + it.weapon.slice(1) : '') + '</th></tr></table>');
     Object.keys(GB_TIP_STAT).forEach(function (k) { if (s[k]) l.push('+' + esc(s[k]) + ' ' + GB_TIP_STAT[k]); });
     if (it.req) l.push('Requires Level ' + esc(it.req));
@@ -4040,7 +4039,7 @@
     return head + '<ul class="gblist">' + (hits.length ? hits.slice(0, GB_HITS).map(function (h) {
       var it = h.x.it, st = gbStatText(it.stats), fxT = isItem && WL.TRINKET_FX && WL.TRINKET_FX[h.x.id] ? trkText(WL.TRINKET_FX[h.x.id]) : isItem && WL.ITEM_FX && WL.ITEM_FX[h.x.id] ? WL.itemFxText(WL.ITEM_FX[h.x.id]) : '';   // round 209: a trinket's effect; round 235: a weapon's
       var meta = [it.ilvl ? 'iLvl ' + it.ilvl : '', it.req ? 'Req ' + it.req : '', st || it.text || '', fxT].filter(Boolean).join(' · ');
-      var tip = it.name + (st ? '\n' + st : '') + (it.text ? '\n' + it.text : '') + (fxT ? '\n' + fxT : '') + (it.twoHand ? '\nTwo-handed weapons only' : '') + (it.from ? '\n' + it.from : '') + (it.side ? '\n' + it.side + ' only' : '') + (it.unique ? '\nUnique' : '') +
+      var tip = it.name + (st ? '\n' + st : '') + (it.text ? '\n' + it.text : '') + (fxT ? '\n' + fxT : '') + (it.twoHand ? '\nTwo-handed weapons only' : '') + (it.from ? '\n' + it.from : '') + (it.side ? '\n' + it.side + ' only' : '') + (it.uniqueCat ? '\nUnique-Equipped: ' + it.uniqueCat + ' (' + (it.uniqueMax || 1) + ')' : it.unique ? '\nUnique' : '') +   // round 241: a unique-equipped category
         (h.v && h.v.sp != null ? '\n' + gbValText(it.stats, ctx, true) : '');
       var warn = isItem ? gbWarn(h.x.id, it) : [];
       var side = isItem ? '<button type="button" class="gbstar' + (gbFav[h.x.id] ? ' on' : '') + '" data-gfav="' + esc(h.x.id) + '" aria-pressed="' + !!gbFav[h.x.id] + '" title="' + (gbFav[h.x.id] ? 'Remove from your favourites' : 'Add to your favourites') + '" aria-label="Favourite ' + esc(it.name) + '">★</button>' +
@@ -4136,7 +4135,7 @@
     function zn(k) { var z = WL.ZONE_TYPES.filter(function (x) { return x.key === k; })[0]; return z ? z.name : k; }
     function cond(o, equip) {
       var out = [];
-      if (o.vs) { var ks = Object.keys(o.vs); out.push((equip ? 'against ' : '×' + o.vs[ks[0]] + ' against ') + ks.map(bt).join(' / ') + (ks.some(function (k) { return WL.bossIs(cfg, k); }) ? ' (now)' : '')); }
+      if (o.vs) { var ks = Object.keys(o.vs), now = ks.some(function (k) { return WL.bossIs(cfg, k); }); out.push((equip ? 'against ' : o.onlyVs ? 'only against ' : '×' + o.vs[ks[0]] + ' against ') + ks.map(bt).join(' / ') + (now ? ' (now)' : o.onlyVs ? ' (not in this fight: set Boss type in Fight & pets)' : '')); }   // round 241: onlyVs (Scented Runewood Brooch)
       if (o.zones) Object.keys(o.zones).forEach(function (k) { out.push((equip ? 'in ' : (o.zones[k] < 1 ? '×' + o.zones[k] + ' in ' : '×' + o.zones[k] + ' in ')) + zn(k) + ' areas' + (cfg.fight.zone === k ? ' (now)' : '')); });
       if (o.castsZones) Object.keys(o.castsZones).forEach(function (k) { out.push('half as many spells in ' + zn(k) + ' areas' + (cfg.fight.zone === k ? ' (now)' : '')); });
       return out.length ? ' — ' + out.join(', ') : '';
@@ -4154,7 +4153,7 @@
     return (u.kind === 'sp' ? '+' + u.sp + (u.school ? ' ' + u.school : '') + ' spell power' + (u.pierce ? ' and −' + u.pierce + ' boss resistances' : '') + d
       : u.kind === 'spDecay' ? '+' + u.sp + ' spell power, ' + u.per + ' less after each of your casts' + d
       : u.kind === 'spStack' ? '+' + u.per + ' spell power per cast, up to ' + u.max + ' times, for ' + u.casts + ' casts or ' + u.duration + ' s'
-      : u.kind === 'crit' ? '+' + u.pct + '% crit' + (u.tree ? ' for ' + cap1(u.tree) + ' spells' : '') + d + (u.endsOnCrit ? ' or until a crit' : '')
+      : u.kind === 'crit' ? '+' + u.pct + '% crit' + (u.tree ? ' for ' + cap1(u.tree) + ' spells' : '') + (u.target ? ' for your spells on your target' : '') + d + (u.endsOnCrit ? ' or until a crit' : '')   // round 241: Blackhand's Breadth
       : u.kind === 'hit' ? '+' + u.pct + '% spell hit' + d
       : u.kind === 'petDmg' ? 'your demon deals ' + u.pct + '% more' + d
       : u.kind === 'spi' ? '+' + u.spi + ' Spirit' + d
@@ -4162,8 +4161,8 @@
       : u.kind === 'costRed' ? 'your spells cost ' + u.amount + ' less mana' + d
       : u.kind === 'mana' ? '+' + u.amount + ' mana, used when that much is missing' + (u.int ? '; −' + u.int + ' Intellect for ' + u.intDuration / 60 + ' min' : '')
       : u.kind === 'dmgAfter' ? u.min + ' Fire damage after ' + u.casts + ' of your spells'
-      : u.kind === 'dmgOver' ? u.shots + ' shots of ' + u.min + '–' + u.max + ' ' + cap1(u.school) + ' damage, one every ' + u.every + ' s'
-      : (u.min === u.max ? u.min : u.min + '–' + u.max) + ' ' + cap1(u.school || '') + ' damage') + c + cond(u);
+      : u.kind === 'dmgOver' ? u.shots + ' shots of ' + (u.min === u.max ? u.min : u.min + '–' + u.max) + ' ' + cap1(u.school) + ' damage, one every ' + u.every + ' s'   // round 241: one number when min = max (Zarla's Snack Pouch: 439)
+      : (u.min === u.max ? u.min : u.min + '–' + u.max) + ' ' + cap1(u.school || '') + ' damage' + (u.school === 'physical' ? ', less the boss\'s armor' : '')) + c + cond(u);   // round 241: Everlook Pathcarver
   }
   function renderTrinketUse() {
     var box = $('gbTrinkets'); if (!box) return;
@@ -4181,6 +4180,8 @@
       var en = G.enchants && G.enchants[slot], fx = en && en.id != null && WL.ENCHANT_FX[en.id]; if (!fx || !(G.slots && G.slots[slot])) return '';
       var p = fx.proc, t = p.kind === 'sp' ? p.chancePct + '% chance per landed spell: +' + p.sp + ' spell power and ' + p.mana + ' mana for ' + p.duration + ' s'
         : p.kind === 'spiPct' ? p.chancePct + '% chance per landed spell: Spirit +' + p.pct + '% for ' + p.duration + ' s'
+        : p.kind === 'dmg' ? (cfg.combat.dismantleChancePct != null ? cfg.combat.dismantleChancePct : p.chancePct) + '% chance (a guess) per landed damaging spell: ' + (p.min === p.max ? p.min : p.min + '–' + p.max) + ' ' + cap1(p.school) + ' damage'
+          + (p.vs ? ', only against ' + Object.keys(p.vs).map(function (k) { var b = WL.BOSS_TYPES.filter(function (y) { return y.key === k; })[0]; return b ? b.name : k; }).join(' / ') + (WL.fxOn(cfg, p) ? ' (now)' : ' (not in this fight: set Boss type in Fight & pets)') : '')   // round 241: Dismantle
         : 'a direct hit that does not crit: ' + (cfg.combat.revelationChancePct || 0) + '% × (1 − your crit) chance (a guess) that the next direct hit gets +' + p.pct + '% crit';
       return '<div class="trk"><b>' + esc(fx.name) + '</b> <span class="meta">(weapon enchant)</span><span>' + esc(t) + '</span></div>';
     }).join('');
@@ -4265,6 +4266,9 @@
     if (total <= 1) { gbOptRes = { msg: 'Nothing to try: add candidates (★ favourites, or a gear code with "Bags too"), or unlock slots.' }; renderGbOpt(); return; }
     var b = ctx.b, race = ctx.race, merge = function (picks) { var p = {}; picks.forEach(function (x) { Object.keys(x).forEach(function (k) { p[k] = x[k]; }); }); return p; };
     var seen = {}, tried = [], sims = 0;
+    // Round 241 (item sync): no combination wears more items of a unique-equipped category than allowed (more than you wear now).
+    // Round 241 review: per category (WL.gearUniqueAllowed), not the number of categories over their limit.
+    var uniqOk = function (p) { var now = gb(), after = JSON.parse(JSON.stringify(now)); Object.keys(p).forEach(function (k) { if (p[k]) after.slots[k] = p[k]; else delete after.slots[k]; }); return WL.gearUniqueAllowed(now, after); };
     function evalAll(picks, done) {                        // picks: merged picks to simulate (cached)
       var jobs = [];
       picks.forEach(function (p) { var k = JSON.stringify(Object.keys(p).sort().map(function (s) { return s + ':' + gbEntryKey(p[s]); })); if (seen[k] == null) { seen[k] = -1; jobs.push({ kind: 'weight', build: b, race: race, cfg: gbOptCfg(p), n: n, stat: null, key: k, pick: p }); } });
@@ -4281,16 +4285,18 @@
     gbOptRunning = chartRunning = true; gbOptRes = { busy: 'Simulating…' }; renderGbOpt();
     if (total <= GB_OPT_ALL) {                            // every combination
       var all = [[]]; groups.forEach(function (opts) { var nx = []; all.forEach(function (a) { opts.forEach(function (o) { nx.push(a.concat([o])); }); }); all = nx; });
-      evalAll(all.map(merge), function () { finish('all'); });
+      var allOk = all.map(merge).filter(uniqOk); total = allOk.length;   // round 241: unique-equipped categories
+      evalAll(allOk, function () { finish('all'); });
     } else {                                              // one slot group at a time, from what you wear
       var best = groups.map(function (o) { return o[0]; }), gi = 0, pass = 0, changed = false;
       var step = function () {
         if (gi >= groups.length) { pass++; if (!changed || pass >= 4) return finish('greedy'); gi = 0; changed = false; }
         var g0 = gi++, opts = groups[g0]; if (opts.length < 2) return step();
         var picks = opts.map(function (o) { var x = best.slice(); x[g0] = o; return merge(x); });
-        evalAll(picks, function () {
-          var bi = 0, bv = -Infinity;
-          picks.forEach(function (p, i) { var k = JSON.stringify(Object.keys(p).sort().map(function (s) { return s + ':' + gbEntryKey(p[s]); })), v = seen[k]; if (v > bv + 1e-9) { bv = v; bi = i; } });
+        var okAt = picks.map(function (p, i) { return opts[i] === best[g0] || uniqOk(p); });   // round 241: unique-equipped categories
+        evalAll(picks.filter(function (p, i) { return okAt[i]; }), function () {
+          var bi = opts.indexOf(best[g0]), bv = -Infinity;
+          picks.forEach(function (p, i) { if (!okAt[i]) return; var k = JSON.stringify(Object.keys(p).sort().map(function (s) { return s + ':' + gbEntryKey(p[s]); })), v = seen[k]; if (v > bv + 1e-9) { bv = v; bi = i; } });
           if (opts[bi] !== best[g0]) { best[g0] = opts[bi]; changed = true; }
           step();
         });

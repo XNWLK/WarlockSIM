@@ -142,7 +142,7 @@ window.WL = window.WL || {};
       if (t < d.expires - 1e-6) H.push({ t: t, o: 0, type: 'wrackX', key: key, inst: d.inst, gen: d.xg });
     }
     function missRoll(k) { var x = R.hit() * 100; return !CHH[k] && x >= (TRX ? hitNow() : stats.hitPct); }   // round 209: + trinket hit
-    function critRoll(k, pct) { var x = R.crit() * 100; return !!CHC[k] || x < pct + (TRX ? trCrit(k) : 0); }   // + trinket crit (round 166)
+    function critRoll(k, pct, ti) { var x = R.crit() * 100; return !!CHC[k] || x < pct + (TRX ? trCrit(k, ti) : 0); }   // + trinket crit (round 166); ti > 1: an extra target (round 241)
     function L(type, spell, extra) {
       if (!logOn) return;
       var e = { t: +S.t.toFixed(3), type: type, spell: spell, mana: Math.round(S.mana) };
@@ -457,7 +457,8 @@ window.WL = window.WL || {};
     // 'cds' (default) with your other cooldowns ("Pop cooldowns", custom timeline rows trinket1 / trinket2), 'ready' whenever
     // ready from the pull, 'execute' only once the boss is below the execute line, 'never'. Mana trinkets: when their amount
     // is missing. Off the global cooldown; a trinket's hit (Shard of the Fallen Star …) has no spell power, rolls your spell
-    // hit and crit (×1.5) and takes Curse of the Elements.
+    // hit and crit (×1.5) and takes Curse of the Elements. Round 241 (user: "implement everything") [A129]: a Physical hit
+    // (Everlook Pathcarver) takes the boss's armor instead; onlyVs effects do nothing unless the boss is of their type.
     var TRK = (WL.equippedTrinkets ? WL.equippedTrinkets(cfg) : []).concat(WL.equippedSetFx ? WL.equippedSetFx(cfg) : []), TRU = (cfg.options && cfg.options.trinketUse) || {}, trs = {};
     TRK.forEach(function (x) { trs[x.slot] = { until: -1, n: 0, pending: 0, procUntil: -1, icdUntil: -1, intUntil: -1 }; });
     res.trNames = {}; TRK.forEach(function (x) { if (x.fx.use && x.fx.use.duration) res.trNames[x.slot] = x.fx.name; });   // round 219: timeline rows of the trinket effects
@@ -465,7 +466,8 @@ window.WL = window.WL || {};
     // on-use trinkets (not mana ones) instead of options.trinketUse ('never' still keeps one unused). Set once ROT is built.
     var TRK_APL = false;
     var TRD = TRK.filter(function (x) { return x.fx.proc && x.fx.proc.onDamage; });   // round 209: procs on any damage of yours (Bolt's Charged Eyeball)
-    // Weapon enchant effects (round 167) [A106]: procs on your landed damaging casts; Revelation on direct hits that do not crit.
+    // Weapon enchant effects (round 167) [A106]: procs on your landed damaging casts; Revelation on direct hits that do not crit;
+    // Dismantle (round 241) [A129]: a hit like a trinket's, against Mechanical bosses only.
     var EPR = WL.equippedEnchantFx ? WL.equippedEnchantFx(cfg) : [], eps = {};
     EPR.forEach(function (x) { eps[x.id] = { until: -1 }; });
     var REV = EPR.filter(function (x) { return x.fx.proc.kind === 'crit'; })[0] || null;
@@ -522,7 +524,9 @@ window.WL = window.WL || {};
       return s;
     }
     function trPierce() { var p = 0; TRK.forEach(function (x) { var u = x.fx.use; if (u && u.pierce && trUp(x)) p += u.pierce; }); return p; }
-    function trCrit(k) { var c = trIntNow() * cb.critPerInt, s = SPELLS[k]; TRK.forEach(function (x) { var u = x.fx.use; if (u && u.kind === 'crit' && trUp(x) && (!u.tree || (s && s.tree === u.tree))) c += u.pct; }); return c; }
+    // Round 241 (user: "implement everything"): × the fight's boss type / zone (Blackhand's Breadth: doubled against Orcs and
+    // Ogres); target: a debuff on your target (not on extra targets). Your demon's attacks never roll this (pet crit is its own).
+    function trCrit(k, ti) { var c = trIntNow() * cb.critPerInt, s = SPELLS[k]; TRK.forEach(function (x) { var u = x.fx.use; if (u && u.kind === 'crit' && trUp(x) && (!u.tree || (s && s.tree === u.tree)) && !(u.target && ti > 1)) c += u.pct * trMult(u); }); return c; }
     function trPet() { var m = 1; TRK.forEach(function (x) { var u = x.fx.use; if (u && u.kind === 'petDmg' && trUp(x)) m *= 1 + u.pct / 100; }); return m; }
     function trSpi() {
       var s = 0;
@@ -536,6 +540,7 @@ window.WL = window.WL || {};
       r.landed++;
       var amt = (u.min + (u.max - u.min) * R.proc()) * trMult(u);            // round 209: × boss type / zone
       if (S.buff('coe') && COE_SCHOOLS[u.school || 'fire']) amt *= 1 + SPELLS.curseOfElements.dmgTakenPct / 100;   // round 209: not on Holy / Nature
+      if (u.school === 'physical') amt *= 1 - armorRed;                       // round 241 (user: "implement everything"): Everlook Pathcarver — the boss's armor after debuffs, as for your demon's melee [A129]
       var crit = R.crit() * 100 < stats.critPct; if (crit) amt *= cb.critMultiplier;
       deal(key, amt, crit, false);
       L('hit', key, { dmg: Math.round(amt), crit: crit });
@@ -545,7 +550,7 @@ window.WL = window.WL || {};
         var u = x.fx.use, p = x.fx.proc, st = trs[x.slot];
         if (u && trUp(x) && (u.kind === 'spDecay' || u.kind === 'spStack')) { st.n++; if (u.kind === 'spStack' && st.n >= u.casts) st.until = -1; }
         if (u && u.kind === 'dmgAfter' && st.pending > 0 && --st.pending === 0) trHit(x, u);
-        if (p && !p.onDamage && !(p.icd && S.t < st.icdUntil - EPS) && R.proc() * 100 < p.chancePct) {
+        if (p && !p.onDamage && !(p.icd && S.t < st.icdUntil - EPS) && WL.fxOn(cfg, p) && R.proc() * 100 < p.chancePct) {   // round 241: onlyVs (Scented Runewood Brooch: Furbolg only)
           if (p.icd) st.icdUntil = S.t + p.icd;                             // Draconic Infused Emblem: 60 s internal cooldown (user, round 209)
           if (p.kind === 'dmg') trHit(x, p);                                // Cursed Murloc Eye (round 209)
           else if (p.kind === 'mana') { var mg = Math.min(p.amount * trMult(p), stats.maxMana - S.mana); S.mana += mg; res.manaFromConsumables = (res.manaFromConsumables || 0) + mg; L('buff', x.fx.name); }   // round 210: Magister's / Devout 5
@@ -554,7 +559,12 @@ window.WL = window.WL || {};
         }
       });
       EPR.forEach(function (x) {                                     // weapon enchants (round 167)
-        var p = x.fx.proc; if (p.kind !== 'sp' && p.kind !== 'spiPct') return;
+        var p = x.fx.proc;
+        if (p.kind === 'dmg') {                                      // round 241 (user: "implement everything"): Dismantle — vs Mechanical only, a guessed chance [A129]
+          if (WL.fxOn(cfg, p) && R.proc() * 100 < (cb.dismantleChancePct != null ? cb.dismantleChancePct : p.chancePct)) trHit({ id: 'ench' + x.id, fx: x.fx }, p);
+          return;
+        }
+        if (p.kind !== 'sp' && p.kind !== 'spiPct') return;
         if (R.proc() * 100 < p.chancePct) {
           eps[x.id].until = S.t + p.duration; L('buff', x.fx.name);
           if (p.mana) { var g = Math.min(p.mana, stats.maxMana - S.mana); S.mana += g; res.manaFromConsumables = (res.manaFromConsumables || 0) + g; }
@@ -579,7 +589,7 @@ window.WL = window.WL || {};
     function trCritDone() { TRK.forEach(function (x) { var u = x.fx.use; if (u && u.endsOnCrit && trUp(x)) trs[x.slot].until = -1; }); }   // Weakness Analyzer
     function trUse(x) {
       var u = x.fx.use, st = trs[x.slot];
-      if (!u || !S.ready('tr:' + x.slot) || S.t >= dur - EPS) return false;
+      if (!u || !S.ready('tr:' + x.slot) || S.t >= dur - EPS || !WL.fxOn(cfg, u)) return false;   // round 241: an onlyVs effect is not used where it does nothing
       S.cds['tr:' + x.slot] = S.t + u.cd;
       if (u.duration) { st.until = S.t + u.duration * (u.durZones ? trMult({ zones: u.durZones }) : 1); st.n = 0; }   // Golden Banana: longer in Forest areas
       L('trinket', x.fx.name);
@@ -613,7 +623,7 @@ window.WL = window.WL || {};
     function castRegenPct() { var c = 0; TRK.forEach(function (x) { var p = x.fx.proc; if (p && p.kind === 'castRegen' && trs[x.slot].procUntil > S.t + EPS) c += p.pct * trMult(p); }); return Math.min(100, c); }
     function useTrinkets(key) { if (TRK_APL) return; TRK.forEach(function (x) { var u = x.fx.use; if (u && u.kind !== 'mana' && trWhen(x, key) && trUse(x)) slotUsed(x.slot); }); }
     // Round 219: "Activate trinket" — every on-use trinket that is ready (off the global cooldown).
-    function trAplOk(x) { var u = x.fx.use; return !!u && u.kind !== 'mana' && (TRU[x.slot] || 'cds') !== 'never' && S.ready('tr:' + x.slot) && S.t < dur - EPS; }
+    function trAplOk(x) { var u = x.fx.use; return !!u && u.kind !== 'mana' && (TRU[x.slot] || 'cds') !== 'never' && S.ready('tr:' + x.slot) && S.t < dur - EPS && WL.fxOn(cfg, u); }
     S.trinketReady = function () { for (var i = 0; i < TRK.length; i++) if (trAplOk(TRK[i])) return true; return false; };
     function useTrinketsApl() { TRK.forEach(function (x) { if (trAplOk(x)) trUse(x); }); }
     function useManaTrinkets() {
@@ -633,7 +643,7 @@ window.WL = window.WL || {};
     // Round 239 [A128]: each spell's own rule (WL.RESIST_RULES: binary / hit / tick; engine/resist.js WL.spellResist).
     function resProf(school, ti, periodic, sk) {
       var tp = TRK.length ? trPierce() : 0;                             // Eye of Moam (round 166): −100 resistances while up
-      var rl = WL.RESIST_RULES[sk], g = rl ? (rl.binary ? 'b' : rl.noBonus ? 'n' : '') : '';
+      var rl = WL.RESIST_RULES[sk], g = rl ? (rl.binary ? 'b' : (rl.noBonus ? 'n' : '') + (rl.tickShare ? 's' : '')) : '';   // 's': ticks at a tenth (Rain of Fire, round 241) [A130]
       var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe'), key = school + (coe ? '1' : '0') + (tp ? 'p' + tp : '') + (periodic ? 't' : '') + g;
       return resCache[key] || (resCache[key] = WL.spellResist(cfg, stats.pierce, school, coe, stats.spellPen + tp, sk, periodic));
     }
@@ -648,7 +658,7 @@ window.WL = window.WL || {};
       var pr = resProf(school, ti, periodic, sk);
       var m = pr.flat;
       lastVulnPct = 0;
-      if (pr.dist.length > 1) {
+      if (pr.dist.length > 1 || pr.dist[0].pct) {                // one step left: all 75% when the share is 90%+ (round 241 cap) [A130]
         var x = R.vuln(), acc = 0;
         for (var i = 0; i < pr.dist.length; i++) { acc += pr.dist[i].p; if (x < acc || i === pr.dist.length - 1) { m *= 1 + pr.dist[i].pct / 100; lastVulnPct = pr.dist[i].pct; res.vulnHits[pr.dist[i].pct] = (res.vulnHits[pr.dist[i].pct] || 0) + 1; break; } }
       }
@@ -875,7 +885,7 @@ window.WL = window.WL || {};
       var amt = (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * liveMultX(key, ti, true) * (snap.castMult || 1);
       if (s.ramp) amt *= s.ramp[i];
       amt *= vulnMult(s.school, ti, true, key);
-      var crit = critRoll(key, e.critPct);
+      var crit = critRoll(key, e.critPct, ti);
       if (crit) amt *= e.critMult;
       deal(rk, amt, crit, true, ti);
       if (logOn) L('tick', rk, Object.assign({ dmg: Math.round(amt), crit: crit, n: i + 1, of: e.ticks }, vulnLog(amt)));
@@ -903,7 +913,7 @@ window.WL = window.WL || {};
           amt *= addOp0(key, tv('decimation', 'dmgPct')); S.buffs.decimation = S.t + 10;   // additive spell mod (round 43)
         }
         amt *= vulnMult(s.school, ti, false, key);
-        var crit = critRoll(key, e.critPct);
+        var crit = critRoll(key, e.critPct, ti);
         if (crit) amt *= e.critMult;
         deal(rk, amt, crit, false, ti);
         if (logOn) L('hit', rk, Object.assign({ dmg: Math.round(amt), crit: crit }, vulnLog(amt)));
@@ -946,7 +956,7 @@ window.WL = window.WL || {};
         if (missRoll(key)) { r.misses++; L('miss', rk, { n: i + 1, of: e.ticks }); continue; }
         var amt = (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * (ti > 1 ? liveMultX(key, ti, true) : liveMult(key, true));
         amt *= vulnMult(s.school, ti, false, key);
-        var crit = critRoll(key, e.critPct);
+        var crit = critRoll(key, e.critPct, ti);
         if (crit) amt *= e.critMult;
         deal(rk, amt, crit, true, ti);
         if (logOn) L('tick', rk, Object.assign({ dmg: Math.round(amt), crit: crit, n: i + 1, of: e.ticks }, vulnLog(amt)));
@@ -1210,7 +1220,7 @@ window.WL = window.WL || {};
     var petResCache = {};
     function petRes(school, pk) { var coe = S.buff('coe'), k = school + (coe ? 1 : 0) + pk; return petResCache[k] || (petResCache[k] = WL.petResist(cfg, school, coe, pk)); }
     function petResRoll(pr) {
-      if (pr.dist.length < 2) return 1;
+      if (pr.dist.length < 2 && !pr.dist[0].pct) return 1;      // round 241: a single 75% step still counts [A130]
       var x = R.pet(), acc = 0;
       for (var i = 0; i < pr.dist.length; i++) { acc += pr.dist[i].p; if (x < acc || i === pr.dist.length - 1) return 1 + pr.dist[i].pct / 100; }
       return 1;

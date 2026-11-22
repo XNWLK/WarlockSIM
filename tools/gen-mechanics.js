@@ -404,7 +404,7 @@ B.examples = (function () {
     pb = WL.spellResist(cfg, 0, 'fire', false, 0, 'immolate', false), pv = WL.spellResist(cfg, 15, 'shadow', true, 0, 'shadowBolt', false);
   P('#### 9. Resistance before the curse, and Spell Pierce');
   P('- Before Curse of the Elements is up the boss has ' + lr + ' level resistance: on average ' + n(-pr.mean * 100, 2) + '% of each direct hit is resisted - ' +
-    pr.dist.map(d => n(d.p * 100) + '% of them lose ' + (-d.pct) + '%').join(', ') + '. A DoT or channel tick rolls a tenth of that (' + n(-pt.mean * 100, 2) + '%).');
+    pr.dist.map(d => n(d.p * 100) + '% of them lose ' + (-d.pct) + '%').join(', ') + '. A DoT or channel tick rolls a tenth of that (' + n(-pt.mean * 100, 2) + '%); so does a Rain of Fire tick (round 241), while Hellfire\'s ticks roll like hits.');
   P('- Binary spells (Immolate, Incinerate, Shadowburn, Death Coil, Bane of Agony, Drain Soul) land fully or are fully resisted: ' + n((1 - pb.landP) * 100, 2) + '% of their casts are resisted, and their hits and ticks roll no partial resists. Your demon is resisted the same way (Imp Firebolt binary, Lash of Pain and Demonic Brand partial) and gets none of your Spell Pierce.');
   P('- With the curse the resistance is 0 and nothing is resisted. With 15 Spell Pierce on top it is −15: direct hits gain on average +' + n(pv.mean * 100, 2) + '% - ' +
     pv.dist.map(d => n(d.p * 100) + '% of hits gain ' + n(d.pct, 0) + '%').join(', ') + '. Ticks and Rain of Fire gain nothing (Spell Piercing hotfix of 2026-11-19).');

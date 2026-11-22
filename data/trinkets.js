@@ -10,7 +10,8 @@
 //               resistances by that much, like Spell Penetration)
 //     'spDecay' + sp spell power, minus `per` after each of your damaging casts
 //     'spStack' + `per` spell power for each damaging cast since it was used (stacks up to `max`); ends after `casts` casts
-//     'crit'    + pct spell crit (tree: only that talent tree's spells; endsOnCrit: ends after a direct crit)
+//     'crit'    + pct spell crit (tree: only that talent tree's spells; endsOnCrit: ends after a direct crit; × vs / zones
+//               since round 241; target: a debuff on your target — your own spells on it, not your demon, not extra targets)
 //     'hit'     + pct spell hit (up to the hit cap)
 //     'petDmg'  your demon deals pct % more
 //     'spi'     + spi Spirit for duration (more mana from Life Tap)
@@ -18,8 +19,9 @@
 //     'mana'    + amount mana, used when that much is missing (int: also − that much Intellect for intDuration s)
 //     'costRed' your spells cost `amount` less mana for duration
 //     'dmg'     a hit of min…max (school) — no spell power, your spell hit and crit (×1.5), Curse of the Elements on
-//               Shadow / Fire / Arcane / Frost
-//     'dmgOver' `shots` such hits, one every `every` s (a summoned helper)
+//               Shadow / Fire / Arcane / Frost; school 'physical' (round 241): the boss's armor after debuffs (as for
+//               your demon's melee), no Curse of the Elements
+//     'dmgOver' `shots` such hits, one every `every` s (a summoned helper; the first `every` s after the use)
 //     'dmgAfter' a hit of min…max after `casts` landed damaging casts
 //   proc: an effect that triggers by itself — { kind, chancePct, … }:
 //     'spi' / 'sp'  + spi Spirit / + sp spell power for duration; chancePct per landed damaging cast (icd: not again for that long)
@@ -29,6 +31,8 @@
 //   stats: the trinket's own item stats, for the gear builder, where Wowhead's list counts a zone bonus always.
 //   Conditions (round 209): vs { bossType: × } (fight.bossType, or the creature type it belongs to), zones { zone: × }
 //   (fight.zone); on use / proc effects they multiply the amount, on equip effects the effect only counts there.
+//   onlyVs (round 241, user: "implement everything"): a use / proc effect that counts only against one of its vs types
+//   (Scented Runewood Brooch, Dismantle); anywhere else it does nothing (WL.fxOn false, WL.fxMult 0).
 window.WL = window.WL || {};
 
 // Boss types (round 209, user: "a boss type (dragonkin/human/etc) picker"): the creature types, then every kind of enemy
@@ -60,8 +64,13 @@ WL.bossIs = function (cfg, type) {
   var b = WL.BOSS_TYPES.filter(function (x) { return x.key === k; })[0];
   return !!(b && b.is === type);
 };
-// The multiplier of an effect's vs / zones conditions in this fight (1 = none apply).
+// Does a use / proc effect count in this fight (round 241: onlyVs needs one of its vs types; anything else always)?
+WL.fxOn = function (cfg, o) {
+  return !(o && o.onlyVs && o.vs) || Object.keys(o.vs).some(function (k) { return WL.bossIs(cfg, k); });
+};
+// The multiplier of an effect's vs / zones conditions in this fight (1 = none apply; 0 = an onlyVs effect that does not count).
 WL.fxMult = function (cfg, o) {
+  if (!WL.fxOn(cfg, o)) return 0;
   var m = 1, z = cfg && cfg.fight && cfg.fight.zone;
   if (o && o.vs) Object.keys(o.vs).forEach(function (k) { if (WL.bossIs(cfg, k)) m = Math.max(m, o.vs[k]); });
   if (o && o.zones && z && o.zones[z] != null) m *= o.zones[z];
@@ -108,6 +117,23 @@ WL.TRINKET_FX = {
   11832:  { name: 'Burst of Knowledge',                 use: { kind: 'costRed', amount: 150, duration: 10, cd: 360 } },
   11819:  { name: 'Second Wind',                        use: { kind: 'mana', amount: 630, cd: 900, zones: { mountain: 2 } } },   // 63 every 1 s for 10 s, counted at once
   270226: { name: 'Golden Banana',                      use: { kind: 'stats', stat: 16, duration: 15, cd: 300, zones: { forest: 2 }, durZones: { forest: 2 } } },
+  // Round 241 (user: "implement everything"; Wowhead Forever spell data, 2026-11-22) [A129]:
+  // Blackhand's Breadth: use 1318944, a Magic debuff on your target, "Mod Crit Chance From Caster %" 5 for 20 s, "doubled
+  // against Orcs and Ogres", 5 min cooldown. From the caster: your spells only, not your demon. Its Equip (+1% melee and
+  // ranged crit) does nothing for a Warlock; no item stats.
+  13965:  { name: "Blackhand's Breadth",                use: { kind: 'crit', pct: 5, target: true, duration: 20, cd: 300, vs: { orc: 2, ogre: 2 } } },
+  // Everlook Pathcarver: use 1295270 Prototype Pathcarver, School Damage (Physical) 607 split between up to 4 enemies within
+  // 4 yd, range 8 yd (the sim assumes you are within 8 yards of the boss); one boss takes all 607. Physical: the boss's
+  // armor after debuffs (as for your demon's melee), no Curse of the Elements, no spell resistance. ×2 against Plants.
+  274759: { name: 'Everlook Pathcarver',                use: { kind: 'dmg', min: 607, max: 607, school: 'physical', cd: 300, vs: { plant: 2 } } },
+  // Zarla's Snack Pouch (+11 spell power, item stats): use 1315190 summons a Black Dragon Whelp (npc 274297) for 15 s, 15 min
+  // cooldown. Its only ability: Fireball (npc spell 9053), 3 s cast, 439 Fire ("depends on caster level": 439 taken) — 5
+  // Fireballs at 3, 6, 9, 12 and 15 s. The whelp's hit and crit are modelled as yours, like the Cannonball Runner's cannon.
+  276744: { name: "Zarla's Snack Pouch",                use: { kind: 'dmgOver', min: 439, max: 439, school: 'fire', shots: 5, every: 3, cd: 900 } },
+  // Scented Runewood Brooch: equip 1318323 ("Aura proc chance 100%") → 1318324, 84–126 Nature, "Harmful spell casts and
+  // attacks against Furbolg have a chance to deal …": per landed damaging cast, nothing unless the boss is a Furbolg. The
+  // 100% is Wowhead's listed aura chance, the tooltip says "a chance": UNVERIFIED. No item stats.
+  269741: { name: 'Scented Runewood Brooch',            proc: { kind: 'dmg', chancePct: 100, min: 84, max: 126, school: 'nature', vs: { furbolg: 1 }, onlyVs: true } },
   18354:  { name: "Pimgib's Collar",                    equip: { petMp5: 9, pet: 'imp' } },   // + 14 Fire spell power always
   23207:  { name: 'Mark of the Champion',               equip: { sp: 85, vs: { demon: 1, undead: 1 } } },
   19812:  { name: 'Rune of the Dawn',                   equip: { sp: 46, vs: { undead: 1 } } },
@@ -124,7 +150,8 @@ WL.TRINKET_FX = {
 };
 // Not here (no effect on a Warlock's damage in the sim): threat, defence, resistance, movement and utility trinkets, pets of
 // their own (dragonlings, Vanquished Tentacle), melee-range or cone effects (Goblin Dragon Gun, Chained Essence of
-// Eranikus), random ones (Six Demon Bag, Gnomish Death Ray).
+// Eranikus), random ones (Six Demon Bag, Gnomish Death Ray), drawbacks on you rather than the target (Scalding Flamehoof,
+// round 241: use 1309551, +14% Fire damage taken and +14% movement speed on you for 20 s; its stats count).
 // The worn trinkets' equip effects that hold in this fight: [{ name, sp, pierce, spellPen, mp5, petMp5, pet }].
 WL.trinketEquipFx = function (cfg) {
   return WL.equippedTrinkets(cfg).filter(function (x) { return x.fx.equip && WL.fxHolds(cfg, x.fx.equip); })
@@ -182,12 +209,20 @@ WL.setBonusNote = function (sid, b) {
 //   'crit'   Revelation: a non-periodic spell that does not crit triggers it at chancePct × (1 − your crit %), the next
 //            non-periodic spell gets + pct % crit (within duration). The real chance is a server-side script (unknown):
 //            combat.revelationChancePct is a guess.
+//   'dmg'    (round 241) a hit of min…max (school) like a trinket's: no spell power, your spell hit and crit (×1.5), Curse of
+//            the Elements on its schools — per landed damaging cast of yours (not your demon's), at combat.dismantleChancePct
+//            (a guess; chancePct when that is not set). vs / onlyVs as for trinkets.
 WL.ENCHANT_FX = {
   // about: its rough worth in spell power for sorting the list (measured on Demo Pact Shadow Bolt Succubus, default settings).
   7942: { name: 'Grand Sorcerer', about: 44, proc: { kind: 'sp', chancePct: 7, sp: 70, mana: 400, duration: 20 } },          // 1231163 → 1231162 Righteous Blasting
   7941: { name: 'Grand Arcanist', about: 73, proc: { kind: 'sp', chancePct: 7, sp: 140, mana: 400, duration: 20 } },         // 1231152 → 1231138 Righteous Fire (two-handed)
   8216: { name: 'Insight',        about: 30, proc: { kind: 'spiPct', chancePct: 35, pct: 100, duration: 10 } },              // 1248758 → 1299796
   8217: { name: 'Revelation',     about: 33, proc: { kind: 'crit', pct: 100, duration: 15 } },                               // 1248806 → 1248808 (+100% crit, 15 s)
+  // Round 241 (user: "implement everything") [A129]: Enchant Weapon - Dismantle (item 273590, spell 435481), "all spells and
+  // attacks to sometimes deal 60 to 90 additional damage to mechanical creatures". Aura 435467 (all magic schools, "Aura proc
+  // chance 100%", value 10) → 439164 Dismantle, 60–90 Nature; a second aura 442206 says 30%. The real chance is a server
+  // script: 10% (the aura's value) is a GUESS, combat.dismantleChancePct. about 0: it works only against Mechanical.
+  7210: { name: 'Dismantle',      about: 0,  proc: { kind: 'dmg', chancePct: 10, min: 60, max: 90, school: 'nature', vs: { mechanical: 1 }, onlyVs: true } },   // 435467 → 439164
 };
 // The weapon enchant of the gear builder with an effect here: [{ slot, id, fx }] (main hand; only while the builder is on).
 WL.equippedEnchantFx = function (cfg) {
