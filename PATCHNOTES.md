@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v211
+- **Wrack DS:** its weapon now has the +22 Intellect enchant instead of Revelation (Revelation rarely triggers for Wrack DS), in its Pre-BiS gear and on its pre-raid BiS list. About +3 DPS; the other builds keep Revelation.
+
 ## v210
 - **Weakness Analyzer:** its cooldown is now 6 minutes, as on its tooltip (was 90 s), so it's used once in a 3-minute fight. Every build loses a little (Wrack DS about 4 DPS, the others 1–2).
 - **Deathmist Raiment:** the gear builder now has the set as it is in the game (the eight pieces of set 1681), with its bonuses: 2 pieces +8 all resistances, 3 pieces 8 MP5, 6 pieces +23 spell damage. The old classic pieces are gone.

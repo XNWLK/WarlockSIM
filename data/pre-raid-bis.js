@@ -129,7 +129,10 @@ WL.PRE_RAID_BIS_ENCHANTS = {
 // Incinerate −0.7, Incinerate DS −4.2, Wrack DS +2.4).
 WL.PRE_RAID_BIS_ENCHANTS_BY_BUILD = {
   demo_pact_fire: { hands: 8492 },
-  wrack_ds: { hands: 8492 },
+  // Round 247 (user: "yes use 22 int for wrack both in the sim and the bis list"): Wrack DS's weapon wears Intellect +22
+  // (2568, Enchanting, Phase 1) instead of Revelation (8217) — the round 244 recheck had +22 Intellect 3.1 DPS ahead of
+  // Revelation for Wrack DS (4 seeds × 3000 fights). The other builds keep Revelation.
+  wrack_ds: { hands: 8492, mainHand: 2568 },
 };
 WL.preRaidBisEnchants = function (buildKey) {
   var r = {}, o = WL.PRE_RAID_BIS_ENCHANTS_BY_BUILD[buildKey] || {};

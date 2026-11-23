@@ -37,7 +37,7 @@ the fights.
 | Fire Demo | 410 | 6.8% | 6.62% | 125 | 27 | 56 | 6 |
 | Incinerate Pandemic | 404 | 6.8% | 6.62% | 125 | 27 | 56 | 6 |
 | Incinerate DS | 404 | 6.8% | 6.62% | 125 | 27 | 56 | 6 |
-| Wrack DS | 205 + 291 Shadow | 3% | 7.4% | 82 | 13 | 57 | 2 |
+| Wrack DS | 205 + 291 Shadow | 3% | 7.77% | 104 | 13 | 57 | 2 |
 
 - **Fight:** 180 s ± 10%, 1,000 fights per build and race, 1 target, execute phase below 35% boss health, healing on you 1,000 every 10 s.
 - **Custom** (the other gear button): your own gear, starting naked — every gear value 0; the level-60 base Intellect, Spirit, Stamina and crit stay.
