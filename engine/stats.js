@@ -81,10 +81,15 @@ WL.armorReduction = function (cfg) {
 // counts them: naked crit and crit from Intellect from these settings, two decimals — and the gear builder's items (for
 // trinket and set effects). Any other gearMode: the settings as they are. The engine's entry points (computeStats,
 // buildSpellTable, simulateOnce, the explanations) call it, so the page, the Web Workers and the tools all get the same.
+// Round 248 (user: "add a gear preset to realistic pre-bis and custom, called Max Pre-BiS … basically the maximum power
+// available right now, regardless of reputation or money constraints"): cfg.gearMode 'maxBis' does the same with the Max
+// Pre-BiS lists (data/pre-bis-gear.js WL.MAX_BIS_GEAR).
 var GEAR_KEYS = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'spellPen', 'int', 'spi', 'sta', 'mp5'];
+WL.gearListsFor = function (mode) { return mode === 'preBis' ? WL.PRE_BIS_GEAR : mode === 'maxBis' ? WL.MAX_BIS_GEAR : null; };
 WL.cfgFor = function (build, cfg) {
-  if (!cfg || cfg.gearMode !== 'preBis' || !WL.PRE_BIS_GEAR) return cfg;
-  var P = WL.PRE_BIS_GEAR[build && build.key] || WL.PRE_BIS_GEAR._common;
+  var G = cfg && WL.gearListsFor(cfg.gearMode);
+  if (!G) return cfg;
+  var P = G[build && build.key] || G._common;
   if (!P) return cfg;
   var r2 = function (x) { return Math.round(x * 100) / 100; }, s = P.sums || {}, cb = cfg.combat, gear = {}, slots = {};
   Object.keys(cfg.gear || {}).forEach(function (k) { gear[k] = cfg.gear[k]; });
@@ -94,7 +99,7 @@ WL.cfgFor = function (build, cfg) {
   Object.keys(P.slots).forEach(function (k) { slots[k] = { id: P.slots[k] }; });
   var c = {}; Object.keys(cfg).forEach(function (k) { c[k] = cfg[k]; });
   var ench = {}; Object.keys(P.enchants || {}).forEach(function (k) { ench[k] = JSON.parse(JSON.stringify(P.enchants[k])); });   // round 213: the Phase 1 enchants (Revelation's effect)
-  c.gear = gear; c.gearBuilder = { on: true, slots: slots, enchants: ench, manual: {} }; c.gearMode = 'preBis:applied';
+  c.gear = gear; c.gearBuilder = { on: true, slots: slots, enchants: ench, manual: {} }; c.gearMode = cfg.gearMode + ':applied';
   return c;
 };
 

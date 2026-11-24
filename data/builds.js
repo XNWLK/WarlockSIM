@@ -102,7 +102,7 @@ WL.BUILDS = [
   {
     key: 'wrack_ds', short: 'Wrack DS',
     name: 'Wrack DS – Affliction (Wrack), Imp sacrificed',
-    notes: '35/11/5. Deep Affliction with Wrack as the filler and the Imp sacrificed for +15% Shadow (Demonic Sacrifice): no demon in the fight. While Wrack channels, Corruption, Bane of Agony and Siphon Life tick twice as often, and those three are what Soul Siphon counts, so all three are kept up (Bane of Agony, never Bane of Doom). A Nightfall proc is held for 2 seconds so it does not cut a Wrack short. Life Tap comes right after a full Wrack, when the 5-second rule is already over, and only when the rest of the fight needs the mana. Suppression, Improved Corruption, Improved Life Tap, Pandemic, Amplify Curse, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon and Improved Bane of Agony; Demonic Embrace, Fel Vitality and Demonic Aegis lead to Demonic Sacrifice; Improved Shadow Bolt for the Shadow Trance bolts.',
+    notes: '35/11/5. Deep Affliction with Wrack as the filler and the Imp sacrificed for +15% Shadow (Demonic Sacrifice): no demon in the fight. While Wrack channels, Corruption, Bane of Agony and Siphon Life tick twice as often, and those three are what Soul Siphon counts, so all three are kept up (Bane of Agony, never Bane of Doom). A Nightfall proc is held for 2 seconds so it does not cut a Wrack short. Life Tap comes right after a full Wrack, when the 5-second rule is already over, and only when the rest of the fight needs the mana. Cooldowns: Amplify Curse goes on the first Bane of Agony; the potion and your trinket are used at the first Wrack, once the DoTs are up (DoT ticks read your spell power as they land, so the opening casts gain nothing from them); Blood Fury and Power Infusion wait until the amplified Bane of Agony has 17 s or less left, to cover its biggest ticks. Suppression, Improved Corruption, Improved Life Tap, Pandemic, Amplify Curse, Malevolence, Siphon Life, Nightfall, Shadow Mastery, Soul Siphon and Improved Bane of Agony; Demonic Embrace, Fel Vitality and Demonic Aegis lead to Demonic Sacrifice; Improved Shadow Bolt for the Shadow Trance bolts.',
     talents: {
       suppression: 5, improvedCorruption: 5, improvedLifeTap: 2, pandemic: 3, amplifyCurse: 1, malevolence: 5, siphonLife: 1, nightfall: 2,
       shadowMastery: 5, soulSiphon: 3, wrack: 1, improvedBaneOfAgony: 2,
@@ -123,6 +123,10 @@ WL.BUILDS = [
     // a Shadow Trance proc is used only once it has 8 s or less left, so a proc during Wrack does not cut the channel at once
     // (the DoTs tick twice as fast only while Wrack channels), and Corruption comes before Bane of Agony.
     // Round 219 (user chose "best per build"): Activate trinket right above the filler (+0.17% / +0.22% / +0.13%).
+    // Round 248 (user: "double check the amplify curse+racial+trinket timings for wrack"): the cooldown rule of builds that
+    // never cast Doom (engine/sim.js ampHold): potion at the first Wrack, Blood Fury / Power Infusion with the last 17 s of the
+    // amplified Bane of Agony (+12.2 / +4.3 / +5.1 DPS at 60 / 120 / 180 s, Orc). Weakness Analyzer stays at the first Wrack
+    // (with the amplified Bane's last 16 / 10 s: −0.4 / −1.0 at 180 s; above the DoTs: −1.5); Amplify on the 2nd Bane: −1.0.
     rotation: ['deathCoilFinisher', 'corruption', 'baneOfAgony', 'shadowTrance', 'siphonLife', 'curseOfElements', 'lifeTapNeed', 'activateTrinket', 'wrack'],
     actWhen: { lifeTapNeed: { t: 'fsr', op: '>=', v: 6 }, shadowTrance: { t: 'aura', aura: 'shadowTrance', op: '<=', v: 8 } },
     params: { lifeTapNeed: { pct: 40, sec: 25 } },

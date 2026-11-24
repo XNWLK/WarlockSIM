@@ -1207,6 +1207,7 @@
     <span class="qgroup"><span class="meta">Gear</span>
       <span class="seg" role="group" aria-label="Gear preset">
         <button type="button" data-qgear="prebis" aria-pressed="false">Realistic Pre-BiS</button>
+        <button type="button" data-qgear="maxbis" aria-pressed="false">Max Pre-BiS</button>
         <button type="button" data-qgear="custom" aria-pressed="false">Custom</button>
       </span></span>
     <span class="qgroup"><span class="meta">Buffs &amp; consumables</span>
@@ -1314,7 +1315,8 @@
       <p class="meta"><b>Sheet (gear)</b> = your character sheet with gear only (editable). <b>Total</b> = race base + gear + raid buffs +
         consumables + weapon oil + passive racials (read-only; the per-build Spellstone / Firestone is not included). Talents differ per build and are shown in each build's details.
         Timed effects (potions, Power Infusion, Blood Fury, Berserking, Eureka) are applied in the fight when used.
-        Default gear: Realistic Pre-BiS — every build in its own pre-raid list (the gear builder shows the list of the build under "Value for"). Custom starts naked.</p>
+        Default gear: Realistic Pre-BiS — every build in its own pre-raid list (the gear builder shows the list of the build under "Value for").
+        Max Pre-BiS — every build in its own list of the strongest Phase 1 pieces and enchants (no raid items), whatever the reputation, cost or effort. Custom starts naked.</p>
     </div>
 
     <div class="card sidecard">
@@ -1418,7 +1420,7 @@
         </details>
         <div class="cdbox">
           <div class="cdhead">
-            <label class="c" for="o_actives" title="When to pop your short cooldowns for the first time: the racial cooldown (Blood Fury, Berserking, Eureka!), the Major Spellblasting Potion and Power Infusion. After that each one is used again whenever it is ready. 'Bane of Doom explodes' = right before the cast the first explosion falls into; builds that never cast Bane of Doom (or fights where it cannot explode) pop at the pull. Execute = boss below 35% health. Custom timeline = you place every use yourself — also mana potions, runes and explosives; whatever you do not place is used automatically as usual. Every cooldown has a row; its checkbox is the same switch as in the Buffs & debuffs / Consumables tab, and a switched-off row is greyed. The racial row shows one race at a time (Orc, Troll, Gnome buttons) with its real timers; '=' keeps one set of times for all three races. Eureka! (Gnome) is then popped right before the next long cast (Shadow Bolt, Searing Pain, Incinerate, Soul Fire, a channel), so no charge goes to a DoT.">Pop cooldowns (potion, racial, Power Infusion)
+            <label class="c" for="o_actives" title="When to pop your short cooldowns for the first time: the racial cooldown (Blood Fury, Berserking, Eureka!), the Major Spellblasting Potion and Power Infusion. After that each one is used again whenever it is ready. 'Bane of Doom explodes' = right before the cast the first explosion falls into; fights where it cannot explode pop at the pull; builds that never cast Bane of Doom pop once their opening DoTs are up (right before the first filler cast), Blood Fury and Power Infusion only when an Amplify Curse Bane of Agony has 17 s or less left (its strongest ticks), Berserking on the pull. Execute = boss below 35% health. Custom timeline = you place every use yourself — also mana potions, runes and explosives; whatever you do not place is used automatically as usual. Every cooldown has a row; its checkbox is the same switch as in the Buffs & debuffs / Consumables tab, and a switched-off row is greyed. The racial row shows one race at a time (Orc, Troll, Gnome buttons) with its real timers; '=' keeps one set of times for all three races. Eureka! (Gnome) is then popped right before the next long cast (Shadow Bolt, Searing Pain, Incinerate, Soul Fire, a channel), so no charge goes to a DoT.">Pop cooldowns (potion, racial, Power Infusion)
               <select id="o_actives">
                 <option value="pull">on the pull</option>
                 <option value="doom">when the first Bane of Doom explodes</option>

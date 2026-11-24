@@ -895,7 +895,7 @@ Eureka!), the Major Spellblasting Potion and Power Infusion. After the first use
 | Setting | First use |
 |---|---|
 | On the pull | Right before your first damaging spell. |
-| When the first Bane of Doom explodes (default) | Right before the cast during which the first Bane of Doom explodes, so the explosion is covered. At the pull instead if the build never casts Bane of Doom, if a Bane of Agony went up first, or if Doom cannot explode before the fight ends. |
+| When the first Bane of Doom explodes (default) | Right before the cast during which the first Bane of Doom explodes, so the explosion is covered. At the pull instead if a Bane of Agony went up first or if Doom cannot explode before the fight ends. A build that never casts Bane of Doom (Wrack DS) pops them once its opening DoTs and curse are up, right before its first filler cast: every DoT tick reads your spell power when it lands, so a buff started on the opening DoT casts would run while almost nothing ticks. Blood Fury and Power Infusion also wait while an Amplify Curse Bane of Agony is coming or has more than 17 s left, so their 15 s cover its strongest ticks (the last 8 s: 1.5 × 1.5). Berserking stays on the pull (its haste helps the opening casts). |
 | In the execute phase | Once the boss is below 35% health. |
 | Custom timeline | You place every use yourself, also mana potions, runes, explosives, Amplify Curse and the pet swap. What you do not place is used automatically. |
 

@@ -140,7 +140,7 @@
     var a = (runCfg.options || {}).activesPolicy || 'doom';
     return a === 'pull' ? 'on the pull' : a === 'execute' ? 'when the boss drops below ' + runCfg.fight.executePct + '%' :
       a === 'custom' ? 'at the times on your cooldown timeline (anything not placed there: at the first Bane of Doom explosion)' :
-      'when the first Bane of Doom explodes (on the pull for builds that never cast it)';
+      'when the first Bane of Doom explodes (builds that never cast it: once the opening DoTs are up, right before the first filler cast; Blood Fury and Power Infusion wait for the last ' + ((runCfg.options || {}).activesAmpLeft != null ? runCfg.options.activesAmpLeft : 17) + ' s of an Amplify Curse Bane of Agony; Berserking on the pull)';   // round 248
   }
   function racialRule(rc) {
     if (!rc.dmgPct) return 'First used ' + activesWhen() + ', then whenever it is ready — right before a damaging spell (never before a curse or Life Tap)';
@@ -475,7 +475,7 @@
     var race = $('t_race').value || 'human';
     renderSetupBar();
     var perBuild = WL.activeConsumables(cfg).some(function (c) { return c.group === 'stone' && c.buildOil; });
-    var s = WL.computeStats({ key: cfg.gearMode === 'preBis' ? preBisShown : undefined, talents: {}, pet: null, sacrifice: null, oil: 'none', rotation: [] }, race, cfg);   // key: round 211, the Pre-BiS list shown
+    var s = WL.computeStats({ key: listMode(cfg) ? preBisShown : undefined, talents: {}, pet: null, sacrifice: null, oil: 'none', rotation: [] }, race, cfg);   // key: round 211, the Pre-BiS list shown
     var hide = /^(Gear|Stat-weight test)$/;
     TOTAL_ROWS.forEach(function (r) {
       var gv = r.gear ? r.gear(cfg.gear) : null, tv = r.tot(s, cfg), d = r.d || 0;
@@ -511,7 +511,13 @@
   var MAX_CONS = ['flaskSupremePower', 'greaterArcaneElixir', 'shadowPower', 'firePower', 'elixirOwl', 'elixirSages', 'greaterMageblood', 'spiritOfZanza',
     'cerebralCortex', 'bakedSalmon', 'kreegsStout', 'buildOil', 'brilliantWizardOil', 'majorSpellblasting', 'demonicRune'];
   var SIDE_GROUPS = ['buffs', 'debuffs', 'consumables'];
-  function gearLabel(c) { return c.gearMode === 'preBis' ? 'Realistic Pre-BiS gear (each build its own)' : gearText(c.gear); }   // round 211
+  // Round 248 (user: "add a gear preset to realistic pre-bis and custom, called Max Pre-BiS … the maximum power available right
+  // now, regardless of reputation or money constraints"): cfg.gearMode 'maxBis' — every build in its own Max Pre-BiS list
+  // (data/pre-raid-bis.js WL.MAX_PRE_RAID_BIS → data/pre-bis-gear.js WL.MAX_BIS_GEAR), shown and handled like Realistic Pre-BiS.
+  function listMode(c) { return c && (c.gearMode === 'preBis' || c.gearMode === 'maxBis') ? c.gearMode : null; }
+  function listName(mode) { return mode === 'maxBis' ? 'Max Pre-BiS' : 'Realistic Pre-BiS'; }
+  function listGear(mode) { return WL.gearListsFor(mode || 'preBis') || WL.PRE_BIS_GEAR; }
+  function gearLabel(c) { return listMode(c) ? listName(c.gearMode) + ' gear (each build its own)' : gearText(c.gear); }   // round 211
   function gearText(g) { return g.sp + ' SP / ' + g.hitPct + '% hit / ' + g.critPct + '% crit / Int ' + g.int + ' / Spirit ' + g.spi + ' / Stamina ' + g.sta; }
   function applySidePreset(c, which) {
     if (which !== 'max') { var P = WL.pageDefaultConfig(); SIDE_GROUPS.forEach(function (g) { Object.keys(c[g]).forEach(function (k) { c[g][k].on = !!(P[g][k] && P[g][k].on); }); }); return; }   // round 212: the page's defaults (ideal Phase 1)
@@ -529,11 +535,12 @@
   function setupState() {                                  // which button of each switch matches the current settings
     var onList = function (c) { return JSON.stringify(SIDE_GROUPS.map(function (g) { return Object.keys(c[g]).filter(function (k) { return c[g][k].on; }); })); };
     var sideIs = function (which) { var p = JSON.parse(JSON.stringify({ buffs: cfg.buffs, debuffs: cfg.debuffs, consumables: cfg.consumables })); applySidePreset(p, which); return onList(p) === onList(cfg); };
-    return { gear: cfg.gearMode === 'preBis' ? 'prebis' : 'custom', side: sideIs('default') ? 'default' : sideIs('max') ? 'max' : null };
+    return { gear: cfg.gearMode === 'preBis' ? 'prebis' : cfg.gearMode === 'maxBis' ? 'maxbis' : 'custom', side: sideIs('default') ? 'default' : sideIs('max') ? 'max' : null };
   }
   function renderSetupBar() {
     var st = setupState();
     var tips = { 'qgear:prebis': 'Every build in its own pre-raid best-in-slot gear (Phase 1, no raid items). The gear builder shows the list of the build under "Value for"; change anything there and it becomes your own gear (Custom).',
+      'qgear:maxbis': 'Every build in its own Max Pre-BiS gear: the strongest Phase 1 pieces and enchants (no raid items), whatever the reputation, cost or effort. The gear builder shows the list of the build under "Value for"; change anything there and it becomes your own gear (Custom).',   // round 248
       'qgear:custom': 'Your own gear. Clicking it starts naked: every gear stat 0 (the level-60 base Intellect, Spirit, Stamina and crit stay). Put items in the gear builder or type numbers in the Stats panel.',
       'qside:default': 'An ideal Phase 1 raid (round 212): the raid buffs of a full raid (Shaman and Paladin ones too), Sunder Armor, Faerie Fire, Judgement of Wisdom, and every Phase 1 consumable — flask, elixirs, Nightfin Soup, Wizard Oil, Major Spellblasting Potion, Demonic Rune.',
       'qside:max': 'Every raid buff, every boss debuff that stacks, and the best consumable of each group (flask, elixirs, food, weapon oil, Major Spellblasting Potion, rune).' };
@@ -546,45 +553,47 @@
   function quickSetup(kind, which) {
     readSettings();
     var race = $('t_race').value;
-    if (kind === 'gear' && which === 'prebis') { cfg.gearMode = 'preBis'; preBisShow(true); }
+    if (kind === 'gear' && (which === 'prebis' || which === 'maxbis')) { cfg.gearMode = which === 'maxbis' ? 'maxBis' : 'preBis'; preBisShow(true); }   // round 248: + Max Pre-BiS
     else if (kind === 'gear') { cfg.gearMode = null; cfg.gearBuilder = { on: true, slots: {}, enchants: {}, manual: {} }; preBisShown = null; gbSync(); gbSave(); }
     else applySidePreset(cfg, which);
     initSettings(); $('t_race').value = race; renderTotals(); markDirty(); renderGear();
-    $('quickMsg').textContent = (kind === 'gear' ? (which === 'prebis' ? 'Realistic Pre-BiS gear: every build in its own list' : 'Custom gear: naked — put items in the gear builder or type your numbers')
+    $('quickMsg').textContent = (kind === 'gear' ? (which === 'prebis' ? 'Realistic Pre-BiS gear: every build in its own list' : which === 'maxbis' ? 'Max Pre-BiS gear: every build in its own list of the strongest Phase 1 pieces' : 'Custom gear: naked — put items in the gear builder or type your numbers')
       : which === 'max' ? 'Max buffs & consumables: ' + WL.activeBuffs(cfg).length + ' raid buffs, ' + WL.activeConsumables(cfg).length + ' consumables'
       : 'Default buffs & consumables') + ' — press Sim!';
   }
   // ----- Pre-BiS in the gear builder (round 211) -----
   var preBisShown = null;                                  // the build whose list the gear builder shows
   function preBisKey() {
-    var ctx = gbValCtx(), k = ctx ? ctx.b.key : gbValKey;
-    if (WL.PRE_BIS_GEAR[k]) return k;
-    var first = WL.BUILDS.filter(function (b) { return WL.PRE_BIS_GEAR[b.key]; })[0];
+    var ctx = gbValCtx(), k = ctx ? ctx.b.key : gbValKey, G = listGear(cfg.gearMode);   // round 248: the lists of the gear mode
+    if (G[k]) return k;
+    var first = WL.BUILDS.filter(function (b) { return G[b.key]; })[0];
     return first ? first.key : '_common';
   }
-  function preBisSlots(k) { var P = (WL.PRE_BIS_GEAR[k] || WL.PRE_BIS_GEAR._common).slots, o = {}; Object.keys(P).forEach(function (s) { o[s] = { id: P[s] }; }); return o; }
-  function preBisEnchants(k) { return JSON.parse(JSON.stringify((WL.PRE_BIS_GEAR[k] || WL.PRE_BIS_GEAR._common).enchants || {})); }   // round 213
+  var preBisShownMode = null;                              // round 248: the gear mode of the list shown (Realistic / Max)
+  function preBisSlots(k, mode) { var G = listGear(mode || preBisShownMode || cfg.gearMode), P = (G[k] || G._common).slots, o = {}; Object.keys(P).forEach(function (s) { o[s] = { id: P[s] }; }); return o; }
+  function preBisEnchants(k, mode) { var G = listGear(mode || preBisShownMode || cfg.gearMode); return JSON.parse(JSON.stringify((G[k] || G._common).enchants || {})); }   // round 213
   // Pre-BiS on: the gear builder holds the list of the build under "Value for" (its numbers fill the Stats panel). Only
   // what is shown changes with "Value for": each build fights in its own list either way.
   function preBisShow(force) {
-    if (cfg.gearMode !== 'preBis') return;
+    if (!listMode(cfg)) return;                            // round 248: Realistic or Max Pre-BiS
     var k = preBisKey();
-    if (!force && k === preBisShown && gb().on) return;
-    preBisShown = k;
-    cfg.gearBuilder = { on: true, slots: preBisSlots(k), enchants: preBisEnchants(k), manual: {} };   // round 213: with its enchants
+    if (!force && k === preBisShown && preBisShownMode === cfg.gearMode && gb().on) return;
+    preBisShown = k; preBisShownMode = cfg.gearMode;
+    cfg.gearBuilder = { on: true, slots: preBisSlots(k, cfg.gearMode), enchants: preBisEnchants(k, cfg.gearMode), manual: {} };   // round 213: with its enchants
     gbSel = null; gbCmp = null; gbSync();
   }
   // A change in the gear builder or the Stats panel while Pre-BiS is on: from now on it is your own gear (Custom), for
   // every build, starting from what you see.
   function preBisCheck() {
-    if (cfg.gearMode !== 'preBis' || !preBisShown) return;
+    if (!listMode(cfg) || !preBisShown) return;            // round 248: Realistic or Max Pre-BiS
     var g = gb(), ids = function (sl) { var o = {}; Object.keys(sl || {}).sort().forEach(function (k) { var e = sl[k]; if (e) o[k] = e.custom ? 'c:' + JSON.stringify(e.custom) : e.id; }); return JSON.stringify(o); };
     var same = g.on && ids(g.slots) === ids(preBisSlots(preBisShown)) && ids(g.enchants) === ids(preBisEnchants(preBisShown)) &&   // round 213: its enchants too
       !Object.keys(g.manual || {}).some(function (k) { return +g.manual[k]; });
     if (same) return;
     var b = WL.BUILDS.filter(function (x) { return x.key === preBisShown; })[0];
-    cfg.gearMode = null; preBisShown = null;
-    gbMsgText = 'This is your own gear now (Custom), for every build — it started from ' + (b ? b.short + '\'s' : 'the') + ' Realistic Pre-BiS list. Realistic Pre-BiS in the quick setup brings the lists back.';
+    var nm = listName(cfg.gearMode);
+    cfg.gearMode = null; preBisShown = null; preBisShownMode = null;
+    gbMsgText = 'This is your own gear now (Custom), for every build — it started from ' + (b ? b.short + '\'s' : 'the') + ' ' + nm + ' list. ' + nm + ' in the quick setup brings the lists back.';
     renderSetupBar();
   }
   // round 169: the steps strip is gone (null-safe)
@@ -900,7 +909,7 @@
   function renderStatbar() {
     var g = runCfg.gear, f = runCfg.fight;
     $('statbar').innerHTML =                                             // round 177: Sim! / Stop has its own place in the Sim bar
-      (runCfg.gearMode === 'preBis' ? chip('--c-sp', 'Realistic Pre-BiS', 'gear, each build its own') :   // round 211: no one set of numbers
+      (listMode(runCfg) ? chip('--c-sp', listName(runCfg.gearMode), 'gear, each build its own') :   // round 211: no one set of numbers (round 248: + Max Pre-BiS)
         chip('--c-sp', fmt(g.sp), 'spell power') + chip('--c-hit', fmt(g.hitPct, 1) + '%', 'hit') + chip('--c-crit', fmt(g.critPct, 1) + '%', 'crit')) +
       chip('--c-fight', f.duration + ' s' + (f.durationVarPct ? ' ±' + f.durationVarPct + '%' : ''), (f.targets > 1 ? f.targets + ' targets · ' : '') + 'fight' + (WL.PRECAST_SPELLS.indexOf(f.precast) >= 0 ? ' · ' + esc(precastName(f.precast)) + ' precast' : '')) +
       '';
@@ -1617,12 +1626,12 @@
   // for every build), or only the typed-in Stats values. Hover an item: its in-game tooltip (data-gitem).
   function runGear(b) {
     var c = WL.cfgFor(b, runCfg), g = c && c.gearBuilder;
-    return { g: g && g.on && g.slots && Object.keys(g.slots).length ? g : null, preBis: !!(runCfg && runCfg.gearMode === 'preBis'), cfg: c };
+    return { g: g && g.on && g.slots && Object.keys(g.slots).length ? g : null, preBis: !!listMode(runCfg), mode: listMode(runCfg), cfg: c };   // round 248: Realistic or Max Pre-BiS
   }
   function gearTabHtml(r) {
     var b = r.build, G = runGear(b), g = G.g;
-    var head = G.preBis ? 'Realistic Pre-BiS · ' + esc(b.short) : 'Your gear builder';
-    var note = G.preBis ? 'Each build fights in its own Realistic Pre-BiS list (with its enchants); this is ' + esc(b.short) + '\'s.'
+    var head = G.preBis ? listName(G.mode) + ' · ' + esc(b.short) : 'Your gear builder';
+    var note = G.preBis ? 'Each build fights in its own ' + listName(G.mode) + ' list (with its enchants); this is ' + esc(b.short) + '\'s.'
       : 'This run used your own gear (Custom): every build wore the same items.';
     if (!g) return '<div class="wide dgear"><h2>Gear</h2><p class="meta">This run used the gear numbers typed in the Stats panel, not items (the gear builder was off), so there are no items to show.</p></div>';
     var slot = function (s) {
@@ -1639,7 +1648,7 @@
     var col = function (c) { return WL.GEAR_SLOTS.filter(function (s) { return s.col === c && (g.slots[s.key] || (s.key !== 'shirt' && s.key !== 'tabard')); }).map(slot).join(''); };
     var sh = WL.gearSheet(g, G.cfg), keys = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pierce', 'int', 'spi', 'sta', 'mp5'];
     var sums = keys.filter(function (k) { return sh.sheet[k]; }).map(function (k) { return '<span><b>' + gbNum(sh.sheet[k], k) + '</b> ' + esc(statLabel(k)) + '</span>'; }).join('');
-    var btn = G.preBis && cfg.gearMode === 'preBis' && WL.PRE_BIS_GEAR[b.key] ? '<button type="button" data-gearshow="' + esc(b.key) + '">Show it in the gear builder</button>' : '';
+    var btn = G.preBis && cfg.gearMode === G.mode && listGear(G.mode)[b.key] ? '<button type="button" data-gearshow="' + esc(b.key) + '">Show it in the gear builder</button>' : '';
     return '<div class="wide dgear"><h2>Gear · ' + head + '</h2><p class="meta">' + note + ' Hover an item for its tooltip.</p>' +
       '<div class="dgcols"><div class="gbcol">' + col('left') + '</div><div class="gbcol">' + col('right') + '</div><div class="gbcol">' + col('weapons') + '</div></div>' +
       '<p class="dgsums">' + sums + '</p><p class="meta">Items, enchants and set bonuses together, crit with Intellect / 60 (as the character sheet). ' + btn + '</p>' +
@@ -1650,7 +1659,7 @@
     var t = e.target.closest && e.target.closest('[data-gearshow]'); if (!t) return;
     var k = t.getAttribute('data-gearshow'), vs = $('gbValFor');
     gbValKey = k; if (vs) vs.value = k;
-    if (cfg.gearMode === 'preBis') { preBisShow(true); renderTotals(); }
+    if (listMode(cfg)) { preBisShow(true); renderTotals(); }
     renderGear();
     var gr = $('gear'); if (gr) { if (gr.tagName === 'DETAILS') gr.open = true; gr.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   });
@@ -3621,7 +3630,7 @@
       if (kind === 'len') c.fight.duration = x; else if (scale) { Object.assign(c.gear, scaleGear(x, SC)); c.gearMode = null; } else c.gear[st.k] = x;   // round 211: Build Scaling = its own gear levels, not the Pre-BiS lists
       series.forEach(function (s, si) {
         var cs = c;                                         // round 211: Pre-BiS — the stat set in this build's own list
-        if (!scale && kind !== 'len' && c.gearMode === 'preBis') { cs = JSON.parse(JSON.stringify(WL.cfgFor(s.b, c))); cs.gear[st.k] = x; }
+        if (!scale && kind !== 'len' && listMode(c)) { cs = JSON.parse(JSON.stringify(WL.cfgFor(s.b, c))); cs.gear[st.k] = x; }   // round 248: + Max Pre-BiS
         if (races) races.forEach(function (rk) { jobs.push({ kind: 'weight', build: s.b, race: rk, cfg: cs, n: n, stat: null, si: si, xi: xi }); });   // round 188: every race
         else jobs.push({ kind: 'weight', build: s.b, race: s.race, cfg: cs, n: n, stat: null, si: si, xi: xi });
       });
@@ -3896,7 +3905,7 @@
   } catch (e) { /* nothing kept */ }
   function gbSave() {
     preBisCheck();                      // round 211: a change to the Pre-BiS list makes it your own gear
-    if (cfg.gearMode === 'preBis') return;   // the lists are not your items: what you kept in this browser stays
+    if (listMode(cfg)) return;   // the lists are not your items: what you kept in this browser stays
     var g = gb();
     try {
       if (Object.keys(g.slots).length || Object.keys(g.enchants).length) localStorage.setItem(GB_STORE, JSON.stringify({ slots: g.slots, enchants: g.enchants }));
@@ -4196,7 +4205,7 @@
     markDirty(); renderCdTl();
   });
   function renderGear() {                                 // the slots and the sums (not the open slot's form: what you type there stays)
-    if (cfg.gearMode === 'preBis' && preBisKey() !== preBisShown) { preBisShow(); renderTotals(); }   // round 211: "Value for" moved (e.g. after a run)
+    if (listMode(cfg) && (preBisKey() !== preBisShown || preBisShownMode !== cfg.gearMode)) { preBisShow(); renderTotals(); }   // round 211: "Value for" moved (e.g. after a run)
     renderTrinketUse();                                   // round 166
     var g = gb(), ctx = gbValCtx(), col = function (c) { return WL.GEAR_SLOTS.filter(function (s) { return s.col === c; }).map(function (s) { return gbSlotHtml(s, ctx); }).join(''); };
     $('gear').classList.toggle('building', GEAR_BUILDING);
@@ -4352,12 +4361,14 @@
     var cur = sel.value;
     // Round 211 (user: the pre-raid BiS lists): the lists of data/pre-raid-bis.js come first, as fixed sets ("bis:<build key>").
     var B = WL.PRE_RAID_BIS || {}, bk = WL.BUILDS.filter(function (b) { return B[b.key]; });
+    var M = WL.MAX_BIS_GEAR || {}, mk = WL.BUILDS.filter(function (b) { return M[b.key]; });   // round 248: the Max Pre-BiS lists (items and enchants)
     var own = gbSets.length ? gbSets.map(function (s, i) { return '<option value="' + i + '">' + esc(s.name) + ' (' + Object.keys(s.slots || {}).length + (Object.keys(s.slots || {}).length === 1 ? ' item' : ' items') + ')</option>'; }).join('') : '<option value="">No saved sets yet</option>';
     sel.innerHTML = bk.length ? '<optgroup label="Pre-raid BiS (Phase ' + (WL.PRE_RAID_BIS_PHASE || 1) + ')">' + bk.map(function (b) { return '<option value="bis:' + b.key + '">Pre-raid BiS · ' + esc(b.short) + '</option>'; }).join('') + '</optgroup>' +
+      (mk.length ? '<optgroup label="Max Pre-BiS (Phase ' + (WL.PRE_RAID_BIS_PHASE || 1) + ')">' + mk.map(function (b) { return '<option value="max:' + b.key + '">Max Pre-BiS · ' + esc(b.short) + '</option>'; }).join('') + '</optgroup>' : '') +
       '<optgroup label="Your saved sets">' + own + '</optgroup>' : own;
-    if (cur !== '' && (gbSets[+cur] || (/^bis:/.test(cur) && B[cur.slice(4)]))) sel.value = cur;
+    if (cur !== '' && (gbSets[+cur] || (/^bis:/.test(cur) && B[cur.slice(4)]) || (/^max:/.test(cur) && M[cur.slice(4)]))) sel.value = cur;
     else if (gbSets.length) sel.value = '0';
-    var isBis = /^bis:/.test(sel.value);
+    var isBis = /^(bis|max):/.test(sel.value);
     sel.disabled = !gbSets.length && !bk.length; $('gbSetLoad').disabled = !gbSets.length && !isBis; $('gbSetDel').disabled = isBis || !gbSets.length;
   }
   function gbSetSave() {
@@ -4377,6 +4388,10 @@
       var bb = WL.BUILDS.filter(function (b) { return b.key === v.slice(4); })[0], sl = {};
       Object.keys(bis).forEach(function (k) { sl[k] = { id: bis[k] }; });
       s = { name: 'Pre-raid BiS · ' + (bb ? bb.short : v.slice(4)), slots: sl, enchants: gb().enchants || {} };
+    } else if (/^max:/.test(v) && (WL.MAX_BIS_GEAR || {})[v.slice(4)]) {   // round 248: a Max Pre-BiS list — its items and its enchants
+      var mb = WL.BUILDS.filter(function (b) { return b.key === v.slice(4); })[0], mg = WL.MAX_BIS_GEAR[v.slice(4)], ms = {};
+      Object.keys(mg.slots).forEach(function (k) { ms[k] = { id: mg.slots[k] }; });
+      s = { name: 'Max Pre-BiS · ' + (mb ? mb.short : v.slice(4)), slots: ms, enchants: JSON.parse(JSON.stringify(mg.enchants || {})) };
     } else s = gbSets[+v];
     if (!s) return;
     readSettings();
@@ -4507,7 +4522,7 @@
   window.addEventListener('scroll', gbTipHide, { passive: true });
   $('gear').addEventListener('change', function (e) {
     var id = e.target.id;
-    if (id === 'gbValFor') { gbValKey = e.target.value; if (cfg.gearMode === 'preBis') { preBisShow(); renderTotals(); } renderGear(); return; }   // round 211: and the Pre-BiS list shown
+    if (id === 'gbValFor') { gbValKey = e.target.value; if (listMode(cfg)) { preBisShow(); renderTotals(); } renderGear(); return; }   // round 211: and the Pre-BiS list shown
     if (/^gbf/.test(id)) {                                  // round 157: the item list's filters
       gbFilt = { min: $('gbfMin').value, max: $('gbfMax').value, side: $('gbfSide').value, src: $('gbfSrc').value, fav: $('gbfFav').checked, phase: $('gbfPhase') ? +$('gbfPhase').value : 0 };
       gbKeep('wfs.gbFilter', gbFilt); $('gbHits').innerHTML = gbHitsHtml(gbItemList(), gbFind, 'item', 'data-gpick');

@@ -140,3 +140,116 @@ WL.preRaidBisEnchants = function (buildKey) {
   Object.keys(o).forEach(function (s) { r[s] = o[s]; });
   return r;
 };
+
+// ---- Max Pre-BiS (round 248) ----
+// Round 248 (user: "add a gear preset to realistic pre-bis and custom, called Max Pre-BiS. that gear set should have the best
+// pieces equipped from the bis list with the best enchants etc. basically the maximum power available right now, regardless of
+// reputation or money constraints"): per build the strongest Phase 1 list. Made by private/bis-page-style real fights (page
+// defaults, each build's default race): the Realistic list with every ▲ upgrade of the pre-raid page, then slot by slot every
+// Phase 1 piece not from a raid and wearable by the Horde (reputation, crafting, PvP rank, cost: all allowed; the items the user
+// took out stay out — the Demonheart pieces too, user: "they will be part of the next bis list later"), item-set combinations
+// and every Phase 1 enchant of the slot, repeated until no slot improves. Screened with 2 seeds × 1,000 fights, a change kept
+// only when 4 seeds × 3,000 fights had it ahead by more than 0.5 DPS (and 1.5 standard errors). No gems in Phase 1.
+// tools/gen-pre-bis.js → data/pre-bis-gear.js WL.MAX_BIS_GEAR; the quick setup's "Max Pre-BiS" (cfg.gearMode 'maxBis').
+WL.MAX_PRE_RAID_BIS = {
+  demo_pact_succ_sb: { // Demonology – Pact, Succubus out, Shadow Bolt
+    head: 22267,        // Spellweaver's Turban
+    neck: 22403,        // Nacreous Shell Necklace
+    shoulder: 19050,    // Mantle of the Timbermaw
+    back: 272411,       // Arcanoweave Cloak
+    chest: 14153,       // Robe of the Void (▲ upgrade of the pre-raid page)
+    wrist: 19595,       // Dryad's Wrist Bindings (▲ upgrade of the pre-raid page)
+    hands: 226911,      // Deathmist Wraps (▲ upgrade of the pre-raid page)
+    waist: 18405,       // Belt of the Archmage (▲ upgrade of the pre-raid page)
+    legs: 22342,        // Leggings of Torment
+    feet: 10247,        // Master's Boots of Shadow Wrath (search: +2.6 DPS over Omnicast Boots)
+    finger1: 22339,     // Rune Band of Wizardry (▲ upgrade of the pre-raid page)
+    finger2: 272406,    // Channeler's Ring
+    trinket1: 276744,   // Zarla's Snack Pouch (search: +7.6 DPS over Royal Seal of Eldre'Thalas)
+    trinket2: 272438,   // Weakness Analyzer
+    mainHand: 22383,    // Sageblade (▲ upgrade of the pre-raid page)
+    offHand: 19315,     // Therazane's Touch (▲ upgrade of the pre-raid page)
+    ranged: 13938,      // Bonecreeper Stylus
+  },
+  demo_pact_fire: { // Demonology – Pact, Imp out, Fire
+    head: 22267,        // Spellweaver's Turban
+    neck: 22403,        // Nacreous Shell Necklace
+    shoulder: 19050,    // Mantle of the Timbermaw
+    back: 272411,       // Arcanoweave Cloak
+    chest: 14153,       // Robe of the Void (▲ upgrade of the pre-raid page)
+    wrist: 19595,       // Dryad's Wrist Bindings (▲ upgrade of the pre-raid page)
+    hands: 226911,      // Deathmist Wraps (▲ upgrade of the pre-raid page)
+    waist: 18405,       // Belt of the Archmage (▲ upgrade of the pre-raid page)
+    legs: 22747,        // Outrider's Silk Leggings (search: +0.8 DPS over Skyshroud Leggings)
+    feet: 11822,        // Omnicast Boots
+    finger1: 22339,     // Rune Band of Wizardry (▲ upgrade of the pre-raid page)
+    finger2: 272406,    // Channeler's Ring
+    trinket1: 276744,   // Zarla's Snack Pouch (search: +7.9 DPS over Royal Seal of Eldre'Thalas)
+    trinket2: 272438,   // Weakness Analyzer
+    mainHand: 20220,    // Ironbark Staff (▲ upgrade of the pre-raid page)
+    ranged: 13938,      // Bonecreeper Stylus
+  },
+  destro_incin_succ: { // Destruction – Incinerate, Succubus out
+    head: 22267,        // Spellweaver's Turban
+    neck: 22403,        // Nacreous Shell Necklace
+    shoulder: 19050,    // Mantle of the Timbermaw
+    back: 272411,       // Arcanoweave Cloak
+    chest: 14153,       // Robe of the Void (▲ upgrade of the pre-raid page)
+    wrist: 19595,       // Dryad's Wrist Bindings (▲ upgrade of the pre-raid page)
+    hands: 14146,       // Gloves of Spell Mastery (search: +2.4 DPS over Deathmist Wraps)
+    waist: 18405,       // Belt of the Archmage (▲ upgrade of the pre-raid page)
+    legs: 13170,        // Skyshroud Leggings
+    feet: 11822,        // Omnicast Boots
+    finger1: 22339,     // Rune Band of Wizardry (▲ upgrade of the pre-raid page)
+    finger2: 272406,    // Channeler's Ring
+    trinket1: 276744,   // Zarla's Snack Pouch (search: +8.5 DPS over Royal Seal of Eldre'Thalas)
+    trinket2: 13968,    // Eye of the Beast (search: +0.7 DPS over Weakness Analyzer)
+    mainHand: 20220,    // Ironbark Staff (▲ upgrade of the pre-raid page)
+    ranged: 13938,      // Bonecreeper Stylus
+  },
+  destro_incin_ds: { // Destruction – Incinerate, Succubus sacrificed
+    head: 22267,        // Spellweaver's Turban
+    neck: 22403,        // Nacreous Shell Necklace
+    shoulder: 19050,    // Mantle of the Timbermaw
+    back: 272411,       // Arcanoweave Cloak
+    chest: 14153,       // Robe of the Void (▲ upgrade of the pre-raid page)
+    wrist: 19595,       // Dryad's Wrist Bindings (▲ upgrade of the pre-raid page)
+    hands: 226911,      // Deathmist Wraps (▲ upgrade of the pre-raid page)
+    waist: 18405,       // Belt of the Archmage (▲ upgrade of the pre-raid page)
+    legs: 22747,        // Outrider's Silk Leggings (▲ upgrade of the pre-raid page)
+    feet: 11822,        // Omnicast Boots
+    finger1: 22339,     // Rune Band of Wizardry (▲ upgrade of the pre-raid page)
+    finger2: 272406,    // Channeler's Ring
+    trinket1: 276744,   // Zarla's Snack Pouch (search: +8.6 DPS over Royal Seal of Eldre'Thalas)
+    trinket2: 272438,   // Weakness Analyzer
+    mainHand: 20220,    // Ironbark Staff (▲ upgrade of the pre-raid page)
+    ranged: 13938,      // Bonecreeper Stylus
+  },
+  wrack_ds: { // Wrack DS – Affliction (Wrack), Imp sacrificed
+    head: 22267,        // Spellweaver's Turban
+    neck: 18691,        // Dark Advisor's Pendant (▲ upgrade of the pre-raid page)
+    shoulder: 19050,    // Mantle of the Timbermaw
+    back: 272411,       // Arcanoweave Cloak
+    chest: 14153,       // Robe of the Void (▲ upgrade of the pre-raid page)
+    wrist: 19595,       // Dryad's Wrist Bindings (▲ upgrade of the pre-raid page)
+    hands: 18407,       // Felcloth Gloves
+    waist: 18405,       // Belt of the Archmage (▲ upgrade of the pre-raid page)
+    legs: 22342,        // Leggings of Torment
+    feet: 10247,        // Master's Boots of Shadow Wrath
+    finger1: 272406,    // Channeler's Ring (search: +0.6 DPS over Songstone of Ironforge)
+    finger2: 22433,     // Don Mauricio's Band of Domination
+    trinket1: 276744,   // Zarla's Snack Pouch (search: +7.2 DPS over Royal Seal of Eldre'Thalas)
+    trinket2: 272438,   // Weakness Analyzer
+    mainHand: 20220,    // Ironbark Staff (▲ upgrade of the pre-raid page)
+    ranged: 13396,      // Skul's Ghastly Touch
+  },
+};
+// The enchants of each Max list (Phase 1, data/enchant-phases.js): the best of each slot in the same fights.
+WL.MAX_PRE_RAID_BIS_ENCHANTS = {
+  demo_pact_succ_sb: { head: 2544, neck: 8218, chest: 8492, wrist: 7665, hands: 931, legs: 2544, feet: 8492, mainHand: 8217, offHand: 7659 },
+  demo_pact_fire: { head: 2544, neck: 8218, chest: 8492, wrist: 7665, hands: 8492, legs: 2544, feet: 8492, mainHand: 7662 },
+  destro_incin_succ: { head: 2544, neck: 8218, chest: 8492, wrist: 7665, hands: 931, legs: 2544, feet: 8492, mainHand: 7662 },
+  destro_incin_ds: { head: 2544, neck: 8218, chest: 8492, wrist: 7665, hands: 931, legs: 2544, feet: 8492, mainHand: 7662 },
+  wrack_ds: { head: 2544, neck: 8218, chest: 8492, wrist: 7665, hands: 8492, legs: 2544, feet: 8492, mainHand: 7662 },
+};
+// ---- end Max Pre-BiS ----

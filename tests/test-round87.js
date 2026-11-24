@@ -44,8 +44,10 @@
     T.near(eD / eP, 1.2, 0.002, "'doom': the explosion gets Power Infusion's +20% (" + eD + ' vs ' + eP + " with 'pull')");
 
     T.group("'doom' falls back to the pull when there is no Doom explosion to wait for");
-    var n = pops(WL.simulateOnce(tb(['baneOfAgony', 'corruption', 'shadowBolt']), 'orc', det('doom'), { seed: 1, duration: 120, log: true }));
-    T.eq([n.racial, n.potion, n.pi].join(','), '0,0,0', 'a build that never casts Bane of Doom: at 0 s');
+    var nr = WL.simulateOnce(tb(['baneOfAgony', 'corruption', 'shadowBolt']), 'orc', det('doom'), { seed: 1, duration: 120, log: true }), n = pops(nr);
+    var sb1 = nr.log.filter(function (e) { return e.type === 'cast' && e.spell === 'shadowBolt'; })[0].t;
+    // round 248 follows: no longer at 0 s — right before the first filler cast, once the opening DoTs are up (tests/test-round248-wrack-cds.js)
+    T.ok(n.racial === sb1 && n.potion === sb1 && n.pi === sb1, 'a build that never casts Bane of Doom: right before its first Shadow Bolt, once the DoTs are up (' + [n.racial, n.potion, n.pi].join(', ') + ' s; first Shadow Bolt ' + sb1 + ' s)');
     var s = pops(WL.simulateOnce(tb(DOOM), 'orc', det('doom'), { seed: 1, duration: 50, log: true }));
     T.ok(s.racial != null && s.racial < 5, 'a 50 s fight (Bane of Agony instead of Doom): right after the Bane goes up (' + s.racial + ' s)');
 

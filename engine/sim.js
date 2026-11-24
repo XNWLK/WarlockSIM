@@ -362,18 +362,44 @@ window.WL = window.WL || {};
     function slotGate(k) { var sl = ACT_TL && ACT_TL[k]; if (!sl || sl.i >= sl.t.length) return 2; return slotDue(sl.t[sl.i]) ? 1 : 0; }
     function slotUsed(k) { var sl = ACT_TL && ACT_TL[k]; if (sl && sl.i < sl.t.length && slotDue(sl.t[sl.i])) sl.i++; }
     // Racial cooldown, Spellblasting potion and Power Infusion, right before a damaging cast.
+    // Round 248 (user: "double check the amplify curse+racial+trinket timings for wrack. might be worth popping racials and
+    // trinkets towards the end of an amplified agony?"): under 'doom' (and a custom timeline's unplaced rows), a build that
+    // never casts Bane of Doom no longer pops them on the pull. Every DoT is dynamic (A13): a buff popped on the opening
+    // DoT casts runs while almost nothing ticks yet. Instead
+    //  * the first use waits for the opener: right before the first cast of a filler of the priority (Wrack, Shadow Bolt …),
+    //    once the DoTs and the curse above it are up (popFill; a priority without a filler: the pull, as before);
+    //  * Blood Fury and Power Infusion (15 s of spell power / damage) also wait while an Amplify Curse Bane of Agony is
+    //    coming (Amplify ready, or taken by a Bane that has not landed yet) or is up with more than
+    //    options.activesAmpLeft s left (17): they cover its strongest ticks (the last 8 s: ramp 1.5 × Amplify 1.5).
+    //    Without such a Bane they follow the first rule. Berserking (haste) and Eureka! (its own long-cast rule) are not held.
+    // Wrack DS, Pre-BiS page defaults, Orc, 4000 fights each, same fights: +12.2 / +4.3 / +5.1 DPS at 60 / 120 / 180 s
+    // (potion alone +3.1 / +0.9 / +0.6); with Power Infusion on +39 / +18 / +11. Berserking at the first Wrack: −4 / −3 / −2.
+    var popFill = null;                                                    // the cast about to start is a filler (decide sets it); null: not known
+    var ACT_AMP = cfg.options && cfg.options.activesAmpLeft != null ? +cfg.options.activesAmpLeft : 17;
+    function ampHold() {                                                   // hold Blood Fury / Power Infusion for the Amplify Curse Bane?
+      if (!(ACT_AMP > 0) || ACT_DOOM !== false || (ACT_POL !== 'doom' && ACT_POL !== 'custom') || !tv('amplifyCurse') || !table.baneOfAgony) return false;
+      if (S.ampUp) return true;                                            // taken, its Bane of Agony has not landed yet
+      var d = S.dots.baneOfAgony;
+      if (d && d.expires > S.t + EPS && d.snap && d.snap.castMult > 1) return d.expires - S.t > ACT_AMP + EPS;
+      return S.ready('amplifyCurse') && slotGate('amplifyCurse') !== 0 && S.remaining > SPELLS.baneOfAgony.duration;   // the next Bane of Agony takes it
+    }
+    function racialOk(key) {                                               // the racial by the automatic rule
+      var cd = racialOf('cooldown');
+      if (activesOk(key)) return !(cd && cd.spPct && ampHold());           // Blood Fury: also the Amplify Curse Bane
+      return !!(cd && cd.hastePct) && ACT_DOOM === false;                  // Berserking: still on the pull (the opener's GCDs gain)
+    }
     function popActives(key) {
       if (TRK.length) { gateKey = key; useTrinkets(key); gateKey = null; }   // round 166: each trinket follows its own use setting
-      if (!ACT_TL) { if (activesOk(key)) { useRacials(key); useSpPotion(); usePowerInfusion(); } return; }
+      if (!ACT_TL) { if (racialOk(key)) useRacials(key); if (activesOk(key)) { useSpPotion(); if (!ampHold()) usePowerInfusion(); } return; }
       gateKey = key;
       var g = slotGate(RSLOT);
-      if (g === 1 || (g === 2 && (ACT_TL[RSLOT] || activesOk(key)))) { if (useRacials(key)) slotUsed(RSLOT); }
+      if (g === 1 || (g === 2 && (ACT_TL[RSLOT] || racialOk(key)))) { if (useRacials(key)) slotUsed(RSLOT); }
       if (spPot) {
         g = slotGate(spPot.key);
         if (g === 1 || (g === 2 && (ACT_TL[spPot.key] || activesOk(key)))) { if (useSpPotion()) slotUsed(spPot.key); }
       }
       g = slotGate('pi');
-      if (g === 1 || (g === 2 && (ACT_TL.pi || activesOk(key)))) { if (usePowerInfusion()) slotUsed('pi'); }
+      if (g === 1 || (g === 2 && (ACT_TL.pi || (activesOk(key) && !ampHold())))) { if (usePowerInfusion()) slotUsed('pi'); }
       gateKey = null;
     }
     function activesOk(key) {
@@ -382,7 +408,7 @@ window.WL = window.WL || {};
       if (ACT_DOOM === null) ACT_DOOM = ROT.indexOf('bane') >= 0 || (build.timeline || []).some(function (e) { return e.k === 'baneOfDoom'; });
       var d = S.dots.baneOfDoom;                                           // 'doom'
       if (d) doomSeen = true;
-      if (!d || d.expires <= S.t + EPS) return actOpen = doomSeen || !ACT_DOOM || S.dotLeft('baneOfAgony') > 0;
+      if (!d || d.expires <= S.t + EPS) return actOpen = doomSeen || (ACT_DOOM ? S.dotLeft('baneOfAgony') > 0 : popFill !== false);   // round 248: no Doom → after the opener
       var toBoom = d.expires - S.t, sp = SPELLS[key], len = sp.kind === 'channel' ? sp.duration : Math.max(S.castTime(key), S.gcd());
       return actOpen = toBoom > S.remaining || toBoom <= len + EPS;
     }
@@ -728,6 +754,7 @@ window.WL = window.WL || {};
     var ROT = WL.effectiveRotation(build, cfg);
     var ACTS = ROT.map(function (k) { return WL.actionOf(k, build); });   // round 157: built-in actions and the build's rules
     TRK_APL = ROT.indexOf('activateTrinket') >= 0;                         // round 219
+    var ACT_HASFILL = ACTS.some(function (a) { return a && (a.filler || a.preFiller); });   // round 248: has the priority a filler (the opener rule)?
     // Decision search (round 186, user: "find the perfect rotation global to global"; tools/explore-oracle.js). Off unless
     // opt.ctl is given. Every decision is numbered: 'd' = a free decision (the priority list is asked), 'c' = a tick of a
     // running channel (keep channelling or clip). ctl.observe(info) sees each one; ctl.at / ctl.key replaces decision
@@ -1629,7 +1656,10 @@ window.WL = window.WL || {};
       // Racial cooldowns fire only right before an actual damaging cast (never before a curse or a Life Tap).
       // Checked with Eureka's cost reduction in mind: pop it only if we can then afford the spell.
       var damaging = SPELLS[p.key].kind !== 'utility';
-      if (damaging && S.mana >= discountedCost(p.key)) popActives(p.key);
+      if (damaging && S.mana >= discountedCost(p.key)) {
+        popFill = ACT_HASFILL ? !!(ACTS[p.index] && (ACTS[p.index].filler || ACTS[p.index].preFiller)) : null;   // round 248: the opener rule
+        popActives(p.key); popFill = null;
+      }
       if (S.mana < effectiveCost(p.key)) {
         if (stats.maxMana < effectiveCost(p.key)) { res.oom++; scheduleDecide(S.t + 1); return; }
         lifeTap(); return;

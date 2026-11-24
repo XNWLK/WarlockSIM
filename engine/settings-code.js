@@ -36,8 +36,9 @@ WL.settingsSnapshot = function (c) {
   if (gb && gb.on) snap.gb = { slots: gb.slots || {}, manual: gb.manual || {}, enchants: gb.enchants || {} };   // enchants: round 148
   // Round 211: the gear mode — 'preBis' (every build in its own Pre-BiS gear: the gear values and the gear builder's items
   // follow from it, so they are not part of the settings) or 'custom' (your own gear: the values, and the builder if on).
-  snap.gm = c.gearMode === 'preBis' ? 'preBis' : 'custom';
-  if (snap.gm === 'preBis') { delete snap.gear; delete snap.gb; }
+  // Round 248: 'maxBis' — every build in its own Max Pre-BiS gear, the same way.
+  snap.gm = c.gearMode === 'preBis' || c.gearMode === 'maxBis' ? c.gearMode : 'custom';
+  if (snap.gm !== 'custom') { delete snap.gear; delete snap.gb; }
   return snap;
 };
 
@@ -83,8 +84,8 @@ WL.applySettings = function (c, o) {
   // the items you had (they no longer count).
   Object.keys(c.buffs || {}).forEach(function (k) { if (c.buffs[k].count != null) { var n = (o.counts || {})[k]; c.buffs[k].count = n > 0 ? Math.min(c.buffs[k].maxCount || 5, Math.round(n)) : 1; } });   // round 157
   // Round 211: gear mode. A code without one is your own gear (codes made before Pre-BiS existed).
-  c.gearMode = o.gm === 'preBis' ? 'preBis' : null;
-  if (c.gearMode === 'preBis') return unknown;                          // the page shows the Pre-BiS items itself
+  c.gearMode = o.gm === 'preBis' || o.gm === 'maxBis' ? o.gm : null;   // round 248: + Max Pre-BiS
+  if (c.gearMode) return unknown;                                       // the page shows the Pre-BiS items itself
   if (o.gb && typeof o.gb === 'object') c.gearBuilder = { on: true, slots: o.gb.slots || {}, manual: o.gb.manual || {}, enchants: o.gb.enchants || {} };
   else if (c.gearBuilder) c.gearBuilder.on = false;
   return unknown;
@@ -93,7 +94,7 @@ WL.applySettings = function (c, o) {
 // Short human-readable summary of a snapshot (batch-compare list).
 WL.describeSettings = function (o) {
   var g = o.gear || {};
-  return (o.gm === 'preBis' ? 'Pre-BiS gear (each build its own)' : g.sp + ' SP · ' + g.hitPct + '% hit · ' + g.critPct + '% crit · ' + g.hastePct + '% haste') + ' · ' +   // round 211
+  return (o.gm === 'preBis' ? 'Pre-BiS gear (each build its own)' : o.gm === 'maxBis' ? 'Max Pre-BiS gear (each build its own)' : g.sp + ' SP · ' + g.hitPct + '% hit · ' + g.critPct + '% crit · ' + g.hastePct + '% haste') + ' · ' +   // round 211
     (o.buffs || []).length + ' buffs · ' + (o.cons || []).length + ' consumables' + ((o.prof || {}).engineering ? ' · Engineering' : '') +
     ' · ' + (o.fight || {}).duration + ' s · ' + (o.fight || {}).iterations + ' fights';
 };
@@ -172,7 +173,7 @@ WL.describeSettings = function (o) {
     WHOLE.forEach(function (k) { if (d && k in d) s[k] = d[k]; });
     // round 211: in the order of a snapshot (a Pre-BiS base has no gear section, so a merged one would come last)
     var o = {}; ['v', 'fight', 'gear', 'options'].concat(Object.keys(s)).forEach(function (k) { if (k in s && !(k in o)) o[k] = s[k]; });
-    if (o.gm === 'preBis') { delete o.gear; delete o.gb; }
+    if (o.gm === 'preBis' || o.gm === 'maxBis') { delete o.gear; delete o.gb; }   // round 248: + Max Pre-BiS
     return o;
   };
   // A short mark of the default settings (FNV-1a of their snapshot): a link made with other defaults has another mark.

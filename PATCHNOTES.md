@@ -3,6 +3,11 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v212
+- **Max Pre-BiS:** a third gear choice in the quick setup, between Realistic Pre-BiS and Custom. Every build wears the strongest Phase 1 gear and enchants there are right now, whatever the reputation, gold or profession cost (Demonheart pieces still left out). It's about 58–75 DPS above Realistic Pre-BiS (Wrack DS about 1018). The gear builder shows each build's Max list, and the saved gear sets have them too.
+- **Wrack DS cooldowns:** Blood Fury, the potion and Power Infusion no longer go off on the pull, while your DoTs are still being cast. The potion now goes on the first Wrack. Blood Fury and Power Infusion wait until the Amplify Curse Agony has 17 s or less left, so they cover its biggest ticks. About +5 DPS at 3 minutes and +12 at 1 minute (Power Infusion on: +11 / +39). The other builds don't change.
+- **Pre-raid BiS lists:** Zarla's Snack Pouch is the trinket upgrade over Royal Seal of Eldre'Thalas for every build (+7–9 DPS; drops from Blazeroar, and its pet is fragile).
+
 ## v211
 - **Wrack DS:** its weapon now has the +22 Intellect enchant instead of Revelation (Revelation rarely triggers for Wrack DS), in its Pre-BiS gear and on its pre-raid BiS list. About +3 DPS; the other builds keep Revelation.
 

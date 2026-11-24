@@ -181,7 +181,11 @@ WL.DEFAULT_CONFIG = {
     // round 86) · 'doom' = when the first Bane of Doom explodes (right before the cast it falls into; at the pull if the
     // build never casts Doom or Doom cannot explode in this fight) · 'execute' = when the boss drops below executePct.
     // After the first use each one is used again whenever it is ready. [A77]
+    // Round 248: under 'doom' a build that never casts Doom pops them right before its first filler cast (the opening DoTs
+    // and curse up), not on the pull; Blood Fury and Power Infusion also wait for an Amplify Curse Bane of Agony until it
+    // has activesAmpLeft s or less left (its strongest ticks). 0 = no wait for the Bane. See engine/sim.js ampHold.
     activesPolicy: 'doom',
+    activesAmpLeft: 17,
     // 'custom' (round 92, user): a cooldown timeline — per cooldown a list of times (s from the pull) at which you use it:
     // { racial: [..], pi: [..], <consumable key>: [..] } — e.g. majorSpellblasting, majorManaPotion, demonicRune,
     // goblinSapper, denseDynamite (round 93: one list per item, so each keeps its own times; the round 92 slot names
