@@ -226,11 +226,13 @@ WL.setBonusNote = function (sid, b) {
 // Keyed by enchant id (WL.ENCHANTS); Wowhead Forever spell data, 2026-10-28. proc kinds:
 //   'sp'     + sp spell power (and + mana) for duration — chancePct per landed damaging cast ('Aura proc chance')
 //   'spiPct' Spirit × (1 + pct %) for duration — chancePct per landed damaging cast
-//   'crit'   Revelation: + pct % crit for duration s. Round 243 (the user's choices): a direct hit or Hellfire / Rain of
-//            Fire tick that does not crit triggers it at WL.revelationChancePct (below; 11% × (1 − 2 × crit), fitted to
-//            players' in-game counts: combat.revelationChancePct, combat.revelationCritFactor); a direct spell takes it
-//            when cast and crits on landing; channel ticks crit while it is up and the channel spends it when it ends
-//            (engine/sim.js; rules from a public log study of Warcraft Logs reports, Forever 1.60.1.70862–70959).
+//   'crit'   Revelation: + pct % crit for duration s. Round 243 (the user's choices): a direct hit that does not crit, or
+//            a Hellfire / Rain of Fire tick with a landed hit that does not crit (one roll per tick since round 250),
+//            triggers it at WL.revelationChancePct (below; 11% × (1 − 2 × crit), fitted to players' in-game counts:
+//            combat.revelationChancePct, combat.revelationCritFactor); a direct spell takes it when cast and crits on
+//            landing; round 250 (a live hotfix, the user): a channel tick that comes while it is up takes it — that one
+//            tick crits (an area tick on every target) and it is spent (engine/sim.js; rules from a public log study of
+//            Warcraft Logs reports, Forever 1.60.1.70862–70959, and the user's hotfix note of 2026-11-24).
 //   'dmg'    (round 241) a hit of min…max (school) like a trinket's: no spell power, your spell hit and crit (×1.5), Curse of
 //            the Elements on its schools — per landed damaging cast of yours (not your demon's), at combat.dismantleChancePct
 //            (a guess; chancePct when that is not set). vs / onlyVs as for trinkets.

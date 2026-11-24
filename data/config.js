@@ -36,7 +36,8 @@ WL.DEFAULT_CONFIG = {
     ratingPerCritPct: 14,   // [A04]
     ratingPerHastePct: 10,  // [A05]
     critMultiplier: 1.5,    // 150% unless a talent says otherwise (user-confirmed) [A06]
-    // Revelation (weapon enchant) triggers on a direct hit / Hellfire or Rain of Fire tick that does not crit at
+    // Revelation (weapon enchant) triggers on a direct hit that does not crit / a Hellfire or Rain of Fire tick with a hit
+    // that does not crit (one roll per tick, round 250) at
     // revelationChancePct × max(0, 1 − revelationCritFactor × your crit) (WL.revelationChancePct, data/trinkets.js).
     // Round 243 (the user's choice: "Chance 11% × (1 − 2C)"): 11 = the enchant's "Value: 11" in the game files; factor 2 fits
     // players' in-game counts on Forever (207 procs in 2,300 non-crit casts at 3.5–13.5% crit; this gives 217). Rounds

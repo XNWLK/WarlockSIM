@@ -624,26 +624,31 @@ window.WL = window.WL || {};
       });
     }
     // Revelation (round 167; rules of round 243, the user's choices, from a public log study of Warcraft Logs reports,
-    // Forever 1.60.1.70862–70959) [A106]: + pct % crit for 15 s (a new trigger while it is up resets the 15 s).
-    //  * Trigger: a landed direct hit that does not crit (any target), and each landed Hellfire / Rain of Fire tick that does
-    //    not crit, on each target, rolls 11% × (1 − 2 × crit) (WL.revelationChancePct; crit = your sheet crit, as since
-    //    round 167). Never: DoT ticks, drain / Wrack ticks, your demon, trinket and item procs.
+    // Forever 1.60.1.70862–70959; channels and area ticks changed in round 250) [A106]: + pct % crit for 15 s (a new
+    // trigger while it is up resets the 15 s).
+    //  * Trigger: a landed direct hit that does not crit (any target), and each Hellfire / Rain of Fire tick with a landed
+    //    hit that does not crit (once per tick since round 250, below), rolls 11% × (1 − 2 × crit) (WL.revelationChancePct;
+    //    crit = your sheet crit, as since round 167). Never: DoT ticks, drain / Wrack ticks, your demon, trinket and item procs.
     //  * Spent at the cast: a direct spell (or Immolate's direct part) cast while it is up takes it when the cast completes
     //    (instants: when cast) and crits when it lands, even after travel time — or not at all if it misses. Nothing else
     //    can use it meanwhile. DoTs, curses and Life Tap neither use nor spend it.
-    //  * Channels: while it is up every tick of a channel crits (all of them, each target); the channel holds it (rv.ch)
-    //    and it is spent when that channel ends (completes or is cut), also a trigger gained from one of its own ticks.
+    //  * Round 250 (a live hotfix, the user, 2026-11-24: "ok so revelation was just hotfixed. it is now consumes on aoe
+    //    ticks like hellfire. previously it would make the entire channel crit. it also now doesn't have a chance to
+    //    trigger off of each individual hit from the aoe's but rather 1 chance per tick"; then for Drain Life / Wrack the
+    //    user's pick "First tick only": "Like Hellfire now: the first tick crits and uses up the charge; the other ticks
+    //    don't crit"):
+    //    - Channels: a channel tick (Hellfire, Rain of Fire, Drain Life, Drain Soul, Wrack) that comes while it is up takes
+    //      it and spends it (revTick): that one tick crits, the rest of the channel does not unless a new trigger comes.
+    //      No channel holds it any more (rounds 243–249: every tick crit until the channel ended). ASSUMED: an area tick
+    //      that takes it crits on every target it hits — it is one tick event.
+    //    - An area tick rolls the trigger chance once (not once per target), after all its targets, when at least one
+    //      target took a landed hit that did not crit (the old per-hit condition, now per tick). A tick that took it crits
+    //      on every target, so it never rolls; a charge rolled by a tick is not used by that same tick (aoeTick).
     var rv = REV ? eps[REV.id] : null;
-    if (rv) rv.ch = null;
-    function revUp() {                                               // is it up now (a holding channel that ended spent it)
-      if (rv.ch != null && !(S.channel && S.channel.inst === rv.ch)) { rv.until = -1; rv.ch = null; }
-      return rv.until > S.t + EPS;
-    }
-    function revRoll(crit, tick) {                                   // a landed direct hit / area tick (tick: of the running channel)
+    function revUp() { return rv.until > S.t + EPS; }                // is it up now
+    function revRoll(crit) {                                         // a landed direct hit / an area tick
       if (crit || R.proc() * 100 >= WL.revelationChancePct(cb, stats.critPct)) return;
-      revUp();                                                       // a channel that held the old one and has ended: spent first
       rv.until = S.t + REV.fx.proc.duration; L('buff', REV.fx.name);
-      if (tick && S.channel) rv.ch = S.channel.inst;                 // that channel keeps it (spent when it ends, even after its last tick)
     }
     function revTake(key) {                                          // the cast of `key` completes now: does it use (and spend) it?
       if (!REV) return false;
@@ -652,9 +657,10 @@ window.WL = window.WL || {};
       rv.until = -1; L('used', REV.fx.name, { for: key });
       return true;
     }
-    function revChan() {                                             // a channel tick now: + pct while it is up (and the channel holds it)
-      if (!REV || !S.channel || !revUp()) return 0;
-      rv.ch = S.channel.inst; return REV.fx.proc.pct;
+    function revTick(key) {                                          // round 250: a channel tick now: + pct and spent, while it is up
+      if (!REV || !revUp()) return 0;
+      rv.until = -1; L('used', REV.fx.name, { for: key });
+      return REV.fx.proc.pct;
     }
     function trCritDone() { TRK.forEach(function (x) { var u = x.fx.use; if (u && u.endsOnCrit && trUp(x)) trs[x.slot].until = -1; }); }   // Weakness Analyzer
     function trUse(x) {
@@ -1008,7 +1014,7 @@ window.WL = window.WL || {};
       if (frac != null) amt *= frac;
       if (share) amt *= share;
       amt *= vulnMult(s.school, 0, true, key);
-      var rvc = isChannel && REV ? revChan() : 0;                       // round 243: a channel tick crits while Revelation is up [A106]
+      var rvc = isChannel && REV ? revTick(key) : 0;                    // round 250: a channel tick takes Revelation (crits) and spends it [A106]
       var crit = critRoll(key, e.critPct + rvc);                                                         // [A07]
       if (crit) amt *= e.critMult;
       deal(key, amt, crit, true);
@@ -1022,20 +1028,25 @@ window.WL = window.WL || {};
     // own damage event — own hit, resist / Spell Pierce and crit roll, that target's own Curse of the Elements. The
     // damage is live like every tick (A13); Eureka! counts it as a channel tick; Bane of Havoc copies what the other
     // targets take. Extra targets' damage is booked under x2: / x3: like the multi-DoT rows.
+    // Round 250 (the user's hotfix note) [A106]: Revelation is checked once per tick, before its targets — a tick that comes
+    // while it is up takes and spends it and crits on every target (ASSUMED: one tick event); otherwise the tick rolls the
+    // trigger once, after all its targets, if any target took a landed hit that did not crit. So target 1 can neither spend
+    // it nor trigger it for target 2 of the same tick (rounds 243–249: a roll per target hit, and the channel held it).
     function aoeTick(key, i) {
       var s = SPELLS[key], e = table[key];
+      var rvc = REV ? revTick(key) : 0, plain = false;                 // plain: a landed hit of this tick that did not crit
       for (var ti = 1; ti <= NT; ti++) {
         var rk = ti > 1 ? xkey(ti, key) : key, r = row(rk);
         if (missRoll(key)) { r.misses++; L('miss', rk, { n: i + 1, of: e.ticks }); continue; }
         var amt = (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * (ti > 1 ? liveMultX(key, ti, true) : liveMult(key, true));
         amt *= vulnMult(s.school, ti, false, key);
-        var rvc = REV ? revChan() : 0;                                   // round 243 [A106]: crits while Revelation is up;
         var crit = critRoll(key, e.critPct + rvc, ti);
-        if (REV && !rvc) revRoll(crit, true);                            // a tick that does not crit may trigger it (each target)
+        if (!crit) plain = true;
         if (crit) amt *= e.critMult;
         deal(rk, amt, crit, true, ti);
         if (logOn) L('tick', rk, Object.assign({ dmg: Math.round(amt), crit: crit, rev: rvc ? true : undefined, n: i + 1, of: e.ticks }, vulnLog(amt)));
       }
+      if (REV && !rvc && plain) revRoll(false);                          // round 250: one trigger roll per tick [A106]
       if (s.selfDamage) loseHealth(selfTick(key), 'self');     // Hellfire: the tick's base damage to yourself, no damage talents, no crit (round 119); less with Molten Skin / Soul Link (round 132)
     }
 
@@ -1191,7 +1202,6 @@ window.WL = window.WL || {};
         var id = ++inst;
         var nCh = e.ticks + (carry ? Math.floor(carry / s.tickEvery + 1e-6) : 0), chDur = carry ? nCh * s.tickEvery : s.duration;
         S.channel = { key: key, inst: id, snap: makeSnap(), start: S.t, end: S.t + chDur, ticks: nCh, tl: !!fromTL, idx: actIdx };   // timeline channels run to the end
-        if (REV) revChan();                                               // round 243: a channel started while Revelation is up holds it until it ends [A106]
         for (var i = 1; i <= nCh; i++) H.push({ t: S.t + i * s.tickEvery, o: 0, type: 'chanTick', key: key, inst: id, i: i - 1 });
         S.busyUntil = S.t + chDur; S.gcdReady = S.t + gcdT;
         r.castTime += chDur - carry;                                      // the carried part was counted with the old cast

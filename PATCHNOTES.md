@@ -3,6 +3,11 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v214
+- **Revelation hotfix:** a Revelation charge now makes only one tick of a channel crit and is used up there: Hellfire, Rain of Fire, Drain Life and Wrack. Before, a channel started with the charge up crit on every tick. A Hellfire or Rain of Fire tick that uses it crits on every target it hits.
+- **One Revelation roll per AoE tick:** Hellfire and Rain of Fire ticks now get one chance to trigger Revelation per tick instead of one per target hit.
+- The single-target defaults don't change. Hellfire and Rain of Fire on 2–3 targets lose about 1–6% with Revelation.
+
 ## v213
 - **Elixirs and raid buffs:** elixirs no longer add the same stat twice. Of two elixirs with the same stat, only the larger one counts (Elixir of the Owl + Cerebral Cortex Compound = +25 Intellect). Arcane Intellect, Divine Spirit and Power Word: Fortitude replace that stat from your elixirs, as they do in game (Arcane Intellect + Owl = 31 Intellect, not 56). Elixir crit, Mark of the Wild, Kings, food and flasks still stack. Every build drops about 7–9 DPS.
 - **Spell Penetration:** a little Spell Penetration beyond the boss's resistance now gives no bonus. It starts once it's about 1% of the resistance curve, which is 6 points at level 60; 5 points give nothing. This only affects Wrack DS (2 points), by less than 0.1%.

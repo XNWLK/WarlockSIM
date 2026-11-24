@@ -5,6 +5,8 @@
 //    up every channel tick crits; the channel holds it and it is spent when the channel ends), "Hellfire/RoF ticks roll it"
 //    (each landed tick that does not crit, on each target), "Spent at the cast" (a direct spell takes it when its cast
 //    completes and crits on landing, even after travel time; DoTs / curses neither use nor spend it).
+//  * Round 250 (a live hotfix): the channel rules changed — a channel tick takes it and spends it (only that tick crits),
+//    and a Hellfire / Rain of Fire tick rolls once per tick, not per target; the two channel groups below check that.
 // Log fields read here: a 'buff' Revelation line comes right before the hit / tick that triggered it; 'used'
 // Revelation (for: the spell) when a cast takes it; hits and ticks that had it carry rev: true.
 (function () {
@@ -76,49 +78,61 @@
   }
 
   T.run('round 243: Revelation rules from the log study', function () {
-    T.group('"Channel ticks all crit": Wrack');
-    var wc = wield(det(function (c) { c.combat.revelationChancePct = 100; }), 8217), held = 0, allCrit = true, gone = true, wrackTrig = 0, holdAll = true;
+    // Round 250 (a live hotfix, the user: "it is now consumes on aoe ticks like hellfire. previously it would make the
+    // entire channel crit ... 1 chance per tick"; for Drain Life / Wrack the user's pick "First tick only"): the two
+    // groups below now check the new rules — a channel tick takes it and spends it (only that tick crits; rounds 243–249:
+    // the channel held it and every later tick crit), and a Hellfire / Rain of Fire tick rolls the trigger once per tick
+    // after all its targets (rounds 243–249: once per target hit, the 'buff' line right before that target's tick).
+    // More in tests/test-round250.js.
+    T.group('"Channel ticks all crit" → round 250 "First tick only": Wrack');
+    var wc = wield(det(function (c) { c.combat.revelationChancePct = 100; }), 8217), held = 0, firstOnly = true, gone = true, wrackTrig = 0;
     logs(sheet('wrack_ds'), wc, 20).forEach(function (log) {
       log.forEach(function (e, i) { if (e.type === 'buff' && isRev(e) && log[i + 1] && log[i + 1].type === 'tick') wrackTrig++; });
       channels(log).forEach(function (ch) {
         var first = -1; ch.ticks.forEach(function (t, j) { if (t.rev && first < 0) first = j; });
         if (first < 0) return;
         held++;
-        ch.ticks.slice(first).forEach(function (t) { if (!t.rev) holdAll = false; if (!t.crit) allCrit = false; });
+        if (!ch.ticks[first].crit) firstOnly = false;
+        ch.ticks.slice(first + 1).forEach(function (t) { if (t.rev) firstOnly = false; });
         if (!goneAfter(log, ch)) gone = false;
       });
     });
     T.ok(held > 20, 'Wrack channels with Revelation up: ' + held);
-    T.ok(holdAll && allCrit, 'from the first tick it is up on, every tick of that channel has it and crits');
-    T.ok(gone, 'spent when the channel ends: nothing has it afterwards until a new trigger');
+    T.ok(firstOnly, 'the first tick it is up on has it and crits; the later ticks of that channel do not have it (round 250)');
+    T.ok(gone, 'spent: nothing has it after that channel until a new trigger');
     T.eq(wrackTrig, 0, 'channel and DoT ticks (Wrack, Corruption, Bane of Agony, Siphon Life) never trigger it');
 
-    T.group('"Hellfire/RoF ticks roll it": Hellfire on 3 targets');
+    T.group('"Hellfire/RoF ticks roll it" (round 250: once per tick): Hellfire on 3 targets');
     var hb = tb(['lifeTapNeed', 'hellfire']), hc = wield(det(function (c) { c.fight.targets = 3; }), 8217);
     var Ch = WL.computeStats(hb, 'human', hc).critPct, ph = WL.revelationChancePct(hc.combat, Ch) / 100;
-    var byT = { 1: 0, 2: 0, 3: 0 }, hEl = 0, hTrig = 0, hBad = 0, hHeld = 0, hAll = true, hGone = true;
+    var hEl = 0, hTrig = 0, hBad = 0, hUsed = 0, hAll = true, hNext = true;
     logs(hb, hc, 30).forEach(function (log) {
+      var tk = null, ticks = [];                                     // one entry per tick event (every target)
       log.forEach(function (e, i) {
-        if (e.type === 'buff' && isRev(e)) {
-          hTrig++; var nx = log[i + 1];
-          if (!(nx && nx.type === 'tick' && base(nx.spell) === 'hellfire' && !nx.crit && !nx.rev)) hBad++;
-          else byT[/^x(\d):/.test(nx.spell) ? +RegExp.$1 : 1]++;
+        if ((e.type === 'tick' || e.type === 'miss') && base(e.spell) === 'hellfire' && e.n) {
+          if (!tk || tk.t !== e.t) { var pv = log[i - 1]; tk = { t: e.t, n: e.n, lines: [], used: !!(pv && pv.type === 'used' && isRev(pv) && pv.t === e.t), trig: 0 }; ticks.push(tk); }
+          tk.lines.push(e); return;
         }
-        if (e.type === 'tick' && base(e.spell) === 'hellfire' && !e.crit && !e.rev) hEl++;
+        if (e.type === 'buff' && isRev(e)) { if (tk && tk.t === e.t) tk.trig++; else hBad++; return; }
+        if (e.type !== 'used') tk = null;
       });
-      channels(log).forEach(function (ch) {
-        var first = -1; ch.ticks.forEach(function (t, j) { if (t.rev && first < 0) first = j; });
-        if (first < 0) return;
-        hHeld++; ch.ticks.slice(first).forEach(function (t) { if (!t.rev || !t.crit) hAll = false; });
-        if (!goneAfter(log, ch)) hGone = false;
+      ticks.forEach(function (x, j) {
+        var plain = x.lines.some(function (e) { return e.type === 'tick' && !e.crit; });
+        if (x.used) {
+          hUsed++;
+          if (x.trig) hBad++;
+          x.lines.forEach(function (e) { if (e.type === 'tick' && (!e.rev || !e.crit)) hAll = false; });
+          var nx = ticks[j + 1];
+          if (nx && nx.n === x.n + 1 && !nx.used && nx.lines.some(function (e) { return e.rev; })) hNext = false;
+        } else if (plain) { hEl++; hTrig += x.trig; if (x.trig > 1) hBad++; }
+        else if (x.trig) hBad++;
       });
     });
-    T.eq(hBad, 0, 'every trigger comes from a Hellfire tick that landed and did not crit');
-    T.ok(byT[1] > 0 && byT[2] > 0 && byT[3] > 0, 'triggers on each target: ' + byT[1] + ' / ' + byT[2] + ' / ' + byT[3]);
+    T.eq(hBad, 0, 'every trigger comes right after a Hellfire tick with a landed hit that did not crit, at most one per tick');
     var hr = hTrig / hEl, hse = Math.sqrt(ph * (1 - ph) / hEl);
     T.near(hr, ph, 4 * hse, 'per tick: ' + (hr * 100).toFixed(2) + '% vs ' + (ph * 100).toFixed(2) + '% (± ' + (4 * hse * 100).toFixed(2) + ', ' + hEl + ' ticks)');
-    T.ok(hHeld > 10 && hAll, 'a trigger from a tick: the rest of that channel (every target) crits (' + hHeld + ' channels)');
-    T.ok(hGone, '… and it is spent when that channel ends');
+    T.ok(hUsed > 10 && hAll, 'a tick that comes while it is up takes it and crits on every target (' + hUsed + ' ticks)');
+    T.ok(hNext, '… and the next tick of that channel does not have it (spent)');
 
     T.group('"Spent at the cast": travel time 1 s (Shadow Demo) and 2 s (Fire Demo)');
     var okHit = true, okCons = true, used = 0, inFlight = 0, inFlightRev = 0, missUsed = 0, dotFor = 0;
