@@ -3813,7 +3813,7 @@
     var race = myRace || ($('t_race') ? $('t_race').value : '');
     if (it.side && race && WL.RACES[race] && WL.RACES[race].faction && WL.RACES[race].faction !== it.side) w.push(it.side + ' only: not for a ' + WL.RACES[race].name);
     if (it.req > 60) w.push('Requires level ' + it.req);
-    if (it.slot === 'twoHand' && WL.gearItem(g.slots.offHand)) w.push('Two-handed: your off-hand item would stop counting');
+    if (it.slot === 'twoHand' && WL.gearItem(g.slots.offHand)) w.push('Two-handed: your off-hand item comes off');   // round 252: it comes off (was: stops counting)
     return w;
   }
   // Round 154: an item's icon from the icon sheet (art/items/icons.jpg, WL.ITEM_ICONS), drawn `px` pixels wide.
@@ -3942,6 +3942,20 @@
       var el = $('g_' + k); if (el && document.activeElement !== el) el.value = r.sheet[k];
     });
     cfg.gear.critIncludesAll = false; if (ca) ca.checked = false;
+  }
+  // Round 252 (user, 2026-11-25: "make the gear builder load the +65 enchant with the staff. 65 spellpower isn't expensive
+  // anymore so it's the default enchant for all 2handers"): after a weapon went into the main hand (picked, typed in, a saved
+  // set, a Pre-raid BiS / Max Pre-BiS list, "Wear this" of Best combination) its enchant follows WL.gearFixWeapon
+  // (app/gear-builder.js): a two-hander gets +65 Spell Power unless it already wears an enchant made for two-handers only (or
+  // one you typed in), and the off hand comes off; a one-hander loses a two-hand-only enchant. Returns what changed, in words.
+  // Gear codes (what the character wears) and settings codes (a snapshot to repeat) come in as they are.
+  function gbWield(g) {
+    var e0 = gbEntryKey(g.enchants.mainHand || null), was = WL.gearEnchant(g.enchants.mainHand), oh = !!(g.slots.offHand || g.enchants.offHand);
+    WL.gearFixWeapon(g);
+    var en = WL.gearEnchant(g.enchants.mainHand), t = [];
+    if (gbEntryKey(g.enchants.mainHand || null) !== e0) t.push(en ? en.name + ' is on the main hand.' : (was ? was.name : 'The enchant') + ' is for two-handed weapons only: taken off.');
+    if (oh && !g.slots.offHand && !g.enchants.offHand) t.push('The off hand is empty (a two-handed weapon).');
+    return t.length ? ' ' + t.join(' ') : '';
   }
   function gbChanged(msg) {                                // items / enchants changed
     gbSave(); gbMsgText = msg || ''; gbCmp = null;
@@ -4265,6 +4279,7 @@
   function gbOptCfg(pick) {                                // settings with the gear of this pick
     var g = gb(), after = JSON.parse(JSON.stringify(g));
     Object.keys(pick).forEach(function (k) { if (pick[k]) after.slots[k] = pick[k]; else delete after.slots[k]; });
+    if (gbOptNewWeapon(g, pick)) WL.gearFixWeapon(after);   // round 252: another weapon in the main hand, with its enchant as "Wear this" puts it on
     var a = WL.gearSheet(g, cfg), b = WL.gearSheet(after, cfg), c = JSON.parse(JSON.stringify(cfg));
     WL.GEAR_STAT_KEYS.forEach(function (k) { c.gear[k] = WL.gearRound((c.gear[k] || 0) + b.sheet[k] - a.sheet[k]); });
     c.gearMode = null;                                   // round 211: these numbers (Pre-BiS: the list shown = this build's own)
@@ -4318,8 +4333,11 @@
   }
   function gbOptWear(i) {
     var x = gbOptRes && gbOptRes.top && gbOptRes.top[i]; if (!x) return;
-    var g = gb(); Object.keys(x.pick).forEach(function (k) { if (x.pick[k]) g.slots[k] = x.pick[k]; else delete g.slots[k]; });
-    gbOptRes = null; gbChanged('You now wear the chosen combination.');
+    var g = gb(), nw = gbOptNewWeapon(g, x.pick); Object.keys(x.pick).forEach(function (k) { if (x.pick[k]) g.slots[k] = x.pick[k]; else delete g.slots[k]; });
+    gbOptRes = null; gbChanged('You now wear the chosen combination.' + (nw ? gbWield(g) : ''));   // round 252: a weapon's enchant
+  }
+  function gbOptNewWeapon(g, pick) {                       // round 252: does this pick put another weapon in the main hand?
+    return !!(pick && pick.mainHand && gbEntryKey(pick.mainHand) !== gbEntryKey(g.slots.mainHand || null));
   }
   function renderGbOpt() {
     var box = $('gbOptBody'); if (!box || !$('gbOpt').open) return;
@@ -4352,7 +4370,7 @@
           '<td class="n" style="color:var(' + (d > 0 ? '--good' : d < 0 ? '--bad' : '--muted') + ')">' + (d == null ? '–' : (d >= 0 ? '+' : '') + fmt(d, 1) + ' (' + (d >= 0 ? '+' : '') + (100 * d / R.base).toFixed(2) + '%)') + '</td>' +
           '<td>' + (ch.length ? '<button type="button" class="resetbtn" data-gowear="' + i + '">Wear this</button>' : '') + '</td></tr>';
       }).join('') + '</tbody></table></div><p class="meta">' + fmt(R.sims) + ' combination' + (R.sims === 1 ? '' : 's') + ' simulated' + (R.mode === 'greedy' ? ' (one slot at a time, out of ' + fmt(R.total) + ')' : '') + ' for ' + esc(R.b.short) + ' in ' + R.secs + ' s. ' +
-        'Enchants stay where they are. Differences below the ± of the run are noise.</p>';
+        'Enchants stay where they are, except that another weapon in the main hand gets its enchant as when you put it on: a two-hander +65 Spell Power (unless yours is a two-hand enchant). Differences below the ± of the run are noise.</p>';   // round 252
     }
     box.innerHTML = h;
   }
@@ -4388,7 +4406,12 @@
     if (bis) {                                                // round 211: a pre-raid BiS list — its items; your enchants stay
       var bb = WL.BUILDS.filter(function (b) { return b.key === v.slice(4); })[0], sl = {};
       Object.keys(bis).forEach(function (k) { sl[k] = { id: bis[k] }; });
-      s = { name: 'Pre-raid BiS · ' + (bb ? bb.short : v.slice(4)), slots: sl, enchants: gb().enchants || {} };
+      // Round 252 (user: "make the gear builder load the +65 enchant with the staff"): except the weapon's — the list's own
+      // (+65 Spell Power on its staff), and no off-hand enchant when the list has no off hand.
+      var be = JSON.parse(JSON.stringify(gb().enchants || {})), lw = WL.preRaidBisEnchants ? WL.preRaidBisEnchants(v.slice(4)).mainHand : null;
+      if (bis.mainHand && lw != null) be.mainHand = typeof lw === 'object' ? JSON.parse(JSON.stringify(lw)) : { id: lw };
+      if (!bis.offHand) delete be.offHand;
+      s = { name: 'Pre-raid BiS · ' + (bb ? bb.short : v.slice(4)), slots: sl, enchants: be };
     } else if (/^max:/.test(v) && (WL.MAX_BIS_GEAR || {})[v.slice(4)]) {   // round 248: a Max Pre-BiS list — its items and its enchants
       var mb = WL.BUILDS.filter(function (b) { return b.key === v.slice(4); })[0], mg = WL.MAX_BIS_GEAR[v.slice(4)], ms = {};
       Object.keys(mg.slots).forEach(function (k) { ms[k] = { id: mg.slots[k] }; });
@@ -4397,13 +4420,14 @@
     if (!s) return;
     readSettings();
     var g = gb(); g.slots = JSON.parse(JSON.stringify(s.slots || {})); g.enchants = JSON.parse(JSON.stringify(s.enchants || {})); g.manual = {}; g.on = true; gbSel = null; gbCmp = null;
+    var wm = gbWield(g);                                     // round 252: a two-hander with +65 Spell Power (a saved set too)
     gbSave(); gbSync(); renderTotals(); markDirty(); renderGear(); renderGearEdit();
-    gbMsgText = 'Gear set "' + s.name + '" is on, and the gear builder now gives your stats. Press Sim! to simulate.'; renderGear();
+    gbMsgText = 'Gear set "' + s.name + '" is on, and the gear builder now gives your stats.' + wm + ' Press Sim! to simulate.'; renderGear();
   }
   function gbEquip() {
     var s = WL.gearSlot(gbSel), item = gbFormItem(); if (!s || !item) return;
     gb().slots[s.key] = { custom: item };
-    gbChanged(item.name + ' is in the ' + s.name + ' slot.');
+    gbChanged(item.name + ' is in the ' + s.name + ' slot.' + (s.key === 'mainHand' ? gbWield(gb()) : ''));   // round 252: a weapon's enchant
   }
   function gbEnchant() {
     var s = WL.gearSlot(gbSel), en = gbFormEnchant(); if (!s || !en) return;
@@ -4414,7 +4438,7 @@
   // ----- compare with what I wear (round 148, idea 2): real fights, the best builds on the sheet -----
   // Two runs per build on the same fights: the settings as they are now, and with the Sheet (gear) values changed by
   // what swapping the typed item into the slot changes (WL.gearSwapDelta: the slot's enchant stays, a two-hander empties
-  // the off hand). Works with the builder off too: the change is added to the Stats panel's numbers.
+  // the off hand; round 252: a weapon gets its enchant as the gear builder puts it on, a two-hander +65 Spell Power). Works with the builder off too: the change is added to the Stats panel's numbers.
   function gbCompare(listId) {                            // round 157: listId = an item of the list (⇄), else the typed item
     if (gbCmpRunning || running || batchRunning || chartRunning || quickRunning) { gbMsgText = 'Wait for the current run to finish.'; renderGear(); return; }
     var s = WL.gearSlot(gbSel), item = listId != null ? WL.ITEMS[listId] : gbFormItem(); if (!s || !item) return;
@@ -4481,7 +4505,7 @@
     var cp = t.closest('[data-gcmp]');
     if (cp && gbSel) { gbCompare(cp.getAttribute('data-gcmp')); var cb = $('gbCmp'); if (cb) cb.scrollIntoView({ block: 'nearest' }); return; }
     var pk = t.closest('[data-gpick]');
-    if (pk && gbSel) { var id = pk.getAttribute('data-gpick'); g.slots[gbSel] = { id: +id }; gbChanged(WL.ITEMS[id].name + ' is in the ' + WL.gearSlot(gbSel).name + ' slot.'); return; }
+    if (pk && gbSel) { var id = pk.getAttribute('data-gpick'); g.slots[gbSel] = { id: +id }; gbChanged(WL.ITEMS[id].name + ' is in the ' + WL.gearSlot(gbSel).name + ' slot.' + (gbSel === 'mainHand' ? gbWield(g) : '')); return; }   // round 252: a weapon's enchant
     var ep = t.closest('[data-gepick]');
     if (ep && gbSel) { var eid = ep.getAttribute('data-gepick'); g.enchants[gbSel] = { id: +eid }; gbChanged(WL.ENCHANTS[eid].name + ' is on the ' + WL.gearSlot(gbSel).name + ' slot.'); return; }
     if (t.closest('#gbCodeLoad')) {

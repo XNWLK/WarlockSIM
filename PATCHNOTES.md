@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v216
+- **Gear builder, two-handers:** +65 Spell Power is now the default enchant for every two-hander. Loading a Pre-raid BiS or Max Pre-BiS list puts it on the staff (your other enchants stay). Loading a saved set, or picking a staff by hand, swaps Revelation, a one-hand enchant or an empty slot for +65 Spell Power. A two-hand enchant you picked yourself stays. Putting a two-hander on also removes your off hand. Switching back to a one-hander drops the two-hand-only enchant. "Best combination" and Compare count the +65 too.
+- **Pre-raid BiS page:** two-handers no longer show "expensive enchant (+65 Spell Power)" as a downside.
+
 ## v215
 - **Staffs only:** every Pre-BiS and Max Pre-BiS list now uses a staff with the +65 Spell Power enchant; the one-handers and off hands are gone. Realistic Pre-BiS equips Headmaster's Charge, or Elemental Mage Staff for Incinerate DS, the best staff after Ironbark for each build. Max Pre-BiS uses Ironbark Staff everywhere, including Shadow Demo. Realistic Pre-BiS gains about +1 to +26 DPS (Wrack DS about 961).
 - **Pre-raid BiS lists:** the main weapon is Headmaster's Charge (Elemental Mage Staff for Incinerate DS). The ▲ upgrade is Ironbark Staff for every build, and the ▼ alternative is Rod of the Ogre Magi (Staff of Sorrow for Incinerate DS). The new baseline also moved a few other ▲ / ▼ picks, for example Rune Band of Wizardry is now a ring ▲.

@@ -41,6 +41,35 @@ WL.gearOffHandBlocked = function (gb) {
   return !!(mh && mh.slot === 'twoHand');
 };
 
+// Round 252 (user, 2026-11-25: "make the gear builder load the +65 enchant with the staff. 65 spellpower isn't expensive
+// anymore so it's the default enchant for all 2handers"): +65 Spell Power (7662) is the weapon enchant a two-hander gets.
+WL.TWO_HAND_ENCHANT = 7662;
+// The main hand's enchant entry once `item` (an item, or a WL.ITEMS id) is in the main hand, from the entry on it now (`cur`;
+// an entry, or an enchant id):
+//   - a two-hander keeps an enchant made for two-handed weapons only (+65 Spell Power, Spell Power +55, Grand Arcanist …) or
+//     one you typed in yourself; anything else (none, Revelation, a one-hand enchant, an id this page does not know) →
+//     +65 Spell Power;
+//   - a one-hander loses an enchant made for two-handed weapons only (null: no enchant); any other stays;
+//   - no item: the entry stays (an enchant only counts while its slot holds an item).
+WL.weaponEnchantFor = function (item, cur) {
+  if (item != null && typeof item !== 'object') item = WL.ITEMS[item] || null;
+  if (cur != null && typeof cur !== 'object') cur = { id: +cur };
+  var en = cur && !cur.custom && cur.id != null ? WL.ENCHANTS[cur.id] : null;
+  if (!item) return cur || null;
+  if (item.slot === 'twoHand') return cur && (cur.custom || (en && en.twoHand)) ? cur : { id: WL.TWO_HAND_ENCHANT };
+  return en && en.twoHand ? null : cur || null;
+};
+// After an item went into the main hand of the gear-builder state `gb` (changed in place, and returned): its enchant by
+// WL.weaponEnchantFor, and with a two-hander the off hand and its enchant come off, as in the game.
+WL.gearFixWeapon = function (gb) {
+  var slots = gb.slots = gb.slots || {}, ench = gb.enchants = gb.enchants || {}, it = WL.gearItem(slots.mainHand);
+  if (!it) return gb;
+  var e = WL.weaponEnchantFor(it, ench.mainHand || null);
+  if (e) ench.mainHand = e; else delete ench.mainHand;
+  if (it.slot === 'twoHand') { delete slots.offHand; delete ench.offHand; }
+  return gb;
+};
+
 WL.gearNaked = function (cfg) {
   var o = {}; WL.GEAR_STAT_KEYS.forEach(function (k) { o[k] = 0; });
   o.critPct = cfg.combat.baseCritPct + WL.WARLOCK_BASE_60.int * cfg.combat.critPerInt;
@@ -145,10 +174,12 @@ WL.gearManualFor = function (gb, cfg, k, value) {
 
 // Round 148: what the Sheet (gear) values change by when `entry` goes into slot `slotKey` (null = take it off), with
 // everything else as worn — the slot's enchant stays, a two-handed weapon empties the off hand. Works whether the builder
-// is on or off: add the result to cfg.gear.
+// is on or off: add the result to cfg.gear. Round 252: a weapon going into the main hand gets its enchant as the gear
+// builder puts it on (WL.gearFixWeapon: a two-hander +65 Spell Power unless it keeps a two-hand enchant).
 WL.gearSwapDelta = function (gb, slotKey, entry, cfg) {
   var after = JSON.parse(JSON.stringify(gb || {})); after.slots = after.slots || {};
   if (entry) after.slots[slotKey] = entry; else delete after.slots[slotKey];
+  if (entry && slotKey === 'mainHand' && JSON.stringify(entry) !== JSON.stringify(((gb || {}).slots || {}).mainHand || null)) WL.gearFixWeapon(after);
   var a = WL.gearSheet(gb, cfg), b = WL.gearSheet(after, cfg), d = {};
   WL.GEAR_STAT_KEYS.forEach(function (k) { d[k] = WL.gearRound(b.sheet[k] - a.sheet[k]); });
   return { delta: d };

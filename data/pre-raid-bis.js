@@ -4,7 +4,8 @@
 // it's gonna be a case by case basis". The user's picks from the picking page (https://claude.ai/artifact/7DkzkEpdnzt1gyKVho8rYB,
 // saved 2026-11-14): gear search over every Phase 1 item not from a raid, top 3 (+ 5 more) per slot, then picked by hand;
 // the neck (Orb of the Darkmoon) typed in by the user for every build.
-// The gear builder offers each list under its saved gear sets ("Pre-raid BiS · build"): items only, enchants stay.
+// The gear builder offers each list under its saved gear sets ("Pre-raid BiS · build"): its items and its weapon enchant
+// (+65 Spell Power on the staff, round 252); your other enchants stay.
 // Format: build key → { gear slot key: item id (data/item-db.js) }.
 // Round 251 (user: "change the bis weapon for every build to https://www.wowhead.com/forever/item=18534/rod-of-the-ogre-magi
 // with 65 spellpower enchant. make that fix in the bis list and the sim. have the upgrade still be ironbark, remove the
