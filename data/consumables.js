@@ -4,6 +4,11 @@
 // Effect fields: sp, schoolSp{shadow,fire}, int, spi, sta, critPct, hitPct, hastePct, mp5, maxMana (flat, after %),
 //   critGroup (round 110, user: Elixir of the Owl and Elixir of Sages do not stack their 2% crit — of the active items
 //   with the same critGroup only the highest crit counts; their other stats still add up),
+//   elixirStats (round 249, the user's pick; public evidence notes, Forever, 2026-11-23: in-game checks): an elixir whose
+//   Intellect / Spirit / Stamina follow the elixir rule — of the active ones only the largest amount of each stat counts
+//   (Elixir of the Owl + Cerebral Cortex Compound = +25 Intellect, not +50), and none while a raid buff that overwrites
+//   it is up (data/config.js overwritesElixir: Arcane Intellect, Divine Spirit, Power Word: Fortitude). Spirit of Zanza and
+//   the foods / drinks are not marked and keep adding up (not covered by the notes),
 //   oil (weapon oil; stacks with the Spellstone/Firestone), spPotion {sp, duration} (popped with the other cooldowns:
 //   options.activesPolicy, then on cooldown),
 //   manaRestore {amount | pct} (used when the missing mana ≥ the amount), cd (s), cdGroup ('potion' | 'rune').
@@ -38,15 +43,15 @@ WL.CONSUMABLES = {
                          text: 'Increases spell shadow damage by up to 40 for 30 min.' },
   firePower:           { on: false, id: 6373, icon: 'inv_potion_33', cat: 'Elixir', group: 'fireElixir', name: 'Elixir of Fire Power', desc: '+10 Fire spell damage', schoolSp: { fire: 10 },
                          text: 'Increases spell fire damage by up to 10 for 30 min.' },
-  elixirOwl:           { on: false, id: 250337, icon: 'inv_potion_164', cat: 'Elixir', group: 'intElixir', name: 'Elixir of the Owl', desc: '+25 Intellect, +2% crit (the crit does not stack with Elixir of Sages)', int: 25, critPct: 2, critGroup: 'elixirCrit',
+  elixirOwl:           { on: false, id: 250337, icon: 'inv_potion_164', cat: 'Elixir', group: 'intElixir', name: 'Elixir of the Owl', desc: '+25 Intellect (none with Arcane Intellect up; does not add to Cerebral Cortex Compound), +2% crit (the crit does not stack with Elixir of Sages)', int: 25, critPct: 2, critGroup: 'elixirCrit', elixirStats: true,
                          text: 'Drink to increase your Intellect by 25 and chance to critically hit by 2%. Lasts for 30 min.' },
-  elixirSages:         { on: false, id: 250338, icon: 'inv_potion_165', cat: 'Elixir', group: 'spiElixir', name: 'Elixir of Sages', desc: '+25 Spirit, +2% crit (the crit does not stack with Elixir of the Owl)', spi: 25, critPct: 2, critGroup: 'elixirCrit',
+  elixirSages:         { on: false, id: 250338, icon: 'inv_potion_165', cat: 'Elixir', group: 'spiElixir', name: 'Elixir of Sages', desc: '+25 Spirit (none with Divine Spirit up), +2% crit (the crit does not stack with Elixir of the Owl)', spi: 25, critPct: 2, critGroup: 'elixirCrit', elixirStats: true,
                          text: 'Drink to increase your Spirit by 25 and chance to critically hit by 2%. Lasts for 30 min.' },
   greaterMageblood:    { on: false, id: 250341, icon: 'inv_potion_168', cat: 'Elixir', group: 'manaElixir', name: 'Greater Mageblood Elixir', desc: '20 mana every 5 s', mp5: 20,
                          text: 'Drink to regenerate 20 mana every 5 seconds. Lasts for 30 min.' },
   spiritOfZanza:       { on: false, id: 20079, icon: 'inv_potion_30', cat: 'Elixir', group: 'zanza', name: 'Spirit of Zanza', desc: '+50 Spirit, +50 Stamina', spi: 50, sta: 50,
                          text: "Increases the player's Spirit by 50 and Stamina by 50 for 2 hrs." },
-  cerebralCortex:      { on: false, id: 8423, icon: 'inv_potion_32', cat: 'Elixir', group: 'cortex', name: 'Cerebral Cortex Compound', desc: '+25 Intellect', int: 25,
+  cerebralCortex:      { on: false, id: 8423, icon: 'inv_potion_32', cat: 'Elixir', group: 'cortex', name: 'Cerebral Cortex Compound', desc: '+25 Intellect (none with Arcane Intellect up; does not add to Elixir of the Owl)', int: 25, elixirStats: true,
                          text: 'Increases Intellect by 25 when consumed. Effect lasts for 60 minutes.' },
 
   // ---------------- Food & drink (one well-fed buff) ----------------

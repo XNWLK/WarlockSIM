@@ -120,6 +120,12 @@ stat = (base + race + gear + raid buffs + consumables) × percentage bonuses
 
 - Percentage bonuses multiply with each other: Blessing of Kings +10% on all three; The Human Spirit +5% Spirit; Demonic
   Embrace +3 to 15% Stamina.
+- **Elixirs count each stat once** (round 249, public evidence notes, Forever, 2026-11-23: in-game checks of the
+  character sheet and buff tooltips): of Elixir of the Owl and Cerebral Cortex Compound only the larger Intellect counts
+  (+25, not +50), and a raid buff replaces that stat of the elixirs while it is up, whichever is larger: Arcane Intellect
+  their Intellect, Divine Spirit their Spirit, Power Word: Fortitude their Stamina. With Arcane Intellect up, Elixir of the
+  Owl adds no Intellect (its 2% crit still counts). Mark of the Wild and Blessing of Kings stack with the elixirs, and
+  Greater Mageblood Elixir with Mana Spring Totem. Spirit of Zanza and the foods and drinks still add up.
 
 **Mana and health**
 
@@ -244,14 +250,14 @@ Pandemic names. No spell gets both: Ruin covers Destruction spells, Pandemic cov
 The examples use the build **Shadow Demo** as an Undead in its Pre-BiS gear with the default raid buffs and boss debuffs. Every number below is checked against the sim's own value when this document is generated.
 
 #### 1. The character's stats
-- Intellect: (110 base − 2 Undead + 128 gear + 31 Arcane Intellect / Brilliance + 16 Mark / Gift of the Wild + 25 Elixir of the Owl) × 1.10 Blessing of Kings = **338.8**
-- Spirit: (115 base + 5 Undead + 21 gear + 16 Mark / Gift of the Wild + 40 Divine Spirit / Prayer of Spirit + 25 Elixir of Sages) × 1.10 Blessing of Kings = **244.2**
+- Intellect: (110 base − 2 Undead + 128 gear + 31 Arcane Intellect / Brilliance (replaces Elixir of the Owl) + 16 Mark / Gift of the Wild) × 1.10 Blessing of Kings = **311.3**
+- Spirit: (115 base + 5 Undead + 21 gear + 16 Mark / Gift of the Wild + 40 Divine Spirit / Prayer of Spirit (replaces Elixir of Sages)) × 1.10 Blessing of Kings = **216.7**
 - Stamina: (65 base + 1 Undead + 55 gear + 16 Mark / Gift of the Wild + 70 Power Word: Fortitude) × 1.09 Demonic Embrace × 1.10 Blessing of Kings = **248.2**
-- Maximum mana: (1,373 + 20 + 15 × (338.8 − 20)) × 1.15 Fel Vitality = **7,101.2**
+- Maximum mana: (1,373 + 20 + 15 × (311.3 − 20)) × 1.15 Fel Vitality = **6,626.9**
 - Maximum health: 1,414 + 20 + 10 × (248.2 − 20) = **3,715.9**
 - Spell power: 356 gear + 150 Flask of Supreme Power + 35 Greater Arcane Elixir + 28 Baked Salmon / Lobster Stew + 24 Wizard Oil + 60 Demonic Knowledge = **653**; Shadow spells: + 56 gear + 21 Major Spellstone + 40 Elixir of Shadow Power = **770**
 - Hit: 83 base against a level-63 boss + 1 Suppression + 6.8 gear = **90.8%**
-- Crit: 7.17 sheet + 1.71 from 102.8 Intellect above the sheet ÷ 60 + 3 Moonkin Form aura + 2 Elixir of the Owl (does not stack with Elixir of Sages) = **13.88%**
+- Crit: 7.17 sheet + 1.26 from 75.3 Intellect above the sheet ÷ 60 + 3 Moonkin Form aura + 2 Elixir of the Owl (does not stack with Elixir of Sages) = **13.43%**
 - Haste: **3%** (Major Spellstone + Wizard Oil).
 
 #### 2. Shadow Bolt
@@ -260,7 +266,7 @@ The examples use the build **Shadow Demo** as an Undead in its Pre-BiS gear with
 3. Auras (each multiplies): 1.15 Demonic Sacrifice (Imp) × 1.10 Master Demonologist (Succubus) × 1.03 Soul Link = × 1.3029
 4. Hit before the boss's debuffs: 910.9 × 1.10 × 1.3029 = **1,305.5**
 5. With Curse of the Elements (× 1.10) and Improved Shadow Bolt (× 1.20) on the boss: **1,723.3**
-6. A crit (chance 13.88%) deals × 2 with Ruin: **3,446.6**
+6. A crit (chance 13.43%) deals × 2 with Ruin: **3,446.6**
 7. Cast time: 3 s − 0.5 s Bane = 2.5 s, ÷ 1.03 haste = 2.43 s. It misses 9.2% of the time.
 
 #### 3. Corruption
@@ -268,7 +274,7 @@ The examples use the build **Shadow Demo** as an Undead in its Pre-BiS gear with
 2. Periodic talent group: Improved Corruption +2% → × 1.02
 3. Auras: × 1.3029 as above → **280.4** per tick
 4. With the curse and Improved Shadow Bolt on the boss: **370.2** per tick, 6 ticks = 2,220.9 before crits
-5. Every tick rolls its own crit (13.88%, × 1.5). The spell power is read at each tick, so a potion or Blood Fury that starts later still counts for the ticks after it.
+5. Every tick rolls its own crit (13.43%, × 1.5). The spell power is read at each tick, so a potion or Blood Fury that starts later still counts for the ticks after it.
 
 #### 4. Bane of Doom
 (1,742 + 4 × 770) × 1.3029 auras = **6,282.8**; with the curse and Improved Shadow Bolt on the boss **8,293.3**; a crit deals × 1.5.
@@ -286,18 +292,19 @@ The examples use the build **Shadow Demo** as an Undead in its Pre-BiS gear with
 - Demonic Brand hit: (66.5 + 0.078 × 770 Shadow spell power) × the same four multipliers = **173.5**. It cannot miss or crit.
 
 #### 7. Life Tap
-424 + 244.2 Spirit = **668.2 mana** for 424 health and one global cooldown (this build has no Improved Life Tap; with 2/2 it would be 801.8).
+424 + 216.7 Spirit = **640.7 mana** for 424 health and one global cooldown (this build has no Improved Life Tap; with 2/2 it would be 768.8).
 
 #### 8. Talents of one group add up: Immolate and Incinerate
 Build **Incinerate Pandemic**, Undead, default settings; Fire spell power 641 + 31 Major Firestone + Wizard Oil = 672. No auras: this build has no Demonology points.
 - Immolate's hit: (146 + 0.2 × 672) × (1 + 10% Agonizing Flames + 50% Aftermath) = 280.4 × 1.60 = **448.6**. The two talents add to 60%; they do not multiply to 65%.
 - Immolate's burn, per tick: (52 + 0.13 × 672) × (1 + 10% Agonizing Flames) = **153.3**; 5 ticks.
-- Incinerate: (217 + 0.714 × 672) × 1.10 Agonizing Flames = 766.5; × 1.25 with Immolate on the boss × 1.10 curse × 1.20 Shadow and Flame (after a Shadowburn) = **1,264.7**; a crit (15.33%) deals × 2.
+- Incinerate: (217 + 0.714 × 672) × 1.10 Agonizing Flames = 766.5; × 1.25 with Immolate on the boss × 1.10 curse × 1.20 Shadow and Flame (after a Shadowburn) = **1,264.7**; a crit (14.87%) deals × 2.
 
 #### 9. Resistance before the curse, and Spell Pierce
 - Before Curse of the Elements is up the boss has 24 level resistance: on average 4.59% of each direct hit is resisted - 65.6% of them lose 0%, 22.9% of them lose 10%, 11.5% of them lose 20%. A DoT or channel tick rolls a tenth of that (0.46%); so does a Rain of Fire tick (round 241), while Hellfire's ticks roll like hits.
 - Binary spells (Immolate, Incinerate, Shadowburn, Death Coil, Bane of Agony, Drain Soul) land fully or are fully resisted: 4.59% of their casts are resisted, and their hits and ticks roll no partial resists. Your demon is resisted the same way (Imp Firebolt binary, Lash of Pain and Demonic Brand partial) and gets none of your Spell Pierce.
 - With the curse the resistance is 0 and nothing is resisted. With 15 Spell Pierce on top it is −15: direct hits gain on average +2.92% - 78.1% of hits gain 0%, 14.6% of hits gain 10%, 7.3% of hits gain 20%. Ticks and Rain of Fire gain nothing (Spell Piercing hotfix of 2026-11-19).
+- Spell Pierce gives no bonus while its share Pierce ÷ (Pierce + 8 × level + 19) is under 1%: at level 60, 5 Spell Pierce make 0.99% and add nothing, 6 make 1.19% and add +1.19% on average to direct hits.
 <!-- /gen:examples -->
 
 ---
@@ -462,10 +469,10 @@ Demons are simulated as their own actors: they cast, swing, miss, crit and run o
 <!-- gen:pets -->
 | Demon | Spell | Melee | Mana |
 |---|---|---|---|
-| Imp | Firebolt: 45.2 + 0.571 × demon SP, Fire, 2 s cast, 115 mana | — | 2,000, 30% of your Intellect as MP5 (20.5 a second at 341 Intellect: Shadow Demo in its Pre-BiS gear, Human, the page buffs) |
-| Succubus | Lash of Pain: 50 + 0.429 × demon SP, Shadow, instant, 12 s cooldown, 160 mana | 73.5 base DPS, one swing every 2 s, crit = its own 0.7% + your gear's crit, 5 yd range | 2,000, 10% of your Intellect as MP5 (6.8 a second at 341 Intellect: Shadow Demo in its Pre-BiS gear, Human, the page buffs) |
+| Imp | Firebolt: 45.2 + 0.571 × demon SP, Fire, 2 s cast, 115 mana | — | 2,000, 30% of your Intellect as MP5 (18.8 a second at 314 Intellect: Shadow Demo in its Pre-BiS gear, Human, the page buffs) |
+| Succubus | Lash of Pain: 50 + 0.429 × demon SP, Shadow, instant, 12 s cooldown, 160 mana | 73.5 base DPS, one swing every 2 s, crit = its own 0.7% + your gear's crit, 5 yd range | 2,000, 10% of your Intellect as MP5 (6.3 a second at 314 Intellect: Shadow Demo in its Pre-BiS gear, Human, the page buffs) |
 | Felhunter | — | 40 base DPS, one swing every 2 s, crit = its own 0.7% + your gear's crit | 2,000, +8 per second |
-| Voidwalker | — | 43.2 base DPS, one swing every 2 s, all of it × 50%, crit = its own 0.7% + your gear's crit | 2,000, 10% of your Intellect as MP5 (6.8 a second at 341 Intellect: Shadow Demo in its Pre-BiS gear, Human, the page buffs) |
+| Voidwalker | — | 43.2 base DPS, one swing every 2 s, all of it × 50%, crit = its own 0.7% + your gear's crit | 2,000, 10% of your Intellect as MP5 (6.3 a second at 314 Intellect: Shadow Demo in its Pre-BiS gear, Human, the page buffs) |
 <!-- /gen:pets -->
 
 **What a demon gets from you** (measured in Forever)
@@ -691,6 +698,10 @@ hotfix 114309, live 2026-11-19):
 - Wrack's extra ticks follow the rule of the DoT they belong to. Bane of Havoc copies damage after it was resisted; it
   has no roll of its own. Curses and Life Tap only have to hit: resistance does not change their hit chance.
 - Shadowburn and Death Coil are not in the hotfix table; they are taken to be like Immolate's hit and Incinerate.
+- **The 1% cut** (round 249, public evidence notes, Forever, 2026-11-23: about 150,000 hits of casters with gear
+  piercing): Spell Pierce past 0 gives no bonus at all while its share is under 1%; from 1% the bonus follows the share
+  as above (the share is not rounded). At level 60, 5 Spell Pierce make 0.99% (no bonus) and 6 make 1.19% (a bonus).
+  Wrack DS's Pre-BiS gear has 2 Spell Pierce, so it gets none; the other builds' 6 do count.
 - So 15 Spell Pierce adds +2.92% to every direct hit and nothing to ticks; 24 level resistance before the curse is up
   takes 4.59% off hits, resists 4.59% of binary casts and takes 0.46% off ticks. Spell Pierce gives less per point the
   more you have (100 → +16.7%).
@@ -724,10 +735,10 @@ threat = damage × (1 − Suppression 4% per point) × spell factor
 <!-- gen:buffs -->
 | Buff | From | Default | Effect in the sim |
 |---|---|---|---|
-| Arcane Intellect / Brilliance | Mage | on | +31 Intellect |
-| Mark / Gift of the Wild | Druid | on | +16 all attributes |
-| Power Word: Fortitude | Priest | on | +70 Stamina (Touch of the Grave) |
-| Divine Spirit / Prayer of Spirit | Priest | on | +40 Spirit (Life Tap) |
+| Arcane Intellect / Brilliance | Mage | on | +31 Intellect (replaces the Intellect of elixirs) |
+| Mark / Gift of the Wild | Druid | on | +16 all attributes (stacks with elixirs) |
+| Power Word: Fortitude | Priest | on | +70 Stamina (Touch of the Grave; replaces the Stamina of elixirs) |
+| Divine Spirit / Prayer of Spirit | Priest | on | +40 Spirit (Life Tap; replaces the Spirit of elixirs) |
 | Blessing of Kings | Paladin | on | +10% total stats |
 | Concentration Aura | Paladin | on | 35% chance to ignore pushback from damage |
 | Blessing of Wisdom | Paladin | on | 40 mana every 5 s |
@@ -778,11 +789,11 @@ exclude each other in Forever is assumed.*
 | Greater Arcane Elixir | Elixir | off | +35 spell damage | — |
 | Elixir of Shadow Power | Elixir | off | +40 Shadow spell damage | — |
 | Elixir of Fire Power | Elixir | off | +10 Fire spell damage | — |
-| Elixir of the Owl | Elixir | off | +25 Intellect, +2% crit (the crit does not stack with Elixir of Sages) | — |
-| Elixir of Sages | Elixir | off | +25 Spirit, +2% crit (the crit does not stack with Elixir of the Owl) | — |
+| Elixir of the Owl | Elixir | off | +25 Intellect (none with Arcane Intellect up; does not add to Cerebral Cortex Compound), +2% crit (the crit does not stack with Elixir of Sages) | — |
+| Elixir of Sages | Elixir | off | +25 Spirit (none with Divine Spirit up), +2% crit (the crit does not stack with Elixir of the Owl) | — |
 | Greater Mageblood Elixir | Elixir | off | 20 mana every 5 s | — |
 | Spirit of Zanza | Elixir | off | +50 Spirit, +50 Stamina | — |
-| Cerebral Cortex Compound | Elixir | off | +25 Intellect | — |
+| Cerebral Cortex Compound | Elixir | off | +25 Intellect (none with Arcane Intellect up; does not add to Elixir of the Owl) | — |
 | Baked Salmon / Lobster Stew | Food | off | Well fed: +28 spell damage | Soaring Pamplona / Bat Hachee / Prehistoric Pulled Raptor |
 | Soaring Pamplona / Bat Hachee / Prehistoric Pulled Raptor | Food | off | Well fed: +20 Intellect | Baked Salmon / Lobster Stew |
 | Kreeg's Stout Beatdown | Food | off | +25 Spirit, −5 Intellect | — |

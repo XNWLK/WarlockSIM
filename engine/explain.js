@@ -252,7 +252,8 @@ window.WL = window.WL || {};
                           : (pr.mean < 0 ? (tk || rl.tickShare ? 'each tick loses ' + f(-pr.mean * 100, 2) + '% on average (a tenth of what a direct hit loses).' : 'on average ' + f(-pr.mean * 100, 1) + '% is resisted.') : '');
       notes.push((hasCoe && lost(pr0) > 0 ? 'Before the curse is on the ' + (extra ? 'target' : 'boss') + ', ' + f(lost(pr0) * 100, 1) + '% is lost to resists on average. ' : '') +
         (how ? how.charAt(0).toUpperCase() + how.slice(1) : pr.mean > 0 ? 'Spell Pierce adds ' + f(pr.mean * 100, 2) + '% on average.' : hasCoe ? 'With the curse up nothing is resisted.' : '') +
-        (pr.R < 0 && pr.mean === 0 ? (tk ? ' Ticks get no Spell Pierce bonus damage.' : rl.noBonus ? ' Rain of Fire gets no Spell Pierce bonus damage.' : '') : ''));
+        (pr.R < 0 && pr.mean === 0 ? (tk ? ' Ticks get no Spell Pierce bonus damage.' : rl.noBonus ? ' Rain of Fire gets no Spell Pierce bonus damage.'
+          : !WL.pierceBonusOn(cfg, pr.R) ? ' Spell Pierce gives no bonus damage while its share is under 1% (' + f(WL.fittedShare(-pr.R, cb.casterLevel || 60) * 100, 2) + '%; 6 Spell Pierce at level 60).' : '') : ''));   // round 249
     }
     if (extra) notes.push('On an extra target only its own Curse of the Elements and Improved Shadow Bolt count; Wrack\'s and Soul Siphon\'s bonuses do not apply there.');
     return { title: s.name + (s.rank ? ' (Rank ' + s.rank + ')' : ''), steps: steps, notes: notes, values: values };

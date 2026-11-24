@@ -3,6 +3,11 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v213
+- **Elixirs and raid buffs:** elixirs no longer add the same stat twice. Of two elixirs with the same stat, only the larger one counts (Elixir of the Owl + Cerebral Cortex Compound = +25 Intellect). Arcane Intellect, Divine Spirit and Power Word: Fortitude replace that stat from your elixirs, as they do in game (Arcane Intellect + Owl = 31 Intellect, not 56). Elixir crit, Mark of the Wild, Kings, food and flasks still stack. Every build drops about 7–9 DPS.
+- **Spell Penetration:** a little Spell Penetration beyond the boss's resistance now gives no bonus. It starts once it's about 1% of the resistance curve, which is 6 points at level 60; 5 points give nothing. This only affects Wrack DS (2 points), by less than 0.1%.
+- Based on public in-game and log checks from 2026-11-23.
+
 ## v212
 - **Max Pre-BiS:** a third gear choice in the quick setup, between Realistic Pre-BiS and Custom. Every build wears the strongest Phase 1 gear and enchants there are right now, whatever the reputation, gold or profession cost (Demonheart pieces still left out). It's about 58–75 DPS above Realistic Pre-BiS (Wrack DS about 1018). The gear builder shows each build's Max list, and the saved gear sets have them too.
 - **Wrack DS cooldowns:** Blood Fury, the potion and Power Infusion no longer go off on the pull, while your DoTs are still being cast. The potion now goes on the first Wrack. Blood Fury and Power Infusion wait until the Amplify Curse Agony has 17 s or less left, so they cover its biggest ticks. About +5 DPS at 3 minutes and +12 at 1 minute (Power Infusion on: +11 / +39). The other builds don't change.

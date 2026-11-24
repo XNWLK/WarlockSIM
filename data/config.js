@@ -105,11 +105,16 @@ WL.DEFAULT_CONFIG = {
   // Intellect, Mark of the Wild, Fortitude, Divine Spirit, Kings, Wisdom and Moonkin aura on by default; the rest off [A38].
   // Personal in Forever and therefore NOT available to us: Shadow Weaving, Improved Scorch, Winter's Chill,
   // Stormstrike, another Warlock's Improved Shadow Bolt (tooltips say "damage YOU deal" / "from YOUR attacks"). [A53]
+  // Round 249 (the user's pick; public evidence notes, Forever, 2026-11-23: in-game checks of the character sheet and buff
+  // tooltips): overwritesElixir = the stat whose elixir amount this buff replaces while it is up — Arcane Intellect the
+  // elixirs' Intellect, Divine Spirit their Spirit, Power Word: Fortitude their Stamina (the elixir then adds nothing to
+  // that stat; its other effects still count). Mark of the Wild and Blessing of Kings stack with the elixirs.
+  // engine/stats.js conStat. Rounds 1–248: the buffs and the elixirs added up.
   buffs: {
-    arcaneIntellect:  { on: true, id: 10157, name: 'Arcane Intellect / Brilliance', cls: 'Mage',    desc: '+31 Intellect', int: 31 },
-    markOfTheWild:    { on: true, id: 9885, name: 'Mark / Gift of the Wild',       cls: 'Druid',   desc: '+16 all attributes', int: 16, spi: 16, sta: 16 },
-    fortitude:        { on: true, id: 10938, name: 'Power Word: Fortitude',         cls: 'Priest',  desc: '+70 Stamina (Touch of the Grave)', sta: 70 },
-    divineSpirit:     { on: true, id: 27841, name: 'Divine Spirit / Prayer of Spirit', cls: 'Priest', desc: '+40 Spirit (Life Tap)', spi: 40 },
+    arcaneIntellect:  { on: true, id: 10157, name: 'Arcane Intellect / Brilliance', cls: 'Mage',    desc: '+31 Intellect (replaces the Intellect of elixirs)', int: 31, overwritesElixir: 'int' },
+    markOfTheWild:    { on: true, id: 9885, name: 'Mark / Gift of the Wild',       cls: 'Druid',   desc: '+16 all attributes (stacks with elixirs)', int: 16, spi: 16, sta: 16 },
+    fortitude:        { on: true, id: 10938, name: 'Power Word: Fortitude',         cls: 'Priest',  desc: '+70 Stamina (Touch of the Grave; replaces the Stamina of elixirs)', sta: 70, overwritesElixir: 'sta' },
+    divineSpirit:     { on: true, id: 27841, name: 'Divine Spirit / Prayer of Spirit', cls: 'Priest', desc: '+40 Spirit (Life Tap; replaces the Spirit of elixirs)', spi: 40, overwritesElixir: 'spi' },
     blessingOfKings:  { on: true, id: 20217, name: 'Blessing of Kings',             cls: 'Paladin', desc: '+10% total stats', statPct: 10 },
     // Round 78 (user): pushback protection for the whole party; adds to Intensity / Fel Concentration, at most 100%.
     // Classic value (Concentration Aura, all ranks 35%), not checked in Forever [A76].

@@ -128,9 +128,15 @@ WL.spellResist = function (cfg, pierce, school, coeActive, pen, key, tick) {
     if (rule.binary) { var h = WL.resistProfile(cfg, pierce, school, coeActive, pen, false); return { R: R, flat: 1, dist: none, mean: 0, landP: Math.max(0, 1 - h.share) }; }
     var p = WL.resistProfile(cfg, pierce, school, coeActive, pen, tick || !!rule.tickShare); p.landP = 1; return p;   // tickShare: Rain of Fire (round 241) [A130]
   }
-  if (R < 0 && !tick && !rule.noBonus) { var b = WL.resistProfile(cfg, pierce, school, coeActive, pen, false); b.landP = 1; return b; }
+  if (R < 0 && !tick && !rule.noBonus && WL.pierceBonusOn(cfg, R)) { var b = WL.resistProfile(cfg, pierce, school, coeActive, pen, false); b.landP = 1; return b; }
   return { R: R, flat: 1, dist: none, mean: 0, landP: 1 };
 };
+// Round 249 (the user's pick; a public log study / public evidence notes, Forever, 2026-11-23: about 150,000 hits of casters
+// with gear piercing, read against the share): Spell Pierce beyond the resistance gives no bonus while its share
+// |R| / (|R| + 8 × your level + 19) is under 1%; from 1% the bonus follows the share as before. At level 60, 5 Spell Pierce
+// make 0.992% (no bonus) and 6 make 1.19% (a bonus). The share is not rounded. Rounds 239–248: any R < 0 gave a bonus.
+WL.PIERCE_MIN_SHARE = 0.01;
+WL.pierceBonusOn = function (cfg, R) { return R < 0 && WL.fittedShare(-R, cfg.combat.casterLevel || 60) >= WL.PIERCE_MIN_SHARE; };
 // Demons (round 239): resisted by the boss's resistance (after Curse of the Elements) but get none of your Spell Pierce or
 // Spell Penetration. Imp Firebolt is binary; Lash of Pain and Demonic Brand are partially resisted (steps capped at 75%,
 // round 241, A130).

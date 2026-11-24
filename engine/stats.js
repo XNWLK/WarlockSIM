@@ -117,17 +117,29 @@ WL.computeStats = function (build, raceKey, cfg) {
   }
 
   // --- Primary stats ---
+  var cons = WL.activeConsumables(cfg).filter(function (c) { return c.group !== 'weapon' && c.group !== 'stone'; });
+  // Round 249 (the user's pick; public evidence notes, Forever, 2026-11-23: in-game checks of the character sheet and buff
+  // tooltips): of the active elixirs marked elixirStats (data/consumables.js) only the largest amount of each stat counts
+  // (Elixir of the Owl + Cerebral Cortex Compound = +25 Intellect), and a raid buff with overwritesElixir (data/config.js:
+  // Arcane Intellect, Divine Spirit, Power Word: Fortitude) replaces that stat of the elixirs while it is up — the elixir
+  // then adds none of it, whichever is larger. Rounds 1–248: everything added up.
+  var elixirsOf = function (s) { return cons.filter(function (c) { return c.elixirStats && c[s] > 0; }); };
+  var overwriter = function (s) { return WL.activeBuffs(cfg).filter(function (b) { return b.overwritesElixir && [].concat(b.overwritesElixir).indexOf(s) >= 0; })[0] || null; };
   // Buffs that share a `group` do not stack: of the active ones only the biggest value of a stat counts (round 118, user).
   var buffStat = function (s) {
-    var sum = 0, best = {}, act = WL.activeBuffs(cfg);
+    var sum = 0, best = {}, act = WL.activeBuffs(cfg), ow = overwriter(s), gone = ow ? elixirsOf(s).map(function (c) { return c.name; }) : [];
     act.forEach(function (b) { if (b[s] && b.group && (!best[b.group] || b[s] > best[b.group][s])) best[b.group] = b; });
-    act.forEach(function (b) { if (b[s] && (!b.group || best[b.group] === b)) sum += add(s, b.name, b[s]); });
+    act.forEach(function (b) { if (b[s] && (!b.group || best[b.group] === b)) sum += add(s, b.name + (b === ow && gone.length ? ' (replaces ' + gone.join(', ') + ')' : ''), b[s]); });
     return sum;
   };
-  var cons = WL.activeConsumables(cfg).filter(function (c) { return c.group !== 'weapon' && c.group !== 'stone'; });
   var conStat = function (s) {
-    var sum = 0;
-    cons.forEach(function (c) { if (c[s]) sum += add(s, c.name, c[s]); });
+    var sum = 0, el = elixirsOf(s);
+    cons.forEach(function (c) { if (c[s] && el.indexOf(c) < 0) sum += add(s, c.name, c[s]); });
+    if (el.length && !overwriter(s)) {                                     // round 249: the strongest elixir alone
+      var top = el.reduce(function (a, c) { return c[s] > a[s] ? c : a; });
+      var rest = el.filter(function (c) { return c !== top; }).map(function (c) { return c.name; });
+      sum += add(s, top.name + (rest.length ? ' (does not add to ' + rest.join(', ') + ')' : ''), top[s]);
+    }
     return sum;
   };
   // Crit from consumables (round 110, user): items that share a critGroup do not stack their crit — only the highest of the

@@ -413,6 +413,11 @@ B.examples = (function () {
   P('- Binary spells (Immolate, Incinerate, Shadowburn, Death Coil, Bane of Agony, Drain Soul) land fully or are fully resisted: ' + n((1 - pb.landP) * 100, 2) + '% of their casts are resisted, and their hits and ticks roll no partial resists. Your demon is resisted the same way (Imp Firebolt binary, Lash of Pain and Demonic Brand partial) and gets none of your Spell Pierce.');
   P('- With the curse the resistance is 0 and nothing is resisted. With 15 Spell Pierce on top it is −15: direct hits gain on average +' + n(pv.mean * 100, 2) + '% - ' +
     pv.dist.map(d => n(d.p * 100) + '% of hits gain ' + n(d.pct, 0) + '%').join(', ') + '. Ticks and Rain of Fire gain nothing (Spell Piercing hotfix of 2026-11-19).');
+  // Round 249: the 1% cut (engine/resist.js WL.pierceBonusOn).
+  const p5 = WL.spellResist(cfg, 5, 'shadow', true, 0, 'shadowBolt', false), p6 = WL.spellResist(cfg, 6, 'shadow', true, 0, 'shadowBolt', false);
+  if (p5.mean !== 0 || !(p6.mean > 0)) throw new Error('worked example differs from the engine: the 1% Spell Pierce cut');
+  P('- Spell Pierce gives no bonus while its share ' + 'Pierce ÷ (Pierce + 8 × level + 19) is under 1%: at level 60, 5 Spell Pierce make ' + n(WL.fittedShare(5, 60) * 100, 2) + '% and add nothing, 6 make ' +
+    n(WL.fittedShare(6, 60) * 100, 2) + '% and add +' + n(p6.mean * 100, 2) + '% on average to direct hits.');
   return out.join('\n');
 })();
 
