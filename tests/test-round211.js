@@ -53,10 +53,14 @@
     T.eq(P.wrack_ds.neck, 22403, 'Wrack DS neck: Nacreous Shell Necklace (round 216, user: "keep vectus as the upgrade and nacreous as main")');
     T.ok(['demo_pact_succ_sb', 'demo_pact_fire', 'destro_incin_succ', 'destro_incin_ds'].every(function (k) { return P[k].neck === 22403; }), 'the other builds: Nacreous Shell Necklace (round 216, user)');
     // round 218: the user's two green Shadow Wrath pieces for Wrack DS (Master's Boots / Belt of Shadow Wrath) are the exception
+    // round 251 (user: "make the actual equipped item whatever the 2nd best after ironbark is"): the staff is the other exception
+    // — Headmaster's Charge / Elemental Mage Staff are epics
     var GREEN_OK = { 10247: 1, 10255: 1 };
-    T.ok(Object.keys(P).every(function (k) { return Object.keys(P[k]).every(function (s) { return WL.ITEMS[P[k][s]].quality === 'rare' || (k === 'wrack_ds' && GREEN_OK[P[k][s]]); }); }), 'round 216: every item of every main list is blue (user; round 218: but the two Wrack DS Shadow Wrath greens)');
+    T.ok(Object.keys(P).every(function (k) { return Object.keys(P[k]).every(function (s) { return WL.ITEMS[P[k][s]].quality === 'rare' || (k === 'wrack_ds' && GREEN_OK[P[k][s]]) || s === 'mainHand'; }); }), 'round 216: every item of every main list is blue (user; round 218: but the two Wrack DS Shadow Wrath greens; round 251: but the staff)');
     T.ok(Object.keys(P).every(function (k) { return P[k].finger1 !== 272407 && P[k].finger2 !== 272407; }) && P.demo_pact_fire.finger2 === 272406 && Object.keys(P).every(function (k) { return P[k].finger1 === 12543; }), 'round 216: Songstone of Ironforge in the top ring slot of every list; Channeler\'s Ring instead of Blessed Band of Light (user)');
-    T.ok(P.demo_pact_succ_sb.offHand === 18316 && P.wrack_ds.offHand === 18316 && P.demo_pact_fire.offHand === 11904 && P.destro_incin_succ.offHand === 11904 && P.destro_incin_ds.offHand === 11904, 'round 216: Obsidian Bauble for Shadow Demo and Wrack DS, Spirit of Aquementas for the others (the sim, user OK)');
+    // round 251 (user: "basically we're dropping all 1 handers from the list" → "make the actual equipped item whatever the 2nd best
+    // after ironbark is"): a staff, no off hand, replaces round 216's one-handers with Obsidian Bauble / Spirit of Aquementas
+    T.ok(Object.keys(P).every(function (k) { return P[k].mainHand === (k === 'destro_incin_ds' ? 944 : 13937) && !P[k].offHand; }), 'round 251: every list wields Headmaster\'s Charge (Incinerate DS: Elemental Mage Staff), no off hand (user; was a one-hander + Obsidian Bauble / Spirit of Aquementas)');
     T.eq(WL.ITEMS[19426].phase || 1, 1, 'Orb of the Darkmoon is Phase 1 (the user\'s pick)');
   });
 })();
@@ -85,13 +89,13 @@
     });
     T.group('Phase 1 enchants (round 213)');
     var E = WL.PRE_RAID_BIS_ENCHANTS, ce = WL.cfgFor(WL.BUILDS[0], c);
-    T.ok(E.head === 2544 && E.legs === 2544 && E.neck === 8218 && E.chest === 8492 && E.hands === 931 && E.mainHand === 8217 && E.wrist === 7665 && E.offHand === 7659 && E.feet.custom, 'head / legs 8 SP, neck 6 SP, chest Mystic Rugged Armor Kit (round 214), gloves haste, Revelation (user), wrist +16 Spell Power (round 214), off hand +9 Intellect (round 216), boots run speed');
+    T.ok(E.head === 2544 && E.legs === 2544 && E.neck === 8218 && E.chest === 8492 && E.hands === 931 && E.mainHand === 7662 && E.wrist === 7665 && !('offHand' in E) && E.feet.custom, 'head / legs 8 SP, neck 6 SP, chest Mystic Rugged Armor Kit (round 214), gloves haste, +65 Spell Power on the staff (round 251; was Revelation), wrist +16 Spell Power (round 214), no off hand (round 251), boots run speed');
     var gl = {}; WL.BUILDS.forEach(function (x) { if (WL.PRE_RAID_BIS[x.key]) gl[x.key] = WL.preRaidBisEnchants(x.key).hands; });
     T.ok(gl.demo_pact_fire === 8492 && gl.wrack_ds === 8492 && gl.demo_pact_succ_sb === 931 && gl.destro_incin_succ === 931 && gl.destro_incin_ds === 931, 'gloves per build (round 214): the armor kit for Fire Demo and Wrack DS, haste for the others (whichever simmed higher)');
     T.eq(WL.PRE_BIS_GEAR.wrack_ds.enchants.hands.id, 8492, 'the generated Pre-BiS gear has the per-build gloves');
-    T.ok(WL.equippedEnchantFx(ce).some(function (x) { return x.id === 8217 && x.fx.name === 'Revelation'; }), 'Revelation is on the main hand in the fight');
+    T.ok(ce.gearBuilder.enchants.mainHand.id === 7662 && !WL.equippedEnchantFx(ce).length, 'round 251: +65 Spell Power is on the main hand in the fight, no weapon effect (Revelation was until round 250)');
     T.eq(WL.cfgFor(WL.BUILDS[0], c).gear.hastePct, 1, '+1% haste from the gloves (' + WL.BUILDS[0].key + ')');
-    T.ok([2544, 8218, 8492, 931, 8217, 7665, 7655, 7659].every(function (id) { return WL.enchantPhase(id) === 1; }) && WL.enchantPhase(2721) === 6 && WL.enchantPhase(2605) === 4 && WL.enchantPhase(7645) > 1, 'enchant phases: the lists\' enchants Phase 1; Scourge 6, Zandalar 4, Living Stats later');
+    T.ok([2544, 8218, 8492, 931, 7662, 7665, 7655].every(function (id) { return WL.enchantPhase(id) === 1; }) && WL.enchantPhase(2721) === 6 && WL.enchantPhase(2605) === 4 && WL.enchantPhase(7645) > 1, 'enchant phases: the lists\' enchants Phase 1; Scourge 6, Zandalar 4, Living Stats later');
     T.ok(Object.keys(WL.ENCHANTS).every(function (id) { return WL.ENCHANT_PHASE_GUESS[id] != null; }), 'every enchant has a phase guess (data/enchant-phases.js)');
     var custom = { key: 'my_build_x', talents: {} };
     T.eq(JSON.stringify(WL.cfgFor(custom, c).gearBuilder.slots.head), JSON.stringify({ id: P._common.slots.head }), 'a build without a list (your own) wears the items most builds wear');

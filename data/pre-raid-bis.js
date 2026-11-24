@@ -6,6 +6,15 @@
 // the neck (Orb of the Darkmoon) typed in by the user for every build.
 // The gear builder offers each list under its saved gear sets ("Pre-raid BiS · build"): items only, enchants stay.
 // Format: build key → { gear slot key: item id (data/item-db.js) }.
+// Round 251 (user: "change the bis weapon for every build to https://www.wowhead.com/forever/item=18534/rod-of-the-ogre-magi
+// with 65 spellpower enchant. make that fix in the bis list and the sim. have the upgrade still be ironbark, remove the
+// enchant remark on it. make the alternative the next best staff … basically we're dropping all 1 handers from the list.
+// adjust the gear in the sim accordingly"); then, on the staff fights (every Phase 1 non-raid staff with +65 Spell Power):
+// "ironbark should be the upgrade for every build. make the actual equipped item whatever the 2nd best after ironbark is. if
+// it is headmasters then make that one equipped and put ogre magi as the alternative. if ogre magi is better than equip that
+// and make whatever comes next the alternative". So every build wields a staff (no off hand) with +65 Spell Power (7662):
+// Headmaster's Charge — Elemental Mage Staff for Incinerate DS, the clear 2nd there (+0.8 DPS over Headmaster's Charge,
+// 8 seeds × 4,000, paired SE 0.13); was Witchblade / Blade of the New Moon + an off hand.
 window.WL = window.WL || {};
 WL.PRE_RAID_BIS_PHASE = 1;
 WL.PRE_RAID_BIS = {
@@ -24,8 +33,7 @@ WL.PRE_RAID_BIS = {
     finger2: 272406,    // Channeler's Ring (round 216, user; was Blessed Band of Light)
     trinket1: 18467,    // Royal Seal of Eldre'Thalas
     trinket2: 272438,   // Weakness Analyzer
-    mainHand: 13964,    // Witchblade
-    offHand: 18316,     // Obsidian Bauble (round 216: +1.4 DPS over Spirit of Aquementas, 8 seeds × 4000; user: "go with your suggestion")
+    mainHand: 13937,    // Headmaster's Charge (round 251: 2nd best staff after Ironbark)
     ranged: 13938,      // Bonecreeper Stylus
   },
   demo_pact_fire: { // Demonology – Pact, Imp out, Fire
@@ -43,8 +51,7 @@ WL.PRE_RAID_BIS = {
     finger2: 272406,    // Channeler's Ring (round 216, user; was Blessed Band of Light)
     trinket1: 18467,    // Royal Seal of Eldre'Thalas
     trinket2: 272438,   // Weakness Analyzer
-    mainHand: 13964,    // Witchblade
-    offHand: 11904,     // Spirit of Aquementas
+    mainHand: 13937,    // Headmaster's Charge (round 251: 2nd best staff after Ironbark)
     ranged: 13938,      // Bonecreeper Stylus
   },
   destro_incin_succ: { // Destruction – Incinerate, Succubus out
@@ -62,8 +69,7 @@ WL.PRE_RAID_BIS = {
     finger2: 272406,    // Channeler's Ring (round 216, user; was Blessed Band of Light)
     trinket1: 18467,    // Royal Seal of Eldre'Thalas
     trinket2: 272438,   // Weakness Analyzer
-    mainHand: 13964,    // Witchblade
-    offHand: 11904,     // Spirit of Aquementas
+    mainHand: 13937,    // Headmaster's Charge (round 251: 2nd best staff after Ironbark)
     ranged: 13938,      // Bonecreeper Stylus
   },
   destro_incin_ds: { // Destruction – Incinerate, Succubus sacrificed
@@ -81,8 +87,7 @@ WL.PRE_RAID_BIS = {
     finger2: 272406,    // Channeler's Ring (round 216, user; was Blessed Band of Light)
     trinket1: 18467,    // Royal Seal of Eldre'Thalas
     trinket2: 272438,   // Weakness Analyzer
-    mainHand: 13964,    // Witchblade
-    offHand: 11904,     // Spirit of Aquementas
+    mainHand: 944,      // Elemental Mage Staff (round 251: 2nd best staff after Ironbark for Incinerate DS)
     ranged: 13938,      // Bonecreeper Stylus
   },
   wrack_ds: { // Wrack DS – Affliction (Wrack), Imp sacrificed
@@ -100,8 +105,7 @@ WL.PRE_RAID_BIS = {
     finger2: 22433,     // Don Mauricio's Band of Domination
     trinket1: 18467,    // Royal Seal of Eldre'Thalas
     trinket2: 272438,   // Weakness Analyzer
-    mainHand: 18372,    // Blade of the New Moon
-    offHand: 18316,     // Obsidian Bauble (round 216: +1.5 DPS over Spirit of Aquementas, 8 seeds × 4000; user: "go with your suggestion")
+    mainHand: 13937,    // Headmaster's Charge (round 251: 2nd best staff after Ironbark)
     ranged: 13396,      // Skul's Ghastly Touch
   },
 };
@@ -119,8 +123,7 @@ WL.PRE_RAID_BIS_ENCHANTS = {
   hands: 931,         // Haste +1% (casting speed)
   legs: 2544,         // Arcanum of Focus: +8 spell damage and healing
   feet: { custom: { name: 'Minor Speed', stats: {}, text: 'Run speed increased slightly (no effect in the sim).' } },
-  mainHand: 8217,     // Revelation
-  offHand: 7659,      // +9 Intellect: Enchant Off-Hand - Superior Intellect (round 216, user: "add this enchant to the offhands")
+  mainHand: 7662,     // +65 Spell Power (round 251; was Revelation 8217 on a one-hander, and +9 Intellect 7659 on the off hand)
 };
 // Round 214 (user: "use mystic rugged armor kits for the available slots … except boots. use 16 spell power on bracers" →
 // "it replaces the enchant. calculate if it's better than the haste. for legs keep 8 spellpower. for boots keep speed"):
@@ -129,10 +132,8 @@ WL.PRE_RAID_BIS_ENCHANTS = {
 // Incinerate −0.7, Incinerate DS −4.2, Wrack DS +2.4).
 WL.PRE_RAID_BIS_ENCHANTS_BY_BUILD = {
   demo_pact_fire: { hands: 8492 },
-  // Round 247 (user: "yes use 22 int for wrack both in the sim and the bis list"): Wrack DS's weapon wears Intellect +22
-  // (2568, Enchanting, Phase 1) instead of Revelation (8217) — the round 244 recheck had +22 Intellect 3.1 DPS ahead of
-  // Revelation for Wrack DS (4 seeds × 3000 fights). The other builds keep Revelation.
-  wrack_ds: { hands: 8492, mainHand: 2568 },
+  // Round 247 had Wrack DS's one-hander on Intellect +22 (2568); round 251: every build's staff wears +65 Spell Power.
+  wrack_ds: { hands: 8492 },
 };
 WL.preRaidBisEnchants = function (buildKey) {
   var r = {}, o = WL.PRE_RAID_BIS_ENCHANTS_BY_BUILD[buildKey] || {};
@@ -151,6 +152,8 @@ WL.preRaidBisEnchants = function (buildKey) {
 // and every Phase 1 enchant of the slot, repeated until no slot improves. Screened with 2 seeds × 1,000 fights, a change kept
 // only when 4 seeds × 3,000 fights had it ahead by more than 0.5 DPS (and 1.5 standard errors). No gems in Phase 1.
 // tools/gen-pre-bis.js → data/pre-bis-gear.js WL.MAX_BIS_GEAR; the quick setup's "Max Pre-BiS" (cfg.gearMode 'maxBis').
+// Round 251 (user: "basically we're dropping all 1 handers from the list"): no one-hander here either — every build wields
+// Ironbark Staff with +65 Spell Power (Ironbark vs Rod of the Ogre Magi in each Max list: +15.6 … +20.1 DPS, 4 seeds × 3,000).
 WL.MAX_PRE_RAID_BIS = {
   demo_pact_succ_sb: { // Demonology – Pact, Succubus out, Shadow Bolt
     head: 22267,        // Spellweaver's Turban
@@ -167,8 +170,7 @@ WL.MAX_PRE_RAID_BIS = {
     finger2: 272406,    // Channeler's Ring
     trinket1: 276744,   // Zarla's Snack Pouch (search: +7.6 DPS over Royal Seal of Eldre'Thalas)
     trinket2: 272438,   // Weakness Analyzer
-    mainHand: 22383,    // Sageblade (▲ upgrade of the pre-raid page)
-    offHand: 19315,     // Therazane's Touch (▲ upgrade of the pre-raid page)
+    mainHand: 20220,    // Ironbark Staff (round 251, no one-handers: +17.4 DPS over Rod of the Ogre Magi, 4 seeds × 3,000; was Sageblade + Therazane's Touch)
     ranged: 13938,      // Bonecreeper Stylus
   },
   demo_pact_fire: { // Demonology – Pact, Imp out, Fire
@@ -246,7 +248,7 @@ WL.MAX_PRE_RAID_BIS = {
 };
 // The enchants of each Max list (Phase 1, data/enchant-phases.js): the best of each slot in the same fights.
 WL.MAX_PRE_RAID_BIS_ENCHANTS = {
-  demo_pact_succ_sb: { head: 2544, neck: 8218, chest: 8492, wrist: 7665, hands: 931, legs: 2544, feet: 8492, mainHand: 8217, offHand: 7659 },
+  demo_pact_succ_sb: { head: 2544, neck: 8218, chest: 8492, wrist: 7665, hands: 931, legs: 2544, feet: 8492, mainHand: 7662 },   // round 251: was Revelation + off hand +9 Intellect
   demo_pact_fire: { head: 2544, neck: 8218, chest: 8492, wrist: 7665, hands: 8492, legs: 2544, feet: 8492, mainHand: 7662 },
   destro_incin_succ: { head: 2544, neck: 8218, chest: 8492, wrist: 7665, hands: 931, legs: 2544, feet: 8492, mainHand: 7662 },
   destro_incin_ds: { head: 2544, neck: 8218, chest: 8492, wrist: 7665, hands: 931, legs: 2544, feet: 8492, mainHand: 7662 },

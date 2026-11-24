@@ -39,7 +39,7 @@
       T.ok(!eb.length, k + ': ' + Object.keys(E).length + ' enchants, each Phase 1, for its slot (a two-hand enchant only on a two-hander)', eb.join(', '));
       T.ok(WL.GEAR_SLOTS.every(function (g) { return !g.enchant || !L[g.key] || E[g.key] != null || ['shoulder', 'back', 'waist'].indexOf(g.key) >= 0; }), k + ': every enchantable slot with a Phase 1 enchant worth having is enchanted');
     });
-    T.ok(WL.PRE_RAID_BIS.wrack_ds.mainHand === 18372 && WL.preRaidBisEnchants('wrack_ds').mainHand === 2568, 'the Realistic lists are untouched (Wrack DS: Blade of the New Moon, Intellect +22)');
+    T.ok(WL.PRE_RAID_BIS.wrack_ds.mainHand === 13937 && WL.preRaidBisEnchants('wrack_ds').mainHand === 7662, 'the Realistic lists are their own (Wrack DS: Headmaster\'s Charge, +65 Spell Power since round 251)');
 
     T.group('the generated gear (data/pre-bis-gear.js WL.MAX_BIS_GEAR)');
     T.eq(Object.keys(G).sort().join(','), Object.keys(M).concat(['_common']).sort().join(','), 'every Max list + _common');
@@ -66,7 +66,7 @@
     var own = { key: 'mine_x', talents: {}, pet: null, sacrifice: null, oil: 'none', rotation: [] };
     T.eq(WL.cfgFor(own, c).gearBuilder.slots.head.id, G._common.slots.head, 'a build without a list wears the Max _common list');
     var cp = WL.pageDefaultConfig();
-    T.eq(WL.cfgFor(bk('wrack_ds'), cp).gearBuilder.slots.mainHand.id, 18372, 'Realistic Pre-BiS is unchanged (Wrack DS: Blade of the New Moon)');
+    T.eq(WL.cfgFor(bk('wrack_ds'), cp).gearBuilder.slots.mainHand.id, 13937, 'Realistic Pre-BiS wears its own list (Wrack DS: Headmaster\'s Charge since round 251)');
     T.ok(WL.cfgFor(bk('wrack_ds'), cp).gearMode === 'preBis:applied', '… marked preBis:applied');
     var cc = WL.pageDefaultConfig(); cc.gearMode = null; T.ok(WL.cfgFor(bk('wrack_ds'), cc) === cc, 'Custom: the settings as they are');
     ['demo_pact_fire', 'wrack_ds'].forEach(function (k) {

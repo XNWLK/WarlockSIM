@@ -120,7 +120,9 @@
     T.eq(WL.spellResist(pc, w.pierce, 'shadow', true, w.spellPen, 'shadowBolt', false).mean, 0, 'Wrack DS: its 2 Spell Pierce give no bonus any more');
     T.ok(!WL.pierceBonusOn(pc, WL.effectiveResist(pc, w.pierce, 'shadow', true, w.spellPen)), '… WL.pierceBonusOn says so');
     var d = WL.computeStats(bk('demo_pact_succ_sb'), 'orc', pc);
-    T.ok(d.pierce === 6 && WL.spellResist(pc, d.pierce, 'shadow', true, d.spellPen, 'shadowBolt', false).mean > 0, 'Shadow Demo: its 6 Spell Pierce still give the bonus');
+    // round 251: Shadow Demo's off hand (Obsidian Bauble, 4 Spell Pierce) left with the one-handers — 2 Spell Pierce now, under the cut
+    T.ok(d.pierce === 2 && WL.spellResist(pc, d.pierce, 'shadow', true, d.spellPen, 'shadowBolt', false).mean === 0, 'Shadow Demo: 2 Spell Pierce since round 251 (was 6 with Obsidian Bauble): no bonus');
+    T.ok(WL.spellResist(pc, 6, 'shadow', true, d.spellPen, 'shadowBolt', false).mean > 0, '… 6 Spell Pierce on the same settings would still give the bonus');
     T.ok(pc.weightDeltas.pierce === 20 && WL.fittedShare(w.pierce + pc.weightDeltas.pierce, 60) >= 0.01, 'the stat weight\'s +20 lifts Wrack DS over the cut');
   });
 })();

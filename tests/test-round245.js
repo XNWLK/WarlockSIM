@@ -16,8 +16,8 @@
     T.ok(WL.ENCHANT_PHASE_SET[2504] == null, 'no review of it in WL.ENCHANT_PHASE_SET');
     T.eq(WL.ENCHANT_PHASE_GUESS[2504], 2, 'phase guess 2 (user: "30 spellpower isn\'t available yet.")');
     T.eq(WL.enchantPhase(2504), 2, 'WL.enchantPhase(2504) = 2: the gear builder\'s Phase 1 leaves it out');
-    // round 247 (user: "yes use 22 int for wrack both in the sim and the bis list"): Wrack DS now wields Intellect +22 (2568)
-    T.ok(WL.BUILDS.every(function (b) { return !WL.PRE_RAID_BIS[b.key] || WL.preRaidBisEnchants(b.key).mainHand === (b.key === 'wrack_ds' ? 2568 : 8217); }), 'the Pre-BiS lists keep Revelation on the weapon (no list change; Wrack DS Intellect +22 since round 247)');
+    // round 247: Wrack DS wielded Intellect +22 (2568); round 251: every list wields a staff with +65 Spell Power (7662)
+    T.ok(WL.BUILDS.every(function (b) { return !WL.PRE_RAID_BIS[b.key] || WL.preRaidBisEnchants(b.key).mainHand === 7662; }), 'the Pre-BiS lists do not use Spell Power +30 on the weapon (+65 Spell Power on the staff since round 251)');
   });
 
   T.run('round 245: Deathmist Raiment is set 1681 (226905–226912)', function () {

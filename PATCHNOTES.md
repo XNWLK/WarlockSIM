@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v215
+- **Staffs only:** every Pre-BiS and Max Pre-BiS list now uses a staff with the +65 Spell Power enchant; the one-handers and off hands are gone. Realistic Pre-BiS equips Headmaster's Charge, or Elemental Mage Staff for Incinerate DS, the best staff after Ironbark for each build. Max Pre-BiS uses Ironbark Staff everywhere, including Shadow Demo. Realistic Pre-BiS gains about +1 to +26 DPS (Wrack DS about 961).
+- **Pre-raid BiS lists:** the main weapon is Headmaster's Charge (Elemental Mage Staff for Incinerate DS). The ▲ upgrade is Ironbark Staff for every build, and the ▼ alternative is Rod of the Ogre Magi (Staff of Sorrow for Incinerate DS). The new baseline also moved a few other ▲ / ▼ picks, for example Rune Band of Wizardry is now a ring ▲.
+
 ## v214
 - **Revelation hotfix:** a Revelation charge now makes only one tick of a channel crit and is used up there: Hellfire, Rain of Fire, Drain Life and Wrack. Before, a channel started with the charge up crit on every tick. A Hellfire or Rain of Fire tick that uses it crits on every target it hits.
 - **One Revelation roll per AoE tick:** Hellfire and Rain of Fire ticks now get one chance to trigger Revelation per tick instead of one per target hit.
