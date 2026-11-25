@@ -60,7 +60,9 @@ module.exports = { clean, gameSet };
 // Round 211: tooltip lines the game no longer has (user). Bad Hat: "looks like bad hat lost the shadow dmg on it".
 const DROP = { 260212: '<br><span class="q2">Equip: Increases damage done by Shadow spells and effects by up to 23.</span>' };
 // Round 216: a tooltip Wowhead changed after our list (Channeler's Ring, its page read 2026-11-15): [old, new] pairs.
-const FIX = { 272406: [['<br><span>+8 Spirit</span>', ''], ['Improves your chance to hit by 1.0%.</span>', 'Improves your chance to hit by 1.0%.</span><br><span class="q2">Equip: Increases damage and healing done by magical spells and effects by up to 9.</span>']] };
+const FIX = { 272406: [['<br><span>+8 Spirit</span>', ''], ['Improves your chance to hit by 1.0%.</span>', 'Improves your chance to hit by 1.0%.</span><br><span class="q2">Equip: Increases damage and healing done by magical spells and effects by up to 9.</span>']],
+  // Round 254 (user: "magician's cord is now usable by warlocks as well"): Wowhead's tooltip (read 2026-11-25) still says Mage only
+  272393: [['class="c8">Mage</a></div>', 'class="c8">Mage</a>, Warlock</div>']] };
 
 // Round 217: items we have no Wowhead tooltip for (tools/gen-items.js EXTRA / a random suffix kept as one roll), written from
 // their Wowhead Forever pages (read 2026-11-15); the Shadow Wrath line as the game shows a random suffix.

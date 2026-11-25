@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v218
+- **Magician's Cord for Warlocks:** Magician's Cord (epic cloth waist, +19 spell power, +24 Intellect, +12 Stamina, sold by Pix Xizzix) is now in the gear builder. It's usable by Warlocks now, though Wowhead still lists it as Mage only. It sims a little below the current belts in every build, so the Pre-BiS lists and default DPS don't change.
+- **Pre-raid BiS page:** Magician's Cord is the new ▼ waist alternative for Shadow Demo, Fire Demo, Incinerate and Incinerate DS. Wrack DS keeps Black Waistcord.
+
 ## v217
 - **Revelation on Hellfire and Rain of Fire:** a tick now gets its one Revelation roll only if the first enemy it hits takes no crit. A missed enemy doesn't count. Before, any enemy taking a non-crit hit gave the roll. This follows the latest public log study of the 2026-11-24 and 2026-11-25 hotfixes. Single-target DPS doesn't change; with Revelation on 3 targets, Hellfire and Rain of Fire lose about 0.1–0.2%.
 

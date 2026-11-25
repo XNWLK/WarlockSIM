@@ -64,7 +64,16 @@ const STATS_FIX = { 254013: { s: { splpwr: 18, spldmg: 6, spi: 7 }, why: 'Earthe
 const EXTRA = [
   { id: 22342, n: 'Leggings of Torment', l: 63, r: 58, q: 3, sl: 7, sub: 1, cls: 4, ic: 'inv_pants_09', set: 0, mx: 0, rc: 0, rr: 0, rf: 0,
     s: { shasplpwr: 34, int: 16, sta: 16 }, src: [2], sm: [{ n: 'Lord Valthalak', t: 1, z: 1583 }], cat: 'armor/cloth/slot:7' },
+  // Round 254 (user: "magician's cord is now usable by warlocks as well"): Wowhead Forever still marks it Mage only (classes 128),
+  // so tools/items-collect.js left it out of the list. Its Wowhead Forever page and tooltip (read 2026-11-25): Epic, item level 60,
+  // Requires Level 60, Binds when picked up, 52 Armor, +12 Stamina, +24 Intellect, +19 spell damage and healing; sold by Pix
+  // Xizzix (Undermine Trader, Stranglethorn Vale) for 100 Tarnished Undermine Real.
+  { id: 272393, n: "Magician's Cord", l: 60, r: 60, q: 4, sl: 6, sub: 1, cls: 4, ic: 'inv_belt_43a', set: 0, mx: 0, rc: 128, rr: 0, rf: 0,
+    s: { splpwr: 19, int: 24, sta: 12 }, src: [5], sm: [{ n: 'Pix Xizzix', t: 1, ti: 227853, z: 33 }], cat: 'armor/cloth/slot:6' },
 ];
+// Round 254: items Wowhead names for other classes only that a Warlock can wear in the game (the user) — kept despite the class
+// mask (also kept by tools/items-collect.js from now on, CLASS_OK there).
+const CLASS_OK = { 272393: "Magician's Cord: Mage only on Wowhead; usable by Warlocks in the game (user, 2026-11-25)" };
 EXTRA.forEach(x => { if (!raw.items.some(y => y.id === x.id)) raw.items.push(x); });
 // Round 217: where an item comes from, where Wowhead's list names a vendor's NPC as a drop (Rugged Mantle of the Timbermaw: sold
 // by Meilosh, the Timbermaw Hold quartermaster; Wowhead lists only a vendor source).
@@ -184,7 +193,7 @@ const otherClassQuest = x => x.sm && x.sm.length && x.sm.every(s => s.t === 5 &&
 const dropped = { otherClass: 0, otherClassSet: 0, otherClassQuest: 0, excluded: 0, test: 0, slot: 0, noStat: 0 }, items = {};
 raw.items.slice().sort((a, b) => a.id - b.id).forEach(x => {
   if (EXCLUDE[x.id]) { dropped.excluded++; return; }
-  if (x.rc && !(x.rc & WARLOCK_BIT)) { dropped.otherClass++; return; }
+  if (x.rc && !(x.rc & WARLOCK_BIT) && !CLASS_OK[x.id]) { dropped.otherClass++; return; }   // round 254: CLASS_OK
   if (otherClassPiece[x.id] || otherClassSet[x.set]) { dropped.otherClassSet++; return; }
   if (otherClassQuest(x)) { dropped.otherClassQuest++; return; }
   if (TEST_NAME.test(x.n)) { dropped.test++; return; }

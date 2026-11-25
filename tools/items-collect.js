@@ -56,6 +56,9 @@ const COLLECT = `(async () => {
   const K = ['splpwr', 'spldmg', 'shasplpwr', 'firsplpwr', 'arcsplpwr', 'frosplpwr', 'holsplpwr', 'natsplpwr', 'splheal', 'hitrtng', 'critstrkrtng', 'splcritstrkpct',
     'hastertng', 'splpen', 'int', 'spi', 'sta', 'manargn', 'agi', 'str', 'atkpwr'];
   const items = {}, counts = {};
+  // round 254: items Wowhead names for other classes only that a Warlock can wear in the game (tools/gen-items.js CLASS_OK):
+  // Magician's Cord (Mage only on Wowhead; user: "now usable by warlocks as well")
+  const CLASS_OK = [272393];
   async function tipText(itemId) {                               // round 166: a trinket's whole tooltip as text, spell links kept as [spell:ID]
     if (cache['t' + itemId]) return cache['t' + itemId];
     let tip = null;
@@ -68,7 +71,7 @@ const COLLECT = `(async () => {
   for (const c of cats) {
     const { lv, g } = await get(c); counts[c] = lv.length; tick('lists', cats.indexOf(c) + 1);
     lv.forEach(x => {
-      if (x.reqclass && !(x.reqclass & 256)) return;            // 256 = Warlock
+      if (x.reqclass && !(x.reqclass & 256) && CLASS_OK.indexOf(x.id) < 0) return;   // 256 = Warlock; round 254: CLASS_OK
       const gi = g[x.id] || {}, eq = gi.jsonequip || {}, s = {};
       K.forEach(k => { if (eq[k]) s[k] = eq[k]; });
       items[x.id] = { id: x.id, n: x.name, l: x.level, r: x.reqlevel || eq.reqlevel || 0, q: x.quality, sl: x.slotbak || x.slot, sub: x.subclass, cls: x.classs,
