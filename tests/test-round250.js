@@ -6,8 +6,9 @@
 //  * A channel tick (Hellfire, Rain of Fire, Drain Life, Drain Soul, Wrack) that comes while it is up takes it and spends it
 //    ('used' Revelation for: the channel's spell, right before that tick): that one tick crits — an area tick on every
 //    target it hits (an assumption: one tick event) — and the rest of the channel does not, unless a new trigger comes.
-//  * A Hellfire / Rain of Fire tick rolls the trigger once (not once per target), after all its targets, when at least
-//    one target took a landed hit that did not crit; the 'buff' Revelation line then follows that tick's lines.
+//  * A Hellfire / Rain of Fire tick rolls the trigger once (not once per target), after all its targets, when its first
+//    landed hit did not crit (round 253; rounds 250-252: when any landed hit did not crit — MECHANICS.md, "Old rule");
+//    the 'buff' Revelation line then follows that tick's lines.
 //  * Direct hits, DoTs and curses: unchanged (round 243).
 (function () {
   function det(f) { var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)); c.fight.durationVarPct = 0; if (f) f(c); return c; }
@@ -38,7 +39,7 @@
     });
     return out;
   }
-  function landedPlain(tk) { return tk.lines.some(function (e) { return e.type === 'tick' && !e.crit; }); }
+  function landedPlain(tk) { var f = tk.lines.filter(function (e) { return e.type === 'tick'; })[0]; return !!f && !f.crit; }   // round 253: the first landing decides
 
   function aoeRules(key, rot) {
     T.group(key + ': one trigger roll per tick, 1 vs 3 targets');
@@ -56,9 +57,9 @@
       });
       var r = trig / elig, se = Math.sqrt(p * (1 - p) / elig), pk = 1 - Math.pow(1 - p, nt);
       rates[nt] = r;
-      T.ok(elig > 500, nt + ' target' + (nt > 1 ? 's' : '') + ': ticks with a landed hit that did not crit: ' + elig);
+      T.ok(elig > 500, nt + ' target' + (nt > 1 ? 's' : '') + ': ticks whose first landed hit did not crit: ' + elig);
       T.eq(twice, 0, nt + ' target(s): never two triggers from one tick');
-      T.eq(badTrig, 0, nt + ' target(s): no trigger from a tick that took it or had no landed hit that did not crit');
+      T.eq(badTrig, 0, nt + ' target(s): no trigger from a tick that took it or whose first landed hit crit');
       T.near(r, p, 4 * se, nt + ' target(s): ' + trig + ' triggers / ' + elig + ' ticks = ' + (r * 100).toFixed(2) + '% per tick vs ' + (p * 100).toFixed(2) + '% (± ' + (4 * se * 100).toFixed(2) + ')');
       if (nt > 1) T.ok(Math.abs(r - pk) > 4 * se, '… and not one roll per target hit: 1 − (1 − p)^' + nt + ' = ' + (pk * 100).toFixed(2) + '% (rounds 243–249)');
     });

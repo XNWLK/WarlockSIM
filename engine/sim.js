@@ -626,8 +626,8 @@ window.WL = window.WL || {};
     // Revelation (round 167; rules of round 243, the user's choices, from a public log study of Warcraft Logs reports,
     // Forever 1.60.1.70862–70959; channels and area ticks changed in round 250) [A106]: + pct % crit for 15 s (a new
     // trigger while it is up resets the 15 s).
-    //  * Trigger: a landed direct hit that does not crit (any target), and each Hellfire / Rain of Fire tick with a landed
-    //    hit that does not crit (once per tick since round 250, below), rolls 11% × (1 − 2 × crit) (WL.revelationChancePct;
+    //  * Trigger: a landed direct hit that does not crit (any target), and each Hellfire / Rain of Fire tick whose first
+    //    landed hit does not crit (once per tick since round 250, the first landing deciding since round 253, below), rolls 11% × (1 − 2 × crit) (WL.revelationChancePct;
     //    crit = your sheet crit, as since round 167). Never: DoT ticks, drain / Wrack ticks, your demon, trinket and item procs.
     //  * Spent at the cast: a direct spell (or Immolate's direct part) cast while it is up takes it when the cast completes
     //    (instants: when cast) and crits when it lands, even after travel time — or not at all if it misses. Nothing else
@@ -641,9 +641,10 @@ window.WL = window.WL || {};
     //      it and spends it (revTick): that one tick crits, the rest of the channel does not unless a new trigger comes.
     //      No channel holds it any more (rounds 243–249: every tick crit until the channel ended). ASSUMED: an area tick
     //      that takes it crits on every target it hits — it is one tick event.
-    //    - An area tick rolls the trigger chance once (not once per target), after all its targets, when at least one
-    //      target took a landed hit that did not crit (the old per-hit condition, now per tick). A tick that took it crits
-    //      on every target, so it never rolls; a charge rolled by a tick is not used by that same tick (aoeTick).
+    //    - An area tick rolls the trigger chance once (not once per target), after all its targets, when its first landed
+    //      hit did not crit (round 253; rounds 250–252: when any landed hit did not crit — see MECHANICS.md, "Old rule"). A
+    //      tick that took it crits on every target, so it never rolls; a charge rolled by a tick is not used by that same
+    //      tick (aoeTick).
     var rv = REV ? eps[REV.id] : null;
     function revUp() { return rv.until > S.t + EPS; }                // is it up now
     function revRoll(crit) {                                         // a landed direct hit / an area tick
@@ -1029,24 +1030,29 @@ window.WL = window.WL || {};
     // damage is live like every tick (A13); Eureka! counts it as a channel tick; Bane of Havoc copies what the other
     // targets take. Extra targets' damage is booked under x2: / x3: like the multi-DoT rows.
     // Round 250 (the user's hotfix note) [A106]: Revelation is checked once per tick, before its targets — a tick that comes
-    // while it is up takes and spends it and crits on every target (ASSUMED: one tick event); otherwise the tick rolls the
-    // trigger once, after all its targets, if any target took a landed hit that did not crit. So target 1 can neither spend
-    // it nor trigger it for target 2 of the same tick (rounds 243–249: a roll per target hit, and the channel held it).
+    // while it is up takes and spends it and crits on every target (one tick event; the public evidence notes confirm it);
+    // otherwise the tick rolls the trigger at most once, after all its targets. So target 1 can neither spend it nor
+    // trigger it for target 2 of the same tick (rounds 243–249: a roll per target hit, and the channel held it).
+    // Round 253 (public evidence notes, a log study of Revelation wearers, Forever, hotfixes 2026-11-24 20:54 and
+    // 2026-11-25 01:13 UTC: "a hit event rolls once however many targets it strikes" and its first result decides): the
+    // one roll happens only when the tick's FIRST LANDED hit (the first target that did not miss) did not crit; a missed
+    // target is no landing, and a tick with no landed hit rolls nothing. Rounds 250–252 rolled when ANY landed hit of the
+    // tick did not crit — that old rule, and how to restore it, is written down in MECHANICS.md (Revelation, "Old rule").
     function aoeTick(key, i) {
       var s = SPELLS[key], e = table[key];
-      var rvc = REV ? revTick(key) : 0, plain = false;                 // plain: a landed hit of this tick that did not crit
+      var rvc = REV ? revTick(key) : 0, first = null;                  // first: the crit result of the tick's first landed hit
       for (var ti = 1; ti <= NT; ti++) {
         var rk = ti > 1 ? xkey(ti, key) : key, r = row(rk);
         if (missRoll(key)) { r.misses++; L('miss', rk, { n: i + 1, of: e.ticks }); continue; }
         var amt = (s.tickBase + s.tickCoef * spNow(e)) * e.periodicMult * (ti > 1 ? liveMultX(key, ti, true) : liveMult(key, true));
         amt *= vulnMult(s.school, ti, false, key);
         var crit = critRoll(key, e.critPct + rvc, ti);
-        if (!crit) plain = true;
+        if (first === null) first = crit;
         if (crit) amt *= e.critMult;
         deal(rk, amt, crit, true, ti);
         if (logOn) L('tick', rk, Object.assign({ dmg: Math.round(amt), crit: crit, rev: rvc ? true : undefined, n: i + 1, of: e.ticks }, vulnLog(amt)));
       }
-      if (REV && !rvc && plain) revRoll(false);                          // round 250: one trigger roll per tick [A106]
+      if (REV && !rvc && first === false) revRoll(false);                // round 253: one roll per tick, only if its first landing did not crit [A106]
       if (s.selfDamage) loseHealth(selfTick(key), 'self');     // Hellfire: the tick's base damage to yourself, no damage talents, no crit (round 119); less with Molten Skin / Soul Link (round 132)
     }
 

@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v217
+- **Revelation on Hellfire and Rain of Fire:** a tick now gets its one Revelation roll only if the first enemy it hits takes no crit. A missed enemy doesn't count. Before, any enemy taking a non-crit hit gave the roll. This follows the latest public log study of the 2026-11-24 and 2026-11-25 hotfixes. Single-target DPS doesn't change; with Revelation on 3 targets, Hellfire and Rain of Fire lose about 0.1–0.2%.
+
 ## v216
 - **Gear builder, two-handers:** +65 Spell Power is now the default enchant for every two-hander. Loading a Pre-raid BiS or Max Pre-BiS list puts it on the staff (your other enchants stay). Loading a saved set, or picking a staff by hand, swaps Revelation, a one-hand enchant or an empty slot for +65 Spell Power. A two-hand enchant you picked yourself stays. Putting a two-hander on also removes your off hand. Switching back to a one-hander drops the two-hand-only enchant. "Best combination" and Compare count the +65 too.
 - **Pre-raid BiS page:** two-handers no longer show "expensive enchant (+65 Spell Power)" as a downside.
