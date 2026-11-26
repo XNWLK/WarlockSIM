@@ -117,7 +117,8 @@ const USEFUL = ['sp', 'shadowSp', 'fireSp', 'hitPct', 'critPct', 'hastePct', 'pi
 function from(x) {                                         // a short "where it comes from", when Wowhead knows it
   const m = (x.sm || [])[0], src = x.src || [];
   if (src.indexOf(1) >= 0) return 'Crafted';
-  if (m && m.n && m.t === 1) return 'Drop: ' + m.n;
+  // round 256 (user: "make it say vendor: pix xizzix"): Wowhead's NPC source of a vendor item is the vendor, not a drop
+  if (m && m.n && m.t === 1) return (src.indexOf(5) >= 0 && src.indexOf(2) < 0 ? 'Vendor: ' : 'Drop: ') + m.n;
   if (m && m.n && m.t === 5) return 'Quest: ' + m.n;
   if (src.indexOf(5) >= 0) return 'Vendor';
   if (src.indexOf(4) >= 0) return 'Quest';

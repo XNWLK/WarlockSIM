@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v220
+- **Item sources:** items bought from a vendor now say "Vendor: <name>" instead of "Drop: <name>", e.g. Magician's Cord is "Vendor: Pix Xizzix". This covers 259 items, including the PvP rank vendors. It shows in the gear builder and on the Pre-raid BiS page.
+
 ## v219
 - **Pre-raid BiS page:** Magician's Cord is now an allowed ▼ alternative even though it's an epic, because it's bought from a vendor. The alternatives don't change: it stays the ▼ belt for Shadow Demo, Fire Demo, Incinerate and Incinerate DS, and Wrack DS keeps Black Waistcord. The page notes say so.
 
