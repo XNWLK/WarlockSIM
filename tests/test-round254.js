@@ -55,14 +55,14 @@
     var N = mod.exports;
     // round 255: no hand pick any more — the Cord is ▼ by rule (notes.js CHEAP_OK; test-round255.js)
     T.ok(N.ALT[BANTHOK] === CORD || !!(N.CHEAP_OK || {})[CORD], 'notes.js: ▼ of Ban\'thok Sash = Magician\'s Cord (by hand, or by rule since round 255)');
-    T.eq(N.ALT[MASTERS], WAISTCORD, 'notes.js: Wrack DS keeps the user\'s Black Waistcord under Master\'s Belt');
+    // round 257 (user: "yes swap"): Wrack DS's Black Waistcord pin is gone; the Cord is its ▼ too (test-round257.js)
+    T.ok(!(MASTERS in N.ALT), 'notes.js: no hand pick under Master\'s Belt since round 257');
     T.ok(!N.EXCLUDE[CORD], 'not excluded');
     var D = JSON.parse(dj);
     D.builds.forEach(function (b) {
       var a = b.alts.waist || {};
       T.ok(a.up && a.up.id === ARCHMAGE, b.key + ': ▲ Belt of the Archmage stays');
-      if (b.key === 'wrack_ds') T.ok(a.alt && a.alt.id === WAISTCORD, 'wrack_ds: ▼ Black Waistcord stays');
-      else T.ok(a.alt && a.alt.id === CORD && a.alt.dps < 0 && a.alt.dps > -3, b.key + ': ▼ Magician\'s Cord (' + (a.alt && a.alt.dps) + ' DPS)');
+      T.ok(a.alt && a.alt.id === CORD && a.alt.dps < 0 && a.alt.dps > -3, b.key + ': ▼ Magician\'s Cord (' + (a.alt && a.alt.dps) + ' DPS)');
     });
     T.ok(D.items[CORD] && D.items[CORD].name === 'Magician\'s Cord' && D.items[CORD].q === 'epic' && /Classes: Mage, Warlock/.test(D.items[CORD].tip), 'data.json: its item entry with the tooltip');
   });

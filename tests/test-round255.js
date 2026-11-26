@@ -23,7 +23,7 @@
     T.eq(Object.keys(N.CHEAP_OK || {}).length, 1, 'only the Cord');
     T.ok(!(BANTHOK in N.ALT), 'no hand-picked ▼ for Ban\'thok Sash any more (11662 → 272393 removed)');
     T.ok(Object.keys(N.ALT).every(function (k) { return N.ALT[k] !== CORD; }), 'no ALT entry points to the Cord');
-    T.eq(N.ALT[MASTERS], WAISTCORD, 'Wrack DS keeps the user\'s Black Waistcord under Master\'s Belt (ALT 10255 → 254087)');
+    T.ok(!(MASTERS in N.ALT), 'round 257: Wrack DS\'s Black Waistcord pin (ALT 10255 → 254087) is gone');
     T.ok(!N.EXCLUDE[CORD], 'the Cord is not excluded');
     T.ok(/"because the\s*(\/\/\s*)?magicians belt can be bought from the vendor, we will forgo the epic requirement for it"/.test(nt), 'notes.js quotes the user');
     T.group('alts.js');
@@ -37,8 +37,7 @@
     D.builds.forEach(function (b) {
       var a = b.alts.waist || {}; seen++;
       T.ok(a.up && a.up.id === ARCHMAGE, b.key + ': ▲ Belt of the Archmage stays');
-      if (b.key === 'wrack_ds') T.ok(a.alt && a.alt.id === WAISTCORD, 'wrack_ds: ▼ Black Waistcord stays (' + (a.alt && a.alt.dps) + ' DPS)');
-      else T.ok(a.alt && a.alt.id === CORD && a.alt.dps < 0 && a.alt.dps > -3, b.key + ': ▼ Magician\'s Cord by rule (' + (a.alt && a.alt.dps) + ' DPS)');
+      T.ok(a.alt && a.alt.id === CORD && a.alt.dps < 0 && a.alt.dps > -3, b.key + ': ▼ Magician\'s Cord by rule (' + (a.alt && a.alt.dps) + ' DPS)');
     });
     T.eq(seen, 5, 'five builds');
   });
