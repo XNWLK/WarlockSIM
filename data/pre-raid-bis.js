@@ -16,6 +16,12 @@
 // and make whatever comes next the alternative". So every build wields a staff (no off hand) with +65 Spell Power (7662):
 // Headmaster's Charge — Elemental Mage Staff for Incinerate DS, the clear 2nd there (+0.8 DPS over Headmaster's Charge,
 // 8 seeds × 4,000, paired SE 0.13); was Witchblade / Blade of the New Moon + an off hand.
+// Round 259 (user: the page's ▼ alternatives with a "+" DPS — "why isn't it listed as bis then?"): every pair of the blue rings
+// (Songstone of Ironforge, Don Mauricio's Band of Domination, Maiden's Circle, Channeler's Ring) in every build, legs, waist and
+// staffs, paired fights (30 × 1,000, the close ones 100 × 1,000, page defaults). Songstone of Ironforge was the weakest blue ring
+// in four builds: Shadow Demo Don Mauricio's + Channeler's, Fire Demo and Incinerate Pandemic Maiden's Circle + Channeler's,
+// Wrack DS Channeler's + Don Mauricio's; Incinerate DS keeps Songstone + Channeler's (every other pair loses 0.9 … 6.9 DPS) and
+// wears Deathmist Leggings. Round 216's "put the songstone always in the top slot" placed the ring; where it is worn, it still is.
 window.WL = window.WL || {};
 WL.PRE_RAID_BIS_PHASE = 1;
 WL.PRE_RAID_BIS = {
@@ -30,7 +36,7 @@ WL.PRE_RAID_BIS = {
     waist: 11662,       // Ban'thok Sash
     legs: 22342,        // Leggings of Torment (round 240, user: "have torment be the default for shadow demo since it's an upgrade and skyshroud be the alternative"; was Skyshroud Leggings)
     feet: 11822,        // Omnicast Boots
-    finger1: 12543,     // Songstone of Ironforge
+    finger1: 22433,     // Don Mauricio's Band of Domination (round 259, user: "the songstone has don mauricio as an alternative but it's better than songstone. shadow demo has the same problem"; +1.53 ± 0.09 DPS over Songstone of Ironforge, 30 × 1,000 paired fights; Maiden's Circle +0.61; was Songstone of Ironforge)
     finger2: 272406,    // Channeler's Ring (round 216, user; was Blessed Band of Light)
     trinket1: 18467,    // Royal Seal of Eldre'Thalas
     trinket2: 272438,   // Weakness Analyzer
@@ -48,7 +54,7 @@ WL.PRE_RAID_BIS = {
     waist: 11662,       // Ban'thok Sash
     legs: 13170,        // Skyshroud Leggings
     feet: 11822,        // Omnicast Boots
-    finger1: 12543,     // Songstone of Ironforge (round 216, user: "put the songstone always in the top slot")
+    finger1: 13001,     // Maiden's Circle (round 259, every pair of the blue rings: +0.38 ± 0.04 DPS over Songstone of Ironforge, 30 × 1,000 paired fights; Don Mauricio's −0.69; was Songstone of Ironforge, round 216's "put the songstone always in the top slot")
     finger2: 272406,    // Channeler's Ring (round 216, user; was Blessed Band of Light)
     trinket1: 18467,    // Royal Seal of Eldre'Thalas
     trinket2: 272438,   // Weakness Analyzer
@@ -66,7 +72,7 @@ WL.PRE_RAID_BIS = {
     waist: 11662,       // Ban'thok Sash
     legs: 13170,        // Skyshroud Leggings
     feet: 11822,        // Omnicast Boots
-    finger1: 12543,     // Songstone of Ironforge
+    finger1: 13001,     // Maiden's Circle (round 259, user: "the songstone has don mauricio as an alternative but it's better than songstone": +0.62 ± 0.04 DPS over Songstone of Ironforge, Don Mauricio's +0.32 ± 0.05, 100 × 1,000 paired fights; was Songstone of Ironforge)
     finger2: 272406,    // Channeler's Ring (round 216, user; was Blessed Band of Light)
     trinket1: 18467,    // Royal Seal of Eldre'Thalas
     trinket2: 272438,   // Weakness Analyzer
@@ -82,13 +88,13 @@ WL.PRE_RAID_BIS = {
     wrist: 18497,       // Sublime Wristguards
     hands: 13253,       // Hands of Power (round 216: all blue, was Deathmist Wraps)
     waist: 11662,       // Ban'thok Sash
-    legs: 13170,        // Skyshroud Leggings
+    legs: 226910,       // Deathmist Leggings (round 259, user: "deathmist is the alternative but it's better": +0.31 ± 0.07 DPS over Skyshroud Leggings, 100 × 1,000 paired fights; was Skyshroud Leggings)
     feet: 11822,        // Omnicast Boots
     finger1: 12543,     // Songstone of Ironforge (round 216, user: "put the songstone always in the top slot")
     finger2: 272406,    // Channeler's Ring (round 216, user; was Blessed Band of Light)
     trinket1: 18467,    // Royal Seal of Eldre'Thalas
     trinket2: 272438,   // Weakness Analyzer
-    mainHand: 944,      // Elemental Mage Staff (round 251: 2nd best staff after Ironbark for Incinerate DS)
+    mainHand: 944,      // Elemental Mage Staff (round 251: 2nd best staff after Ironbark for Incinerate DS; round 259, user: "it lists elemental mage staff as bis but the alternative is staff of sorrow and that one is a dps increase": no — Staff of Sorrow −0.35 ± 0.06 DPS, 100 × 1,000 paired fights; the page's +0.1 was noise)
     ranged: 13938,      // Bonecreeper Stylus
   },
   wrack_ds: { // Wrack DS – Affliction (Wrack), Imp sacrificed
@@ -102,7 +108,7 @@ WL.PRE_RAID_BIS = {
     waist: 10255,       // Master's Belt of Shadow Wrath (round 218, user: "yes make the belt main for wrack, waistcord as alternative"; +30 Shadow, +6.5 DPS over Black Waistcord, 4 seeds x 4000)
     legs: 22342,        // Leggings of Torment (round 217, user: "swap wrack main to leggings of torment and the alternative to skyshroud"; +4.4 DPS, 4 seeds x 4000)
     feet: 10247,        // Master's Boots of Shadow Wrath (round 218, user: "use shadow wrath for wrack and have omnicast as the alternative"; +30 Shadow, +4.9 DPS over Omnicast Boots, 4 seeds x 4000)
-    finger1: 12543,     // Songstone of Ironforge
+    finger1: 272406,    // Channeler's Ring (round 259, every pair of the blue rings: Channeler's Ring + Don Mauricio's +0.80 ± 0.05 DPS over Songstone of Ironforge + Don Mauricio's, 100 × 1,000 paired fights; was Songstone of Ironforge)
     finger2: 22433,     // Don Mauricio's Band of Domination
     trinket1: 18467,    // Royal Seal of Eldre'Thalas
     trinket2: 272438,   // Weakness Analyzer
@@ -155,6 +161,9 @@ WL.preRaidBisEnchants = function (buildKey) {
 // tools/gen-pre-bis.js → data/pre-bis-gear.js WL.MAX_BIS_GEAR; the quick setup's "Max Pre-BiS" (cfg.gearMode 'maxBis').
 // Round 251 (user: "basically we're dropping all 1 handers from the list"): no one-hander here either — every build wields
 // Ironbark Staff with +65 Spell Power (Ironbark vs Rod of the Ogre Magi in each Max list: +15.6 … +20.1 DPS, 4 seeds × 3,000).
+// Round 258 (Zarla's Snack Pouch from a player's combat log: 4 Fireballs of 213–254, about 60% less damage): the trinkets rerun —
+// every pool trinket in each trinket slot (4 × 1,000 fights), the best 5 at 30 × 1,000, the close ones at 100 × 1,000 (paired).
+// Shadow Demo and Incinerate Pandemic drop the pouch (Eye of the Beast + Weakness Analyzer); the other three keep it.
 WL.MAX_PRE_RAID_BIS = {
   demo_pact_succ_sb: { // Demonology – Pact, Succubus out, Shadow Bolt
     head: 22267,        // Spellweaver's Turban
@@ -169,7 +178,7 @@ WL.MAX_PRE_RAID_BIS = {
     feet: 10247,        // Master's Boots of Shadow Wrath (search: +2.6 DPS over Omnicast Boots)
     finger1: 22339,     // Rune Band of Wizardry (▲ upgrade of the pre-raid page)
     finger2: 272406,    // Channeler's Ring
-    trinket1: 276744,   // Zarla's Snack Pouch (search: +7.6 DPS over Royal Seal of Eldre'Thalas)
+    trinket1: 13968,    // Eye of the Beast (round 258, Zarla's Snack Pouch from a combat log: +1.4 ± 0.2 DPS over the pouch, 100 × 1,000 paired fights; was the pouch, +7.6 over Royal Seal of Eldre'Thalas)
     trinket2: 272438,   // Weakness Analyzer
     mainHand: 20220,    // Ironbark Staff (round 251, no one-handers: +17.4 DPS over Rod of the Ogre Magi, 4 seeds × 3,000; was Sageblade + Therazane's Touch)
     ranged: 13938,      // Bonecreeper Stylus
@@ -187,7 +196,7 @@ WL.MAX_PRE_RAID_BIS = {
     feet: 11822,        // Omnicast Boots
     finger1: 22339,     // Rune Band of Wizardry (▲ upgrade of the pre-raid page)
     finger2: 272406,    // Channeler's Ring
-    trinket1: 276744,   // Zarla's Snack Pouch (search: +7.9 DPS over Royal Seal of Eldre'Thalas)
+    trinket1: 276744,   // Zarla's Snack Pouch (round 258 rerun: +0.4 ± 0.1 DPS over Royal Seal of Eldre'Thalas, 100 × 1,000 paired fights; was +7.9)
     trinket2: 272438,   // Weakness Analyzer
     mainHand: 20220,    // Ironbark Staff (▲ upgrade of the pre-raid page)
     ranged: 13938,      // Bonecreeper Stylus
@@ -205,8 +214,8 @@ WL.MAX_PRE_RAID_BIS = {
     feet: 11822,        // Omnicast Boots
     finger1: 22339,     // Rune Band of Wizardry (▲ upgrade of the pre-raid page)
     finger2: 272406,    // Channeler's Ring
-    trinket1: 276744,   // Zarla's Snack Pouch (search: +8.5 DPS over Royal Seal of Eldre'Thalas)
-    trinket2: 13968,    // Eye of the Beast (search: +0.7 DPS over Weakness Analyzer)
+    trinket1: 13968,    // Eye of the Beast (search: +0.7 DPS over Weakness Analyzer)
+    trinket2: 272438,   // Weakness Analyzer (round 258, Zarla's Snack Pouch from a combat log: +1.5 ± 0.1 DPS over the pouch, 100 × 1,000 paired fights; was the pouch + Eye of the Beast)
     mainHand: 20220,    // Ironbark Staff (▲ upgrade of the pre-raid page)
     ranged: 13938,      // Bonecreeper Stylus
   },
@@ -223,7 +232,7 @@ WL.MAX_PRE_RAID_BIS = {
     feet: 11822,        // Omnicast Boots
     finger1: 22339,     // Rune Band of Wizardry (▲ upgrade of the pre-raid page)
     finger2: 272406,    // Channeler's Ring
-    trinket1: 276744,   // Zarla's Snack Pouch (search: +8.6 DPS over Royal Seal of Eldre'Thalas)
+    trinket1: 276744,   // Zarla's Snack Pouch (round 258 rerun: +0.6 ± 0.1 DPS over Royal Seal of Eldre'Thalas, Eye of the Beast in its place a tie +0.0 ± 0.1, 100 × 1,000 paired fights; was +8.6)
     trinket2: 272438,   // Weakness Analyzer
     mainHand: 20220,    // Ironbark Staff (▲ upgrade of the pre-raid page)
     ranged: 13938,      // Bonecreeper Stylus
@@ -241,7 +250,7 @@ WL.MAX_PRE_RAID_BIS = {
     feet: 10247,        // Master's Boots of Shadow Wrath
     finger1: 272406,    // Channeler's Ring (search: +0.6 DPS over Songstone of Ironforge)
     finger2: 22433,     // Don Mauricio's Band of Domination
-    trinket1: 276744,   // Zarla's Snack Pouch (search: +7.2 DPS over Royal Seal of Eldre'Thalas)
+    trinket1: 276744,   // Zarla's Snack Pouch (round 258 rerun: a tie with Royal Seal of Eldre'Thalas, the Seal +0.15 ± 0.08 DPS, 100 × 1,000 paired fights; was +7.2)
     trinket2: 272438,   // Weakness Analyzer
     mainHand: 20220,    // Ironbark Staff (▲ upgrade of the pre-raid page)
     ranged: 13396,      // Skul's Ghastly Touch

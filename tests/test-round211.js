@@ -57,7 +57,7 @@
     // — Headmaster's Charge / Elemental Mage Staff are epics
     var GREEN_OK = { 10247: 1, 10255: 1 };
     T.ok(Object.keys(P).every(function (k) { return Object.keys(P[k]).every(function (s) { return WL.ITEMS[P[k][s]].quality === 'rare' || (k === 'wrack_ds' && GREEN_OK[P[k][s]]) || s === 'mainHand'; }); }), 'round 216: every item of every main list is blue (user; round 218: but the two Wrack DS Shadow Wrath greens; round 251: but the staff)');
-    T.ok(Object.keys(P).every(function (k) { return P[k].finger1 !== 272407 && P[k].finger2 !== 272407; }) && P.demo_pact_fire.finger2 === 272406 && Object.keys(P).every(function (k) { return P[k].finger1 === 12543; }), 'round 216: Songstone of Ironforge in the top ring slot of every list; Channeler\'s Ring instead of Blessed Band of Light (user)');
+    T.ok(Object.keys(P).every(function (k) { return P[k].finger1 !== 272407 && P[k].finger2 !== 272407; }) && P.demo_pact_fire.finger2 === 272406 && Object.keys(P).every(function (k) { return P[k].finger2 !== 12543; }), 'round 216: Songstone of Ironforge in the top ring slot where it is worn (round 259: only Incinerate DS still wears it); Channeler\'s Ring instead of Blessed Band of Light (user)');
     // round 251 (user: "basically we're dropping all 1 handers from the list" → "make the actual equipped item whatever the 2nd best
     // after ironbark is"): a staff, no off hand, replaces round 216's one-handers with Obsidian Bauble / Spirit of Aquementas
     T.ok(Object.keys(P).every(function (k) { return P[k].mainHand === (k === 'destro_incin_ds' ? 944 : 13937) && !P[k].offHand; }), 'round 251: every list wields Headmaster\'s Charge (Incinerate DS: Elemental Mage Staff), no off hand (user; was a one-hander + Obsidian Bauble / Spirit of Aquementas)');

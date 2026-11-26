@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v222
+- **Zarla's Snack Pouch:** now matches players' combat logs. Its Black Dragon Whelp casts 4 Fireballs of 213–254 Fire damage per use, one every 3.3 s, the first starting 1 s after the summon. Before, it was 5 Fireballs of 439. It still uses your hit and crit and takes Curse of the Elements. That's about 930 damage per use before modifiers instead of about 2,200.
+- **Max Pre-BiS trinkets:** Shadow Demo and Incinerate now use Eye of the Beast + Weakness Analyzer instead of the pouch. Fire Demo, Incinerate DS and Wrack DS keep the pouch. Max Pre-BiS DPS drops about 6–8 per build.
+- **Pre-BiS rings and legs:** Songstone of Ironforge leaves four lists. Shadow Demo wears Don Mauricio's Band of Domination, Fire Demo and Incinerate wear Maiden's Circle, and Wrack DS wears Channeler's Ring. Incinerate DS keeps Songstone and now wears Deathmist Leggings instead of Skyshroud Leggings. Default DPS goes up 0.2–1.0.
+- **Pre-raid BiS page:** each ▲ and ▼ number is now measured over 20 × 1,000 fights against the main item with the same seeds, so noise no longer flips its sign. An upgrade has to gain more than 0.5 DPS. A result within the noise shows "≈ About the same DPS". Rune Band of Wizardry is only shown as an upgrade. The page now says the numbers are from a 3-minute fight against a single boss. Zarla's Snack Pouch is no longer Royal Seal's upgrade, Orb of the Darkmoon no longer Fire Demo's neck upgrade, and Gloves of Spell Mastery no longer Wrack DS's gloves upgrade: they gain too little now.
+
 ## v221
 - **Pre-raid BiS page:** Magician's Cord is now the ▼ waist alternative for Wrack DS too (−1.9 DPS; it was Black Waistcord, −6.1), so all five builds share it.
 

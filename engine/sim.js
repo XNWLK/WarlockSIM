@@ -672,7 +672,8 @@ window.WL = window.WL || {};
       L('trinket', x.fx.name);
       var r = row('trinket:' + x.id);
       if (u.kind === 'dmg') { r.casts++; trHit(x, u); }
-      if (u.kind === 'dmgOver') { r.casts++; for (var si = 1; si <= u.shots; si++) H.push({ t: S.t + si * u.every, o: 0, type: 'trShot', slot: x.slot }); }   // round 209: Cannonball Runner
+      // round 209: Cannonball Runner; round 258: `first` = when the first shot lands (default `every`), then one every `every` s
+      if (u.kind === 'dmgOver') { r.casts++; var f0 = u.first != null ? u.first : u.every; for (var si = 0; si < u.shots; si++) H.push({ t: S.t + f0 + si * u.every, o: 0, type: 'trShot', slot: x.slot }); }
       if (u.kind === 'dmgAfter') {
         r.casts++; st.pending = u.casts;
         if (u.castsZones) { var cn = u.casts * trMult({ zones: u.castsZones }); if (cn !== u.casts) st.pending = Math.floor(cn) + (R.proc() < cn % 1 ? 1 : 0); }   // round 209: Everlook Delivery Bot in Snowy areas: 3 or 4

@@ -21,7 +21,8 @@
 //     'dmg'     a hit of min…max (school) — no spell power, your spell hit and crit (×1.5), Curse of the Elements on
 //               Shadow / Fire / Arcane / Frost; school 'physical' (round 241): the boss's armor after debuffs (as for
 //               your demon's melee), no Curse of the Elements
-//     'dmgOver' `shots` such hits, one every `every` s (a summoned helper; the first `every` s after the use)
+//     'dmgOver' `shots` such hits, one every `every` s (a summoned helper; the first `every` s after the use, or `first` s
+//               when given — round 258)
 //     'dmgAfter' a hit of min…max after `casts` landed damaging casts
 //   proc: an effect that triggers by itself — { kind, chancePct, … }:
 //     'spi' / 'sp'  + spi Spirit / + sp spell power for duration; chancePct per landed damaging cast (icd: not again for that long)
@@ -127,9 +128,14 @@ WL.TRINKET_FX = {
   // armor after debuffs (as for your demon's melee), no Curse of the Elements, no spell resistance. ×2 against Plants.
   274759: { name: 'Everlook Pathcarver',                use: { kind: 'dmg', min: 607, max: 607, school: 'physical', cd: 300, vs: { plant: 2 } } },
   // Zarla's Snack Pouch (+11 spell power, item stats): use 1315190 summons a Black Dragon Whelp (npc 274297) for 15 s, 15 min
-  // cooldown. Its only ability: Fireball (npc spell 9053), 3 s cast, 439 Fire ("depends on caster level": 439 taken) — 5
-  // Fireballs at 3, 6, 9, 12 and 15 s. The whelp's hit and crit are modelled as yours, like the Cannonball Runner's cannon.
-  276744: { name: "Zarla's Snack Pouch",                use: { kind: 'dmgOver', min: 439, max: 439, school: 'fire', shots: 5, every: 3, cd: 900 } },
+  // cooldown. Its only ability: Fireball (npc spell 9053). Round 258 (user: "yes use the log, keep my hit and crit"; a
+  // player's combat log, 2 uses, Stratholme, 2026-11-26): 3.0 s casts (2.8–3.04) with 0.1–1.0 s between them = one Fireball
+  // about every 3.3 s, the first cast starting 0.2 s after the summon (2.3 s in the other use); the 5th cast starts at
+  // ~14.3 s and is cut off by the 15 s → 4 Fireballs; 213–254 Fire before modifiers
+  // (average ≈ 223), Curse of the Elements applies, no melee. The whelp's hit and crit stay modelled as yours (user), like
+  // the Cannonball Runner's cannon. Before round 258: 5 Fireballs of 439 at 3, 6, 9, 12 and 15 s (Wowhead's spell value).
+  // Since round 260 (user, after 2 more summons in a second log — first casts at 1.5 and 1.9 s: "keep the damage. change the timing to 1 second flat"): the first cast starts 1 s after the summon → landings at 4.0, 7.3, 10.6 and 13.9 s (round 258: 3.2 …).
+  276744: { name: "Zarla's Snack Pouch",                use: { kind: 'dmgOver', min: 213, max: 254, school: 'fire', shots: 4, first: 4, every: 3.3, cd: 900 } },
   // Scented Runewood Brooch: equip 1318323 ("Aura proc chance 100%") → 1318324, 84–126 Nature, "Harmful spell casts and
   // attacks against Furbolg have a chance to deal …": per landed damaging cast, nothing unless the boss is a Furbolg. The
   // 100% is Wowhead's listed aura chance, the tooltip says "a chance": UNVERIFIED. No item stats.

@@ -27,11 +27,11 @@
     T.ok(!N.EXCLUDE[CORD], 'the Cord is not excluded');
     T.ok(/"because the\s*(\/\/\s*)?magicians belt can be bought from the vendor, we will forgo the epic requirement for it"/.test(nt), 'notes.js quotes the user');
     T.group('alts.js');
-    T.ok(/CHEAP_OK = \{\} \} = require\('\.\/notes\.js'\)/.test(al), 'reads CHEAP_OK from notes.js');
+    T.ok(/CHEAP_OK = \{\}(, UP_ONLY = \{\})? \} = require\('\.\/notes\.js'\)/.test(al), 'reads CHEAP_OK from notes.js (round 259: UP_ONLY too)');
     T.ok(/const cheap = x => [^\n]*\(x\.it\.quality !== 'epic' \|\| !!CHEAP_OK\[x\.id\]\)/.test(al), 'cheap(): a CHEAP_OK epic passes');
     T.ok(/if \(CHEAP_OK\[id\]\) d\.push\(CHEAP_OK\[id\]\);\s*(\/\/[^\n]*)?\n\s*else if \(it\.quality === 'epic'\)/.test(al), 'downsides(): its vendor cost instead of "epic"');
     T.group('template.html');
-    T.ok(/▼ Alternative the best one that is not epic, crafted, reputation or PvP \(a vendor epic like Magician\\'s Cord counts\)\./.test(tp), 'the notes name the exception');
+    T.ok(/▼ Alternative the best one that is not epic, crafted, reputation or PvP \(a vendor epic like Magician\\'s Cord counts[;)]/.test(tp), 'the notes name the exception');
     T.group('data.json (waist)');
     var D = JSON.parse(dj), seen = 0;
     D.builds.forEach(function (b) {

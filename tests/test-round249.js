@@ -116,12 +116,13 @@
     T.group('the builds\' Pre-BiS gear');
     var pc = WL.pageDefaultConfig();
     var w = WL.computeStats(bk('wrack_ds'), 'orc', pc);
-    T.eq(w.pierce, 2, 'Wrack DS: 2 Spell Pierce on its Pre-BiS gear');
-    T.eq(WL.spellResist(pc, w.pierce, 'shadow', true, w.spellPen, 'shadowBolt', false).mean, 0, 'Wrack DS: its 2 Spell Pierce give no bonus any more');
+    // round 259: Songstone of Ironforge (its 2 Spell Pierce) left the Wrack DS and Shadow Demo lists — 0 now
+    T.eq(w.pierce, 0, 'Wrack DS: no Spell Pierce on its Pre-BiS gear (round 259: Channeler\'s Ring for Songstone of Ironforge; was 2)');
+    T.eq(WL.spellResist(pc, 2, 'shadow', true, w.spellPen, 'shadowBolt', false).mean, 0, 'Wrack DS: 2 Spell Pierce would give no bonus');
     T.ok(!WL.pierceBonusOn(pc, WL.effectiveResist(pc, w.pierce, 'shadow', true, w.spellPen)), '… WL.pierceBonusOn says so');
     var d = WL.computeStats(bk('demo_pact_succ_sb'), 'orc', pc);
     // round 251: Shadow Demo's off hand (Obsidian Bauble, 4 Spell Pierce) left with the one-handers — 2 Spell Pierce now, under the cut
-    T.ok(d.pierce === 2 && WL.spellResist(pc, d.pierce, 'shadow', true, d.spellPen, 'shadowBolt', false).mean === 0, 'Shadow Demo: 2 Spell Pierce since round 251 (was 6 with Obsidian Bauble): no bonus');
+    T.ok(d.pierce === 0 && WL.spellResist(pc, 2, 'shadow', true, d.spellPen, 'shadowBolt', false).mean === 0, 'Shadow Demo: no Spell Pierce since round 259 (Don Mauricio\'s for Songstone of Ironforge; 2 in rounds 251–258, 6 with Obsidian Bauble before): 2 would give no bonus');
     T.ok(WL.spellResist(pc, 6, 'shadow', true, d.spellPen, 'shadowBolt', false).mean > 0, '… 6 Spell Pierce on the same settings would still give the bonus');
     T.ok(pc.weightDeltas.pierce === 20 && WL.fittedShare(w.pierce + pc.weightDeltas.pierce, 60) >= 0.01, 'the stat weight\'s +20 lifts Wrack DS over the cut');
   });

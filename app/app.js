@@ -4185,7 +4185,7 @@
       : u.kind === 'costRed' ? 'your spells cost ' + u.amount + ' less mana' + d
       : u.kind === 'mana' ? '+' + u.amount + ' mana, used when that much is missing' + (u.int ? '; −' + u.int + ' Intellect for ' + u.intDuration / 60 + ' min' : '')
       : u.kind === 'dmgAfter' ? u.min + ' Fire damage after ' + u.casts + ' of your spells'
-      : u.kind === 'dmgOver' ? u.shots + ' shots of ' + (u.min === u.max ? u.min : u.min + '–' + u.max) + ' ' + cap1(u.school) + ' damage, one every ' + u.every + ' s'   // round 241: one number when min = max (Zarla's Snack Pouch: 439)
+      : u.kind === 'dmgOver' ? u.shots + ' shots of ' + (u.min === u.max ? u.min : u.min + '–' + u.max) + ' ' + cap1(u.school) + ' damage, one every ' + u.every + ' s' + (u.first != null && u.first !== u.every ? ' (the first after ' + u.first + ' s)' : '')   // round 241: one number when min = max; round 258: the first shot's time (Zarla's Snack Pouch: 3.2 s)
       : (u.min === u.max ? u.min : u.min + '–' + u.max) + ' ' + cap1(u.school || '') + ' damage' + (u.school === 'physical' ? ', less the boss\'s armor' : '')) + c + cond(u);   // round 241: Everlook Pathcarver
   }
   function renderTrinketUse() {

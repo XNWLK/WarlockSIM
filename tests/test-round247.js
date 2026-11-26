@@ -30,7 +30,7 @@
     var G = WL.PRE_BIS_GEAR;
     T.eq(G.wrack_ds.enchants.mainHand.id, 7662, 'Wrack DS: main hand enchant 7662 (round 251)');
     T.ok(others.every(function (b) { return G[b.key].enchants.mainHand.id === 7662; }) && G._common.enchants.mainHand.id === 7662, 'the other builds and _common: 7662 (round 251)');
-    T.eq(G.wrack_ds.sums.int, 64, 'Wrack DS: 64 Intellect from gear and enchants (round 251: Headmaster\'s Charge has none, no Intellect enchant; 104 in rounds 247–250)');
+    T.eq(G.wrack_ds.sums.int, 71, 'Wrack DS: 71 Intellect from gear and enchants (round 259: Channeler\'s Ring 14 for Songstone of Ironforge 7; 64 in rounds 251–258, Headmaster\'s Charge has none, no Intellect enchant; 104 in rounds 247–250)');
 
     T.group('the gear sheet');
     var c = WL.pageDefaultConfig(), now = WL.gearSheet(preBisGb('wrack_ds'), c), i22 = WL.gearSheet(preBisGb('wrack_ds', 2568), c);

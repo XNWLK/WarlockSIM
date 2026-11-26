@@ -34,7 +34,7 @@
     var pc = WL.TRINKET_FX[274759].use;
     T.ok(pc.kind === 'dmg' && pc.min === 607 && pc.max === 607 && pc.school === 'physical' && pc.cd === 300 && pc.vs.plant === 2, 'Everlook Pathcarver: 607 Physical, 5 min, ×2 against Plants');
     var zs = WL.TRINKET_FX[276744].use;
-    T.ok(zs.kind === 'dmgOver' && zs.min === 439 && zs.max === 439 && zs.school === 'fire' && zs.shots === 5 && zs.every === 3 && zs.cd === 900, "Zarla's Snack Pouch: 5 Fireballs of 439 Fire, one every 3 s, 15 min");
+    T.ok(zs.kind === 'dmgOver' && zs.min === 213 && zs.max === 254 && zs.school === 'fire' && zs.shots === 4 && zs.first === 4 && zs.every === 3.3 && zs.cd === 900, "Zarla's Snack Pouch: 4 Fireballs of 213–254 Fire, the first at 4.0 s (round 260; round 258: 3.2), then one every 3.3 s, 15 min (round 258: a combat log; was 5 × 439 every 3 s)");
     if (WL.ITEMS[276744]) T.eq(WL.ITEMS[276744].stats.sp, 11, "Zarla's Snack Pouch: +11 spell power (item stats)");
     var br = WL.TRINKET_FX[269741].proc;
     T.ok(br.kind === 'dmg' && br.chancePct === 100 && br.min === 84 && br.max === 126 && br.school === 'nature' && br.vs.furbolg === 1 && br.onlyVs, 'Scented Runewood Brooch: 84–126 Nature per damaging cast, only against Furbolg');
@@ -90,12 +90,12 @@
     var rpa = WL.simulateOnce(SB, 'human', wear(cNo, 274759), { seed: 3, duration: 180, log: true }), pa = shots(rpa, 'trinket:274759');
     T.ok(vNo < v && (pa[0].type === 'miss' || [Math.round(vNo), Math.round(vNo * 1.5)].indexOf(pa[0].dmg) >= 0), 'without Sunder Armor and Faerie Fire: the full armor, less (' + vNo.toFixed(1) + ')');
 
-    T.group("Zarla's Snack Pouch: a whelp, 5 Fireballs of 439 Fire");
+    T.group("Zarla's Snack Pouch: a whelp, 4 Fireballs of 213–254 Fire (round 258; was 5 × 439)");
     var rz = run(276744, {}), zu = rz.log.filter(function (e) { return e.type === 'trinket' && e.spell === "Zarla's Snack Pouch"; }), zh = shots(rz, 'trinket:276744');
     T.eq(zu.length, 1, 'one use in 3 min (15 min cooldown)');
-    T.eq(zh.length, 5, '5 Fireballs');
-    T.ok(zu.length && zh.every(function (e, i) { return Math.abs(e.t - zu[0].t - 3 * (i + 1)) < 1e-6; }), 'at 3, 6, 9, 12 and 15 s (after its 3 s cast)');
-    T.ok(zh.filter(function (e) { return e.type === 'hit' && !e.crit; }).every(function (e) { return e.dmg === 439 || e.dmg === Math.round(439 * COE); }), 'non-crit: 439, × Curse of the Elements (Fire)');
+    T.eq(zh.length, 4, '4 Fireballs');
+    T.ok(zu.length && zh.every(function (e, i) { return Math.abs(e.t - zu[0].t - (4 + 3.3 * i)) < 1e-6; }), 'at 4.0, 7.3, 10.6 and 13.9 s (round 260)');
+    T.ok(zh.filter(function (e) { return e.type === 'hit' && !e.crit; }).every(function (e) { return e.dmg >= Math.round(213 * COE) && e.dmg <= Math.round(254 * COE); }), 'non-crit: 213–254 × Curse of the Elements (Fire)');
 
     T.group("Blackhand's Breadth: +5% crit for your spells (10% against Orcs / Ogres), not your demon");
     function crits(r) {

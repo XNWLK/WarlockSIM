@@ -33,11 +33,11 @@ the fights.
 
 | Build | Spell power | Hit | Crit | Intellect | Spirit | Stamina | Spell Pierce |
 |---|---|---|---|---|---|---|---|
-| Shadow Demo | 424 + 56 Shadow | 6.8% | 6.23% | 102 | 41 | 85 | 2 |
-| Fire Demo | 472 | 6.8% | 6.33% | 108 | 47 | 86 | 2 |
-| Incinerate Pandemic | 466 | 6.8% | 6.33% | 108 | 47 | 86 | 2 |
-| Incinerate DS | 376 + 100 Fire | 6.8% | 6.77% | 134 | 27 | 56 | 10 |
-| Wrack DS | 345 + 203 Shadow | 3% | 6.6% | 64 | 33 | 72 | 2 |
+| Shadow Demo | 417 + 56 Shadow | 6.8% | 7.12% | 95 | 41 | 95 | 0 |
+| Fire Demo | 472 | 6.8% | 6.33% | 108 | 53 | 86 | 0 |
+| Incinerate Pandemic | 466 | 6.8% | 6.33% | 108 | 53 | 86 | 0 |
+| Incinerate DS | 361 + 100 Fire | 7.8% | 6.87% | 140 | 27 | 66 | 10 |
+| Wrack DS | 336 + 203 Shadow | 4% | 6.72% | 71 | 33 | 72 | 0 |
 
 - **Fight:** 180 s ± 10%, 1,000 fights per build and race, 1 target, execute phase below 35% boss health, healing on you 1,000 every 10 s.
 - **Custom** (the other gear button): your own gear, starting naked — every gear value 0; the level-60 base Intellect, Spirit, Stamina and crit stay.
@@ -250,46 +250,46 @@ Pandemic names. No spell gets both: Ruin covers Destruction spells, Pandemic cov
 The examples use the build **Shadow Demo** as an Undead in its Pre-BiS gear with the default raid buffs and boss debuffs. Every number below is checked against the sim's own value when this document is generated.
 
 #### 1. The character's stats
-- Intellect: (110 base − 2 Undead + 102 gear + 31 Arcane Intellect / Brilliance (replaces Elixir of the Owl) + 16 Mark / Gift of the Wild) × 1.10 Blessing of Kings = **282.7**
+- Intellect: (110 base − 2 Undead + 95 gear + 31 Arcane Intellect / Brilliance (replaces Elixir of the Owl) + 16 Mark / Gift of the Wild) × 1.10 Blessing of Kings = **275**
 - Spirit: (115 base + 5 Undead + 41 gear + 16 Mark / Gift of the Wild + 40 Divine Spirit / Prayer of Spirit (replaces Elixir of Sages)) × 1.10 Blessing of Kings = **238.7**
-- Stamina: (65 base + 1 Undead + 85 gear + 16 Mark / Gift of the Wild + 70 Power Word: Fortitude) × 1.09 Demonic Embrace × 1.10 Blessing of Kings = **284.2**
-- Maximum mana: (1,373 + 20 + 15 × (282.7 − 20)) × 1.15 Fel Vitality = **6,133.5**
-- Maximum health: 1,414 + 20 + 10 × (284.2 − 20) = **4,075.6**
-- Spell power: 424 gear + 150 Flask of Supreme Power + 35 Greater Arcane Elixir + 28 Baked Salmon / Lobster Stew + 24 Wizard Oil + 60 Demonic Knowledge = **721**; Shadow spells: + 56 gear + 21 Major Spellstone + 40 Elixir of Shadow Power = **838**
+- Stamina: (65 base + 1 Undead + 95 gear + 16 Mark / Gift of the Wild + 70 Power Word: Fortitude) × 1.09 Demonic Embrace × 1.10 Blessing of Kings = **296.2**
+- Maximum mana: (1,373 + 20 + 15 × (275 − 20)) × 1.15 Fel Vitality = **6,000.7**
+- Maximum health: 1,414 + 20 + 10 × (296.2 − 20) = **4,195.5**
+- Spell power: 417 gear + 150 Flask of Supreme Power + 35 Greater Arcane Elixir + 28 Baked Salmon / Lobster Stew + 24 Wizard Oil + 60 Demonic Knowledge = **714**; Shadow spells: + 56 gear + 21 Major Spellstone + 40 Elixir of Shadow Power = **831**
 - Hit: 83 base against a level-63 boss + 1 Suppression + 6.8 gear = **90.8%**
-- Crit: 6.23 sheet + 1.21 from 72.7 Intellect above the sheet ÷ 60 + 3 Moonkin Form aura + 2 Elixir of the Owl (does not stack with Elixir of Sages) = **12.44%**
+- Crit: 7.12 sheet + 1.2 from 72 Intellect above the sheet ÷ 60 + 3 Moonkin Form aura + 2 Elixir of the Owl (does not stack with Elixir of Sages) = **13.32%**
 - Haste: **3%** (Major Spellstone + Wizard Oil).
 
 #### 2. Shadow Bolt
-1. Base hit: 251 + 0.857 × 838 = 969.2
+1. Base hit: 251 + 0.857 × 831 = 963.2
 2. Direct talent group (these add up): Agonizing Flames +10% → × 1.10
 3. Auras (each multiplies): 1.15 Demonic Sacrifice (Imp) × 1.10 Master Demonologist (Succubus) × 1.03 Soul Link = × 1.3029
-4. Hit before the boss's debuffs: 969.2 × 1.10 × 1.3029 = **1,389.1**
-5. With Curse of the Elements (× 1.10) and Improved Shadow Bolt (× 1.20) on the boss: **1,833.5**
-6. A crit (chance 12.44%) deals × 2 with Ruin: **3,667.1**
+4. Hit before the boss's debuffs: 963.2 × 1.10 × 1.3029 = **1,380.5**
+5. With Curse of the Elements (× 1.10) and Improved Shadow Bolt (× 1.20) on the boss: **1,822.2**
+6. A crit (chance 13.32%) deals × 2 with Ruin: **3,644.4**
 7. Cast time: 3 s − 0.5 s Bane = 2.5 s, ÷ 1.03 haste = 2.43 s. It misses 9.2% of the time.
 
 #### 3. Corruption
-1. Base tick: 57 + 0.2 × 838 = 224.6
+1. Base tick: 57 + 0.2 × 831 = 223.2
 2. Periodic talent group: Improved Corruption +2% → × 1.02
-3. Auras: × 1.3029 as above → **298.5** per tick
-4. With the curse and Improved Shadow Bolt on the boss: **394** per tick, 6 ticks = 2,364.1 before crits
-5. Every tick rolls its own crit (12.44%, × 1.5). The spell power is read at each tick, so a potion or Blood Fury that starts later still counts for the ticks after it.
+3. Auras: × 1.3029 as above → **296.6** per tick
+4. With the curse and Improved Shadow Bolt on the boss: **391.6** per tick, 6 ticks = 2,349.3 before crits
+5. Every tick rolls its own crit (13.32%, × 1.5). The spell power is read at each tick, so a potion or Blood Fury that starts later still counts for the ticks after it.
 
 #### 4. Bane of Doom
-(1,742 + 4 × 838) × 1.3029 auras = **6,637.2**; with the curse and Improved Shadow Bolt on the boss **8,761.1**; a crit deals × 1.5.
+(1,742 + 4 × 831) × 1.3029 auras = **6,600.7**; with the curse and Improved Shadow Bolt on the boss **8,713**; a crit deals × 1.5.
 
 #### 5. Touch of the Grave
-4,075.6 health × 5% = **203.8**. Nothing multiplies it: no aura, no curse, no Improved Shadow Bolt, no Power Infusion. No spell power, no crit, no resist roll. 30% chance per landed damaging cast, then nothing for 15 s.
+4,195.5 health × 5% = **209.8**. Nothing multiplies it: no aura, no curse, no Improved Shadow Bolt, no Power Infusion. No spell power, no crit, no resist roll. 30% chance per landed damaging cast, then nothing for 15 s.
 
 #### 6. The Succubus
-- Attack table of one swing: her melee hit = 8/17 × your spell hit 7.8% = 3.67%; miss 8% − 3.67% = **4.33%**, dodge **6.5%**, glancing blow **40%** (at 65% damage), crit her own 0.7 + your gear's crit 1 − 4.8 = **0%** (× 2), normal hit the remaining **49.17%**.
-- Attack power from you: 838 spell power (generic + your better school) ÷ 6 = 139.7. Damage per second: 73.5 + 139.7 ÷ 14 = 83.48.
+- Attack table of one swing: her melee hit = 8/17 × your spell hit 7.8% = 3.67%; miss 8% − 3.67% = **4.33%**, dodge **6.5%**, glancing blow **40%** (at 65% damage), crit her own 0.7 + your gear's crit 2 − 4.8 = **0%** (× 2), normal hit the remaining **49.17%**.
+- Attack power from you: 831 spell power (generic + your better school) ÷ 6 = 138.5. Damage per second: 73.5 + 138.5 ÷ 14 = 83.39.
 - Boss armor: 3,731 − armor debuffs = 976 → 976 ÷ (976 + 5,500) = 15.07% less physical damage.
-- One normal swing: 83.48 × 2 s × (1 − 0.1507) × 1.10 Unholy Power × 1.03 Soul Link = **160.7**. Master Demonologist and Curse of the Elements do not apply to melee.
-- Her spell power: 10% of 838 (generic + your better school) + 60 Demonic Knowledge = 143.8.
-- Lash of Pain: (50 × 1.30 Improved Sayaad + 0.429 × 143.8) × 1.10 × 1.03 × 1.10 Master Demonologist × 1.10 curse = **173.7**; it crits with her own 0% + your gear's crit (1%) for × 1.5.
-- Demonic Brand hit: (66.5 + 0.078 × 838 Shadow spell power) × the same four multipliers = **180.8**. It cannot miss or crit.
+- One normal swing: 83.39 × 2 s × (1 − 0.1507) × 1.10 Unholy Power × 1.03 Soul Link = **160.5**. Master Demonologist and Curse of the Elements do not apply to melee.
+- Her spell power: 10% of 831 (generic + your better school) + 60 Demonic Knowledge = 143.1.
+- Lash of Pain: (50 × 1.30 Improved Sayaad + 0.429 × 143.1) × 1.10 × 1.03 × 1.10 Master Demonologist × 1.10 curse = **173.3**; it crits with her own 0% + your gear's crit (2%) for × 1.5.
+- Demonic Brand hit: (66.5 + 0.078 × 831 Shadow spell power) × the same four multipliers = **180**. It cannot miss or crit.
 
 #### 7. Life Tap
 424 + 238.7 Spirit = **662.7 mana** for 424 health and one global cooldown (this build has no Improved Life Tap; with 2/2 it would be 795.2).
@@ -469,10 +469,10 @@ Demons are simulated as their own actors: they cast, swing, miss, crit and run o
 <!-- gen:pets -->
 | Demon | Spell | Melee | Mana |
 |---|---|---|---|
-| Imp | Firebolt: 45.2 + 0.571 × demon SP, Fire, 2 s cast, 115 mana | — | 2,000, 30% of your Intellect as MP5 (17.1 a second at 285 Intellect: Shadow Demo in its Pre-BiS gear, Human, the page buffs) |
-| Succubus | Lash of Pain: 50 + 0.429 × demon SP, Shadow, instant, 12 s cooldown, 160 mana | 73.5 base DPS, one swing every 2 s, crit = its own 0.7% + your gear's crit, 5 yd range | 2,000, 10% of your Intellect as MP5 (5.7 a second at 285 Intellect: Shadow Demo in its Pre-BiS gear, Human, the page buffs) |
+| Imp | Firebolt: 45.2 + 0.571 × demon SP, Fire, 2 s cast, 115 mana | — | 2,000, 30% of your Intellect as MP5 (16.6 a second at 277 Intellect: Shadow Demo in its Pre-BiS gear, Human, the page buffs) |
+| Succubus | Lash of Pain: 50 + 0.429 × demon SP, Shadow, instant, 12 s cooldown, 160 mana | 73.5 base DPS, one swing every 2 s, crit = its own 0.7% + your gear's crit, 5 yd range | 2,000, 10% of your Intellect as MP5 (5.5 a second at 277 Intellect: Shadow Demo in its Pre-BiS gear, Human, the page buffs) |
 | Felhunter | — | 40 base DPS, one swing every 2 s, crit = its own 0.7% + your gear's crit | 2,000, +8 per second |
-| Voidwalker | — | 43.2 base DPS, one swing every 2 s, all of it × 50%, crit = its own 0.7% + your gear's crit | 2,000, 10% of your Intellect as MP5 (5.7 a second at 285 Intellect: Shadow Demo in its Pre-BiS gear, Human, the page buffs) |
+| Voidwalker | — | 43.2 base DPS, one swing every 2 s, all of it × 50%, crit = its own 0.7% + your gear's crit | 2,000, 10% of your Intellect as MP5 (5.5 a second at 277 Intellect: Shadow Demo in its Pre-BiS gear, Human, the page buffs) |
 <!-- /gen:pets -->
 
 **What a demon gets from you** (measured in Forever)
@@ -954,7 +954,7 @@ one kind of enemy (Scented Runewood Brooch, Dismantle): with any other boss type
 | Rune of Perfection / Enriched Seal, Darkspear Voodoo Seal | +3 (level 45) or +2 Spell Pierce, 7 or 4 more in Forest areas / +5 or +3 MP5, 10 or 6 more in Forest areas. |
 | Blackhand's Breadth | Marks the boss: +5% crit for your spells on it for 20 s (10% against Orcs and Ogres), 5 min cooldown. Not for your demon, not on extra targets. |
 | Everlook Pathcarver | 607 Physical damage (split between up to 4 enemies; one boss takes it all), like a trinket hit above but less the boss's armor after Sunder Armor and the like (as for your demon's melee) and without Curse of the Elements; twice against Plants. Its range is 8 yards: the sim assumes you are that close. 5 min cooldown. |
-| Zarla's Snack Pouch | A Black Dragon Whelp for 15 s: 5 Fireballs of 439 Fire damage (3 s casts: at 3, 6, 9, 12 and 15 s), each like a trinket hit above with your hit and crit. 15 min cooldown. |
+| Zarla's Snack Pouch | A Black Dragon Whelp for 15 s: 4 Fireballs of 213–254 Fire damage (3 s casts with short gaps, from a combat log: the first cast 1 s after the summon, so they land at about 4.0, 7.3, 10.6 and 13.9 s; a 5th is cut off when the whelp leaves), each like a trinket hit above with your hit and crit. 15 min cooldown. |
 | Scented Runewood Brooch | 84–126 Nature damage with each damaging cast, only against Furbolg (nothing otherwise). Wowhead lists a 100% chance; the tooltip says "a chance", so this is not verified. |
 
 Other trinkets (threat, defence, resistance, movement, melee-range and random effects, a summoned fighter such as Abyss
