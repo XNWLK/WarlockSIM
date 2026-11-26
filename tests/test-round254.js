@@ -53,7 +53,8 @@
     if (!nt || !dj) { T.warn('private/bis-page not readable here (not in the repository, or file://)'); return; }
     var mod = { exports: {} }; new Function('module', nt)(mod);
     var N = mod.exports;
-    T.eq(N.ALT[BANTHOK], CORD, 'notes.js: ▼ of Ban\'thok Sash = Magician\'s Cord');
+    // round 255: no hand pick any more — the Cord is ▼ by rule (notes.js CHEAP_OK; test-round255.js)
+    T.ok(N.ALT[BANTHOK] === CORD || !!(N.CHEAP_OK || {})[CORD], 'notes.js: ▼ of Ban\'thok Sash = Magician\'s Cord (by hand, or by rule since round 255)');
     T.eq(N.ALT[MASTERS], WAISTCORD, 'notes.js: Wrack DS keeps the user\'s Black Waistcord under Master\'s Belt');
     T.ok(!N.EXCLUDE[CORD], 'not excluded');
     var D = JSON.parse(dj);

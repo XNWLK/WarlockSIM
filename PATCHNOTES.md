@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v219
+- **Pre-raid BiS page:** Magician's Cord is now an allowed ▼ alternative even though it's an epic, because it's bought from a vendor. The alternatives don't change: it stays the ▼ belt for Shadow Demo, Fire Demo, Incinerate and Incinerate DS, and Wrack DS keeps Black Waistcord. The page notes say so.
+
 ## v218
 - **Magician's Cord for Warlocks:** Magician's Cord (epic cloth waist, +19 spell power, +24 Intellect, +12 Stamina, sold by Pix Xizzix) is now in the gear builder. It's usable by Warlocks now, though Wowhead still lists it as Mage only. It sims a little below the current belts in every build, so the Pre-BiS lists and default DPS don't change.
 - **Pre-raid BiS page:** Magician's Cord is the new ▼ waist alternative for Shadow Demo, Fire Demo, Incinerate and Incinerate DS. Wrack DS keeps Black Waistcord.
