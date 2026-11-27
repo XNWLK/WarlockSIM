@@ -8,6 +8,15 @@
 //   WL.makeSimPool(workerUrl, size)                      — another pool (tests: a path relative to tests/, a missing file)
 window.WL = window.WL || {};
 
+// Round 266 (found by the addon chat): a worker has no item list and no app/gear-builder.js, so it cannot tell a two-hander
+// in the main hand. The job's config goes out with the page's answer as gearBuilder.offHandBlocked (a copy; the page's
+// own config is not changed), which WL.equippedItemFx reads there: no Book of the Dead skeleton behind a staff.
+WL.workerCfg = function (cfg) {
+  var gb = cfg && cfg.gearBuilder;
+  if (!gb || !gb.on || !WL.gearOffHandBlocked) return cfg;
+  return Object.assign({}, cfg, { gearBuilder: Object.assign({}, gb, { offHandBlocked: WL.gearOffHandBlocked(gb) }) });
+};
+
 WL.makeSimPool = function (workerUrl, size) {
   var workers = null, state = 'new', readyWaiters = [], READY_MS = 6000;
 
@@ -58,7 +67,7 @@ WL.makeSimPool = function (workerUrl, size) {
       function feed(w) {
         if (stopped || next >= jobs.length) { w.job = null; return; }
         var j = jobs[next++], k = ++id; w.job = { id: k, j: j };
-        w.postMessage({ id: k, kind: j.kind, build: j.build, race: j.race, cfg: j.cfg, n: j.n, stat: j.stat, pageGear: j.pageGear });   // pageGear: round 211
+        w.postMessage({ id: k, kind: j.kind, build: j.build, race: j.race, cfg: WL.workerCfg(j.cfg), n: j.n, stat: j.stat, pageGear: j.pageGear });   // pageGear: round 211; workerCfg: round 266
       }
       workers.forEach(function (w) {
         w.onmessage = function (e) {

@@ -10,6 +10,14 @@
 self.window = self;
 importScripts('../data/consumables.js', '../data/config.js', '../data/talents.js', '../data/spells.js', '../data/races.js',
   '../data/builds.js', '../data/trinkets.js', '../data/pre-bis-gear.js', 'stats.js', 'spelltable.js', 'rng.js', 'resist.js', 'rotation.js', 'sim.js', 'custom-builds.js');
+// Round 266 (found by the addon chat): app/gear-builder.js and the item list are not loaded here, so WL.equippedItemFx had
+// no two-hander check and a Book of the Dead behind a staff (gear code, saved set, custom gear) still summoned its
+// skeleton. The page sends its answer with every job (WL.workerCfg in app/sim-pool.js: gearBuilder.offHandBlocked); a
+// custom main hand tells its own slot.
+WL.gearOffHandBlocked = function (gb) {
+  var mh = ((gb || {}).slots || {}).mainHand;
+  return !!((gb || {}).offHandBlocked || (mh && mh.custom && mh.custom.slot === 'twoHand'));
+};
 
 self.onmessage = function (e) {
   var j = e.data;

@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v225
+- **Book of the Dead behind a two-hander:** the sim no longer counts its skeleton when a two-handed weapon is in your main hand. Before, it slipped through when the gear came from a gear code, a saved set or custom gear (about +12 DPS too much). Default DPS doesn't change.
+
 ## v224
 - **"What changed" link** at the top of the sim: it opens these patch notes.
 - **Bolt's Charged Eyeball:** a shock now hits you 26% of the time (was 32%), from public evidence notes of live-realm combat logs (6,831 shocks).
