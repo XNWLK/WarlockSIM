@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v227
+- **"BiS list"** is the new name of the link to the BiS page at the top of the sim (was "Pre-raid BiS list").
+
 ## v226
 - **"Latest update"** is the new name of the link to these patch notes at the top of the sim (was "What changed").
 
