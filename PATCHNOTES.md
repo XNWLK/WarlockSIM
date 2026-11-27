@@ -3,6 +3,9 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v226
+- **"Latest update"** is the new name of the link to these patch notes at the top of the sim (was "What changed").
+
 ## v225
 - **Book of the Dead behind a two-hander:** the sim no longer counts its skeleton when a two-handed weapon is in your main hand. Before, it slipped through when the gear came from a gear code, a saved set or custom gear (about +12 DPS too much). Default DPS doesn't change.
 

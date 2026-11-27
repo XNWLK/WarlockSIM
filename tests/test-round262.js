@@ -73,7 +73,7 @@
     T.ok(N.CHANGES && /^\d{4}-\d\d-\d\d$/.test(N.CHANGES.date) && N.CHANGES.items.length >= 1 && N.CHANGES.items.length <= 8, 'notes.js CHANGES: a date and 1–8 lines');
     T.eq(N.CHANGES && N.CHANGES.date, '2026-11-27', 'its date: 2026-11-27 (round 262)');
     T.ok(D.changes && D.changes.date === N.CHANGES.date && D.changes.items.join('|') === N.CHANGES.items.join('|'), 'data.json carries it');
-    T.ok(N.CHANGES && N.CHANGES.items.some(function (x) { return /Shadow Wrath/.test(x); }) && N.CHANGES.items.some(function (x) { return /8\/11\/32/.test(x); }), 'it names the Shadow Wrath legs and Incinerate DS 8/11/32');
+    T.ok(N.CHANGES && N.CHANGES.items.some(function (x) { return /Shadow Wrath/.test(x); }) && !N.CHANGES.items.some(function (x) { return /talent|\d+\/\d+\/\d+|Cataclysm|Malevolence/i.test(x); }), 'it names the Shadow Wrath legs, and gear only: no talent lines (round 267, user: "we only need to have stuff related to gear")');
     T.ok(/<section class="changes" id="changes"/.test(tp) && /What changed<time datetime=/.test(tp) && /\.changes \{/.test(tp), 'the template has the box, its heading with the date, and its style');
     var gh = src('../private/bis-page/github/index.html'), art = src('../private/bis-page/pre-raid-bis.html');
     T.ok(gh.indexOf('"changes":{"date":"2026-11-27"') >= 0 && art.indexOf('"changes":{"date":"2026-11-27"') >= 0, 'both builds (artifact, GitHub) carry it');
