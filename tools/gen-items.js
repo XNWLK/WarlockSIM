@@ -58,7 +58,12 @@ const STATS_FIX = { 254013: { s: { splpwr: 18, spldmg: 6, spi: 7 }, why: 'Earthe
   10247: { s: { shasplpwr: 30 }, name: "Master's Boots of Shadow Wrath", why: 'random suffix: the user picked the Shadow Wrath roll (+30)' },
   // Round 218 (user: "yes make the belt main for wrack, waistcord as alternative"; asked which belt: "Master's Belt"): +30 Shadow.
   // Wowhead Classic lists no Shadow Wrath roll for it (only Fiery Wrath, +29 – 30); the user says Forever has one.
-  10255: { s: { shasplpwr: 30 }, name: "Master's Belt of Shadow Wrath", why: 'random suffix: the user picked the Shadow Wrath roll (+30; Forever only)' } };
+  10255: { s: { shasplpwr: 30 }, name: "Master's Belt of Shadow Wrath", why: 'random suffix: the user picked the Shadow Wrath roll (+30; Forever only)' },
+  // Round 261 (user: "check if shadow wrath pants are an upgrade for wrack ds … shadow wrath pants go up to 40"): Master's Leggings
+  // (ilvl 64, Requires Level 59, Binds when equipped, world drop), the highest-level Phase 1 non-raid cloth legs with a random
+  // suffix (High Councillor's Pants / Eternal Sarong ilvl 63; all three give only the suffix's stat). Kept as its +40 Shadow Wrath
+  // roll; Wowhead Classic lists Fiery Wrath +40 – 41 for it, no Shadow Wrath (like Master's Belt) — Forever has the roll (user).
+  10252: { s: { shasplpwr: 40 }, name: "Master's Leggings of Shadow Wrath", why: 'random suffix: the Shadow Wrath roll, +40 (round 261, user: "shadow wrath pants go up to 40")' } };
 // Round 217 (user: "swap wrack main to leggings of torment"): items missing from our Wowhead list (stats hidden when it was
 // collected), as raw records from their Wowhead Forever page (read 2026-11-15).
 const EXTRA = [
@@ -79,8 +84,8 @@ EXTRA.forEach(x => { if (!raw.items.some(y => y.id === x.id)) raw.items.push(x);
 // by Meilosh, the Timbermaw Hold quartermaster; Wowhead lists only a vendor source).
 // Round 218: Master's Boots are a world drop (109 creatures on its Wowhead Forever page, 2026-11-15); the list names only
 // Gahz'ranka (Zul'Gurub), which would mark it as a raid item.
-const FROM_FIX = { 227808: 'Vendor: Meilosh', 10247: 'World drop', 10255: 'World drop' };   // Master's Belt: 112 creatures
-const WORLD_DROP = { 10247: 1, 10255: 1 };
+const FROM_FIX = { 227808: 'Vendor: Meilosh', 10247: 'World drop', 10255: 'World drop', 10252: 'World drop' };   // Master's Belt: 112 creatures; Master's Leggings (round 261): no creature named on Wowhead, a random-suffix world drop like its set-mates
+const WORLD_DROP = { 10247: 1, 10255: 1, 10252: 1 };
 raw.items.forEach(x => { if (WORLD_DROP[x.id]) x.sm = []; });
 const WARLOCK_BIT = 256;                                   // class mask bit of the Warlock (class 9)
 const ALLIANCE = 1 | 4 | 8 | 64 | 1024, HORDE = 2 | 16 | 32 | 128 | 512;   // race mask bits

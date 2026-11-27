@@ -88,7 +88,7 @@ WL.PRE_RAID_BIS = {
     wrist: 18497,       // Sublime Wristguards
     hands: 13253,       // Hands of Power (round 216: all blue, was Deathmist Wraps)
     waist: 11662,       // Ban'thok Sash
-    legs: 226910,       // Deathmist Leggings (round 259, user: "deathmist is the alternative but it's better": +0.31 ± 0.07 DPS over Skyshroud Leggings, 100 × 1,000 paired fights; was Skyshroud Leggings)
+    legs: 13170,        // Skyshroud Leggings (round 263, user: "yes" to Skyshroud as the main again: with the 8/11/32 talents it ties Deathmist Leggings, +0.17 ± 0.12, 30 × 1,000, and is far easier to get; round 259 had Deathmist +0.31 ± 0.07 on the old talents)
     feet: 11822,        // Omnicast Boots
     finger1: 12543,     // Songstone of Ironforge (round 216, user: "put the songstone always in the top slot")
     finger2: 272406,    // Channeler's Ring (round 216, user; was Blessed Band of Light)

@@ -11,7 +11,7 @@
     var split = function (b) { var s = { affliction: 0, demonology: 0, destruction: 0 }; Object.keys(b.talents).forEach(function (t) { s[WL.TALENT_BY_KEY[t].tree] += b.talents[t]; }); return s.affliction + '/' + s.demonology + '/' + s.destruction; };
     var w = WL.findBuild('wrack_ds'), d = WL.findBuild('destro_incin_ds');
     T.eq(split(w), '35/11/5', 'Wrack DS 35/11/5 (the user\'s code)');
-    T.eq(split(d), '7/11/33', 'Incinerate DS 7/11/33 (the user\'s code)');
+    T.eq(split(d), '8/11/32', 'Incinerate DS 8/11/32 (the user\'s code 7/11/33; round 262: −1 Aftermath −1 Improved Corruption +2 Improved Life Tap)');
     T.ok(w.pet === null && w.sacrifice === 'imp' && w.oil === 'spellstone', 'Wrack DS: Imp sacrificed, no demon, Spellstone');
     T.ok(d.pet === null && d.sacrifice === 'succubus' && d.oil === 'firestone', 'Incinerate DS: Succubus sacrificed, no demon, Firestone');
     T.eq(WL.validateBuild(w).concat(WL.validateBuild(d)).join(' | '), '', 'both are legal builds');

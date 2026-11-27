@@ -55,13 +55,16 @@ WL.BUILDS = [
   {
     key: 'demo_pact_fire', short: 'Fire Demo',   // round 191 (user): was 'Demo Pact Fire Imp'; the key stays
     name: 'Demonology – Pact, Imp out, Fire',
-    notes: '2/31/18. Succubus sacrificed (+15% Fire, kept by Demonic Pact) with the Imp out: Master Demonologist gives +10% Fire to you and to the Imp. Searing Pain is the filler and keeps Demonic Brand up by itself; Soul Fire is cast in the execute phase (Decimation). Aftermath and Agonizing Flames strengthen Immolate and Searing Pain, and Life Tap also refills the Imp (Demonic Energies).',
+    notes: '2/31/18. Succubus sacrificed (+15% Fire, kept by Demonic Pact) with the Imp out: Master Demonologist gives +10% Fire to you and to the Imp. Searing Pain is the filler and keeps Demonic Brand up by itself; Soul Fire is cast in the execute phase (Decimation). Cataclysm, Aftermath and Agonizing Flames strengthen your Destruction spells, Immolate and Searing Pain, and Life Tap also refills the Imp (Demonic Energies).',
     talents: {
       suppression: 1, improvedCorruption: 1,
-      demonicEmbrace: 4,   // round 197 (user): −2 Master Summoner +2 Demonic Embrace; round 198 (user): −1 Demonic Brand −1 Demonic Energies +2 Demonic Embrace
-      unholyPower: 5, improvedImp: 3, felVitality: 3, demonicEnergies: 1, demonicSacrifice: 1,
-      decimation: 2, demonicBrand: 2, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
-      bane: 5, aftermath: 5, ruin: 5, agonizingFlames: 3,
+      // round 197 (user): −2 Master Summoner +2 Demonic Embrace; round 198 (user): −1 Demonic Brand −1 Demonic Energies +2 Demonic
+      // Embrace; round 262 (user: "both", after the round-261 talent search): −2 Demonic Embrace +1 Demonic Brand +1 Demonic
+      // Energies and −3 Aftermath +3 Cataclysm (+1.88 ± 0.13 Pre-BiS, +2.12 ± 0.15 Max, 30 × 1,000 paired)
+      demonicEmbrace: 2,
+      unholyPower: 5, improvedImp: 3, felVitality: 3, demonicEnergies: 2, demonicSacrifice: 1,
+      decimation: 2, demonicBrand: 3, soulLink: 1, demonicKnowledge: 3, masterDemonologist: 5, demonicPact: 1,
+      bane: 5, cataclysm: 3, aftermath: 2, ruin: 5, agonizingFlames: 3,
     },
     pet: 'imp', sacrifice: 'succubus', oil: 'firestone',
     // Round 219 (user chose "best per build"): Activate trinket on top, only once 60 s have gone (ties the old rule: +0.00% / −0.03% / +0.00%;
@@ -73,9 +76,12 @@ WL.BUILDS = [
   {
     key: 'destro_incin_succ', short: 'Incinerate Pandemic',   // round 191 (user): was 'Destro Incinerate Succubus'; the key stays
     name: 'Destruction – Incinerate, Succubus out',
-    notes: '14/4/33. Incinerate with Shadow and Flame, Conflagrate and Shadowburn; the Affliction points go to Suppression, Improved Corruption, Pandemic, Improved Life Tap and Amplify Curse. Four points in Unholy Power make the Succubus hit harder; she fights on her own (melee and Lash of Pain). With a second target, Bane of Havoc copies part of your damage to it.',
+    notes: '18/0/33. Incinerate with Shadow and Flame, Conflagrate and Shadowburn; the Affliction points go to Suppression, Improved Corruption, Pandemic, Improved Life Tap, Amplify Curse and Malevolence. The Succubus fights on her own (melee and Lash of Pain). With a second target, Bane of Havoc copies part of your damage to it.',
     talents: {
-      suppression: 5, improvedCorruption: 3, pandemic: 3, improvedLifeTap: 2, amplifyCurse: 1, unholyPower: 4,   // round 149 (user; patch 2026-10-16: Malediction gone): −5 Malediction +1 Amplify Curse +4 Unholy Power
+      // round 261 (user pasted the build code: "this seems like a better incinerate pandemic build than the old one. replace the
+      // old one with this one"): −4 Unholy Power, +2 Improved Corruption (5/5), +2 Malevolence. Round 149 (user; patch
+      // 2026-10-16: Malediction gone): −5 Malediction +1 Amplify Curse +4 Unholy Power
+      suppression: 5, improvedCorruption: 5, pandemic: 3, improvedLifeTap: 2, amplifyCurse: 1, malevolence: 2,
       bane: 5, cataclysm: 3, aftermath: 5, ruin: 5, shadowburn: 1, agonizingFlames: 3, conflagrate: 1,
       baneOfHavoc: 1, fireAndBrimstone: 3, shadowAndFlame: 5, incinerate: 1,
     },
@@ -86,11 +92,13 @@ WL.BUILDS = [
   {
     key: 'destro_incin_ds', short: 'Incinerate DS',
     name: 'Destruction – Incinerate, Succubus sacrificed',
-    notes: '7/11/33. Incinerate with Shadow and Flame, Conflagrate and Shadowburn, and the Succubus sacrificed for +15% Fire (Demonic Sacrifice): no demon in the fight. Demonic Embrace, Fel Vitality and Demonic Aegis lead to Demonic Sacrifice; Suppression and Improved Corruption on the Affliction side. With a second target, Bane of Havoc copies part of your damage to it.',
+    notes: '8/11/32. Incinerate with Shadow and Flame, Conflagrate and Shadowburn, and the Succubus sacrificed for +15% Fire (Demonic Sacrifice): no demon in the fight. Demonic Embrace, Fel Vitality and Demonic Aegis lead to Demonic Sacrifice; Suppression, Improved Corruption and Improved Life Tap on the Affliction side (with no demon out the build is short on mana). With a second target, Bane of Havoc copies part of your damage to it.',
     talents: {
-      suppression: 5, improvedCorruption: 2,
+      // round 262 (user: "yes", after the round-261 talent search): −1 Aftermath −1 Improved Corruption +2 Improved Life Tap
+      // (+8.82 ± 0.15 Pre-BiS, +8.61 ± 0.18 Max, 30 × 1,000 paired)
+      suppression: 5, improvedCorruption: 1, improvedLifeTap: 2,
       demonicEmbrace: 5, felVitality: 3, demonicAegis: 2, demonicSacrifice: 1,
-      bane: 5, cataclysm: 3, aftermath: 5, ruin: 5, shadowburn: 1, agonizingFlames: 3, conflagrate: 1,
+      bane: 5, cataclysm: 3, aftermath: 4, ruin: 5, shadowburn: 1, agonizingFlames: 3, conflagrate: 1,
       baneOfHavoc: 1, fireAndBrimstone: 3, shadowAndFlame: 5, incinerate: 1,
     },
     pet: null, sacrifice: 'succubus', oil: 'firestone',

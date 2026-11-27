@@ -36,7 +36,7 @@ the fights.
 | Shadow Demo | 417 + 56 Shadow | 6.8% | 7.12% | 95 | 41 | 95 | 0 |
 | Fire Demo | 472 | 6.8% | 6.33% | 108 | 53 | 86 | 0 |
 | Incinerate Pandemic | 466 | 6.8% | 6.33% | 108 | 53 | 86 | 0 |
-| Incinerate DS | 361 + 100 Fire | 7.8% | 6.87% | 140 | 27 | 66 | 10 |
+| Incinerate DS | 376 + 100 Fire | 6.8% | 6.77% | 134 | 27 | 56 | 10 |
 | Wrack DS | 336 + 203 Shadow | 4% | 6.72% | 71 | 33 | 72 | 0 |
 
 - **Fight:** 180 s ± 10%, 1,000 fights per build and race, 1 target, execute phase below 35% boss health, healing on you 1,000 every 10 s.
@@ -1016,22 +1016,21 @@ every target, as "Keep DoTs on the extra targets"; Bane of Havoc as usual).
 ### Fire Demo (2/31/18)
 - Imp out, Succubus sacrificed, Major Firestone.
 - Affliction: Suppression 1/5, Improved Corruption 1/5.
-- Demonology: Improved Imp 3/3, Demonic Embrace 4/5, Unholy Power 5/5, Fel Vitality 3/3, Demonic Energies 1/2, Demonic Sacrifice 1/1, Decimation 2/2, Demonic Brand 2/3, Soul Link 1/1, Demonic Knowledge 3/3, Master Demonologist 5/5, Demonic Pact 1/1.
-- Destruction: Bane 5/5, Aftermath 5/5, Ruin 5/5, Agonizing Flames 3/3.
+- Demonology: Improved Imp 3/3, Demonic Embrace 2/5, Unholy Power 5/5, Fel Vitality 3/3, Demonic Energies 2/2, Demonic Sacrifice 1/1, Decimation 2/2, Demonic Brand 3/3, Soul Link 1/1, Demonic Knowledge 3/3, Master Demonologist 5/5, Demonic Pact 1/1.
+- Destruction: Bane 5/5, Cataclysm 3/3, Aftermath 2/5, Ruin 5/5, Agonizing Flames 3/3.
 - Priority: 1. Activate trinket (every on-use trinket that is ready; off the GCD) — only when fight time gone >= 60 s · 2. Death Coil as the finisher (when the filler would not land before the boss dies) · 3. Searing Pain to (re)apply Demonic Brand when it is down · 4. Life Tap to feed the pet (Demonic Energies) when it is nearly out of mana · 5. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 6. Curse of the Elements if missing · 7. Immolate if missing/expiring · 8. Soul Fire while Decimation buff is up · 9. Corruption if missing/expiring · 10. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 80% mana, more than 45 s left) · 11. Searing Pain (filler).
 
-### Incinerate Pandemic (14/4/33)
+### Incinerate Pandemic (18/0/33)
 - Succubus out, nothing sacrificed, Major Firestone.
-- Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 3/5, Amplify Curse 1/1, Pandemic 3/3.
-- Demonology: Unholy Power 4/5.
+- Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 5/5, Amplify Curse 1/1, Pandemic 3/3, Malevolence 2/5.
 - Destruction: Bane 5/5, Cataclysm 3/3, Aftermath 5/5, Ruin 5/5, Shadowburn 1/1, Agonizing Flames 3/3, Conflagrate 1/1, Bane of Havoc 1/1, Fire and Brimstone 3/3, Shadow and Flame 5/5, Incinerate 1/1.
 - Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Curse of the Elements if missing · 4. Immolate if missing/expiring · 5. Corruption if missing/expiring · 6. Conflagrate on cooldown while Immolate is up · 7. Shadowburn on cooldown (needs a Soul Shard) · 8. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 50% mana, more than 25 s left) · 9. Incinerate (filler).
 
-### Incinerate DS (7/11/33)
+### Incinerate DS (8/11/32)
 - no demon out, Succubus sacrificed, Major Firestone.
-- Affliction: Suppression 5/5, Improved Corruption 2/5.
+- Affliction: Improved Life Tap 2/2, Suppression 5/5, Improved Corruption 1/5.
 - Demonology: Demonic Embrace 5/5, Demonic Aegis 2/2, Fel Vitality 3/3, Demonic Sacrifice 1/1.
-- Destruction: Bane 5/5, Cataclysm 3/3, Aftermath 5/5, Ruin 5/5, Shadowburn 1/1, Agonizing Flames 3/3, Conflagrate 1/1, Bane of Havoc 1/1, Fire and Brimstone 3/3, Shadow and Flame 5/5, Incinerate 1/1.
+- Destruction: Bane 5/5, Cataclysm 3/3, Aftermath 4/5, Ruin 5/5, Shadowburn 1/1, Agonizing Flames 3/3, Conflagrate 1/1, Bane of Havoc 1/1, Fire and Brimstone 3/3, Shadow and Flame 5/5, Incinerate 1/1.
 - Priority: 1. Death Coil as the finisher (when the filler would not land before the boss dies) · 2. Bane of Doom if ≥60 s left and ready, else Bane of Agony if no Bane (while it still pays off) · 3. Curse of the Elements if missing · 4. Immolate if missing/expiring · 5. Corruption if missing/expiring · 6. Conflagrate on cooldown while Immolate is up · 7. Shadowburn on cooldown (needs a Soul Shard) · 8. Life Tap when the rest of the fight needs more mana than you have and no free mana is ready (below 50% mana, more than 25 s left) · 9. Activate trinket (every on-use trinket that is ready; off the GCD) · 10. Incinerate (filler).
 
 ### Wrack DS (35/11/5)

@@ -78,6 +78,9 @@ const ADD = {
   10247: '<table><tr><td><b class="q2">Master\'s Boots of Shadow Wrath</b><br>Binds when equipped<table width="100%"><tr><td>Feet</td><th><span class="q1">Cloth</span></th></tr></table><span>56 Armor</span><br><span>+30 Shadow Spell Damage</span><br>Durability 35 / 35</td></tr></table><table><tr><td>Requires Level 58</td></tr></table>',
   // Round 218: Master's Belt (Wowhead Forever: 45 Armor, Durability 25, Requires Level 57) with the +30 Shadow Wrath roll.
   10255: '<table><tr><td><b class="q2">Master\'s Belt of Shadow Wrath</b><br>Binds when equipped<table width="100%"><tr><td>Waist</td><th><span class="q1">Cloth</span></th></tr></table><span>45 Armor</span><br><span>+30 Shadow Spell Damage</span><br>Durability 25 / 25</td></tr></table><table><tr><td>Requires Level 57</td></tr></table>',
+  // Round 261: Master's Leggings (Wowhead Forever tooltip: 72 Armor, Durability 55 / 55, Requires Level 59, Binds when equipped,
+  // a random enchantment) with the +40 Shadow Wrath roll (user: "shadow wrath pants go up to 40").
+  10252: '<table><tr><td><b class="q2">Master\'s Leggings of Shadow Wrath</b><br>Binds when equipped<table width="100%"><tr><td>Legs</td><th><span class="q1">Cloth</span></th></tr></table><span>72 Armor</span><br><span>+40 Shadow Spell Damage</span><br>Durability 55 / 55</td></tr></table><table><tr><td>Requires Level 59</td></tr></table>',
 };
 
 if (require.main === module) {

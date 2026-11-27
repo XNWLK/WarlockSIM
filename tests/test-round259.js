@@ -26,7 +26,7 @@
     Object.keys(want).forEach(function (k) {
       T.ok(P[k].finger1 === want[k][0] && P[k].finger2 === want[k][1], k + ': ' + WL.ITEMS[want[k][0]].name + ' + ' + WL.ITEMS[want[k][1]].name);
     });
-    T.eq(P.destro_incin_ds.legs, DEATHMIST, 'Incinerate DS: Deathmist Leggings (was Skyshroud Leggings)');
+    T.eq(P.destro_incin_ds.legs, SKY, 'Incinerate DS: Skyshroud Leggings again since round 263 (round 259: Deathmist Leggings)');
     T.ok(['demo_pact_fire', 'destro_incin_succ'].every(function (k) { return P[k].legs === SKY; }), 'Fire Demo / Incinerate Pandemic keep Skyshroud Leggings (Deathmist −0.67 / −0.77)');
     T.eq(P.destro_incin_ds.mainHand, EMS, 'Incinerate DS keeps Elemental Mage Staff (Staff of Sorrow −0.35 ± 0.06)');
     T.ok(Object.keys(P).every(function (k) { return [P[k].finger1, P[k].finger2].every(function (r) { return WL.ITEMS[r].quality === 'rare'; }) && P[k].finger1 !== P[k].finger2; }), 'every ring blue, two different rings');
@@ -51,19 +51,22 @@
     var mod = { exports: {} }; new Function('module', nt)(mod);
     var N = mod.exports, D = JSON.parse(dj);
     T.ok(N.UP_ONLY && N.UP_ONLY[RUNE], 'notes.js: Rune Band of Wizardry is UP_ONLY (user: "it\'s an upgrade")');
-    T.ok(!(N.UP_BUILD.demo_pact_fire && N.UP_BUILD.demo_pact_fire.neck === ORB), 'notes.js: Fire Demo\'s ▲ pin Orb of the Darkmoon is out (it loses: −0.95 ± 0.10)');
+    // round 261 (user: "add it for the upgrade"): the Orb pin is back — test-round261.js checks it and its shown loss
+    T.ok(N.UP_BUILD.demo_pact_fire && N.UP_BUILD.demo_pact_fire.neck === ORB, 'notes.js: Fire Demo\'s ▲ pin Orb of the Darkmoon (out in round 259, back in round 261)');
     T.ok(N.ALT[EMS] === SORROW, 'Elemental Mage Staff\'s ▼ is still Staff of Sorrow (round 251\'s "whatever comes next")');
     T.ok(D.altSeeds >= 20 && D.altFights === 1000, '▲ / ▼ numbers: ' + D.altSeeds + ' paired chunks × ' + D.altFights + ' fights (was 2 × 2,000)');
     var bad = [], runeAlt = [], ties = 0;
     D.builds.forEach(function (b) { Object.keys(b.alts).forEach(function (s) { var a = b.alts[s];
       if (a.alt && a.alt.dps > 0 && !a.alt.tie) bad.push(b.key + ' ' + s + ' ▼ ' + WL.ITEMS[a.alt.id].name + ' +' + a.alt.dps);
-      if (a.up && !(a.up.dps > 0)) bad.push(b.key + ' ' + s + ' ▲ ' + WL.ITEMS[a.up.id].name + ' ' + a.up.dps);
-      if (a.up && a.up.tie && !(a.up.dps > 0)) bad.push(b.key + ' ' + s + ' ▲ tie below 0');
+      var pin = N.UP_BUILD[b.key] && N.UP_BUILD[b.key][s] === (a.up && a.up.id);   // round 261: a hand pick may lose (Orb)
+      if (a.up && !(a.up.dps > 0) && !pin) bad.push(b.key + ' ' + s + ' ▲ ' + WL.ITEMS[a.up.id].name + ' ' + a.up.dps);
+      if (a.up && a.up.tie && !(a.up.dps > 0) && !pin) bad.push(   // round 262: a hand-picked ▲ tie may sit at 0 (Wrack DS's Shadow Wrath legs, 0 ± 0.09)
+b.key + ' ' + s + ' ▲ tie below 0');
       if (a.alt && a.alt.id === RUNE) runeAlt.push(b.key + ' ' + s);
       if (a.alt && a.alt.tie) ties++;
       [a.up, a.alt].forEach(function (x) { if (x && (x.id === DEFILER || x.id === HIGHLANDER)) bad.push(b.key + ' ' + s + ' cloth girdle shown'); });
     }); });
-    T.eq(bad.join('; '), '', 'no ▼ beats the main beyond the noise, every ▲ gains, the cloth girdle is not shown');
+    T.eq(bad.join('; '), '', 'no ▼ beats the main beyond the noise, every ▲ by rule gains, the cloth girdle is not shown');
     T.eq(runeAlt.join(', '), '', 'Rune Band of Wizardry is never a ▼');
     T.ok(ties >= 0, ties + ' ▼ shown as "About the same DPS"');
     var ids = D.builds.filter(function (b) { return b.key === 'destro_incin_succ'; })[0];

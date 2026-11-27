@@ -27,7 +27,7 @@
     T.ok(!N.EXCLUDE[CORD], 'the Cord is not excluded');
     T.ok(/"because the\s*(\/\/\s*)?magicians belt can be bought from the vendor, we will forgo the epic requirement for it"/.test(nt), 'notes.js quotes the user');
     T.group('alts.js');
-    T.ok(/CHEAP_OK = \{\}(, UP_ONLY = \{\})? \} = require\('\.\/notes\.js'\)/.test(al), 'reads CHEAP_OK from notes.js (round 259: UP_ONLY too)');
+    T.ok(/CHEAP_OK = \{\}(, UP_ONLY = \{\})?(, UP_TRY = \{\})?(, ALT_BUILD = \{\})? \} = require\('\.\/notes\.js'\)/.test(al), 'reads CHEAP_OK from notes.js (round 259: UP_ONLY too; round 261: UP_TRY too; round 262: ALT_BUILD too)');
     T.ok(/const cheap = x => [^\n]*\(x\.it\.quality !== 'epic' \|\| !!CHEAP_OK\[x\.id\]\)/.test(al), 'cheap(): a CHEAP_OK epic passes');
     T.ok(/if \(CHEAP_OK\[id\]\) d\.push\(CHEAP_OK\[id\]\);\s*(\/\/[^\n]*)?\n\s*else if \(it\.quality === 'epic'\)/.test(al), 'downsides(): its vendor cost instead of "epic"');
     T.group('template.html');

@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v223
+- **New talents:** Incinerate Pandemic is now 18/0/33, with Improved Corruption 5/5 and 2 Malevolence instead of 4 Unholy Power (about +4.5 DPS). Incinerate DS is now 8/11/32, with 2 Improved Life Tap from Aftermath and Improved Corruption (about +9.5 DPS: with no demon out it runs short on mana). Fire Demo takes 3 Cataclysm, a 3rd point of Demonic Brand and a 2nd of Demonic Energies, from Aftermath and Demonic Embrace (about +2 DPS). Found by a talent search on each build's Pre-BiS gear. Shadow Demo and Wrack DS had nothing better.
+- **Master's Leggings of Shadow Wrath** (+40 Shadow, world drop) are in the gear builder. They tie Leggings of Torment: the legs upgrade for Wrack DS, the legs alternative for Shadow Demo, marked expensive.
+- **Incinerate DS** wears Skyshroud Leggings again: with the new talents they tie Deathmist Leggings and are far easier to get.
+- **Pre-raid BiS page:** a "What changed" box at the top lists what each update changed. Orb of the Darkmoon is back as Fire Demo's neck upgrade, shown with its small DPS loss. Inferno Gloves were checked and lose to Hands of Power. A few alternatives changed with the new talents (Ritssyn's Wand of Bad Mojo, Dragonrider Boots, Cultist's Cuffs).
+
 ## v222
 - **Zarla's Snack Pouch:** now matches players' combat logs. Its Black Dragon Whelp casts 4 Fireballs of 213–254 Fire damage per use, one every 3.3 s, the first starting 1 s after the summon. Before, it was 5 Fireballs of 439. It still uses your hit and crit and takes Curse of the Elements. That's about 930 damage per use before modifiers instead of about 2,200.
 - **Max Pre-BiS trinkets:** Shadow Demo and Incinerate now use Eye of the Beast + Weakness Analyzer instead of the pouch. Fire Demo, Incinerate DS and Wrack DS keep the pouch. Max Pre-BiS DPS drops about 6–8 per build.
