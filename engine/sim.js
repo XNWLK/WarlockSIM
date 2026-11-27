@@ -620,6 +620,17 @@ window.WL = window.WL || {};
     // Round 244: a landing on an extra target (ti > 1) rolls only the set procs that roll once per target (perTarget: Necropile
     // Raiment 3, Violet Sorcerer's Vestments 4 — a public combat-log study, Warcraft Logs, Forever); trinkets and enchants count
     // your casts on the boss only, as before. [A116]
+    // Round 273 (user: "yes add curses"; a Warcraft Logs report, Forever, Stratholme, one Warlock wearer: Curse of the Elements procced it 8 ms after its cast) [A113]: a proc with onCurse also rolls on a
+    // landed curse that deals no damage (Curse of the Elements, on any target; Bane of Havoc's cast): its tooltip says "on harmful
+    // spellcast". Only buff procs (kind 'sp') use it.
+    function trOnCurse(key) {
+      TRK.forEach(function (x) {
+        var p = x.fx.proc, st = trs[x.slot];
+        if (!p || !p.onCurse || !WL.fxOn(cfg, p) || R.proc() * 100 >= procChancePct(p, key)) return;
+        if (st.procUntil <= S.t + EPS) L('buff', x.fx.name); st.procUntil = S.t + p.duration;
+      });
+    }
+    var TRC = TRK.some(function (x) { return x.fx.proc && x.fx.proc.onCurse; });
     function trOnLandX(ti, key) {
       TRK.forEach(function (x) {
         var p = x.fx.proc, st = trs[x.slot];
@@ -998,7 +1009,7 @@ window.WL = window.WL || {};
       if (IFX.length) itemOnLand(ti, landCT);                              // Blade of Eternal Darkness (round 235)
       if (key === 'baneOfAgony') S.ampUp = false;                                        // Amplify Curse spent on a landed Bane (round 200)
       if (s.kind === 'utility') {                                         // your Curse of the Elements on this target
-        if (key === 'curseOfElements') { S.xdeb[ti].coe = S.t + s.duration; L('debuff', rk); }
+        if (key === 'curseOfElements') { S.xdeb[ti].coe = S.t + s.duration; L('debuff', rk); if (TRC) trOnCurse(key); }   // round 273
         return true;
       }
       if (s.kind === 'hybrid' || s.kind === 'direct') {                   // Immolate's direct part / a direct spell
@@ -1086,7 +1097,7 @@ window.WL = window.WL || {};
       if (IFX.length) itemOnLand(0, landCT);                              // Blade of Eternal Darkness (round 235) [A127]
       if (key === 'baneOfAgony') S.ampUp = false;                                        // Amplify Curse spent on a landed Bane (round 200)
       if (s.kind === 'utility') {
-        if (key === 'curseOfElements') { S.buffs.coe = S.t + s.duration; L('debuff', key); }
+        if (key === 'curseOfElements') { S.buffs.coe = S.t + s.duration; L('debuff', key); if (TRC) trOnCurse(key); }   // round 273
         jowProc(false);                                                                                   // [A64]
         return true;
       }
@@ -1662,6 +1673,7 @@ window.WL = window.WL || {};
         if (table.baneOfHavoc.cost > 0) S.lastSpend = S.t;
         row('baneOfHavoc').casts++; row('baneOfHavoc').castTime += hg; L('cast', 'baneOfHavoc', { castTime: 0, gcd: +hg.toFixed(3) });
         if (IFX.length) itemOnLand(HAV_T, 0);                            // a curse on target 2 (round 235)
+        if (TRC) trOnCurse('baneOfHavoc');                               // round 273: a harmful cast (Draconic Infused Emblem)
         S.busyUntil = S.t; S.gcdReady = S.t + hg; scheduleDecide(S.gcdReady); return;
       }
       manaBuffCheck();

@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v229
+- **Draconic Infused Emblem** now also procs on your curse casts (Curse of the Elements, Bane of Havoc's cast), as its "on harmful spellcast" says. A Warcraft Logs report (40 procs) showed it: about 7% of harmful casts, no internal cooldown, 10 s, a new proc while it's up resets the 10 s, never on DoT ticks — the same as the sim. Worth about +0.1 DPS.
+- Default DPS doesn't change.
+
 ## v228
 - **Hot Smoked Bass** is a new buff food in Consumables: well fed, +1% crit for 15 min (its Forever tooltip). One food buff counts at a time.
 - **Spellstone / Firestone picker:** the stone slot in Consumables now has three choices. **Auto** (the default, half-and-half icon) gives each build its best stone, as before. **Major Spellstone** and **Major Firestone** under it put that stone on any build. Checked with 20 × 1,000 paired fights per build: each build's auto stone is its best (Shadow Demo Spellstone +10.9 DPS, Fire Demo Firestone +11.7, Incinerate Pandemic Firestone +10.3, Incinerate DS Firestone +8.2, Wrack DS Spellstone +1.5).
