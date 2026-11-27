@@ -9,7 +9,8 @@
 //   (Elixir of the Owl + Cerebral Cortex Compound = +25 Intellect, not +50), and none while a raid buff that overwrites
 //   it is up (data/config.js overwritesElixir: Arcane Intellect, Divine Spirit, Power Word: Fortitude). Spirit of Zanza and
 //   the foods / drinks are not marked and keep adding up (not covered by the notes),
-//   oil (weapon oil; stacks with the Spellstone/Firestone), spPotion {sp, duration} (popped with the other cooldowns:
+//   oil (weapon oil; stacks with the Spellstone/Firestone), buildOil (the build's own stone) / stone (round 271: that
+//   WL.OILS stone for every build) / stoneIds (round 271: the items whose tooltips the auto stone shows), spPotion {sp, duration} (popped with the other cooldowns:
 //   options.activesPolicy, then on cooldown),
 //   manaRestore {amount | pct} (used when the missing mana ≥ the amount), cd (s), cdGroup ('potion' | 'rune').
 // Not included: Elixir of Greater Firepower (only its recipe exists in Forever; item 21546 is now Elixir of Holy Power),
@@ -62,14 +63,33 @@ WL.CONSUMABLES = {
                          text: 'If you spend at least 10 sec eating, you will become well fed and gain 28 Spell Damage for 15 min. (Lobster Stew 13933: the same)' },
   soaringPamplona:     { on: false, id: 250066, icon: 'inv_misc_food_meat_cooked_05', cat: 'Food', group: 'food', name: 'Soaring Pamplona / Bat Hachee / Prehistoric Pulled Raptor', desc: 'Well fed: +20 Intellect', int: 20,
                          text: 'If you spend at least 10 sec eating, you will become well fed and gain 20 Intellect for 15 min. (Bat Hachee 250067, Prehistoric Pulled Raptor 250075: the same)' },
+  // Round 271 (user: "can you add https://www.wowhead.com/forever/item=13929/hot-smoked-bass as an option in the buff food in
+  // consumables"): Hot Smoked Bass, Wowhead Forever tooltip (item 13929, read 2026-11-27): well fed, +1% Critical Strike
+  // chance for 15 min (and +5% experience from kills, nothing for the sim). One well-fed buff: the 'food' group. Forever's
+  // plain "Critical Strike chance" counts as spell crit [A116].
+  hotSmokedBass:       { on: false, id: 13929, icon: 'inv_misc_fish_03', cat: 'Food', group: 'food', name: 'Hot Smoked Bass', desc: 'Well fed: +1% crit', critPct: 1,
+                         text: 'Restores 2065 health over 30 sec. Must remain seated while eating. If you spend at least 10 sec eating, you will become well fed and gain 1% Critical Strike chance for 15 min. Additionally, experience gained from kills is increased by 5%.' },
   kreegsStout:         { on: false, id: 18284, icon: 'inv_drink_05', cat: 'Food', group: 'drink', name: "Kreeg's Stout Beatdown", desc: '+25 Spirit, −5 Intellect', spi: 25, int: -5,
                          text: 'Increases Spirit by 25, but decreases Intelligence by 5 for 15 min.' },
 
   // ---------------- Weapon: stone + oil ----------------
   // Round 86 (user, found in game): the Spellstone / Firestone and a weapon oil are NOT exclusive in Forever — you can
   // have both up. So the stone is its own group ('stone') and the oils are another ('weapon'); one of each counts. [A33]
-  buildOil:            { on: true, id: 17728, icon: 'inv_misc_gem_sapphire_01', cat: 'Weapon', group: 'stone', name: 'Spellstone / Firestone (per build)', desc: 'Shadow builds: +2% haste, +21 Shadow SP · Fire builds: +2% crit, +21 Fire SP', buildOil: true,
+  // Round 271 (user: "can you separate spellstone and firestonne so i can freely choose? we can have the current setting be
+  // auto and then the 2 invidivual stones so i can swap? so basically the current icon is gonna be the diagonal half half and
+  // it says auto pick best. and then under it the 2 individual stones"): three choices in the 'stone' group, in this order.
+  //   buildOil (key kept, so old settings codes and links still mean it) — auto: each build gets the stone listed in its
+  //     details (build.oil). Its icon is the Major Spellstone and Major Firestone icons cut diagonally, half and half
+  //     (composed in round 271, research/icons/stone_auto_half.jpg). Its tooltip shows both stones (app/app.js conTip).
+  //   majorSpellstone / majorFirestone — `stone`: that stone for every build, whatever the build lists (engine/stats.js
+  //     WL.stoneKey). Wowhead Forever tooltips (items 13603 / 13701, read 2026-11-27); effects from data/spells.js WL.OILS.
+  // Rounds 1–270: buildOil had id 17728 (a spell id; Forever's item 17728 is a pair of boots, whose tooltip the page showed).
+  buildOil:            { on: true, id: 13603, icon: 'stone_auto_half', stoneIds: [13603, 13701], cat: 'Weapon', group: 'stone', name: 'Spellstone / Firestone (auto: best for the build)', desc: 'Auto pick best: each build gets the stone listed in its details (Shadow builds: Spellstone +2% haste, +21 Shadow SP · Fire builds: Firestone +2% crit, +21 Fire SP)', buildOil: true,
                          text: 'Major Spellstone: +2% spell haste and up to 21 Shadow damage. Major Firestone: +2% spell crit and up to 21 Fire damage. Each build uses the one listed in its details. Stacks with a weapon oil.' },
+  majorSpellstone:     { on: false, id: 13603, icon: 'inv_misc_gem_sapphire_01', cat: 'Weapon', group: 'stone', name: 'Major Spellstone', desc: '+2% haste, +21 Shadow SP, for every build', stone: 'spellstone',
+                         text: 'Imbues your weapon with Shadow, increasing your spell haste by 2% and the damage done by your Shadow spells by up to 21.' },
+  majorFirestone:      { on: false, id: 13701, icon: 'inv_misc_gem_bloodstone_02', cat: 'Weapon', group: 'stone', name: 'Major Firestone', desc: '+2% crit, +21 Fire SP, for every build', stone: 'firestone',
+                         text: 'Imbues your weapon with Fire, increasing your spell critical strike chance by 2% and the damage done by your Fire spells by up to 21.' },
   brilliantWizardOil:  { on: false, id: 20749, icon: 'inv_potion_105', cat: 'Weapon', group: 'weapon', name: 'Brilliant Wizard Oil', desc: '+36 spell damage, +1% crit', oil: { sp: 36, critPct: 1 },
                          text: 'While applied to target weapon it increases spell damage and healing by up to 36 and increases Spell Critical chance by 1%. Lasts for 30 minutes.' },
   // Round 212 (user: "brilliant wizard oil is phase 4, add the lower tank of wizard oil and enable it"): Wizard Oil, Forever tooltip

@@ -401,6 +401,9 @@
     var o = cfg.consumables[k];
     // Round 210: the item's own Forever tooltip (data/con-tips.js, made safe by tools/gen-tooltips.js), else one in its layout.
     var game = WL.CON_TIPS && WL.CON_TIPS[o.id] ? WL.CON_TIPS[o.id] : '<div class="tt-name">' + esc(o.name) + '</div>' + (o.text ? '<div class="tt-use">Use: ' + para(o.text) + '</div>' : '');
+    // Round 271 (user: "it says auto pick best"): the auto stone — its own name, then both stones' game tooltips.
+    if (o.stoneIds) game = '<div class="tt-name">' + esc(o.name) + '</div><div class="tt-use">Each build gets the stone listed in its details.</div>' +
+      o.stoneIds.map(function (id) { return (WL.CON_TIPS || {})[id] || ''; }).join('');
     return game + '<div class="tt-rule">' + esc(o.cat || '') + ' · Simulated as: ' + esc(o.desc || '') + '</div>';
   }
   function renderConsSlots() {
@@ -1458,6 +1461,12 @@
   // Details of one row (round 45 layout, user): actions → three cards (summary · stat weights · races) → the fight
   // pictures (DoT chart, timeline) → stats table with every source inline → spells → talents → smaller cards (priority,
   // vs the others, mana, distribution, uptime) → how the build was found (folded) → event log.
+  // Round 271 (user: "can you separate spellstone and firestonne so i can freely choose?"): the stone the build fought with —
+  // its own (auto), or the one chosen in Consumables for every build (engine/stats.js WL.stoneKey), naming the build's own then.
+  function stoneText(b) {
+    var k = WL.stoneKey(b, runCfg), own = WL.OILS[b.oil] ? b.oil : 'none';
+    return WL.OILS[k].name + (k !== own ? ' (chosen in Consumables; the build lists ' + WL.OILS[own].name + ')' : '');
+  }
   function detail(r) {
     var b = r.build, st = r.stats, top = best(), dur = (r.avgDuration || r.firstFight.duration);
     var total = Object.keys(r.bySpell).reduce(function (a, k) { return a + r.bySpell[k].dmg; }, 0);
@@ -1484,7 +1493,7 @@
       (r.pushback && (r.pushback.n > 0.05 || r.pushback.resisted > 0.05) ? kv('Pushbacks per fight', fmt(r.pushback.n, 1) + ' · ' + fmt(r.pushback.time, 1) + ' s lost' + (r.pushback.resisted > 0.05 ? ' · ' + fmt(r.pushback.resisted, 1) + ' resisted' : '')) : '') +   // round 78
       (b.pet ? kv('Pet out of mana (fight #1)', fmt(r.firstFight.petOomTime, 0) + ' s') : '') +
       (r.firstFight.swapAt != null ? kv('Pet swap (fight #1)', clock(r.firstFight.swapAt) + ' → ' + (PET_NAMES[(b.rotation.indexOf('swapToImp') >= 0 ? 'imp' : 'succubus')])) : '') +
-      kv('Weapon stone', WL.OILS[b.oil].name) + '</div></div>';
+      kv('Weapon stone', esc(stoneText(b))) + '</div></div>';
     T.overview += weightsBlock(r);
     var same = results.filter(function (x) { return x.build.key === b.key; }).sort(function (a, c) { return c.dps - a.dps; });
     var sameTop = same.filter(function (x) { return !isBase(x); })[0];
@@ -2110,7 +2119,7 @@
       (A.clipped > 0.05 || B.clipped > 0.05 ? num('Channels clipped per fight', A.clipped, B.clipped, 1) : '') +
       (mA.idleSecAvg > 0.05 || mB.idleSecAvg > 0.05 ? num('Idle time per fight (s)', mA.idleSecAvg, mB.idleSecAvg, 1) : '') +
       (A.build.pet || B.build.pet ? row('Fights where the pet ran out of mana', A.build.pet ? fmt(mA.petOomFightsPct, 0) + '%' : '–', B.build.pet ? fmt(mB.petOomFightsPct, 0) + '%' : '–') : '') +
-      row('Pet / sacrificed', pets(A), pets(B)) + row('Weapon stone', esc(WL.OILS[A.build.oil].name), esc(WL.OILS[B.build.oil].name)) +
+      row('Pet / sacrificed', pets(A), pets(B)) + row('Weapon stone', esc(stoneText(A.build)), esc(stoneText(B.build))) +
       '</tbody></table></div></div>';
 
     // ---- stats used in the fight + stat weights ----

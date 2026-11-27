@@ -794,10 +794,13 @@ exclude each other in Forever is assumed.*
 | Greater Mageblood Elixir | Elixir | off | 20 mana every 5 s | — |
 | Spirit of Zanza | Elixir | off | +50 Spirit, +50 Stamina | — |
 | Cerebral Cortex Compound | Elixir | off | +25 Intellect (none with Arcane Intellect up; does not add to Elixir of the Owl) | — |
-| Baked Salmon / Lobster Stew | Food | off | Well fed: +28 spell damage | Soaring Pamplona / Bat Hachee / Prehistoric Pulled Raptor |
-| Soaring Pamplona / Bat Hachee / Prehistoric Pulled Raptor | Food | off | Well fed: +20 Intellect | Baked Salmon / Lobster Stew |
+| Baked Salmon / Lobster Stew | Food | off | Well fed: +28 spell damage | Soaring Pamplona / Bat Hachee / Prehistoric Pulled Raptor, Hot Smoked Bass |
+| Soaring Pamplona / Bat Hachee / Prehistoric Pulled Raptor | Food | off | Well fed: +20 Intellect | Baked Salmon / Lobster Stew, Hot Smoked Bass |
+| Hot Smoked Bass | Food | off | Well fed: +1% crit | Baked Salmon / Lobster Stew, Soaring Pamplona / Bat Hachee / Prehistoric Pulled Raptor |
 | Kreeg's Stout Beatdown | Food | off | +25 Spirit, −5 Intellect | — |
-| Spellstone / Firestone (per build) | Weapon | on | Shadow builds: +2% haste, +21 Shadow SP · Fire builds: +2% crit, +21 Fire SP | — |
+| Spellstone / Firestone (auto: best for the build) | Weapon | on | Auto pick best: each build gets the stone listed in its details (Shadow builds: Spellstone +2% haste, +21 Shadow SP · Fire builds: Firestone +2% crit, +21 Fire SP) | Major Spellstone, Major Firestone |
+| Major Spellstone | Weapon | off | +2% haste, +21 Shadow SP, for every build | Spellstone / Firestone (auto: best for the build), Major Firestone |
+| Major Firestone | Weapon | off | +2% crit, +21 Fire SP, for every build | Spellstone / Firestone (auto: best for the build), Major Spellstone |
 | Brilliant Wizard Oil | Weapon | off | +36 spell damage, +1% crit | Wizard Oil, Blessed Wizard Oil |
 | Wizard Oil | Weapon | off | +24 spell damage | Brilliant Wizard Oil, Blessed Wizard Oil |
 | Blessed Wizard Oil | Weapon | off | +60 spell damage against Undead; only with Boss type Undead | Brilliant Wizard Oil, Wizard Oil |

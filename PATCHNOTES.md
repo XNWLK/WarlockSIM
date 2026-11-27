@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v228
+- **Hot Smoked Bass** is a new buff food in Consumables: well fed, +1% crit for 15 min (its Forever tooltip). One food buff counts at a time.
+- **Spellstone / Firestone picker:** the stone slot in Consumables now has three choices. **Auto** (the default, half-and-half icon) gives each build its best stone, as before. **Major Spellstone** and **Major Firestone** under it put that stone on any build. Checked with 20 × 1,000 paired fights per build: each build's auto stone is its best (Shadow Demo Spellstone +10.9 DPS, Fire Demo Firestone +11.7, Incinerate Pandemic Firestone +10.3, Incinerate DS Firestone +8.2, Wrack DS Spellstone +1.5).
+- The stone's tooltip now shows both stones (it showed the wrong item before).
+- Default DPS doesn't change.
+
 ## v227
 - **"BiS list"** is the new name of the link to the BiS page at the top of the sim (was "Pre-raid BiS list").
 

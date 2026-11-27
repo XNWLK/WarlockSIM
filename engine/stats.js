@@ -47,11 +47,19 @@ WL.consumableHolds = function (cfg, c) { return !c.vs || (WL.fxHolds ? WL.fxHold
 // Weapon effects for a build (round 86, user: stone and oil are not exclusive in Forever): the per-build Spellstone /
 // Firestone (consumable group 'stone') and a weapon oil (group 'weapon') — both count. Returns the active ones as a list
 // of { name, sp, critPct, mp5, hastePct, schoolSp }; empty = nothing on the weapon.
-WL.weaponEffects = function (build, cfg) {
-  var act = WL.activeConsumables(cfg), out = [];
-  var stone = act.filter(function (c) { return c.group === 'stone'; })[0];
+// Round 271 (user: "can you separate spellstone and firestonne so i can freely choose? we can have the current setting be
+// auto and then the 2 invidivual stones so i can swap?"): WL.stoneKey = the WL.OILS key of the stone this build carries in
+// these settings — auto (buildOil): the build's own (build.oil); Major Spellstone / Major Firestone (`stone`): that one for
+// every build; no stone chosen: 'none'.
+WL.stoneKey = function (build, cfg) {
+  var stone = WL.activeConsumables(cfg).filter(function (c) { return c.group === 'stone'; })[0];
   if (!cfg.consumables || !Object.keys(cfg.consumables).length) stone = { buildOil: true };   // configs without consumables
-  if (stone && stone.buildOil && WL.OILS[build.oil] && build.oil !== 'none') out.push(WL.OILS[build.oil]);
+  var k = !stone ? 'none' : stone.stone ? stone.stone : stone.buildOil ? (build && build.oil) : 'none';
+  return WL.OILS[k] ? k : 'none';
+};
+WL.weaponEffects = function (build, cfg) {
+  var act = WL.activeConsumables(cfg), out = [], sk = WL.stoneKey(build, cfg);
+  if (sk !== 'none') out.push(WL.OILS[sk]);
   var w = act.filter(function (c) { return c.group === 'weapon'; })[0];
   if (w && w.oil && WL.consumableHolds(cfg, w)) out.push({ name: w.name, sp: w.oil.sp || 0, critPct: w.oil.critPct || 0, mp5: w.oil.mp5 || 0, hastePct: 0 });   // round 237: Blessed Wizard Oil only vs Undead
   return out;

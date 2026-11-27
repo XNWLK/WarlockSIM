@@ -53,6 +53,8 @@ foreach ($line in $cfg -split "`n") {
   }
 }
 # 5. Consumables: icon name is given directly in data/consumables.js (from the Forever item XML <icon> field)
+#    Round 271: the auto stone's 'stone_auto_half' is not a Wowhead icon: the Major Spellstone and Major Firestone icons cut
+#    diagonally, composed once and kept as research/icons/stone_auto_half.jpg (so it is never downloaded).
 foreach ($m in [regex]::Matches([IO.File]::ReadAllText("$root\data\consumables.js"), "(\w+):\s*\{ on: (?:true|false), id: \d+, icon: '(\w+)'")) {
   $map['consumable_' + $m.Groups[1].Value] = $m.Groups[2].Value
 }
