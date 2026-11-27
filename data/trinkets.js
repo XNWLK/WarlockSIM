@@ -24,6 +24,10 @@
 //     'dmgOver' `shots` such hits, one every `every` s (a summoned helper; the first `every` s after the use, or `first` s
 //               when given — round 258)
 //     'dmgAfter' a hit of min…max after `casts` landed damaging casts
+//     'melee'   (round 265) a summoned fighter that only melees for duration s: a swing every `every` s from `first` s
+//               after the use, min…max (school 'physical': the boss's armor after debuffs, as for your demon's melee) on
+//               its own one-roll attack table (missPct, dodgePct, glancePct at glanceDmgPct % damage, the rest hits; no
+//               crit) — not your spell hit or crit, no spell power, no demon buffs, no Demonic Brand (Book of the Dead)
 //   proc: an effect that triggers by itself — { kind, chancePct, … }:
 //     'spi' / 'sp'  + spi Spirit / + sp spell power for duration; chancePct per landed damaging cast (icd: not again for that long)
 //     'dmg'     a hit of min…max (as 'dmg' above); per landed damaging cast, or onDamage: per damage event of yours (hits
@@ -112,7 +116,11 @@ WL.TRINKET_FX = {
   10577:  { name: 'Goblin Mortar',                      use: { kind: 'dmg', min: 393, max: 531, school: 'fire', cd: 600 } },
   260802: { name: 'EZ-Thro Bronze Mortar',              use: { kind: 'dmg', min: 85, max: 115, school: 'fire', cd: 600 } },
   22268:  { name: 'Draconic Infused Emblem',            proc: { kind: 'sp', chancePct: 8, sp: 35, duration: 10, vs: { dragonkin: 2 } } },   // 8% per damaging cast, no internal cooldown (user, round 216: "draconic infused emblem is an 8% proc with no ICD. i just learned that"; was 100% + 75 s, rounds 209 / 211) [A113]
-  280032: { name: "Bolt's Charged Eyeball",             proc: { kind: 'dmg', onDamage: true, chancePct: 15, icd: 3, min: 60, max: 60, school: 'nature', selfPct: 32, vs: { dinosaur: 3 } } },   // "to you or your current target" [A113]; round 229 (user, via a combat log of 210 procs, 2026-11-17): 68% the target, 32% you; 3.0 s cooldown and ~14% per tick confirmed
+  // Bolt's Charged Eyeball: "to you or your current target" [A113]; round 229 (user, via a combat log of 210 procs, 2026-11-17):
+  // 68% the target, 32% you; 3.0 s cooldown and ~14% per tick confirmed. Round 265 (user: "yes change it to 26"; public
+  // evidence notes of live-realm combat logs, Forever 70862–71037, 2026-11-10 … 11-24): 1,797 of 6,831 shocks of 34 wearers
+  // hit the wearer = 26.3% (95%: 25.3–27.4%), one shock per proc → 74% the target, 26% you.
+  280032: { name: "Bolt's Charged Eyeball",             proc: { kind: 'dmg', onDamage: true, chancePct: 15, icd: 3, min: 60, max: 60, school: 'nature', selfPct: 26, vs: { dinosaur: 3 } } },
   273840: { name: 'Cursed Murloc Eye',                  proc: { kind: 'dmg', chancePct: 100, min: 2, max: 2, school: 'shadow', vs: { murloc: 4 } } },
   18371:  { name: 'Mindtap Talisman',                   use: { kind: 'mana', amount: 1250, int: 60, intDuration: 120, cd: 420 } },   // "over 10 sec": counted at once
   11832:  { name: 'Burst of Knowledge',                 use: { kind: 'costRed', amount: 150, duration: 10, cd: 360 } },
@@ -282,7 +290,11 @@ WL.revelationChancePct = function (cb, critPct) {
 //             target; never on DoT or channel ticks, Life Tap, your demon or (round 244) Hellfire's cast, which targets you
 //             (a public combat-log study: 0 procs on its effect's 3,027 hits). icd: not again for that long. It deals
 //             min…max (school), like a trinket's hit (no spell power, your spell hit and crit, Curse of the Elements),
-//             and restores `mana` even when that hit is resisted.
+//             and restores `mana` (if any) even when that hit is resisted. Round 265: × vs / zones as for trinkets;
+//             areaCastPerTarget: an area channel's cast (Rain of Fire) also rolls on each extra target in its area (the
+//             icd still allows one proc per cast).
+// use (round 265): an on-use effect of a non-trinket slot (Book of the Dead, off hand) — the kinds and timing rules of a
+// trinket's use (WL.equippedTrinkets lists it after the trinkets; options.trinketUse[slot], "Activate trinket").
 WL.ITEM_FX = {
   // "Chance on landing a damaging spell to deal 112 Shadow damage and restore 104 mana to you. (100ms cooldown)".
   // Measured in game: 1.8 a minute on cast time (1.65 to 1.96), at least 1.5 s: 4.5% on an instant or a 1.5 s cast,
@@ -290,29 +302,55 @@ WL.ITEM_FX = {
   // 34 procs in 963 landings, 3.5%); DoT ticks never.
   17780: { name: 'Blade of Eternal Darkness', slot: 'mainHand', about: 7,   // about: its rough worth in spell power for the list (round 235: 3.6 to 10.2 by build, 4 × 1000 fights)
            proc: { kind: 'ppmCast', procsPerMin: 1.8, minCast: 1.5, icd: 0.1, min: 112, max: 112, school: 'shadow', mana: 104 } },
+  // Round 265 (user: "do it anyway"; public evidence notes of live-realm combat logs, Forever 70888–71139, 2026-11-11 … 11-26,
+  // 397 wearers) [A132]: Ignition, 60–81 Fire (×3 against Plants), rolled once per enemy a harmful spell of yours lands on,
+  // 1.85 a minute on cast time, at least 1.5 s (fit 1.837, 1.810–1.865; Warlocks alone 1.800); 10 ms cooldown (one proc per
+  // cast). Curses roll (Curse of the Elements 4.65%); DoT ticks, Hellfire Effect ticks, Rain of Fire pulses (only its cast,
+  // on the enemies in its area), spells fired by procs and killing blows never. Two-handed (main hand); no mana.
+  11750: { name: 'Kindling Stave', slot: 'mainHand', about: 3,   // about: its proc's rough worth in spell power for the list (round 265: +1.0 to +2.2 DPS = 1.2 to 3.0 spell power by build, 30 × 1,000 paired fights)
+           proc: { kind: 'ppmCast', procsPerMin: 1.85, minCast: 1.5, icd: 0.01, min: 60, max: 81, school: 'fire', vs: { plant: 3 }, areaCastPerTarget: true } },
+  // Round 265 (user: "do it too"; public evidence notes of live-realm combat logs, Forever 70938–71139, 2026-11-14 … 11-26:
+  // 240 summons of 37 owners, 4,162 swings in 65 reports, plus 11 summons / 215 swings in combat logs) [A132]: use summons one
+  // Summoned Skeleton for 60 s, 15 min cooldown (once a fight). A level-60 creature (its health and armor), no player buffs;
+  // a swing every 2.0 s for 120.9 ± 14% before armor (104–137.8), never a crit on a target of level 60+; against a level-63
+  // target 50.7% hit, 36.2% glancing, 8.0% miss, 5.1% dodge. Glancing at 65% damage, as for your demon's melee
+  // (combat.petMelee.glanceDmgPct; the notes do not give it). It spawns beside you and walks in at about 7 yd/s: ASSUMED 3 s
+  // to its first swing (about 20 yd) → 29 swings at 3, 5 … 59 s. Not your demon: no Demonic Brand charges, no Master
+  // Demonologist / Soul Link / Unholy Power / pet buffs. Its damage is booked like Zarla's whelp's (a trinket row).
+  13353: { name: 'Book of the Dead', slot: 'offHand', about: 16,   // about: its use's rough worth in spell power for the list (round 265: +12.1 to +12.5 DPS in a 3 min fight = 15 to 18 spell power by build, 30 × 1,000 paired fights)
+           use: { kind: 'melee', min: 104, max: 137.8, school: 'physical', first: 3, every: 2, duration: 60, cd: 900, missPct: 8.0, dodgePct: 5.1, glancePct: 36.2, glanceDmgPct: 65 } },
 };
-// The gear builder's items with an effect here: [{ slot, id, fx }] (only while the builder is on).
+// The gear builder's items with an effect here: [{ slot, id, fx }] (only while the builder is on). Round 265: an off hand
+// counts only while the main hand is not a two-hander.
 WL.equippedItemFx = function (cfg) {
   var gb = cfg && cfg.gearBuilder; if (!gb || !gb.on || !gb.slots) return [];
+  var ohBlocked = WL.gearOffHandBlocked ? WL.gearOffHandBlocked(gb) : false;
   return Object.keys(WL.ITEM_FX).map(function (id) {
     var fx = WL.ITEM_FX[id], e = gb.slots[fx.slot], wid = e && (e.id != null ? e.id : e.custom && e.custom.id);
+    if (fx.slot === 'offHand' && ohBlocked) return null;
     return wid != null && +wid === +id ? { slot: fx.slot, id: +id, fx: fx } : null;
   }).filter(Boolean);
 };
 // What an item's effect does, for the gear builder.
 WL.itemFxText = function (fx) {
-  var p = fx.proc;
+  var p = fx.proc, u = fx.use, cap = function (s) { return s.charAt(0).toUpperCase() + s.slice(1); };
+  var vs = function (o) { return o.vs ? ', ×' + o.vs[Object.keys(o.vs)[0]] + ' against ' + Object.keys(o.vs).map(function (k) { var b = WL.BOSS_TYPES.filter(function (y) { return y.key === k; })[0]; return b ? b.name : k; }).join(' / ') : ''; };
+  if (u && u.kind === 'melee') return 'Use: a fighter for ' + u.duration + ' s (' + (u.cd >= 60 ? u.cd / 60 + ' min' : u.cd + ' s') + ' cooldown, once a fight): a swing every ' + u.every + ' s from ' + u.first +
+    ' s after the use, ' + u.min + '–' + u.max + ' ' + cap(u.school) + ' damage less the boss\'s armor; its own attack table (' + u.missPct + '% miss, ' + u.dodgePct + '% dodge, ' + u.glancePct + '% glancing at ' +
+    u.glanceDmgPct + '%, no crit) — not your demon (no Demonic Brand, no demon buffs)';
   return p.procsPerMin + ' a minute on your cast time (at least ' + p.minCast + ' s): ' + (p.min === p.max ? p.min : p.min + '–' + p.max) + ' ' +
-    p.school.charAt(0).toUpperCase() + p.school.slice(1) + ' damage and ' + p.mana + ' mana, on any landed spell you cast at an enemy (not on DoT ticks)';
+    cap(p.school) + ' damage' + (p.mana ? ' and ' + p.mana + ' mana' : '') + vs(p) + ', on any landed spell you cast at an enemy (not on DoT ticks)' +
+    (p.areaCastPerTarget ? '; Rain of Fire\'s cast rolls on each enemy in its area, its pulses never; one proc per cast' : '');
 };
 
-// The trinkets in the gear builder's trinket slots that have an effect here: [{ slot, id, fx }].
+// The trinkets in the gear builder's trinket slots that have an effect here: [{ slot, id, fx }]. Round 265: then the other
+// worn items with an on-use effect (WL.ITEM_FX use: Book of the Dead), slot = their slot ('offHand').
 WL.equippedTrinkets = function (cfg) {
   var gb = cfg && cfg.gearBuilder; if (!gb || !gb.on || !gb.slots) return [];
   return ['trinket1', 'trinket2'].map(function (slot) {
     var e = gb.slots[slot], id = e && (e.id != null ? e.id : e.custom && e.custom.id);
     return id != null && WL.TRINKET_FX[id] ? { slot: slot, id: +id, fx: WL.TRINKET_FX[id] } : null;
-  }).filter(Boolean);
+  }).filter(Boolean).concat(WL.equippedItemFx(cfg).filter(function (x) { return x.fx.use; }));
 };
 // A rough spell-power worth of an effect (its spell power × the part of the time it is up), for sorting the item list.
 // Round 209: with the fight's boss type and zone (cfg), an equip effect that holds counts in full, a proc of 100% too.

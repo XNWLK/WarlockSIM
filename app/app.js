@@ -1219,7 +1219,7 @@
   var TR_NAMES = {};
   function auraInfo(k) {
     if (AURAS[k]) return AURAS[k];
-    var tr = /^tr:(trinket\d)$/.exec(k); if (tr) return [(TR_NAMES[tr[1]] || 'Trinket') + ' (on-use trinket)', '', 'you'];
+    var tr = /^tr:(trinket\d|offHand)$/.exec(k); if (tr) return [(TR_NAMES[tr[1]] || 'Trinket') + (tr[1] === 'offHand' ? ' (on-use off hand)' : ' (on-use trinket)'), '', 'you'];   // round 265: Book of the Dead
     var xt = /^dot(\d):(\w+)$/.exec(k);
     if (xt) { var base = AURAS['dot:' + xt[2]]; return [(base ? base[0] : spellName(xt[2])) + ' (target ' + xt[1] + ')', base ? base[1] : xt[2], 'extra']; }
     var xd = /^deb(\d):(\w+)$/.exec(k);                              // CoE / ISB on an extra target (round 39)
@@ -4185,6 +4185,7 @@
       : u.kind === 'costRed' ? 'your spells cost ' + u.amount + ' less mana' + d
       : u.kind === 'mana' ? '+' + u.amount + ' mana, used when that much is missing' + (u.int ? '; −' + u.int + ' Intellect for ' + u.intDuration / 60 + ' min' : '')
       : u.kind === 'dmgAfter' ? u.min + ' Fire damage after ' + u.casts + ' of your spells'
+      : u.kind === 'melee' ? 'a fighter for ' + u.duration + ' s: a swing every ' + u.every + ' s from ' + u.first + ' s after the use, ' + u.min + '–' + u.max + ' ' + cap1(u.school) + ' damage less the boss\'s armor, on its own attack table (' + u.missPct + '% miss, ' + u.dodgePct + '% dodge, ' + u.glancePct + '% glancing, no crit); not your demon'   // round 265: Book of the Dead
       : u.kind === 'dmgOver' ? u.shots + ' shots of ' + (u.min === u.max ? u.min : u.min + '–' + u.max) + ' ' + cap1(u.school) + ' damage, one every ' + u.every + ' s' + (u.first != null && u.first !== u.every ? ' (the first after ' + u.first + ' s)' : '')   // round 241: one number when min = max; round 258: the first shot's time (Zarla's Snack Pouch: 3.2 s)
       : (u.min === u.max ? u.min : u.min + '–' + u.max) + ' ' + cap1(u.school || '') + ' damage' + (u.school === 'physical' ? ', less the boss\'s armor' : '')) + c + cond(u);   // round 241: Everlook Pathcarver
   }
@@ -4199,7 +4200,8 @@
         : fx.use ? '<label class="c"><input type="checkbox" data-trkuse="' + slot + '"' + ((use[slot] || 'cds') !== 'never' ? ' checked' : '') + '> use it</label>' : '';
       return '<div class="trk"><b>' + esc(it.name) + '</b><span>' + esc(trkText(fx)) + '</span>' + sel + '</div>';
     }).join('') + WL.equippedItemFx({ gearBuilder: Object.assign({}, G, { on: true }) }).map(function (x) {   // round 235: gear with a proc (Blade of Eternal Darkness)
-      return '<div class="trk"><b>' + esc(x.fx.name) + '</b><span>' + esc(WL.itemFxText(x.fx)) + '</span></div>';
+      var sel = x.fx.use ? '<label class="c">Use <select data-trkuse="' + x.slot + '" aria-label="When to use ' + esc(x.fx.name) + '">' + TRK_WHEN.map(function (w) { return '<option value="' + w[0] + '"' + ((use[x.slot] || 'cds') === w[0] ? ' selected' : '') + '>' + w[1] + '</option>'; }).join('') + '</select></label>' : '';   // round 265: an on-use off hand (Book of the Dead), as a trinket
+      return '<div class="trk"><b>' + esc(x.fx.name) + '</b><span>' + esc(WL.itemFxText(x.fx)) + '</span>' + sel + '</div>';
     }).join('') + ['mainHand'].map(function (slot) {                // round 167: the weapon enchant's effect
       var en = G.enchants && G.enchants[slot], fx = en && en.id != null && WL.ENCHANT_FX[en.id]; if (!fx || !(G.slots && G.slots[slot])) return '';
       var p = fx.proc, t = p.kind === 'sp' ? p.chancePct + '% chance per landed spell: +' + p.sp + ' spell power and ' + p.mana + ' mana for ' + p.duration + ' s'

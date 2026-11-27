@@ -52,7 +52,7 @@
     var N = mod.exports, D = JSON.parse(dj);
     T.ok(N.UP_ONLY && N.UP_ONLY[RUNE], 'notes.js: Rune Band of Wizardry is UP_ONLY (user: "it\'s an upgrade")');
     // round 261 (user: "add it for the upgrade"): the Orb pin is back — test-round261.js checks it and its shown loss
-    T.ok(N.UP_BUILD.demo_pact_fire && N.UP_BUILD.demo_pact_fire.neck === ORB, 'notes.js: Fire Demo\'s ▲ pin Orb of the Darkmoon (out in round 259, back in round 261)');
+    T.ok(!(N.UP_BUILD.demo_pact_fire && N.UP_BUILD.demo_pact_fire.neck === ORB), 'notes.js: no Fire Demo ▲ pin Orb of the Darkmoon (out in round 259, back in round 261, out again in round 264)');
     T.ok(N.ALT[EMS] === SORROW, 'Elemental Mage Staff\'s ▼ is still Staff of Sorrow (round 251\'s "whatever comes next")');
     T.ok(D.altSeeds >= 20 && D.altFights === 1000, '▲ / ▼ numbers: ' + D.altSeeds + ' paired chunks × ' + D.altFights + ' fights (was 2 × 2,000)');
     var bad = [], runeAlt = [], ties = 0;

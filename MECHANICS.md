@@ -942,7 +942,7 @@ one kind of enemy (Scented Runewood Brooch, Dismantle): with any other boss type
 | Heart of the Primeval | +19 spell power for 30 s, 6 min cooldown. |
 | Cannonball Runner | A cannon for 10 s: 10 shots of 85–139 Holy damage, one per second (its Cannon Fire is a 1 s cast), each like a trinket hit above but without Curse of the Elements (Holy); twice against Undead. 5 min cooldown. |
 | Draconic Infused Emblem | 8% chance on a damaging cast: +35 spell power for 10 s, no internal cooldown (a new proc renews it); 70 against Dragonkin. |
-| Bolt's Charged Eyeball | 15% chance on any damage you deal (hits and ticks), at most every 3 s: 60 Nature damage, 68% of the time to the boss (180 against Dinosaurs), 32% of the time to you (a combat log of 210 procs, round 229; it confirmed the 3 s cooldown and about 14% per tick). |
+| Bolt's Charged Eyeball | 15% chance on any damage you deal (hits and ticks), at most every 3 s: 60 Nature damage, 74% of the time to the boss (180 against Dinosaurs), 26% of the time to you: public evidence notes of live-realm combat logs (Forever 70862–71037, 2026-11-10 to 11-24) count 1,797 of 6,831 shocks of 34 wearers on the wearer, 26.3% (95%: 25.3–27.4%), one shock per proc (round 265; rounds 229–264: 32%, from a combat log of 210 procs, which confirmed the 3 s cooldown and about 14% per tick). |
 | Cursed Murloc Eye | 2 Shadow damage with each damaging cast (8 against Murlocs). |
 | Mindtap Talisman | 1,250 mana (counted at once), but −60 Intellect for 2 min (less crit; the lower maximum mana is not counted), 7 min cooldown. |
 | Burst of Knowledge | Your spells cost 150 less mana for 10 s, 6 min cooldown. |
@@ -959,7 +959,8 @@ one kind of enemy (Scented Runewood Brooch, Dismantle): with any other boss type
 
 Other trinkets (threat, defence, resistance, movement, melee-range and random effects, a summoned fighter such as Abyss
 Shard's Voidwalker, and drawbacks on you such as Scalding Flamehoof's +14% Fire damage taken) only bring their stats.
-Cannonball Runner's cannon and Zarla's Snack Pouch's whelp are simulated (above).
+Cannonball Runner's cannon and Zarla's Snack Pouch's whelp are simulated (above), and so is Book of the Dead's skeleton (an off
+hand: Other gear with an effect, below).
 
 **Weapon enchants with an effect** (the gear builder's weapon enchant, while the builder is on):
 
@@ -976,6 +977,8 @@ Cannonball Runner's cannon and Zarla's Snack Pouch's whelp are simulated (above)
 | Item | In the sim |
 |---|---|
 | Blade of Eternal Darkness (main hand, +62 spell power) | Each spell you cast that lands on an enemy rolls, whether it deals damage or not: direct spells, curses, DoTs and channels when they land or start, Bane of Havoc; never a DoT or channel tick, Life Tap, your demon or Hellfire's cast (it targets you, so it rolls no proc at all). The chance follows the cast time of that cast: 1.8 procs a minute, so 1.8 × max(1.5 s, cast time) / 60 — 4.5% on an instant, a channel or a 1.5 s cast, 7.5% on a 2.5 s Shadow Bolt. A proc deals 112 Shadow damage (no spell power; your spell hit and crit ×1.5; Curse of the Elements) and restores 104 mana, also when the hit is resisted; then 100 ms without a proc. Measured in game (2026-11-14 to 11-17): 554 procs of a mage, 49 of two warlocks and a priest. |
+| Kindling Stave (two-handed, +60 spell power, +1% crit, +12 Intellect) | Ignition: like Blade of Eternal Darkness, each spell you cast that lands on an enemy rolls once per enemy (curses too: Curse of the Elements 4.65% in game), never a DoT tick, a Hellfire Effect tick, a Rain of Fire pulse, a spell fired by a proc or a killing blow; Rain of Fire's cast rolls on each enemy in its area. 1.85 procs a minute on cast time, so 1.85 × max(1.5 s, cast time) / 60 — 4.6% on an instant, a channel or a 1.5 s cast, 7.7% on a 2.5 s Shadow Bolt; then 10 ms without a proc, so at most one proc per cast. A proc deals 60–81 Fire damage (no spell power; your spell hit and crit ×1.5; Curse of the Elements), three times as much against Plants; no mana. Public evidence notes of live-realm combat logs (Forever 70888–71139, 2026-11-11 to 11-26, 397 wearers): a fit of 1.837 a minute (1.810–1.865), Warlocks alone 1.800. |
+| Book of the Dead (off hand, +16 Shadow spell power, +15 Intellect) | Use (15 min cooldown, so once a fight; the trinket use rules: with your other cooldowns by default, the off hand's own Use setting, "Activate trinket"): a Summoned Skeleton for 60 s. It walks in from beside you (about 7 yd/s; the sim assumes 3 s, about 20 yards) and then swings every 2.0 s, 29 swings: 104–137.8 Physical damage (120.9 ± 14%), less the boss's armor after Sunder Armor and the like (as for your demon's melee), on its own attack table against a level-63 boss: 8.0% miss, 5.1% dodge, 36.2% glancing blows (at 65% damage, as for your demon), 50.7% hits, never a crit. Not your spell hit or crit, no spell power, no buffs. It is not your demon: no Demonic Brand charges, no Master Demonologist, Soul Link, Unholy Power or other demon bonus. Public evidence notes of live-realm combat logs (Forever 70938–71139, 2026-11-14 to 11-26): 240 summons of 37 owners, 4,162 swings in 65 reports, and 11 summons / 215 swings in combat logs. |
 
 **Set bonuses with an effect** (the gear builder's items; their plain stat bonuses count like item stats):
 

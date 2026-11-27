@@ -3,6 +3,14 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v224
+- **"What changed" link** at the top of the sim: it opens these patch notes.
+- **Bolt's Charged Eyeball:** a shock now hits you 26% of the time (was 32%), from public evidence notes of live-realm combat logs (6,831 shocks).
+- **Kindling Stave:** its Ignition proc is in: 60–81 Fire damage (×3 against Plants), about 1.85 times a minute of casting, from spells that land (not from DoT ticks, Hellfire or Rain of Fire's pulses). It adds about 1–2 DPS; the staff itself stays well behind the listed staffs.
+- **Book of the Dead:** its use is in: a Summoned Skeleton for 60 s (once per fight) that swings for about 121 Physical every 2 s, with its own attack table from combat logs (8% miss, 5% dodge, 36% glancing, no crits). It's not your demon, so no Demonic Brand or demon talents. Worth about +12 DPS in a 3-minute fight. It follows your trinket settings ("on-use off hand").
+- **Demonic Brand** stays without crits.
+- **Pre-raid BiS page:** Orb of the Darkmoon is no longer shown as Fire Demo's neck upgrade.
+
 ## v223
 - **New talents:** Incinerate Pandemic is now 18/0/33, with Improved Corruption 5/5 and 2 Malevolence instead of 4 Unholy Power (about +4.5 DPS). Incinerate DS is now 8/11/32, with 2 Improved Life Tap from Aftermath and Improved Corruption (about +9.5 DPS: with no demon out it runs short on mana). Fire Demo takes 3 Cataclysm, a 3rd point of Demonic Brand and a 2nd of Demonic Energies, from Aftermath and Demonic Embrace (about +2 DPS). Found by a talent search on each build's Pre-BiS gear. Shadow Demo and Wrack DS had nothing better.
 - **Master's Leggings of Shadow Wrath** (+40 Shadow, world drop) are in the gear builder. They tie Leggings of Torment: the legs upgrade for Wrack DS, the legs alternative for Shadow Demo, marked expensive.

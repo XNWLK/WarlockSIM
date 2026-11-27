@@ -55,15 +55,13 @@
     if (!nt || !dj || !aj || !tp) { T.warn('private/bis-page not readable here (not in the repository, or file://)'); return; }
     var mod = { exports: {} }; new Function('module', nt)(mod);
     var N = mod.exports, D = JSON.parse(dj);
-    T.ok(N.UP_BUILD.demo_pact_fire && N.UP_BUILD.demo_pact_fire.neck === ORB, 'notes.js: Fire Demo\'s ▲ neck pin Orb of the Darkmoon is back (user: "add it for the upgrade")');
+    T.ok(!(N.UP_BUILD.demo_pact_fire && N.UP_BUILD.demo_pact_fire.neck === ORB), 'notes.js: Fire Demo\'s ▲ neck pin Orb of the Darkmoon is out again (round 264, user: "since it\'s not an actual dps upgrade, remove it")');
     T.ok(N.UP_TRY && N.UP_TRY[MASTERS] && N.UP_TRY[INFERNO], 'notes.js UP_TRY: the Shadow Wrath legs and Inferno Gloves are measured for the ▲');
     T.eq((N.NOTE[MASTERS] || []).join(), 'Expensive', 'the Shadow Wrath legs\' downside: Expensive (user)');
     T.ok(/kept: the page shows the loss/.test(aj) && !/WARNING ▲[^\n]*process\.exit/.test(aj), 'alts.js: a losing hand-picked ▲ is only a warning');
     var fd = D.builds.filter(function (b) { return b.key === 'demo_pact_fire'; })[0], neck = fd && fd.alts.neck;
     T.ok(fd && fd.slots.neck === NACREOUS, 'Fire Demo\'s main neck: Nacreous Shell Necklace');
-    T.ok(neck && neck.up && neck.up.id === ORB, 'Fire Demo\'s neck ▲: Orb of the Darkmoon');
-    T.ok(neck && neck.up && neck.up.dps < 0 && !neck.up.tie, 'it shows its loss (' + (neck && neck.up && neck.up.dps) + ' DPS), not a tie and not a gain');
-    T.ok(neck && neck.up && (neck.up.minus || []).indexOf('1,200 Darkmoon Faire tickets') >= 0, 'and its cost');
+    T.ok(neck && !(neck.up && neck.up.id === ORB), 'Fire Demo\'s neck ▲ is no longer Orb of the Darkmoon (round 264)');
     T.ok(/x\.dps > 0 \? pm\(\[f1\(x\.dps\) \+ ' DPS'\], m\) : pm\(\[\], \[f1\(Math\.abs\(x\.dps\)\) \+ ' DPS'\]/.test(tp), 'the template shows a loss as "− x DPS"');
     T.ok(/picked by hand and show their DPS change as measured, a loss too/.test(tp), 'the notes say a hand pick can show a loss');
     var bad = [];

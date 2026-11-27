@@ -504,24 +504,25 @@ window.WL = window.WL || {};
     // Other gear with an effect (round 235, user: Blade of Eternal Darkness) [A127]: 'ppmCast' rolls on each landed spell you
     // cast at an enemy (curses, DoT / channel casts included, once per target; never ticks), at procsPerMin × max(minCast,
     // the cast time of the cast that launched it) / 60. landCT: that cast time, set right before each landing.
-    var IFX = WL.equippedItemFx ? WL.equippedItemFx(cfg) : [], ifs = {}, landCT = 0;
+    // Round 265: only items with a proc (Book of the Dead's use is in TRK, with the trinkets). [A132]
+    var IFX = (WL.equippedItemFx ? WL.equippedItemFx(cfg) : []).filter(function (x) { return x.fx.proc; }), ifs = {}, landCT = 0;
     IFX.forEach(function (x) { ifs[x.id] = { icdUntil: -1 }; });
-    function itemOnLand(ti, castT) {
+    function itemOnLand(ti, castT, areaCast) {                       // areaCast (round 265): an extra target of an area channel's cast
       IFX.forEach(function (x) {
         var p = x.fx.proc, st = ifs[x.id];
-        if (p.kind !== 'ppmCast' || S.t < st.icdUntil - EPS) return;
+        if (p.kind !== 'ppmCast' || S.t < st.icdUntil - EPS || (areaCast && !p.areaCastPerTarget)) return;
         if (R.proc() >= p.procsPerMin * Math.max(p.minCast, castT || 0) / 60) return;
         st.icdUntil = S.t + p.icd;
-        var g = Math.min(p.mana, stats.maxMana - S.mana); S.mana += g; res.manaFromItems = (res.manaFromItems || 0) + g;   // also when its hit is resisted
+        var g = p.mana ? Math.min(p.mana, stats.maxMana - S.mana) : 0; S.mana += g; if (p.mana) res.manaFromItems = (res.manaFromItems || 0) + g;   // also when its hit is resisted (round 265: Kindling Stave has none)
         var key = 'trinket:' + x.id, r = row(key); r.casts++;                 // one row for every target (it hits target ti)
-        if (R.hit() * 100 >= hitNow()) { r.misses++; L('miss', key, { mana: g }); return; }
+        if (R.hit() * 100 >= hitNow()) { r.misses++; L('miss', key, { mana: p.mana ? g : undefined }); return; }
         r.landed++;
-        var amt = p.min + (p.max - p.min) * R.proc();
+        var amt = (p.min + (p.max - p.min) * R.proc()) * trMult(p);          // round 265: × boss type (Kindling Stave: ×3 against Plants)
         var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe');
         if (coe && COE_SCHOOLS[p.school]) amt *= 1 + SPELLS.curseOfElements.dmgTakenPct / 100;
         var crit = R.crit() * 100 < stats.critPct; if (crit) amt *= cb.critMultiplier;
         deal(key, amt, crit, false, ti > 1 ? ti : undefined);
-        L('hit', key, { dmg: Math.round(amt), crit: crit, mana: g });
+        L('hit', key, { dmg: Math.round(amt), crit: crit, mana: p.mana ? g : undefined });
       });
     }
     // Round 209 (user) [A113]: the fight's boss type / zone multiply an effect (WL.fxMult); new kinds hit, stats, costRed,
@@ -573,6 +574,19 @@ window.WL = window.WL || {};
       var crit = R.crit() * 100 < stats.critPct; if (crit) amt *= cb.critMultiplier;
       deal(key, amt, crit, false, ti > 1 ? ti : undefined);
       L('hit', key, { dmg: Math.round(amt), crit: crit });
+    }
+    // Round 265 (public evidence notes of live-realm combat logs, Forever 70938–71139) [A132]: one swing of a summoned fighter
+    // (Book of the Dead's Summoned Skeleton) — its own one-roll table (miss → dodge → glancing → hit, never a crit against a
+    // level-60+ target), not your spell hit or crit; Physical, the boss's armor after debuffs; no spell power, no demon buffs,
+    // no Demonic Brand, no Judgement of Wisdom. Booked on the item's row like Zarla's whelp (swings in casts).
+    function trSwing(x, u) {
+      var key = 'trinket:' + x.id, r = row(key), roll = R.proc() * 100;
+      if (roll < u.missPct + u.dodgePct) { r.misses++; L('miss', key, { dodge: roll >= u.missPct || undefined }); return; }
+      r.landed++;
+      var amt = (u.min + (u.max - u.min) * R.proc()) * trMult(u) * (1 - armorRed), glance = roll < u.missPct + u.dodgePct + u.glancePct;
+      if (glance) { amt *= u.glanceDmgPct / 100; r.glances++; }
+      deal(key, amt, false, false);
+      L('hit', key, { dmg: Math.round(amt), glance: glance || undefined });
     }
     // A proc's chance in % on a landing of spell key (round 244; WL.procChancePct, data/trinkets.js): chancePct, or ppm on the
     // cast time of the cast that launched it (landCT) [A116]
@@ -674,6 +688,8 @@ window.WL = window.WL || {};
       if (u.kind === 'dmg') { r.casts++; trHit(x, u); }
       // round 209: Cannonball Runner; round 258: `first` = when the first shot lands (default `every`), then one every `every` s
       if (u.kind === 'dmgOver') { r.casts++; var f0 = u.first != null ? u.first : u.every; for (var si = 0; si < u.shots; si++) H.push({ t: S.t + f0 + si * u.every, o: 0, type: 'trShot', slot: x.slot }); }
+      // Round 265: Book of the Dead — a fighter that swings from `first` s after the use, every `every` s while it lasts [A132]
+      if (u.kind === 'melee') { r.casts++; for (var mt = u.first; mt < u.duration - EPS; mt += u.every) H.push({ t: S.t + mt, o: 0, type: 'trSwing', slot: x.slot }); }
       if (u.kind === 'dmgAfter') {
         r.casts++; st.pending = u.casts;
         if (u.castsZones) { var cn = u.casts * trMult({ zones: u.castsZones }); if (cn !== u.casts) st.pending = Math.floor(cn) + (R.proc() < cn % 1 ? 1 : 0); }   // round 209: Everlook Delivery Bot in Snowy areas: 3 or 4
@@ -1203,6 +1219,7 @@ window.WL = window.WL || {};
         // 465 Violet Meditation). Its ticks never did. Rain of Fire's cast rolls them, except Touch of the Grave. [A131]
         if (!s.castOnSelf) {
           if (IFX.length) itemOnLand(0, 0);                               // on cast (a channel prices as an instant), not on its ticks [A127]
+          if (IFX.length && s.aoe) for (var ati = 2; ati <= NT; ati++) itemOnLand(ati, 0, true);   // round 265: Rain of Fire's cast on each enemy in its area (areaCastPerTarget: Kindling Stave) [A132]
           touchOfTheGrave(0, key);                                        // on cast, not on the channel's ticks [A29]
           jowProc(false);                                                 // [A64]
         }
@@ -1761,6 +1778,9 @@ window.WL = window.WL || {};
       } else if (ev.type === 'trShot') {                               // round 209: one shot of a summoned helper (Cannonball Runner)
         var tx = TRK.filter(function (q) { return q.slot === ev.slot; })[0];
         if (tx) trHit(tx, tx.fx.use);
+      } else if (ev.type === 'trSwing') {                              // round 265: one swing of a summoned fighter (Book of the Dead) [A132]
+        var tw = TRK.filter(function (q) { return q.slot === ev.slot; })[0];
+        if (tw) trSwing(tw, tw.fx.use);
       } else if (ev.type === 'castEnd') {
         if (ev.dead) continue;                                // pushed back: a later copy of this event lands it (round 78)
         var fin = ev.t - (SPELLS[ev.key].projectile && TRAVEL > EPS ? TRAVEL : 0);   // when the cast finished (a projectile flies on)
