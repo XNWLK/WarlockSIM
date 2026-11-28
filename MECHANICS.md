@@ -195,7 +195,7 @@ together inside their group, and the group is applied once.
 
 | Group | Talents in it |
 |---|---|
-| Direct (hits) | Shadow Mastery (Shadow spells) · Agonizing Flames (Destruction spells except Hellfire) · Aftermath (Immolate's hit) · Decimation (Shadow Bolt and Searing Pain while the boss is below 35%) · Eureka! (+10% for a cast that finishes while it is up) |
+| Direct (hits) | Shadow Mastery (Shadow spells) · Agonizing Flames (Destruction spells except Hellfire) · Aftermath (Immolate's hit) · Decimation (Shadow Bolt and Searing Pain, at any boss health) · Eureka! (+10% for a cast that finishes while it is up) |
 | Periodic (DoT and channel ticks) | Shadow Mastery (Shadow spells) · Agonizing Flames (Destruction spells except Hellfire) · Improved Corruption · Improved Bane of Agony · Improved Drains (Drain Life and Drain Soul) · Eureka! (+10%, channel ticks while it is up) |
 
 Example: Corruption with 5/5 Improved Corruption and 5/5 Shadow Mastery gets × (1 + 10% + 10%) = × 1.20, not
@@ -342,10 +342,10 @@ tooltip says 246 to 274). A spell's "family" decides which talents count it as a
 **Destruction spells** (Ruin, Agonizing Flames, Cataclysm, Intensity): Shadow Bolt, Immolate, Incinerate, Searing Pain, Conflagrate, Shadowburn, Soul Fire, Hellfire, Rain of Fire.
 **Affliction spells:** Corruption, Bane of Agony, Bane of Doom, Siphon Life, Drain Life, Drain Soul, Wrack, Death Coil.
 
-- **Shadow Bolt.** A crit applies Improved Shadow Bolt (with the talent). No cast time under Shadow Trance. A hit while the boss is below 35% health triggers Decimation (with the talent). Projectile.
+- **Shadow Bolt.** A crit applies Improved Shadow Bolt (with the talent). No cast time under Shadow Trance. Decimation adds to its damage at any boss health; a hit while the boss is below 35% health gives the Decimation buff (with the talent). Projectile.
 - **Immolate.** A direct hit plus a 15 s burn. Aftermath only raises the hit. Conflagrate needs it on the target, and Incinerate deals 25% more while it is there.
 - **Incinerate.** 25% more damage if your Immolate is on the target when it lands. Projectile.
-- **Searing Pain.** Causes twice its damage as threat. Applies Demonic Brand (with the talent and a demon out). A hit while the boss is below 35% health triggers Decimation (with the talent).
+- **Searing Pain.** Causes twice its damage as threat. Applies Demonic Brand (with the talent and a demon out). Decimation adds to its damage at any boss health; a hit while the boss is below 35% health gives the Decimation buff (with the talent).
 - **Conflagrate.** Can only be cast with your Immolate on the target and consumes it - unless Shadow and Flame keeps it.
 - **Shadowburn.** Uses a soul shard; shards never run out in the sim.
 - **Soul Fire.** Its cooldown starts when the cast is complete. Uses a soul shard (unlimited). With the Decimation buff: faster cast, no shard. Projectile.
@@ -427,7 +427,7 @@ Every talent of the three trees. "Talent group" and "aura" are explained in sect
 | Improved Sayaad | 3 | Lash of Pain base +10 / 20 / 30% | Raises Lash of Pain's base value by 10 / 20 / 30%; its spell-power part is not raised. The other spells are not simulated. |
 | Demonic Sacrifice | 1 | Shadow / Fire damage +15% | The demon is sacrificed before the pull. Imp: +15% Shadow damage. Succubus: +15% Fire damage (auras: they multiply). Voidwalker: 2% of your maximum mana every 4 s. Felhunter: 3% of your maximum health every 4 s. Without Demonic Pact it only counts with no demon out. |
 | Master Summoner | 2 | — | Only used by the mid-fight pet swap: summon 2 / 4 s faster and 20 / 40% cheaper. |
-| Decimation | 2 | Soul Fire cooldown −45 / 90%; damage below 35% +3 / 6%; Soul Fire cast −20 / 40% | Soul Fire's cooldown is 45 / 90% shorter (60 s becomes 33 s / 6 s). A Shadow Bolt or Searing Pain that lands while the boss is below 35% health deals 3 / 6% more (added to the direct talent group) and gives a 10 s buff: the next Soul Fire casts 20 / 40% faster and needs no soul shard. |
+| Decimation | 2 | Soul Fire cooldown −45 / 90%; Shadow Bolt / Searing Pain damage +3 / 6%; Soul Fire cast −20 / 40% | Soul Fire's cooldown is 45 / 90% shorter (60 s becomes 33 s / 6 s). Shadow Bolt and Searing Pain deal 3 / 6% more at any boss health (added to the direct talent group; round 275, from public evidence notes of live-realm combat logs). One that lands while the boss is below 35% health also gives a 10 s buff: the next Soul Fire casts 20 / 40% faster and needs no soul shard. |
 | Fel Domination | 1 | — | Only used by the mid-fight pet swap: summon 6 s faster and 50% cheaper, 5 min cooldown. |
 | Demonic Brand | 3 | Searing Pain threat −17 / 33 / 50%; charges 2 / 4 / 6 | With a demon out, a landed Searing Pain brands the boss for 10 s with 2 / 4 / 6 charges. Each landed attack of your demon spends a charge and adds a bonus hit (see Pets). Searing Pain causes 17 / 33 / 50% less threat. |
 | Improved Felhunter | 3 | — | Not simulated. |

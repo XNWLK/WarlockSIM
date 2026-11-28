@@ -27,7 +27,10 @@
     T.eq(flat.lifeTaps, 0, 'unlimited mana: no Life Taps');
     T.near(flat.dpsExec / flat.dpsPre, 1, 0.03, 'no execute talents, no Life Taps → the two phases are within 3% of each other (' + flat.dpsPre.toFixed(1) + ' / ' + flat.dpsExec.toFixed(1) + ')');
     var dec = WL.simulate(tb(['shadowBolt'], { decimation: 2 }), 'human', cm, { iterations: 50, log: false });
-    T.ok(dec.dpsExec > dec.dpsPre * 1.04, 'Decimation (+6% Shadow Bolt below 35%) raises only the execute phase (' + dec.dpsPre.toFixed(1) + ' → ' + dec.dpsExec.toFixed(1) + ')');
+    // Round 275 (user: "yes do it and recheck decimation points"): Decimation's +6% applies at any boss health, so it raises
+    // both phases alike (was: only the execute phase).
+    T.ok(dec.dpsPre > flat.dpsPre * 1.04 && dec.dpsExec > flat.dpsExec * 1.04, 'Decimation (+6% Shadow Bolt at any health) raises both phases (above ' + flat.dpsPre.toFixed(1) + ' → ' + dec.dpsPre.toFixed(1) + ', below ' + flat.dpsExec.toFixed(1) + ' → ' + dec.dpsExec.toFixed(1) + ')');
+    T.near(dec.dpsExec / dec.dpsPre, flat.dpsExec / flat.dpsPre, 0.02, 'and the execute phase gains no more than the rest (' + (dec.dpsExec / dec.dpsPre).toFixed(3) + ' vs ' + (flat.dpsExec / flat.dpsPre).toFixed(3) + ' without it)');
   });
   function fmt0(x) { return Math.round(x); }
 })();

@@ -71,12 +71,13 @@
     T.ok(/var m = x\.minus \|\| \[\]/.test(tp) && /dpsPm\(alt\)/.test(tp) && /dpsPm\(up\)/.test(tp), 'the template shows the downside on the ▲ and the ▼ line');
     T.group('What changed');
     T.ok(N.CHANGES && /^\d{4}-\d\d-\d\d$/.test(N.CHANGES.date) && N.CHANGES.items.length >= 1 && N.CHANGES.items.length <= 8, 'notes.js CHANGES: a date and 1–8 lines');
-    T.eq(N.CHANGES && N.CHANGES.date, '2026-11-27', 'its date: 2026-11-27 (round 262)');
+    var CD = N.CHANGES && N.CHANGES.date;   // round 277: replaced on every BiS push, so no fixed date (2026-11-27 in round 262)
+    T.ok(CD >= '2026-11-27', 'its date: ' + CD + ' (from 2026-11-27, round 262)');
     T.ok(D.changes && D.changes.date === N.CHANGES.date && D.changes.items.join('|') === N.CHANGES.items.join('|'), 'data.json carries it');
-    T.ok(N.CHANGES && N.CHANGES.items.some(function (x) { return /Shadow Wrath/.test(x); }) && !N.CHANGES.items.some(function (x) { return /talent|\d+\/\d+\/\d+|Cataclysm|Malevolence/i.test(x); }), 'it names the Shadow Wrath legs, and gear only: no talent lines (round 267, user: "we only need to have stuff related to gear")');
+    T.ok(N.CHANGES && !N.CHANGES.items.some(function (x) { return /talent|\d+\/\d+\/\d+|Cataclysm|Malevolence/i.test(x); }), 'gear only: no talent lines (round 267, user: "we only need to have stuff related to gear"; round 277: no fixed line)');
     T.ok(/<section class="changes" id="changes"/.test(tp) && /What changed<time datetime=/.test(tp) && /\.changes \{/.test(tp), 'the template has the box, its heading with the date, and its style');
     var gh = src('../private/bis-page/github/index.html'), art = src('../private/bis-page/pre-raid-bis.html');
-    T.ok(gh.indexOf('"changes":{"date":"2026-11-27"') >= 0 && art.indexOf('"changes":{"date":"2026-11-27"') >= 0, 'both builds (artifact, GitHub) carry it');
+    T.ok(gh.indexOf('"changes":{"date":"' + CD + '"') >= 0 && art.indexOf('"changes":{"date":"' + CD + '"') >= 0, 'both builds (artifact, GitHub) carry it');
     T.group('round 262: the pre-raid page');
     var SW = function (id) { return !!(WL.ITEMS[id] && / of Shadow Wrath$/.test(WL.ITEMS[id].name)); }, bad = [];
     D.builds.forEach(function (b) { Object.keys(b.alts).forEach(function (s) { var a = b.alts[s];
@@ -86,8 +87,9 @@
       var fr = document.createElement('iframe'); fr.style.cssText = 'position:absolute;left:-9999px;width:375px;height:800px'; fr.setAttribute('aria-hidden', 'true');
       fr.onload = function () { try { var d = fr.contentDocument, el = d.getElementById('changes');
         T.ok(el && !el.hidden, 'the box is shown');
-        T.ok(el && /What changed/.test(el.textContent) && el.querySelector('time') && el.querySelector('time').getAttribute('datetime') === '2026-11-27', 'heading "What changed" with the date 2026-11-27');
-        T.ok(el && /27 November 2026/.test(el.querySelector('time').textContent), 'the date reads "27 November 2026"');
+        T.ok(el && /What changed/.test(el.textContent) && el.querySelector('time') && el.querySelector('time').getAttribute('datetime') === CD, 'heading "What changed" with the date ' + CD);
+        var MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'], want = +CD.slice(8) + ' ' + MON[+CD.slice(5, 7) - 1] + ' ' + CD.slice(0, 4);
+        T.ok(el && el.querySelector('time').textContent.indexOf(want) >= 0, 'the date reads "' + want + '"');
         T.eq(el ? el.querySelectorAll('li').length : 0, N.CHANGES.items.length, 'one line per change');
         T.ok(el && el.scrollWidth <= el.clientWidth + 1 && d.documentElement.scrollWidth <= fr.clientWidth + 1, 'no sideways scroll at 375 px');
       } catch (e) { T.ok(false, 'the frame could not be read', String(e)); } fr.remove(); done(); };

@@ -75,6 +75,16 @@ const EXTRA = [
   // Xizzix (Undermine Trader, Stranglethorn Vale) for 100 Tarnished Undermine Real.
   { id: 272393, n: "Magician's Cord", l: 60, r: 60, q: 4, sl: 6, sub: 1, cls: 4, ic: 'inv_belt_43a', set: 0, mx: 0, rc: 128, rr: 0, rf: 0,
     s: { splpwr: 19, int: 24, sta: 12 }, src: [5], sm: [{ n: 'Pix Xizzix', t: 1, ti: 227853, z: 33 }], cat: 'armor/cloth/slot:6' },
+  // Round 276 (user: "also add green lens of shadow wrath (+36) and green lens of fiery wrath (+36) to the gear builder. i dont think
+  // it's gonna beat anything on the bis list but it's a good option for people to test"): Green Lens (10504, Engineering, item
+  // level 49, Binds when equipped, 57 Armor, +10 Stamina, a random enchantment; Requires Engineering (245)) as two of its rolls —
+  // two rolls of one item need two ids, so each gets its own: 10504 × 10000 + the roll's random-enchantment id (Wowhead Forever
+  // tooltip, read 2026-11-28: rand 1861 = "of Shadow Wrath" +36 Shadow Spell Damage, rand 1899 = "of Fiery Wrath" +36 Fire Spell
+  // Damage). Not real game item ids: nothing in the sim links an item id to Wowhead.
+  { id: 105041861, n: 'Green Lens of Shadow Wrath', l: 49, r: 10, q: 3, sl: 1, sub: 1, cls: 4, ic: 'inv_helmet_44', set: 0, mx: 0, rc: 0, rr: 0, rf: 0,
+    s: { shasplpwr: 36, sta: 10 }, src: [1], sm: [{ n: 'Green Lens', t: 6, c: 11, ti: 12622 }], cat: 'armor/cloth/slot:1' },
+  { id: 105041899, n: 'Green Lens of Fiery Wrath', l: 49, r: 10, q: 3, sl: 1, sub: 1, cls: 4, ic: 'inv_helmet_44', set: 0, mx: 0, rc: 0, rr: 0, rf: 0,
+    s: { firsplpwr: 36, sta: 10 }, src: [1], sm: [{ n: 'Green Lens', t: 6, c: 11, ti: 12622 }], cat: 'armor/cloth/slot:1' },
 ];
 // Round 254: items Wowhead names for other classes only that a Warlock can wear in the game (the user) — kept despite the class
 // mask (also kept by tools/items-collect.js from now on, CLASS_OK there).

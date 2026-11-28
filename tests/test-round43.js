@@ -30,12 +30,16 @@
     var td = WL.buildSpellTable(bd, WL.computeStats(bd, 'human', c), c);
     T.near(td.shadowBolt.directMult, 1.15 * 1.10, 1e-12, 'Demonic Sacrifice (aura, "Mod Damage Done %") still multiplies: 1.15 × (1 + SM 10%)');
 
-    T.group('Decimation adds to the direct group (Shadow Bolt / Searing Pain below 35%)');
+    T.group('Decimation adds to the direct group (Shadow Bolt / Searing Pain, at any boss health since round 275)');
     // SM 10% + Agonizing Flames 10% so the old rule (× 1.06) and the new one (× 1.05) are far enough apart to tell.
+    // Round 275 (user: "yes do it and recheck decimation points"): the damage no longer waits for the execute phase, so the
+    // first Shadow Bolt is compared with the same build without Decimation (was: the last execute bolt vs the first one).
     var dec = WL.simulateOnce(tb(['shadowBolt'], { shadowMastery: 5, agonizingFlames: 3, decimation: 2 }), 'human', det(), { duration: 60, log: true });
-    var hits = dec.log.filter(function (e) { return e.type === 'hit' && e.spell === 'shadowBolt'; });
-    var pre = hits.filter(function (e) { return e.t < 60 * 0.65 - 3; })[0].dmg, post = hits[hits.length - 1].dmg;
-    T.near(post / pre, (1 + 0.20 + 0.06) / 1.20, 0.003, 'execute Shadow Bolt ×' + (post / pre).toFixed(4) + ' = (1 + SM 10% + AgF 10% + Decimation 6%) / 1.20 = 1.05 (old rule 1.06)');
+    var nod = WL.simulateOnce(tb(['shadowBolt'], { shadowMastery: 5, agonizingFlames: 3 }), 'human', det(), { duration: 60, log: true });
+    var sbHits = function (r) { return r.log.filter(function (e) { return e.type === 'hit' && e.spell === 'shadowBolt'; }); };
+    var hits = sbHits(dec), pre = hits[0].dmg, post = hits[hits.length - 1].dmg, pre0 = sbHits(nod)[0].dmg;
+    T.near(pre / pre0, (1 + 0.20 + 0.06) / 1.20, 0.003, 'first Shadow Bolt (100% health) ×' + (pre / pre0).toFixed(4) + ' = (1 + SM 10% + AgF 10% + Decimation 6%) / 1.20 = 1.05 (old rule 1.06)');
+    T.near(post / pre, 1, 0.003, 'the execute bolt deals the same as the first one (×' + (post / pre).toFixed(4) + '): no execute gate on the damage');
 
     T.group('Eureka! adds to the group of each hit / tick');
     var g = det();

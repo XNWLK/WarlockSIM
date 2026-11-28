@@ -205,7 +205,7 @@ WL.ACTIONS = {
     label: 'At execute: sacrifice the pet, Fel Domination, summon the Succubus',
     pick: function (S) { return S.canSwap && S.canSwap('succubus') ? 'swap:succubus' : null; },
   },
-  // Searing Pain only in the execute phase (where Decimation adds 6% and makes Soul Fire fast) — place it above the
+  // Searing Pain only in the execute phase (where Decimation makes Soul Fire fast; its +6% applies at any health since round 275) — place it above the
   // normal filler to change fillers at execute (round 35).
   searingPainExecute: {
     label: 'Searing Pain in the execute phase (below the execute threshold)',

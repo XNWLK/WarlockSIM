@@ -117,7 +117,10 @@ WL.resistProfile = function (cfg, pierce, school, coeActive, pen, periodic) {
 WL.RESIST_RULES = {
   immolate: { binary: 1 }, incinerate: { binary: 1 }, shadowburn: { binary: 1 }, deathCoil: { binary: 1 },
   baneOfAgony: { binary: 1 }, drainSoul: { binary: 1 },
-  rainOfFire: { noBonus: 1, tickShare: 1 }
+  rainOfFire: { noBonus: 1, tickShare: 1 },
+  // round 277 (user: "yes add both"; public evidence notes of live-realm combat logs, Forever, 2026-11-27): Blade of Eternal Darkness's Engulfing Shadows — binary, and the one binary hit
+  // seen to take no Spell Pierce bonus (0 of 484 where 137.8 were expected) (engine/sim.js itemOnLand, proc.binary) [A127]
+  engulfingShadows: { binary: 1, noBonus: 1 }
 };
 // { R, flat, dist, mean, landP } for one damage event of spell `key` (tick: a periodic tick). landP = chance a binary
 // spell is not resisted (1 for the others; the hit / tick dist then carries no resist).

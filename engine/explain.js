@@ -179,8 +179,6 @@ window.WL = window.WL || {};
       if (PI) o.push(PI.name + ' × ' + (1 + PI.spellDmgPct / 100).toFixed(2) + ' for ' + PI.duration + ' s');
       if (periodic && tv('wrack') && SPELLS.wrack.dotSpeedSpells.indexOf(bk) >= 0 && !extra) o.push('ticks ' + (1 + SPELLS.wrack.dotSpeedPct / 100) + ' times as often while you channel Wrack (same duration)');
       if (periodic && s.drain && tv('soulSiphon') && !extra) o.push('Soul Siphon × 1.' + ('0' + tv('soulSiphon', 'perEffectPct')).slice(-2) + ' for each of Corruption, Bane of Agony and Siphon Life on the target, at most × ' + (1 + tv('soulSiphon', 'maxPct') / 100).toFixed(2));
-      var dec = !periodic && (WL.isShadowBolt(bk) || bk === 'searingPain') ? tv('decimation', 'dmgPct') : 0;
-      if (dec) o.push('below ' + cfg.fight.executePct + '% boss health Decimation adds ' + dec + '% to the talent group: × ' + f((grp + dec / 100) / grp, 4));
       var eu = race.racials.filter(function (r) { return r.effect === 'cooldown' && r.dmgPct; })[0];
       if (eu && (!periodic || s.kind === 'channel')) o.push('Eureka! adds ' + eu.dmgPct + '% to the talent group ' + (periodic ? 'for every tick that comes while it is up' : 'when the cast finishes while it is up') + ': × ' + f((grp + eu.dmgPct / 100) / grp, 4));
       return o;
@@ -206,6 +204,11 @@ window.WL = window.WL || {};
       step('A crit', critCalc, f(dv * e.critMult));
       step('Average hit with crits', f(dv) + ' × (1 + ' + f(e.critPct, 2) + '% × ' + f(e.critMult - 1, 3) + ')', f(dv * (1 + e.critPct / 100 * (e.critMult - 1))));
       var od = others(false, 1 + e.op0); if (od.length) notes.push('Comes and goes: ' + od.join('; ') + '.');
+      // Round 275 (user: "yes do it and recheck decimation points"): Decimation's damage at any boss health (public
+      // evidence notes of live-realm combat logs); added as the spell lands, so the steps above do not include it.
+      var dec = (WL.isShadowBolt(bk) || bk === 'searingPain') ? tv('decimation', 'dmgPct') : 0;
+      if (dec) notes.push('Decimation adds ' + dec + '% to the talent group of every hit, at any boss health (added as the spell lands, not in the steps above): × ' + f((1 + e.op0 + dec / 100) / (1 + e.op0), 4) +
+        '. A hit below ' + cfg.fight.executePct + '% boss health also gives the 10 s buff for Soul Fire.');
     }
     if (s.tickBase != null) {                  // ticks: a DoT, a channel, Immolate's burn
       var tbase = s.tickBase + s.tickCoef * e.sp, what = s.kind === 'hybrid' ? 'burn tick' : 'tick', once = e.ticks === 1;

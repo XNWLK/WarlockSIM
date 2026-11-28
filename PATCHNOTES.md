@@ -3,6 +3,12 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v230
+- **Decimation** now adds its +6% to Shadow Bolt and Searing Pain at any boss health, not only below 35% (public evidence notes of live-realm combat logs: the same bonus above 40% as below 35%). Its Soul Fire buff still comes only below 35%. Shadow Demo goes from 893.1 to **908.6** DPS and Fire Demo from 910.1 to **922.2**; the other builds don't take Decimation. A re-check of the talents found nothing better: both Demo builds keep 2/2 Decimation.
+- **Green Lens of Shadow Wrath** and **Green Lens of Fiery Wrath** (+36 Shadow / Fire, +10 Stamina, Engineering 245) are in the gear builder's head slot. They are 4–17 DPS behind Spellweaver's Turban.
+- **Draconic Infused Emblem:** Rain of Fire's cast now rolls it once for each enemy in its area (more procs in multi-target fights).
+- **Blade of Eternal Darkness:** its Engulfing Shadows is now fully resisted (never partly) at the boss's resist chance while the boss still has Shadow resistance, and it takes no Spell Pierce bonus. With Curse of the Elements up nothing changes.
+
 ## v229
 - **Draconic Infused Emblem** now also procs on your curse casts (Curse of the Elements, Bane of Havoc's cast), as its "on harmful spellcast" says. A Warcraft Logs report (40 procs) showed it: about 7% of harmful casts, no internal cooldown, 10 s, a new proc while it's up resets the 10 s, never on DoT ticks — the same as the sim. Worth about +0.1 DPS.
 - Default DPS doesn't change.

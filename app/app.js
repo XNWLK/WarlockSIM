@@ -1809,7 +1809,7 @@
       casts.push({ a: e.t, b: Math.min(end, D), g: e.gcd > 0 ? Math.min(e.t + e.gcd, D) : null, k: e.spell, instant: !e.channel && !(e.castTime > 1e-9), tip: clock(e.t) + ' ' + spellName(e.spell) + (e.precast != null ? ' (precast: its ' + e.precast.toFixed(2) + ' s cast ended as the fight started)' : e.channel ? ' (channel)' : e.castTime > 1e-9 ? ' (' + e.castTime.toFixed(2) + ' s cast)' : e.gcd === 0 ? ' (instant, off the GCD)' : ' (instant, GCD)') });
     });
     // Boss health (round 34): HP falls linearly 100% → 0% over the fight [A24]; the execute phase (below executePct,
-    // Decimation's range) is drawn in red and marked by a dashed line through every lane.
+    // where Decimation gives its Soul Fire buff; its damage applies at any health since round 275) is drawn in red and marked by a dashed line through every lane.
     var exPct = (runCfg.fight && runCfg.fight.executePct != null) ? runCfg.fight.executePct : 35, exT = D * (1 - exPct / 100);
     lanes.push({ label: 'Boss health (execute < ' + exPct + '% from ' + clock(exT).replace(/\.\d+$/, '') + ')', hp: true, h: 24 });
     if (tlOpt.mana) lanes.push({ label: 'Mana', mana: true, h: 24 });
@@ -1876,7 +1876,7 @@
       return '<label class="c"><input type="checkbox" data-tlopt="' + o[0] + '"' + (tlOpt[o[0]] ? ' checked' : '') + '> ' + o[1] + '</label>';
     }).join('') + '</span>';
     return '<div class="wide"><h2>Timeline · fight #1 (' + fmt(D, 1) + ' s)</h2>' + opts + '<div class="tl-wrap">' + labels + '<div class="tl-scroll">' + svg + '</div></div>' +
-      '<p class="meta">Boss health falls evenly over the fight; red = execute phase (below ' + exPct + '%, Decimation\'s range), dashed line = when it starts. ' +
+      '<p class="meta">Boss health falls evenly over the fight; red = execute phase (below ' + exPct + '%, where Decimation gives its Soul Fire buff), dashed line = when it starts. ' +
       'Bars in "Your casts" use the spell colours from the damage split; faded bars are instants (their GCD). Hover any bar for details.</p></div>';
   }
   // Stat weights of this build (round 44): raw DPS per unit incl. Spell Pierce, and each as spell-power equivalent.

@@ -516,6 +516,10 @@ window.WL = window.WL || {};
         var g = p.mana ? Math.min(p.mana, stats.maxMana - S.mana) : 0; S.mana += g; if (p.mana) res.manaFromItems = (res.manaFromItems || 0) + g;   // also when its hit is resisted (round 265: Kindling Stave has none)
         var key = 'trinket:' + x.id, r = row(key); r.casts++;                 // one row for every target (it hits target ti)
         if (R.hit() * 100 >= hitNow()) { r.misses++; L('miss', key, { mana: p.mana ? g : undefined }); return; }
+        if (p.binary) {                                                    // round 277, (user: "yes add both"; public evidence notes of live-realm combat logs, Forever, 2026-11-27): a binary hit [A127]
+          var bp = resProf(p.school, ti, false, p.binary);
+          if (bp.landP < 1 && R.vuln() >= bp.landP) { r.misses++; r.resisted = (r.resisted || 0) + 1; L('miss', key, { resisted: true, mana: p.mana ? g : undefined }); return; }
+        }
         r.landed++;
         var amt = (p.min + (p.max - p.min) * R.proc()) * trMult(p);          // round 265: × boss type (Kindling Stave: ×3 against Plants)
         var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe');
@@ -631,6 +635,16 @@ window.WL = window.WL || {};
       });
     }
     var TRC = TRK.some(function (x) { return x.fx.proc && x.fx.proc.onCurse; });
+    // round 277 (user: "yes add both"; public evidence notes of live-realm combat logs, Forever, 2026-11-27): a buff proc with areaCastPerTarget rolls once for each enemy in an area cast's
+    // area (Rain of Fire; the boss's roll is the usual trOnCast) — Draconic Infused Emblem: 1 − 0.92ⁿ a cast.
+    function trOnAreaCast(key) {
+      TRK.forEach(function (x) {
+        var p = x.fx.proc, st = trs[x.slot];
+        if (!p || !p.areaCastPerTarget || p.kind !== 'sp' || !WL.fxOn(cfg, p) || R.proc() * 100 >= procChancePct(p, key)) return;
+        if (st.procUntil <= S.t + EPS) L('buff', x.fx.name); st.procUntil = S.t + p.duration;
+      });
+    }
+    var TRA = TRK.some(function (x) { return x.fx.proc && x.fx.proc.areaCastPerTarget && x.fx.proc.kind === 'sp'; });
     function trOnLandX(ti, key) {
       TRK.forEach(function (x) {
         var p = x.fx.proc, st = trs[x.slot];
@@ -748,7 +762,7 @@ window.WL = window.WL || {};
     // Round 239 [A128]: each spell's own rule (WL.RESIST_RULES: binary / hit / tick; engine/resist.js WL.spellResist).
     function resProf(school, ti, periodic, sk) {
       var tp = TRK.length ? trPierce() : 0;                             // Eye of Moam (round 166): −100 resistances while up
-      var rl = WL.RESIST_RULES[sk], g = rl ? (rl.binary ? 'b' : (rl.noBonus ? 'n' : '') + (rl.tickShare ? 's' : '')) : '';   // 's': ticks at a tenth (Rain of Fire, round 241) [A130]
+      var rl = WL.RESIST_RULES[sk], g = rl ? (rl.binary ? 'b' + (rl.noBonus ? 'n' : '') : (rl.noBonus ? 'n' : '') + (rl.tickShare ? 's' : '')) : '';   // 'bn': round 277   // 's': ticks at a tenth (Rain of Fire, round 241) [A130]
       var coe = ti > 1 ? S.xDebLeft(ti, 'coe') > 0 : S.buff('coe'), key = school + (coe ? '1' : '0') + (tp ? 'p' + tp : '') + (periodic ? 't' : '') + g;
       return resCache[key] || (resCache[key] = WL.spellResist(cfg, stats.pierce, school, coe, stats.spellPen + tp, sk, periodic));
     }
@@ -1015,8 +1029,10 @@ window.WL = window.WL || {};
       if (s.kind === 'hybrid' || s.kind === 'direct') {                   // Immolate's direct part / a direct spell
         var amt = (s.base + s.coef * spNow(e)) * e.directMult * liveMultX(key, ti, false) * (eureka ? eurekaMult(key, false) : 1);
         var execute = S.targetHpPct < cfg.fight.executePct;               // extra targets follow the boss's health line [A24]
-        if ((isSB(key) || key === 'searingPain') && execute && tv('decimation')) {
-          amt *= addOp0(key, tv('decimation', 'dmgPct')); S.buffs.decimation = S.t + 10;   // additive spell mod (round 43)
+        // Round 275 (user: "yes do it and recheck decimation points"): the +3 / 6% damage applies at any boss health
+        // (public evidence notes of live-realm combat logs); only the Soul Fire buff needs the execute phase. [A23]
+        if ((isSB(key) || key === 'searingPain') && tv('decimation')) {
+          amt *= addOp0(key, tv('decimation', 'dmgPct')); if (execute) S.buffs.decimation = S.t + 10;   // additive spell mod (round 43)
         }
         amt *= vulnMult(s.school, ti, false, key);
         var crit = critRoll(key, e.critPct + (rev ? REV.fx.proc.pct : 0), ti);   // Revelation on an extra target too (round 243)
@@ -1107,9 +1123,11 @@ window.WL = window.WL || {};
       var amt = (s.base + s.coef * sp) * e.directMult * liveMult(key, false) * (eureka ? eurekaMult(key, false) : 1);   // eureka: the cast finished inside Eureka!
       if (key === 'incinerate' && S.dotLeft('immolate') > 0) amt *= 1 + s.immolateBonusPct / 100;
       var execute = S.targetHpPct < cfg.fight.executePct;
-      if ((isSB(key) || key === 'searingPain') && execute && tv('decimation')) {              // [A23]
+      if ((isSB(key) || key === 'searingPain') && tv('decimation')) {              // [A23]
         amt *= addOp0(key, tv('decimation', 'dmgPct'));   // "Modifies Damage/Healing Done": adds to the spell's op0 (round 43)
-        S.buffs.decimation = S.t + 10;
+        // Round 275 (user: "yes do it and recheck decimation points"): the damage at any boss health (public evidence
+        // notes of live-realm combat logs); the 10 s Soul Fire buff only below the execute threshold.
+        if (execute) S.buffs.decimation = S.t + 10;
       }
       amt *= vulnMult(s.school, 0, false, key);
       var crit = critRoll(key, e.critPct + (rev ? REV.fx.proc.pct : 0));     // Revelation (round 167; taken at the cast, round 243)
@@ -1231,6 +1249,7 @@ window.WL = window.WL || {};
         if (!s.castOnSelf) {
           if (IFX.length) itemOnLand(0, 0);                               // on cast (a channel prices as an instant), not on its ticks [A127]
           if (IFX.length && s.aoe) for (var ati = 2; ati <= NT; ati++) itemOnLand(ati, 0, true);   // round 265: Rain of Fire's cast on each enemy in its area (areaCastPerTarget: Kindling Stave) [A132]
+          if (TRA && s.aoe) for (var ati2 = 2; ati2 <= NT; ati2++) trOnAreaCast(key);   // round 277 (user: "yes add both"; public evidence notes of live-realm combat logs, Forever, 2026-11-27): Draconic Infused Emblem once more per extra enemy
           touchOfTheGrave(0, key);                                        // on cast, not on the channel's ticks [A29]
           jowProc(false);                                                 // [A64]
         }
@@ -1540,7 +1559,7 @@ window.WL = window.WL || {};
       } else {
         amt = (s.base + s.coef * spNow(e)) * e.directMult * lmult(key, ti, false);
         if (key === 'incinerate' && !noImmolate && S.dotLeft('immolate') > 0) amt *= 1 + s.immolateBonusPct / 100;
-        if ((isSB(key) || key === 'searingPain') && S.targetHpPct < cfg.fight.executePct && tv('decimation')) amt *= addOp0(key, tv('decimation', 'dmgPct'));
+        if ((isSB(key) || key === 'searingPain') && tv('decimation')) amt *= addOp0(key, tv('decimation', 'dmgPct'));   // at any health (round 275)
       }
       return hitChance() * amt * expVuln(s.school, ti, s.kind === 'channel', key) * expCrit(e.critPct, e.critMult);
     }
