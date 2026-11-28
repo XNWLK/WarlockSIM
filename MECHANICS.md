@@ -896,6 +896,17 @@ A new APL line that matches an action is added as that action. Besides the actio
 Talents can also be read from a Wowhead Forever talent calculator link (build editor → Load build code), and every build
 can be opened there (Wowhead talent link).
 
+**Export / Import APL** (round 278; build editor, and Talents & rotation of every build): the rotation as the APL text of
+another Forever sim ("siml 1", one row of raw JSON per line, or the same list as JSON), and its rotation text or JSON back
+into the build editor. Conditions map one to one where that sim has the same value (DoT / buff time left, cooldowns, fight
+time, boss health, mana %, Demonic Brand charges, talents, the pet, Curse of the Elements); the rest is approximated or left
+out, and every such row is listed (the end-of-fight DoT check becomes "the cast and 2 ticks still fit", "the rest of the fight
+needs more mana", free mana, the 5-second rule, Soul Shards and Life Tap for the pet have no equivalent). The export adds that
+sim's "autocast other cooldowns" row (racials, potions, trinkets are settings here) and a Life Tap under the filler (this sim
+taps by itself). Rows made from this sim's actions carry a marker in their notes, so an unchanged export comes back exactly.
+On import, cooldowns, racials, items, pets and other targets are left out (settings here), "number of targets" is read as 1,
+and the first row that is always cast ends the list.
+
 
 **DoTs at the end of the fight.** A DoT that can still run its full duration is always recast. When it cannot, the sim
 adds up what the recast would still bring - the ticks that land in time, Immolate's hit, and what the DoT makes possible

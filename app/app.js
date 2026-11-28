@@ -456,8 +456,9 @@
   // ---------- total stats (gear + raid buffs + consumables + oil + passive racials; no talents) ----------
   var TOTAL_ROWS = [
     { k: 'sp', label: 'Spell power', c: '--c-sp', gear: function (g) { return g.sp; }, tot: function (s) { return s.sp; } },
-    { k: 'shadowSp', label: 'Shadow spell power', c: '--c-sp', gear: function (g) { return g.shadowSp || 0; }, tot: function (s) { return s.schoolSp.shadow; } },
-    { k: 'fireSp', label: 'Fire spell power', c: '--c-sp', gear: function (g) { return g.fireSp || 0; }, tot: function (s) { return s.schoolSp.fire; } },
+    // round 279 (user: "have the shadow spell power in the stats show the total of normal spellpower+shadow, fire total being fire+normal spellpower"): the school rows are totals, spell power included
+    { k: 'shadowSp', label: 'Shadow spell power', c: '--c-sp', withSp: 1, gear: function (g) { return (g.sp || 0) + (g.shadowSp || 0); }, tot: function (s) { return s.sp + s.schoolSp.shadow; } },
+    { k: 'fireSp', label: 'Fire spell power', c: '--c-sp', withSp: 1, gear: function (g) { return (g.sp || 0) + (g.fireSp || 0); }, tot: function (s) { return s.sp + s.schoolSp.fire; } },
     { k: 'hitPct', label: 'Hit %', c: '--c-hit', d: 1, gear: function (g) { return g.hitPct; }, tot: function (s, c) { return s.hitPctUncapped - c.combat.baseHitPct; } },
     { k: 'critPct', label: 'Crit %', c: '--c-crit', d: 1, gear: function (g) { return g.critPct; }, tot: function (s) { return s.critPct; } },
     { k: 'hastePct', label: 'Haste %', c: '--c-haste', d: 1, gear: function (g) { return g.hastePct; }, tot: function (s) { return s.hastePct; } },
@@ -485,6 +486,7 @@
       var src = s.breakdown.filter(function (b) { return b.stat === r.k && !hide.test(b.source) && !/^Character sheet/.test(b.source); })
         .map(function (b) { return esc(b.source.replace(/ \[A\d+\]/g, '')) + ' ' + (b.value > 0 ? '+' : '') + fmt(b.value, d || (Math.abs(b.value) < 10 && b.value % 1 ? 1 : 0)); });
       if (r.k === 'hitPct') src = src.filter(function (x) { return !/^Base vs/.test(x); });
+      if (r.withSp) src.unshift('Spell power ' + fmt(s.sp, 0));                    // round 279: the total starts from your spell power
       $('tv_' + r.k).textContent = fmt(tv, d);
       $('tv_' + r.k).classList.toggle('up', gv != null && Math.abs(tv - gv) > 1e-9);
       $('ts_' + r.k).innerHTML = src.join(' · ');
@@ -1512,7 +1514,7 @@
     // ---- stats table: value + every source inline (round 45) ----
     var pctOf = function (m) { return (m - 1) * 100; };
     var statRows = [['Intellect', st.int, 'int', 1], ['Spirit', st.spi, 'spi', 1], ['Maximum mana', st.maxMana, 'maxMana', 0], ['Stamina', st.sta, 'sta', 1], ['Maximum health', st.maxHealth, 'maxHealth', 0],
-      ['Spell power', st.sp, 'sp', 0], ['+ Shadow spell power', st.schoolSp.shadow, 'shadowSp', 0], ['+ Fire spell power', st.schoolSp.fire, 'fireSp', 0],
+      ['Spell power', st.sp, 'sp', 0], ['Shadow spell power', st.sp + st.schoolSp.shadow, 'shadowSp', 0], ['Fire spell power', st.sp + st.schoolSp.fire, 'fireSp', 0],   // round 279: totals (were '+ Shadow / + Fire' extras)
       ['Hit chance %', st.hitPct, 'hitPct', 1], ['Crit % (before talents)', st.critPct, 'critPct', 2], ['Haste %', st.hastePct, 'hastePct', 1],
       ['Spell Pierce', st.pierce, 'pierce', 0], ['Spell Penetration', st.spellPen, 'spellPen', 0],
       ['Shadow damage (auras)', pctOf(st.mult.shadow), 'shadowDmgPct', 1, true], ['Fire damage (auras)', pctOf(st.mult.fire), 'fireDmgPct', 1, true], ['All damage (auras)', pctOf(st.mult.all), 'allDmgPct', 1, true]];
@@ -1563,6 +1565,10 @@
         (a === 'havocAuto' ? ' <span class="meta">(added by Targets ≥ 2)</span>' :
          b.rotation.indexOf(a) < 0 ? ' <span class="meta">(added by the Multi-DoT option)</span>' : '') + '</li>';
     }).join('') + '<li>' + icon('lifeTap', 'Life Tap', '', spellTipByKey('lifeTap')) + ' Life Tap whenever mana is below the next spell\'s cost</li></ol>' +
+      // round 278 (user): this rotation as APL text for another Forever sim, or an APL text into a copy of this build
+      '<div class="btnrow"><button type="button" class="resetbtn" data-aplout="' + esc(b.key) + '" title="This rotation, as simulated, as APL text for another Forever sim (or as JSON)">Export APL</button>' +
+      '<button type="button" class="resetbtn" data-aplin="' + esc(b.key) + '" title="Paste another Forever sim\'s APL text (or JSON): opens ' + (b.custom ? 'this build' : 'a copy of this build') + ' in the build editor with that rotation">Import APL</button></div>' +
+      '<p class="meta aplhelp">APL: the rotation text another Forever sim uses — paste the export into that sim\'s rotation import, or paste its export here. Cooldowns, racials and potions are settings here, not rotation lines.</p>' +
       (preSet && !preAct ? '<p class="meta"><b>No precast:</b> this build cannot precast ' + esc(precastName(preSet)) + ' (it does not have the spell, or its talents make it an instant), so it starts the fight as usual.</p>' : '') +
       '<p class="meta">Racial cooldowns, the Spellblasting potion and Power Infusion are first popped ' + activesWhen() + ', then whenever ready; channels are clipped when a higher-priority action is ready.' +
       (WL.activeConsumables(runCfg).some(function (c) { return c.manaRestore || c.spPotion; }) ? ' Mana potions / runes are used when at least their amount of mana is missing.' : '') + '</p>' +
@@ -2125,7 +2131,7 @@
     // ---- stats used in the fight + stat weights ----
     var pctOf = function (m) { return (m - 1) * 100; }, sA = A.stats, sB = B.stats;
     var st = [['Intellect', sA.int, sB.int, 0], ['Spirit', sA.spi, sB.spi, 0], ['Stamina', sA.sta, sB.sta, 0], ['Maximum mana', sA.maxMana, sB.maxMana, 0],
-      ['Spell power', sA.sp, sB.sp, 0], ['+ Shadow spell power', sA.schoolSp.shadow, sB.schoolSp.shadow, 0, 1], ['+ Fire spell power', sA.schoolSp.fire, sB.schoolSp.fire, 0, 1],
+      ['Spell power', sA.sp, sB.sp, 0], ['Shadow spell power', sA.sp + sA.schoolSp.shadow, sB.sp + sB.schoolSp.shadow, 0, 1], ['Fire spell power', sA.sp + sA.schoolSp.fire, sB.sp + sB.schoolSp.fire, 0, 1],   // round 279: totals
       ['Hit chance %', sA.hitPct, sB.hitPct, 1], ['Crit % (before talents)', sA.critPct, sB.critPct, 2], ['Haste %', sA.hastePct, sB.hastePct, 1, 1],
       ['Spell Pierce', sA.pierce, sB.pierce, 0, 1], ['Spell Penetration', sA.spellPen, sB.spellPen, 0, 1],
       ['Shadow damage % (auras)', pctOf(sA.mult.shadow), pctOf(sB.mult.shadow), 1, 1], ['Fire damage % (auras)', pctOf(sA.mult.fire), pctOf(sB.mult.fire), 1, 1],
@@ -2695,16 +2701,7 @@
   }
   // An APL line → its priority entry: the simple action it matches (its numbers and extra condition set on the build), or a
   // new APL line of your own. A named line stays yours. others = the other entries of the priority.
-  function aplEntry(r, others) {
-    var b = ed.b, m = r.name ? null : WL.aplMatch(r, b, WL.expandGroups(b, others));
-    if (m) {
-      if (m.params) { b.params = b.params || {}; b.params[m.key] = Object.assign({}, WL.actionParams(b, m.key), m.params); }
-      if (m.extra) { b.actWhen = b.actWhen || {}; b.actWhen[m.key] = m.extra; }
-      else if (b.actWhen) { delete b.actWhen[m.key]; if (!Object.keys(b.actWhen).length) delete b.actWhen; }
-      return { key: m.key, simple: true };
-    }
-    b.rules = b.rules || []; b.rules.push(r); return { key: 'rule:' + (b.rules.length - 1), simple: false };
-  }
+  function aplEntry(r, others) { return WL.aplEntry(ed.b, r, others); }   // round 278: moved to engine/apl-io.js (the APL import uses it too)
   // A line of a built-in action edited: the action's lines again, with that one changed; each becomes its entry.
   function aplReplace(r, at, line) {
     var b = ed.b, key = b.rotation[at], L = WL.aplLines(key, b), others = b.rotation.slice(0, at).concat(b.rotation.slice(at + 1)), keys = [];
@@ -3192,6 +3189,8 @@
       catch (e4) { $('edCode').select(); edMsg('Selected — press Ctrl+C.'); }
       return true;
     }
+    if (t.closest('#edAplOut')) { aplExportOpen(b, cfg, b.short || 'the build in the editor'); return true; }   // round 278
+    if (t.closest('#edAplIn')) { aplImportOpen(null); return true; }
     if (t.closest('#edLoadCode')) {
       var wt = null;
       try { wt = WL.parseWowheadTalents($('edCode').value); } catch (e5) { edMsg(e5.message, true); return true; }
@@ -4684,6 +4683,81 @@
   });
   $('layoutBtn').addEventListener('click', function () { lyRender(); if ($('layoutDlg').showModal) $('layoutDlg').showModal(); else $('layoutDlg').setAttribute('open', ''); });
 
+  // ---------- round 278 (user): APL export / import — a build's rotation as another Forever sim's APL text (engine/apl-io.js) ----------
+  // One dialog for both. Export: the APL text (rows of raw JSON, for that sim's rotation import) or the JSON form (its JSON
+  // import; only the rotation is replaced there), what is not exact listed under it. Import: paste their APL text or JSON →
+  // the rotation of the build in the editor (from a build's details: a copy of that build) is replaced; nothing is saved
+  // until you save the build. Copy / paste only (no files), with the select + Ctrl+C fallback.
+  var aplDlg = { mode: null, fmt: 'text', exp: null, key: null };
+  function aplShow() { var d = $('aplDlg'); if (d.showModal) { if (!d.open) d.showModal(); } else d.setAttribute('open', ''); }
+  function aplHide() { var d = $('aplDlg'); if (d.close && d.open) d.close(); else d.removeAttribute('open'); }
+  function aplMsg(s, bad) { $('aplMsg').textContent = s || ''; $('aplMsg').style.color = bad ? 'var(--bad)' : ''; }
+  function aplWarnHtml(warn, notes, errs) {
+    var li = function (cls) { return function (x) { return '<li' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(x) + '</li>'; }; }, h = '';
+    if (errs && errs.length) h += '<p class="meta"><b>Checks of the build (' + errs.length + ')</b></p><ul>' + errs.map(li('bad')).join('') + '</ul>';
+    if (warn && warn.length) h += '<p class="meta"><b>Not exact (' + warn.length + ')</b></p><ul>' + warn.map(li('')).join('') + '</ul>';
+    if (notes && notes.length) h += '<p class="meta"><b>Notes</b></p><ul>' + notes.map(li('')).join('') + '</ul>';
+    return h || '<p class="meta">Everything has an exact equivalent.</p>';
+  }
+  function aplFill() {
+    var e = aplDlg.exp; if (!e) return;
+    $('aplText').value = aplDlg.fmt === 'json' ? e.json : e.text;
+    $('aplText').rows = 12;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-aplfmt]'), function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-aplfmt') === aplDlg.fmt)); });
+    $('aplHelp').textContent = aplDlg.fmt === 'json' ? 'The same rotation as JSON: paste it into the other sim\'s Import → JSON (only its rotation is replaced). Rows made from this sim\'s actions keep a marker in their notes, so an unchanged export comes back here exactly.'
+      : 'Paste this into the other Forever sim\'s rotation tab → Import (its APL text: "siml 1", one row per line). Only the rotation is replaced there: give it the same talents, or rows of spells it does not know are skipped. Cooldowns, racials, potions and on-use trinkets are settings here: the export adds its "autocast other cooldowns" row for them, and a Life Tap under the filler (this sim taps by itself).';
+  }
+  function aplExportOpen(b, c, name) {
+    var e;
+    try { e = WL.aplExport(b, c); } catch (x) { edMsg('Could not make the APL text: ' + x.message, true); return; }
+    aplDlg = { mode: 'out', fmt: aplDlg.fmt === 'json' ? 'json' : 'text', exp: e, key: null };
+    $('aplTitle').textContent = 'Export APL: ' + name;
+    $('aplFmtRow').hidden = false; $('aplCopy').hidden = false; $('aplDo').hidden = true;
+    $('aplText').readOnly = true; $('aplText').placeholder = '';
+    aplFill(); aplMsg('');
+    $('aplWarn').innerHTML = aplWarnHtml(e.warnings, e.notes);
+    aplShow(); $('aplCopy').focus();
+  }
+  function aplImportOpen(key) {
+    var src = key && WL.BUILDS.filter(function (y) { return y.key === key; })[0];
+    aplDlg = { mode: 'in', fmt: aplDlg.fmt, exp: null, key: src ? src.key : null };
+    $('aplTitle').textContent = 'Import APL' + (src ? ' into ' + (src.custom ? '"' + src.short + '"' : 'a copy of "' + src.short + '"') : ' into the build in the editor');
+    $('aplFmtRow').hidden = true; $('aplCopy').hidden = true; $('aplDo').hidden = false;
+    $('aplText').readOnly = false; $('aplText').value = ''; $('aplText').rows = 12;
+    $('aplText').placeholder = 'siml 1\nspec warlock\n\npriority:\n  cast corruption if not dot(corruption).is_active\n  …\n\n(or the JSON of the other sim\'s Export → JSON)';
+    $('aplHelp').textContent = 'Paste the other Forever sim\'s rotation export (Export of its APL text, or its JSON). Its rows become this build\'s priority: rows that match an action here become that action, the others APL lines of your own. ' +
+      'Cooldowns, racials, potions and items are settings here and are left out. The rest of the build (talents, pet) stays; nothing is saved until you save the build.';
+    aplMsg(''); $('aplWarn').innerHTML = '';
+    aplShow(); $('aplText').focus();
+  }
+  function aplImportDo() {
+    var r = WL.aplImport($('aplText').value, runCfg);
+    if (r.error) { aplMsg(r.error, true); $('aplWarn').innerHTML = r.warnings.length || r.notes.length ? aplWarnHtml(r.warnings, r.notes) : ''; return; }
+    var src = aplDlg.key && WL.BUILDS.filter(function (y) { return y.key === aplDlg.key; })[0];
+    if (src) { edStart(src); $('editor').open = true; aplDlg.key = null; }
+    else if (!ed.b) edStart(null);
+    var tb = WL.aplToBuild(r.lines, ed.b), nb = tb.build;
+    ['rotation', 'params', 'actWhen', 'rules', 'groups', 'vars'].forEach(function (k) { if (nb[k] !== undefined) ed.b[k] = nb[k]; else delete ed.b[k]; });
+    ruleEd = null; renderEditor();
+    var w = r.warnings.concat(tb.warnings), save = ed.editing ? 'Update on the sheet' : 'Add to the sheet';
+    aplMsg('Imported: ' + nb.rotation.length + ' priority entries' + (tb.errors.length ? ' — see the checks' : '') + '. Press "' + save + '" in the build editor to keep it.', !!tb.errors.length);
+    $('aplWarn').innerHTML = aplWarnHtml(w, r.notes, tb.errors);
+    edMsg('Rotation imported from APL text (' + nb.rotation.length + ' entries' + (w.length ? ', ' + w.length + ' not exact: listed in the import box' : '') + ') — nothing is saved until you press "' + save + '".', !!tb.errors.length);
+    if ($('editor').scrollIntoView) $('editor').scrollIntoView({ block: 'start' });
+  }
+  function aplCopy() {
+    var box = $('aplText'), fb = function () { box.focus(); box.select(); aplMsg('This page may not copy by itself here — the text is selected: press Ctrl+C.'); };
+    try { navigator.clipboard.writeText(box.value).then(function () { aplMsg(aplDlg.fmt === 'json' ? 'JSON copied.' : 'APL text copied.'); }, fb); } catch (e) { fb(); }
+  }
+  $('aplDlg').addEventListener('click', function (e) {
+    var t = e.target;
+    if (t === $('aplDlg') || t.closest('#aplClose')) { aplHide(); return; }   // the dark area around it closes it too
+    var f = t.closest('[data-aplfmt]'); if (f) { aplDlg.fmt = f.getAttribute('data-aplfmt'); aplFill(); aplMsg(''); return; }
+    if (t.closest('#aplCopy')) { aplCopy(); return; }
+    if (t.closest('#aplDo')) { aplImportDo(); return; }
+  });
+  $('aplDlg').addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('aplDlg').showModal) { aplHide(); } });   // a browser without showModal: Esc closes it too
+
   // ---------- events ----------
   document.addEventListener('click', function (e) {
     var t = e.target;
@@ -4716,6 +4790,10 @@
     if (qb) { if (qb.hasAttribute('data-qgear')) quickSetup('gear', qb.getAttribute('data-qgear')); else quickSetup('side', qb.getAttribute('data-qside')); return; }
     var ec = t.closest('button[data-editcopy]');
     if (ec) { editFromResults(ec.getAttribute('data-editcopy')); return; }
+    var ao = t.closest('button[data-aplout]');                           // round 278: APL export / import of a build's rotation
+    if (ao) { var ab = WL.BUILDS.filter(function (y) { return y.key === ao.getAttribute('data-aplout'); })[0]; if (ab) aplExportOpen(ab, runCfg, ab.short); return; }
+    var ai = t.closest('button[data-aplin]');
+    if (ai) { aplImportOpen(ai.getAttribute('data-aplin')); return; }
     var cb = t.closest('button[data-cmp]');
     if (cb) { compareFrom(cb.getAttribute('data-cmp')); return; }
     if (t.closest('#codeMake')) { makeCode(); return; }

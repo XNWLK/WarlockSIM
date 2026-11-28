@@ -923,6 +923,13 @@
   .lyin { padding: 14px 16px; display: grid; gap: 8px; }
   .lyin .cardhead h2 { margin: 0; font-size: 13px; color: var(--ink); }
   .lyin > p.meta { margin: 0; }
+  /* round 278: APL export / import (another Forever sim's rotation text) */
+  .apldlg textarea { width: 100%; box-sizing: border-box; font: 11.5px/1.4 ui-monospace, Consolas, monospace; white-space: pre; overflow: auto; word-break: normal; background: var(--sunk); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; resize: vertical; }
+  .apldlg .aplwarn ul { margin: 2px 0 6px; padding-left: 18px; }
+  .apldlg .aplwarn li { font-size: 12px; margin: 2px 0; color: var(--muted); }
+  .apldlg .aplwarn li.bad { color: var(--bad); }
+  .apldlg .aplwarn p { margin: 4px 0 0; }
+  .aplhelp { margin: 4px 0 0; }
   .lygrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
   .lygrid h3 { margin: 0 0 6px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; }
   .lylist { list-style: none; margin: 0; padding: 6px; min-height: 140px; border: 1px dashed var(--line); border-radius: 6px; display: grid; gap: 4px; align-content: start; }
@@ -1503,7 +1510,10 @@
       <button type="button" id="edWowhead" title="A link to this build's talents in the Wowhead Forever talent calculator, copied to the clipboard">Wowhead talent link</button>
       <input id="edCode" type="text" placeholder="WFB1:… or a Wowhead talent link" aria-label="Build code or Wowhead talent link">
       <button type="button" id="edLoadCode" title="A build code (WFB1:…) loads the whole build; a Wowhead Forever talent link sets the talents of the build you are editing">Load build code</button>
+      <button type="button" id="edAplOut" title="The rotation of the build in the editor as APL text for another Forever sim's rotation import (or as JSON)">Export APL</button>
+      <button type="button" id="edAplIn" title="Paste another Forever sim's APL text (or JSON) to replace the rotation of the build in the editor">Import APL</button>
     </div>
+    <p class="meta aplhelp">APL: the rotation text another Forever sim uses — paste the export into that sim's rotation import, or paste its export here. Cooldowns, racials and potions are settings here, not rotation lines.</p>
     <p class="meta" id="edMsg" role="status"></p>
     <h2>Your builds</h2>
     <ol id="edList" class="batchlist"></ol>
@@ -1564,6 +1574,15 @@
     </div>
     <div class="btnrow"><button type="button" id="layoutReset" class="resetbtn">Back to the default layout</button><span class="meta" id="layoutNow"></span></div>
   </div></dialog>
+  <!-- Round 278 (user): a build's rotation as APL text for another Forever sim, and back (engine/apl-io.js; app/app.js aplExportOpen / aplImportOpen). -->
+  <dialog id="aplDlg" class="layoutdlg apldlg" aria-labelledby="aplTitle"><div class="lyin">
+    <div class="cardhead"><h2 id="aplTitle">APL</h2><button type="button" id="aplClose" class="resetbtn">Close</button></div>
+    <p class="meta" id="aplHelp"></p>
+    <div class="btnrow" id="aplFmtRow"><span class="seg" role="group" aria-label="Format"><button type="button" data-aplfmt="text" aria-pressed="true">APL text</button><button type="button" data-aplfmt="json" aria-pressed="false">JSON</button></span></div>
+    <textarea id="aplText" rows="12" spellcheck="false" aria-label="APL rotation text"></textarea>
+    <div class="btnrow"><button type="button" id="aplCopy" class="primary">Copy</button><button type="button" id="aplDo" class="primary">Import</button><span class="meta" id="aplMsg" role="status"></span></div>
+    <div class="aplwarn" id="aplWarn"></div>
+  </div></dialog>
   <p class="foot">Click a row for talents, stats, the DoT chart, per-spell numbers, race comparison and the full rotation log; the "+4 races" pill next to the race
     (or Show all races above the table) shows the build's other races. Stat weights: DPS per 1 spell power; hit / crit / haste / Int shown as the spell power they are worth,
     computed on each build's best race with common random numbers (hit/haste carry some noise). Spell Pierce weight: in the details.
@@ -1622,6 +1641,7 @@
 <script src="engine/settings-code.js"></script>
 <script src="engine/explain.js"></script>
 <script src="engine/custom-builds.js"></script>
+<script src="engine/apl-io.js"></script>
 <script src="app/sim-pool.js"></script>
 <script src="data/default-results.js"></script>
 <script src="data/length-table.js"></script>

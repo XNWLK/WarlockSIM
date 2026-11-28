@@ -3,6 +3,10 @@
 What each version added or changed, newest first. Version = the version of the
 [live page](https://claude.ai/artifact/WzHGwM25MtG9kXFG8rcW9W).
 
+## v231
+- **Export APL / Import APL** in the build creator and in every build's Talents & rotation tab. Export gives the rotation as APL text that other Forever sims' rotation import reads (or as JSON for their settings import); Import reads such a rotation (text or JSON) and turns it into our actions where they match, rules where they don't. Anything without an exact equivalent is listed with what was done instead (for example "Life Tap when needed" becomes "mana below 80% and more than 45 s left"). Racials, potions and items are settings here, not rotation lines, so an import lists them as left out. An unchanged export imports back exactly. Tip: their rotation import keeps the talents already loaded there, so load matching talents first.
+- **Shadow / Fire spell power** in the Stats panel, a build's stats and the compare view now show the total (spell power + that school's own spell power).
+
 ## v230
 - **Decimation** now adds its +6% to Shadow Bolt and Searing Pain at any boss health, not only below 35% (public evidence notes of live-realm combat logs: the same bonus above 40% as below 35%). Its Soul Fire buff still comes only below 35%. Shadow Demo goes from 893.1 to **908.6** DPS and Fire Demo from 910.1 to **922.2**; the other builds don't take Decimation. A re-check of the talents found nothing better: both Demo builds keep 2/2 Decimation.
 - **Green Lens of Shadow Wrath** and **Green Lens of Fiery Wrath** (+36 Shadow / Fire, +10 Stamina, Engineering 245) are in the gear builder's head slot. They are 4–17 DPS behind Spellweaver's Turban.
