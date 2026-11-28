@@ -97,7 +97,7 @@ WL.gearListsFor = function (mode) { return mode === 'preBis' ? WL.PRE_BIS_GEAR :
 WL.cfgFor = function (build, cfg) {
   var G = cfg && WL.gearListsFor(cfg.gearMode);
   if (!G) return cfg;
-  var P = G[build && build.key] || G._common;
+  var P = G[build && build.key] || (build && build.gearOf && G[build.gearOf]) || G._common;   // round 281: a copy (editor, APL import, saved / shared code) wears the list of the build it came from (build.gearOf)
   if (!P) return cfg;
   var r2 = function (x) { return Math.round(x * 100) / 100; }, s = P.sums || {}, cb = cfg.combat, gear = {}, slots = {};
   Object.keys(cfg.gear || {}).forEach(function (k) { gear[k] = cfg.gear[k]; });

@@ -17,6 +17,12 @@
 // hash over the row's JSON. A row that comes back unchanged is that action again (with its numbers and its own extra
 // condition: the last n parts of the row's condition), so a round trip loses nothing even where the other sim has no
 // equivalent; a row edited there is read from its APL like any other.
+// Round 281 (user: "when i paste our wrack APL into [another Forever sim], they sim only at 890 dps"; "our fire demo APL also
+// loses around 30dps in [the other sim]. it seems the conversion isn't perfect maybe?"): channels are channel rows whose
+// interrupt condition is this sim's clip (chanClip); "the rest of the fight needs more mana" is mana < (this build's mana use
+// a second, measured here) × time left; "Life Tap to feed the pet" reads the demon's mana; "Activate trinket" casts the worn
+// on-use trinkets by item id (racials and potions stay with "autocast other cooldowns" at the top). WL.aplExport(build, cfg,
+// race): race for the measured mana use and the Life Tap's Spirit (default cfg.race, else human).
 // Not part of the simulation: not in engine/worker.js or tools/load-wl.js (no result changes).
 window.WL = window.WL || {};
 (function () {
@@ -98,9 +104,11 @@ window.WL = window.WL || {};
   function sid(k, cfg) { var b = cfg && cfg.options && cfg.options.bookRanks && WL.BOOK_RANKS && WL.BOOK_RANKS[k]; return b && b.id ? b.id : WL.SPELLS[k].id; }
   var TRUE = { __true: 1 };                    // "holds there by itself" (the other sim checks it when it casts)
 
-  function Exporter(build, cfg) {
+  function Exporter(build, cfg, race) {
+    if (cfg && WL.cfgFor) cfg = WL.cfgFor(build, cfg);          // round 281: the build's own gear (a gear preset: its trinkets)
     this.b = build; this.cfg = cfg || null; this.warnings = []; this.notes = []; this.where = '';
     this.vars = {}; this.varOrder = [];
+    this.race = race || (cfg && cfg.race) || 'human';
     var rot = WL.expandGroups(build), d = [];
     rot.forEach(function (a) { var x = WL.DOT_ACTIONS[a]; if (x && d.indexOf(x) < 0) d.push(x); });
     this.dots = d;                             // the DoTs this priority keeps up (as WL.minDotLeft)
@@ -109,6 +117,69 @@ window.WL = window.WL || {};
   Exporter.prototype.note = function (s) { if (this.notes.indexOf(s) < 0) this.notes.push(s); };
   Exporter.prototype.id = function (k) { return aid(sid(k, this.cfg)); };
   Exporter.prototype.execPct = function () { var c = this.cfg || WL.DEFAULT_CONFIG; return c && c.fight && c.fight.executePct != null ? c.fight.executePct : 35; };
+  Exporter.prototype.conf = function () { return this.cfg || WL.DEFAULT_CONFIG; };
+  Exporter.prototype.stats = function () { return this._st || (this._st = WL.computeStats(this.b, this.race, this.conf())); };
+  // Round 281: the build's mana use a second (what it spends less everything it gets back except Life Tap), measured with
+  // MANA_FIGHTS fights of this build here. "the rest of the fight needs more mana than you have" reads that rate from the
+  // fight so far; the other sim has no such value, so the export writes the rate as a number.
+  var MANA_FIGHTS = 20, RATE_CACHE = {}, RATE_KEYS = [];
+  Exporter.prototype.manaRate = function () {
+    if (this._rate != null) return this._rate;
+    var c = this.conf(), key = JSON.stringify([this.b, c, this.race]);
+    if (RATE_CACHE.hasOwnProperty(key)) return (this._rate = RATE_CACHE[key]);
+    var st = this.stats(), tb = WL.buildSpellTable(this.b, st, c), drain = 0, dur = 0;
+    for (var i = 0; i < MANA_FIGHTS; i++) {
+      var fp = WL.fightParams(c, i), r = WL.simulateOnce(this.b, this.race, c, { stats: st, table: tb, seed: fp.seed, duration: fp.duration, log: false });
+      drain += st.maxMana - r.endMana + (r.manaFromTaps || 0); dur += r.duration;
+    }
+    var rate = dur > 0 ? Math.max(0, Math.round(drain / dur * 100) / 100) : 0;
+    RATE_CACHE[key] = rate; RATE_KEYS.push(key);
+    if (RATE_KEYS.length > 40) delete RATE_CACHE[RATE_KEYS.shift()];
+    return (this._rate = rate);
+  };
+  // Round 283: the precast this build gains most from (Fight & pets → Precast off): every spell it can precast here, PRECAST_FIGHTS
+  // fights each on the same dice (seeds and lengths of the fight settings), the highest mean DPS. None it can precast: the
+  // filler if it has a cast bar, else Shadow Bolt. Cached per build and settings. this._pcInfo: the numbers, for the note.
+  var PRECAST_FIGHTS = 60, PC_CACHE = {}, PC_KEYS = [];
+  Exporter.prototype.bestPrecast = function () {
+    var self = this, c0 = this.conf(), key = JSON.stringify([this.b, c0, this.race, WL.APL_IO.precastFights]);
+    if (PC_CACHE.hasOwnProperty(key)) { this._pcInfo = PC_CACHE[key].info; return PC_CACHE[key].k; }
+    var n = WL.APL_IO.precastFights || PRECAST_FIGHTS, best = null, bestD = -Infinity, info = [];
+    (WL.PRECAST_SPELLS || []).forEach(function (k) {
+      var c = clone(c0); c.fight.precast = k;
+      var st, tb; try { st = WL.computeStats(self.b, self.race, c); tb = WL.buildSpellTable(self.b, st, c); if (!WL.precastOf(self.b, c, tb)) return; } catch (e) { return; }
+      var d = 0;
+      for (var i = 0; i < n; i++) { var fp = WL.fightParams(c, i); d += WL.simulateOnce(self.b, self.race, c, { stats: st, table: tb, seed: fp.seed, duration: fp.duration, log: false }).dps; }
+      d /= n; info.push(WL.SPELLS[k].name + ' ' + d.toFixed(1));
+      if (d > bestD) { bestD = d; best = k; }
+    });
+    if (!best) {
+      var f = fillerSpell(this.b);
+      best = f && WL.SPELLS[f] && WL.SPELLS[f].cast > 0 && WL.SPELLS[f].kind !== 'channel' ? f : 'shadowBolt';
+      info.push('none can be precast here: ' + WL.SPELLS[best].name);
+    }
+    var c1 = clone(c0), d0 = 0; c1.fight.precast = '';
+    try { var st1 = WL.computeStats(self.b, self.race, c1), tb1 = WL.buildSpellTable(self.b, st1, c1); for (var j = 0; j < n; j++) { var fq = WL.fightParams(c1, j); d0 += WL.simulateOnce(self.b, self.race, c1, { stats: st1, table: tb1, seed: fq.seed, duration: fq.duration, log: false }).dps; } d0 /= n; } catch (e) { d0 = NaN; }
+    var txt = info.join(', ') + (isFinite(d0) ? ', no precast ' + d0.toFixed(1) : '') + ' DPS in ' + n + ' fights each';
+    PC_CACHE[key] = { k: best, info: txt }; PC_KEYS.push(key);
+    if (PC_KEYS.length > 40) delete PC_CACHE[PC_KEYS.shift()];
+    this._pcInfo = txt;
+    return best;
+  };
+  // Round 281: the pets as the other sim lists them under the warlock (its Pet unit index): Imp, Voidwalker, Succubus, Felhunter.
+  var PET_INDEX = { imp: 0, voidwalker: 1, succubus: 2, felhunter: 3 };
+  // "the rest of the fight needs more mana than you have": here Infinity in the first 6 s, then (mana use a second so far) × time left
+  function manaNeedV(rate) {
+    return OR([cmpV('<', { currentTime: {} }, secs(6)),
+      cmpV('<', { currentMana: {} }, { math: { op: 'OpMul', lhs: { math: { op: 'OpDiv', lhs: { remainingTime: {} }, rhs: secs(1) } }, rhs: C(fmtN(rate)) } })]);
+  }
+  function isManaNeedV(v) {                    // that value with any rate → the rate, or null
+    var o = v && v.or && v.or.vals; if (!o || o.length !== 2) return null;
+    var c = o[1].cmp, m = c && c.rhs && c.rhs.math, r = m && m.rhs && m.rhs.const && +m.rhs.const.val;
+    if (!m || !isFinite(r)) return null;
+    return JSON.stringify(canon(v)) === JSON.stringify(canon(manaNeedV(r))) ? r : null;
+  }
+  function petUnit(key) { var i = PET_INDEX[key]; return i ? { type: 'Pet', index: i, owner: { type: 'Self' } } : { type: 'Pet', owner: { type: 'Self' } }; }
   // A number of a condition (seconds, a percentage or a plain number) → a value there, or null.
   Exporter.prototype.val = function (v, kind) {
     if (v && typeof v === 'object') {
@@ -221,7 +292,11 @@ window.WL = window.WL || {};
         if (n.t === 'paysOff') return pays;
         return AND([cmpV('<=', { dotRemainingTime: { spellId: id } }, { spellCastTime: { spellId: id } }), pays]);
       }
-      case 'manaNeed': this.warn('"the rest of the fight needs more mana than you have" has no equivalent — left out'); return null;
+      case 'manaNeed': {                       // round 281: mana < rate × time left (the rate measured here, see manaRate)
+        var rate = this.manaRate();
+        this.warn('"the rest of the fight needs more mana than you have" is exported as "the first 6 s, or mana < ' + rate + ' × seconds left" (this build\'s mana use a second, measured here in ' + MANA_FIGHTS + ' fights; here it is read from the fight so far)');
+        return manaNeedV(rate);
+      }
       case 'freeMana': this.warn('"free mana is ready" (Innervate, Mana Tide, runes, potions) has no equivalent — left out'); return null;
       case 'fsr': this.warn('"time since you last spent mana" (the 5-second rule) has no equivalent — left out'); return null;
       case 'minDot': {
@@ -238,6 +313,14 @@ window.WL = window.WL || {};
           this.warn('"the filler would not land before the boss dies" is exported as "fight time left < ' + (fs ? fs.name + (fs.kind === 'channel' ? ' tick' : ' cast time') : 'one GCD') + '"');
           if (!fs) return cmpV('<', { remainingTime: {} }, secs(1.5));
           return cmpV('<', { remainingTime: {} }, fs.kind === 'channel' ? secs(fs.tickEvery) : { spellCastTime: { spellId: this.id(f) } });
+        }
+        if (n.act === 'lifeTapPet') {            // round 281: the demon's mana < 2 of its spells, and room for a whole tap
+          var pk = this.b.pet, pc = pk && this.conf().pets && this.conf().pets[pk], ps = pc && pc.spell;
+          if (!this.b.talents || !this.b.talents.demonicEnergies || !ps || PET_INDEX[pk] == null) { this.warn('"' + WL.APL_CHECKS[n.act] + '" never holds for this build (Demonic Energies and a demon that casts) — left out'); return null; }
+          var st = this.stats(), gain = (WL.SPELLS.lifeTap.manaBase + st.spi) * (1 + WL.talentValue(this.b, 'improvedLifeTap', 'manaPct') / 100);
+          this.warn('"' + WL.APL_CHECKS[n.act] + '" is exported as "' + pc.name + '\'s mana < ' + 2 * ps.cost + ' (2 × ' + ps.name + ') and max mana − mana ≥ ' + Math.round(gain) + ' (a Life Tap with this build\'s Spirit here)"');
+          return AND([cmpV('<', { currentMana: { sourceUnit: petUnit(pk) } }, C(2 * ps.cost)),
+            cmpV('>=', { math: { op: 'OpSub', lhs: { maxMana: {} }, rhs: { currentMana: {} } } }, C(Math.round(gain)))]);
         }
         if (n.act === 'searingPainDecimation') {
           this.warn('"the next Soul Fire needs Decimation" is exported as "execute phase, Decimation not up and Soul Fire ready within one Searing Pain"');
@@ -267,17 +350,52 @@ window.WL = window.WL || {};
   }
   // One row: cast `spell` when the parts hold. tpl / extra: lists of condition parts (extra = the action's own extra
   // condition, build.actWhen). → { item, k } or null (left out).
-  Exporter.prototype.row = function (spell, tpl, extra, notes) {
+  Exporter.prototype.row = function (spell, tpl, extra, notes, above) {
     var a = this.list(tpl), e = this.list(extra || []), vals = a.vals.concat(e.vals);
     if (!vals.length && (a.lost || e.lost)) { this.warn('left out: nothing of its condition has an equivalent there, so it would be cast at any time'); return null; }
     var act = {};
     if (vals.length) act.condition = AND(vals);
-    act.castSpell = { spellId: this.id(spell) };
+    var sp = this.id(spell), ch = WL.SPELLS[spell] && WL.SPELLS[spell].kind === 'channel' ? chanClip(above || [], sp) : null;
+    if (ch) {
+      act.channelSpell = { spellId: sp, interruptIf: ch.interruptIf };
+      if (ch.allowRecast) act.channelSpell.allowRecast = true;
+      this.note('Channels (' + WL.SPELLS[spell].name + ') are "channel" rows whose interrupt condition is this sim\'s clip: at a tick, with the global cooldown ready, when a row above can be cast.');
+      if (ch.allowRecast && spell === 'wrack' && this.conf().options && this.conf().options.wrackRecast === 'carry') this.warn('Wrack cast on a running Wrack: there the new one runs its own ticks (here the option "carry" adds the ticks the old one had left)');
+    } else act.castSpell = { spellId: sp };
     var item = { action: act };
     if (notes) item.notes = notes;
-    if (WL.SPELLS[spell] && WL.SPELLS[spell].kind === 'channel') this.note(WL.SPELLS[spell].name + ' is cast in full there; here a higher-priority action that becomes ready clips the channel.');
     return { item: item, k: e.vals.length };
   };
+  // Round 281 (user: "when i paste our wrack APL into [another Forever sim], they sim only at 890 dps"): a channel there is
+  // cast in full unless its row is a "channel" row with an interrupt condition. With one, it ends at a channel tick (not the
+  // last one) or when its global cooldown ends, if the condition holds and the first row that would run, read as if the
+  // channel had ended, does not cast the channel again (allowRecast: may). Here a channel is clipped at a tick (not the
+  // last) once the global cooldown is ready and an action above it in the priority can be cast. So the condition is:
+  // the global cooldown is ready, a tick is now (the time to the channel's next tick is 0 at the tick, before it queues the
+  // next one), and one of the rows above can fire (its condition; a row without one: its spell is ready). The rows the
+  // export adds by itself ([auto]: cooldowns, Bane of Havoc), hidden rows and on-use items do not count: they clip nothing
+  // here. allowRecast when a row above casts the same channel (here that recast clips and starts it anew).
+  // above: the rows already exported above this one → { interruptIf, allowRecast } or null (nothing above: cast in full).
+  function chanClip(above, sp) {
+    var conds = [], seen = {}, recast = false, always = false;
+    above.forEach(function (it) {
+      if (!it || it.hide) return;
+      var a = it.action || {}, m = MARK.exec(it.notes || '');
+      if (m && m[1] === 'auto') return;
+      var k = a.castSpell ? 'castSpell' : a.channelSpell ? 'channelSpell' : null;
+      if (!k) { if (a.autocastOtherCooldowns || !Object.keys(a).filter(function (x) { return x !== 'condition'; }).length) return; }
+      var id = k ? a[k].spellId || {} : null;
+      if (id && (id.itemId != null || id.itemName || id.otherId)) return;
+      if (id && id.spellId === sp.spellId && (id.tag || 0) === (sp.tag || 0)) recast = true;
+      var c = a.condition || (id ? { spellIsReady: { spellId: aid(id.tag ? [id.spellId, id.tag] : id.spellId) } } : null);
+      if (!c) { always = true; return; }
+      var s = JSON.stringify(canon(c)); if (seen[s]) return; seen[s] = 1; conds.push(clone(c));
+    });
+    if (!conds.length && !always) return null;
+    var parts = [{ gcdIsReady: {} }, cmpV('<=', { dotTimeToNextTick: { spellId: clone(sp) } }, secs(0))];
+    if (!always) parts.push(OR(conds));
+    return { interruptIf: AND(parts), allowRecast: recast };
+  }
   function conjOf(w) { return !w ? [] : w.t === 'all' ? (w.c || []).slice() : [w]; }
   function tagged(item, key, params, k) {
     var p = params ? ':' + params.join(',') : '';
@@ -285,8 +403,11 @@ window.WL = window.WL || {};
     return item;
   }
 
-  WL.aplExport = function (build, cfg) {
-    var X = new Exporter(build, cfg), items = [], prepull = [], b = build, rot = WL.expandGroups(b), self = X;
+  WL.aplExport = function (build, cfg, race) {
+    var X = new Exporter(build, cfg, race), items = [], prepull = [], b = build, rot = WL.expandGroups(b), self = X;
+    // Round 281: "Activate trinket" with the on-use trinkets the gear builder wears (not the mana ones, which this sim uses
+    // by itself): one row per trinket, cast by its item id there, so that racials and potions are not held back with them.
+    var useItems = rot.indexOf('activateTrinket') < 0 ? [] : (WL.equippedTrinkets ? WL.equippedTrinkets(X.conf()) : []).filter(function (x) { return x.fx && x.fx.use && x.fx.use.kind !== 'mana'; });
     var plain = Object.assign({}, b); delete plain.actWhen;
     var auto = function (item, label) { item.notes = label; return tagged(item, 'auto'); };
     // Bane of Havoc on the second target (automatic here with 2+ targets and the talent)
@@ -300,6 +421,9 @@ window.WL = window.WL || {};
     if (rot.indexOf('activateTrinket') < 0) {
       items.push(auto({ action: { autocastOtherCooldowns: {} } }, 'Cooldowns, racials, potions and on-use trinkets (settings in this sim, used by themselves)'));
       X.note('Added "autocast other cooldowns" at the top: racials, potions and on-use trinkets are settings in this sim, used by themselves.');
+    } else if (useItems.length) {
+      items.push(auto({ action: { autocastOtherCooldowns: {} } }, 'Cooldowns, racials and potions (settings in this sim, used by themselves); the on-use trinkets have their own rows'));
+      X.note('Added "autocast other cooldowns" at the top for racials and potions (settings in this sim); "Activate trinket" casts the on-use trinkets by their item ids.');
     }
     // An action's own extra condition (build.actWhen) with a part that has no equivalent there: kept whole in a hidden row
     // after the action's rows, so that it comes back on import.
@@ -310,6 +434,16 @@ window.WL = window.WL || {};
       var cw = b.actWhen[key];
       items.push({ hide: true, action: {}, notes: 'This sim\'s extra condition of "' + label + '" (kept for the way back): ' + JSON.stringify(cw) + ' [when #' + hash(cw) + ']' });
     };
+    // Round 281: Amplify Curse (the talent) is used here by itself on a Bane of Agony cast when it is ready; there it is a
+    // spell of its own: a row right above each Bane of Agony row, with that row's condition (an [auto] row: skipped on import).
+    var ampNoted = false;
+    var ampRow = function (spell, item) {
+      if (spell !== 'baneOfAgony' || !b.talents || !b.talents.amplifyCurse) return;
+      var a = {}; if (item.action.condition) a.condition = clone(item.action.condition);
+      a.castSpell = { spellId: aid(TALENT_IDS.amplifyCurse) };
+      items.push(auto({ action: a }, 'Amplify Curse right before Bane of Agony (this sim uses it by itself)'));
+      if (!ampNoted) { ampNoted = true; X.note('Added Amplify Curse above Bane of Agony: this sim uses it by itself when Bane of Agony is cast.'); }
+    };
     var filled = false;
     rot.forEach(function (key, idx) {
       if (filled) return;
@@ -317,22 +451,31 @@ window.WL = window.WL || {};
       X.where = 'Priority ' + (idx + 1) + ' (' + (A ? WL.actionLabel(b, key).replace(/_/g, '…') : key) + ')';
       if (m) {
         var r = (b.rules || [])[+m[1]]; if (!r) return;
-        var o = X.row(r.spell, conjOf(r.when), [], WL.ruleText(r, b));
-        if (o) items.push(o.item);
+        var o = X.row(r.spell, conjOf(r.when), [], WL.ruleText(r, b), items);
+        if (o) { ampRow(r.spell, o.item); items.push(o.item); }
         if (A && A.filler) filled = true;
         return;
       }
       if (!WL.ACTIONS[key]) return;
       var L = WL.aplLines(key, plain) || [], aw = conjOf(b.actWhen && b.actWhen[key]);
-      var P = WL.ACTIONS[key].params, pv = P ? WL.actionParams(b, key) : null, pl = P ? P.map(function (p) { return pv[p.key]; }) : null;
+      // round 281: the numbers go into the marker only when the build sets them (an action at its defaults comes back so)
+      var P = WL.ACTIONS[key].params, pv = P ? WL.actionParams(b, key) : null, pl = P && b.params && b.params[key] ? P.map(function (p) { return pv[p.key]; }) : null;
       var label = WL.actionLabel(b, key);
       if (L[0] && L[0].special) {
         if (key === 'activateTrinket') {
           var ex = X.list(aw), act = {};
           if (ex.vals.length) act.condition = AND(ex.vals);
+          if (useItems.length) {                                 // round 281: each worn on-use trinket by its item id
+            useItems.forEach(function (x) {
+              var ia = {}; if (ex.vals.length) ia.condition = clone(act.condition);
+              ia.castSpell = { spellId: { itemId: x.id } };
+              items.push(tagged({ action: ia, notes: label + ' — ' + (x.fx.name || 'item ' + x.id) }, key, pl, ex.vals.length));
+            });
+            return;
+          }
           act.autocastOtherCooldowns = {};
           items.push(tagged({ action: act, notes: label }, key, pl, ex.vals.length));
-          X.warn('exported as "autocast other cooldowns": there it also pops racials and potions at this place (here those are settings)');
+          X.warn('exported as "autocast other cooldowns" (no on-use trinket in the gear builder): there it also pops racials and potions at this place (here those are settings)');
           return;
         }
         items.push(tagged({ hide: true, action: {}, notes: label + ' (this sim\'s own action, no equivalent there: kept as a hidden row)' }, key, pl, 0));
@@ -342,8 +485,8 @@ window.WL = window.WL || {};
       }
       var n0 = items.length;
       L.forEach(function (l) {
-        var o = X.row(l.spell, conjOf(l.when), aw, label);
-        if (o) items.push(tagged(o.item, key, pl, o.k));
+        var o = X.row(l.spell, conjOf(l.when), aw, label, items);
+        if (o) { ampRow(l.spell, o.item); items.push(tagged(o.item, key, pl, o.k)); }
       });
       if (items.length === n0) items.push(tagged({ hide: true, action: {}, notes: label + ' (no equivalent there: kept as a hidden row)' }, key, pl, 0));
       extraRow(key, label, aw);
@@ -354,15 +497,23 @@ window.WL = window.WL || {};
     items.push(auto({ action: { castSpell: { spellId: aid(WL.SPELLS.lifeTap.id) } } }, 'Life Tap when nothing above can be cast (this sim does that by itself)'));
     X.note('Added Life Tap under the filler: this sim taps by itself when mana is short.');
     if (b.timeline && b.timeline.length) X.warn('The fight timeline (' + b.timeline.length + ' spells at fixed times) is not exported');
-    // Precast (Fight & pets): a prepull row that ends as the fight starts
-    if (cfg && cfg.fight && cfg.fight.precast) {
-      var pk = null;
-      try { pk = WL.precastOf(b, cfg, WL.buildSpellTable(b, WL.computeStats(b, 'human', cfg), cfg)); } catch (e) { pk = null; }
-      if (pk) {
-        var pid = X.id(pk);
-        prepull.push({ action: { castSpell: { spellId: pid } }, doAtValue: { math: { op: 'OpMul', lhs: { spellCastTime: { spellId: pid } }, rhs: C('-1') } } });
-        X.note('Precast ' + WL.SPELLS[pk].name + ' (Fight & pets) is a prepull row.');
-      }
+    // Precast: a prepull row whose spell lands as the fight starts. Round 283 (user: "yes add the precast"): with Fight & pets →
+    // Precast off here, the export still writes one (the other sim's presets all precast): the spell this build gains most
+    // from, measured here (bestPrecast). Timed as those presets time it: at −0.9 × (cast time + travel time), so the cast
+    // ends just before the pull and the hit lands just after it. A demon out attacks at −1 s, as there.
+    var pk = null, picked = false, pcf = X.conf();
+    if (pcf && pcf.fight && pcf.fight.precast) {
+      try { pk = WL.precastOf(b, pcf, WL.buildSpellTable(b, X.stats(), pcf)); } catch (e) { pk = null; }
+    } else { pk = X.bestPrecast(); picked = !!pk; }
+    if (pk) {
+      var pid = X.id(pk);
+      prepull.push({ action: { castSpell: { spellId: pid } }, doAtValue: { math: { op: 'OpMul', lhs: { math: { op: 'OpAdd', lhs: { spellCastTime: { spellId: pid } }, rhs: { spellTravelTime: { spellId: clone(pid) } } } }, rhs: C('-0.9') } } });
+      X.note(picked ? 'Precast ' + WL.SPELLS[pk].name + ' is a prepull row: Fight & pets → Precast is off here, so the export picked the precast this build gains most from, by simulation (' + X._pcInfo + ').'
+        : 'Precast ' + WL.SPELLS[pk].name + ' (Fight & pets) is a prepull row.');
+    }
+    if (b.pet) {
+      prepull.push({ action: { petAttack: {} }, doAtValue: C('-1s') });
+      X.note('Added a prepull row: the demon attacks at −1 s (as the other sim\'s presets do).');
     }
     var vv = X.varOrder.map(function (k) { return { name: k, value: X.vars[k] }; });
     var R = { type: 'TypeAPL' };
@@ -727,7 +878,7 @@ window.WL = window.WL || {};
   // The rotation text → { rotation (APL JSON), warnings }
   function parseText(text, W) {
     var st = statements(String(text).replace(/\r\n?/g, '\n')), defs = {}, R = { type: 'TypeAPL', priorityList: [], groups: [], valueVariables: [] };
-    var section = 'top', group = null, seenSiml = false, whens = [], prepullWarned = false, otherWarned = false;
+    var section = 'top', group = null, seenSiml = false, whens = [], otherWarned = false;
     var low = new Lower(defs, W.warn);
     // defs first: a def may be called before its line
     st.forEach(function (s) {
@@ -773,7 +924,13 @@ window.WL = window.WL || {};
           whens.push({ indent: s.indent, cond: low.v(we, null), paren: we.k === 'paren', hide: hide || whens.some(function (x) { return x.hide; }) });
           return;
         }
-        if (section === 'prepull') { if (!prepullWarned) { prepullWarned = true; W.warn('Prepull rows are left out (a precast is set in Fight & pets → Precast here)'); } return; }
+        if (section === 'prepull') {                         // round 283: kept for the hint on import (aplImport); never simulated here
+          R.prepullActions = R.prepullActions || [];
+          if (toks.length === 1 && f.t === 'raw') { R.prepullActions.push(clone(f.v)); return; }
+          var neg = f.t === 'p' && f.v === '-', lt = toks[neg ? 1 : 0];
+          try { if (lt && lt.t === 'lit' && /s$/.test(lt.v)) { P.i = neg ? 2 : 1; var pa = P.action(); if (P.end() && !pa.cond) { R.prepullActions.push({ action: low.step(pa.step, null), doAtValue: C((neg ? '-' : '') + lt.v) }); return; } } } catch (e) { /* another kind of row */ }
+          R.prepullOther = true; return;
+        }
         var item;
         if (!hide && toks.length === 1 && f.t === 'raw' && !s.notes.length) item = clone(f.v);
         else {
@@ -877,6 +1034,7 @@ window.WL = window.WL || {};
     if (!v || typeof v !== 'object') return U('an empty value');
     var kind = Object.keys(v).filter(function (k) { return k !== 'uuid'; })[0], x = v[kind] || {};
     if (!kind) return U('an empty value');
+    if (kind === 'or' && isManaNeedV(v) != null) return { c: { t: 'manaNeed' } };   // round 281: the export's "needs more mana"
     var sub = function (y) { return self.val(y, { depth: (E.depth || 0) + 1, ph: E.ph }); };
     switch (kind) {
       case 'const': return parseConst(x.val);
@@ -1027,7 +1185,7 @@ window.WL = window.WL || {};
   // The rows of a list → lines. env: { when: [conditions of the groups around], ph, depth, gname }
   Reader.prototype.rows = function (list, env, out) {
     var self = this;
-    (list || []).forEach(function (item, i) { self.where = (env.gname ? 'Group "' + env.gname + '" row ' : 'Row ') + (i + 1) + rowName(item); self.item(item || {}, env, out); });
+    (list || []).forEach(function (item, i) { self.where = (env.gname ? 'Group "' + env.gname + '" row ' : 'Row ') + (i + 1) + rowName(item); self.item(item || {}, env, out, list.slice(0, i)); });
   };
   function rowName(item) {
     var a = (item && item.action) || {}, k = Object.keys(a).filter(function (x) { return x !== 'condition'; })[0];
@@ -1042,7 +1200,7 @@ window.WL = window.WL || {};
     if (m[4] !== hash(item.action || {})) { if (m[1] !== 'auto') this.note('Rows changed in the other sim are read from their APL (their marker no longer fits).'); return null; }
     return { key: m[1], params: m[2] ? m[2].split(',').map(Number) : null, k: m[3] ? +m[3] : 0 };
   };
-  Reader.prototype.item = function (item, env, out) {
+  Reader.prototype.item = function (item, env, out, above) {
     var self = this, a = item.action || {};
     var mk = this.marker(item);
     if (mk && mk.key === 'auto') return;                       // a row the export added (Life Tap, cooldowns, Havoc): automatic here
@@ -1097,7 +1255,10 @@ window.WL = window.WL || {};
       if (id.unknownName) { this.warn('unknown name "' + id.unknownName + '" — left out'); return; }
       if (o2.target && !okTarget(o2.target)) { this.warn('cast on another target: extra targets are a Fight setting here (Targets, Multi-DoT) — left out'); return; }
       spell = this.spellKey(id);
-      if (kind === 'channelSpell' && o2.interruptIf) this.once('interrupt', 'Channel interrupt conditions are left out: here a channel is clipped when a higher-priority action becomes ready.');
+      if (kind === 'channelSpell' && o2.interruptIf) {             // round 281: the export's own clip condition is this sim's rule
+        var cc = chanClip(above || [], o2.spellId || {});
+        if (!cc || JSON.stringify(canon(cc.interruptIf)) !== JSON.stringify(canon(o2.interruptIf)) || !!cc.allowRecast !== !!o2.allowRecast) this.warn('its interrupt condition is left out: here a channel is clipped by this sim\'s own rule (at a tick, with the global cooldown ready, when an action above it can be cast)');
+      }
     } else if (kind === 'castWarlockAssignedCurse') spell = 'curseOfElements';
     else if (kind === 'multidot' || kind === 'strictMultidot') {
       spell = this.spellKey(o2.spellId);
@@ -1153,7 +1314,14 @@ window.WL = window.WL || {};
     } else if (/^(?:\s*\/\/[^\n]*\n)*\s*siml\b/.test(s)) rot = parseText(s, W);
     else return done([], 'That is not an APL rotation: it should start with "siml 1" (the rotation text) or be JSON.');
     if (rot.type === 'TypeAuto' || rot.type === 'TypeSimple') W.warn('The rotation is the other sim\'s automatic one (' + rot.type + '): only its APL list is read');
-    if ((rot.prepullActions || []).length && !/prepull/i.test(W.warnings.join())) W.warn('Prepull rows are left out (a precast is set in Fight & pets → Precast here)');
+    // Prepull rows are not read (a precast is a Fight & pets setting here). Round 283: a single precast of a spell this sim can
+    // precast (with or without the demon's attack) is only noted, with the setting that matches it; anything else is warned.
+    var pre = (rot.prepullActions || []).filter(function (p) { return p && !p.hide; }), pcs = [], pets = 0, other = !!rot.prepullOther;
+    pre.forEach(function (p) { var a = p.action || {}; if (a.castSpell && a.castSpell.spellId && a.castSpell.spellId.spellId != null && !a.condition) pcs.push(a.castSpell.spellId); else if (a.petAttack && !a.condition) pets++; else other = true; });
+    var pck = pcs.length === 1 && !pcs[0].tag ? idKey()[pcs[0].spellId] : null; if (pck && (WL.PRECAST_SPELLS || []).indexOf(pck) < 0) pck = null;
+    var hint = pck ? 'set Fight & pets → Precast to ' + WL.SPELLS[pck].name + ' here to match' : '';
+    if (pck && !other) W.note('Prepull rows are left out: they precast ' + WL.SPELLS[pck].name + (pets ? ' and send the demon in before the pull' : '') + ' — ' + hint + '.');
+    else if (pre.length || other) { W.warn('Prepull rows are left out (a precast is set in Fight & pets → Precast here)'); if (pck) W.note('They precast ' + WL.SPELLS[pck].name + ' — ' + hint + '.'); }
     var RD = new Reader(rot, cfg, W), out = [];
     RD.rows(rot.priorityList || [], { when: [], ph: {} }, out);
     RD.where = '';
@@ -1196,6 +1364,7 @@ window.WL = window.WL || {};
     var fresh = function () {
       var b = { short: base.short, talents: clone(t), pet: base.pet || null, sacrifice: base.sacrifice || null, oil: base.oil, rotation: [] };
       if (base.timeline && base.timeline.length) b.timeline = clone(base.timeline);
+      var go = base.gearOf || (base.custom ? null : base.key); if (go) b.gearOf = go;   // round 281: it wears the base build's Pre-BiS gear list (no key of its own)
       return b;
     };
     var pass = function (ctxRot) {
@@ -1237,5 +1406,6 @@ window.WL = window.WL || {};
     if (b.rules && !b.rules.length) delete b.rules;
     return { build: b, warnings: warnings, errors: WL.validateBuild(b) };
   };
-  WL.APL_IO = { hash: hash, canon: canon, parseText: function (t) { var W = warnBag(); return { rotation: parseText(t, W), warnings: W.warnings }; }, SELF_AURAS: SELF_AURAS, TARGET_AURAS: TARGET_AURAS, TALENT_IDS: TALENT_IDS };
+  WL.APL_IO = { hash: hash, canon: canon, parseText: function (t) { var W = warnBag(); return { rotation: parseText(t, W), warnings: W.warnings }; }, SELF_AURAS: SELF_AURAS, TARGET_AURAS: TARGET_AURAS, TALENT_IDS: TALENT_IDS,
+    precastFights: null };   // round 283: fights per spell when the export picks the precast (null: PRECAST_FIGHTS); tests set fewer
 })();

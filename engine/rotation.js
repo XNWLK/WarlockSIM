@@ -274,11 +274,16 @@ WL.ACTIONS = {
     },
   },
   // Demonic Brand upkeep: Searing Pain when the brand is down (or out of charges) and a pet is out.
+  // Round 282 (user: "yes apply all three", after round 280's look at Shadow Demo): also when the brand has less than X s left
+  // (build.params.searingPainBrand.sec; default 0 = only when it is down, as before), so the new brand is on before the old one ends.
   searingPainBrand: {
-    label: 'Searing Pain to (re)apply Demonic Brand when it is down',
+    label: 'Searing Pain to (re)apply Demonic Brand when it is down or has less than _ s left',
+    params: [{ key: 'sec', def: 0, min: 0, max: 10, name: 'seconds left on the brand' }],
     pick: function (S) {
       if (!S.build.talents.demonicBrand || !S.build.pet) return null;
-      return (!S.buff('brand') || !(S.brandCharges > 0)) ? 'searingPain' : null;
+      if (!S.buff('brand') || !(S.brandCharges > 0)) return 'searingPain';
+      var p = S.build.params && S.build.params.searingPainBrand, sec = p && p.sec != null ? p.sec : 0;
+      return S.buffs.brand - S.t < sec ? 'searingPain' : null;
     },
   },
   // Soul Fire on cooldown, spending a Soul Shard when Decimation is not up (tests whether shards should be spent). [A25]
@@ -529,11 +534,20 @@ WL.APL_TEMPLATES = {
   lifeTapPet: [{ spell: 'lifeTap', when: { t: 'check', act: 'lifeTapPet' } }],
   lifeTapBelow: [{ spell: 'lifeTap', when: aplAll({ t: 'mana', op: '<', v: { param: 'pct' } }, aplFight('remaining', '>', { param: 'sec' })) }],
   lifeTapNeed: [{ spell: 'lifeTap', when: aplAll({ t: 'mana', op: '<', v: { param: 'pct' } }, aplFight('remaining', '>', { param: 'sec' }), { t: 'not', c: { t: 'freeMana' } }, { t: 'manaNeed' }) }],
-  searingPainBrand: [{ spell: 'searingPain', when: aplAll(aplTal('demonicBrand'), { t: 'pet' }, { t: 'brand', op: '<=', v: 0 }) }],
+  // round 282: with "less than _ s left" above 0 the line gets "or the brand has less than _ s left"; at 0 it stays as it was
+  searingPainBrand: function (b) { return WL.APL_FORMS.searingPainBrand[WL.actionParams && WL.actionParams(b, 'searingPainBrand').sec > 0 ? 1 : 0].lines; },
   soulFireShards: [{ spell: 'soulFire', when: { t: 'any', c: [aplAura('decimation', '>', 0), { t: 'shards', op: '>', v: 0 }] } }],
   wrackDots: [{ spell: 'wrack', when: { t: 'minDot', op: '>', v: { param: 'sec' } } }],
   wrack: [{ spell: 'wrack' }], shadowBolt: [{ spell: 'shadowBolt' }], incinerate: [{ spell: 'incinerate' }], drainLife: [{ spell: 'drainLife' }],
   hellfire: [{ spell: 'hellfire' }], rainOfFire: [{ spell: 'rainOfFire' }], searingPain: [{ spell: 'searingPain' }],
+};
+// Round 282: an action whose lines take another form with its numbers lists every form here, each with the numbers that form
+// stands for (`params`) — WL.aplMatch tries them all, so a line of either form becomes the action again.
+WL.APL_FORMS = {
+  searingPainBrand: [
+    { lines: [{ spell: 'searingPain', when: aplAll(aplTal('demonicBrand'), { t: 'pet' }, { t: 'brand', op: '<=', v: 0 }) }], params: { sec: 0 } },
+    { lines: [{ spell: 'searingPain', when: aplAll(aplTal('demonicBrand'), { t: 'pet' }, { t: 'any', c: [{ t: 'brand', op: '<=', v: 0 }, aplAura('brand', '<', { param: 'sec' })] }) }] },
+  ],
 };
 // The template of an action (a fresh copy; { param } left in), or null.
 WL.aplTemplate = function (key, build) {
@@ -580,7 +594,11 @@ function aplEq(t, x, params, key) {
 WL.aplMatch = function (r, build, others) {
   var conj = aplConj(r && r.when), best = null;
   Object.keys(WL.APL_TEMPLATES).forEach(function (key) {
-    var T = WL.aplTemplate(key, build); if (!T || T.length !== 1 || T[0].special || T[0].spell !== r.spell) return;
+    var forms = WL.APL_FORMS[key] ? WL.APL_FORMS[key] : [{ lines: WL.aplTemplate(key, build) }];   // round 282: every form of the action
+    forms.forEach(function (F) { tryForm(key, JSON.parse(JSON.stringify(F.lines || null)), F.params); });
+  });
+  function tryForm(key, T, fixed) {
+    if (!T || T.length !== 1 || T[0].special || T[0].spell !== r.spell) return;
     var tc = aplConj(T[0].when), used = {}, params = {};
     for (var i = 0; i < tc.length; i++) {
       var hit = -1;
@@ -592,13 +610,15 @@ WL.aplMatch = function (r, build, others) {
       if (hit < 0) return;
       used[hit] = 1;
     }
+    // round 282: the numbers a form stands for (the old Demonic Brand line = 0 s), when the build has others now
+    if (fixed) { var cur = WL.actionParams(build, key); Object.keys(fixed).forEach(function (q) { if (cur[q] !== fixed[q]) params[q] = fixed[q]; }); }
     var extra = conj.filter(function (x, j) { return !used[j]; });
     var elsewhere = (others || []).indexOf(key) >= 0;
     if (extra.length && elsewhere) return;
     if (elsewhere && build && build.actWhen && build.actWhen[key]) return;   // the action there has a condition this line has not
     if (elsewhere && Object.keys(params).length && JSON.stringify(WL.actionParams(build, key)) !== JSON.stringify(Object.assign({}, WL.actionParams(build, key), params))) return;
     if (!best || extra.length < best.extra.length) best = { key: key, params: params, extra: extra };
-  });
+  }
   if (!best) return null;
   return { key: best.key, params: Object.keys(best.params).length ? best.params : null,
     extra: !best.extra.length ? null : best.extra.length === 1 ? best.extra[0] : { t: 'all', c: best.extra } };

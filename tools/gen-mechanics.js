@@ -152,7 +152,7 @@ const ACTION_NOTES = {
   lifeTapPet: 'With Demonic Energies and a demon out: the demon has less mana than two of its spells cost, and you are missing at least one full Life Tap of mana.',
   lifeTapNeed: 'At the rate your mana has gone down so far in the fight (what you spent minus all you got back except Life Tap), the rest of the fight needs more mana than you have; and your mana is below the first number (% of maximum) and more than the second number of seconds are left. With plenty of mana coming in it taps less often.',
   lifeTapBelow: 'Your mana is below the first number (% of maximum) and more than the second number of seconds are left. Each build sets its own two numbers.',
-  searingPainBrand: 'With Demonic Brand and a demon out: the brand is not on the boss or has no charges left.',
+  searingPainBrand: 'With Demonic Brand and a demon out: the brand is not on the boss, has no charges left, or has less than the build\'s number of seconds left (0 = only when it is down; Shadow Demo: 3 s).',
   soulFireShards: 'Soul Fire is off cooldown, with or without the Decimation buff.',
   wrackDots: 'The shortest of the DoTs this list keeps up (Corruption, Immolate, Siphon Life, Bane of Agony; not Bane of Doom) has more than the build\'s number of seconds left. Otherwise the list goes on to the filler below.',
   wrack: 'Always (filler).',

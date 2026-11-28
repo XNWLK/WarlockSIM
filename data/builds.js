@@ -36,7 +36,7 @@ WL.BUILDS = [
   {
     key: 'demo_pact_succ_sb', short: 'Shadow Demo',   // round 191 (user): was 'Demo Pact Shadow Bolt Succubus'; the key stays
     name: 'Demonology – Pact, Succubus out, Shadow Bolt',
-    notes: '2/31/18. Imp sacrificed (+15% Shadow, kept by Demonic Pact) with the Succubus out: Master Demonologist gives +10% Shadow to you and to her, and she adds Lash of Pain, melee and the Demonic Brand bonus. Searing Pain keeps Demonic Brand up, Shadow Bolt is the filler with 5/5 Improved Shadow Bolt, Death Coil finishes the fight.',
+    notes: '2/31/18. Imp sacrificed (+15% Shadow, kept by Demonic Pact) with the Succubus out: Master Demonologist gives +10% Shadow to you and to her, and she adds Lash of Pain, melee and the Demonic Brand bonus. Searing Pain keeps Demonic Brand up and renews it when it has less than 3 s left, Shadow Bolt is the filler with 5/5 Improved Shadow Bolt, Death Coil finishes the fight. No Life Tap when needed in the last 15 s of Bane of Doom, so its explosion lands while your damage bonuses are up.',
     talents: {
       suppression: 1, improvedCorruption: 1,   // round 61: -1 Improved Life Tap +1 Suppression (round 30 had moved it the other way)
       demonicEmbrace: 3,   // round 197 (user): −2 Master Summoner +2 Demonic Embrace (+6% Stamina; Master Summoner does nothing in a fight); round 198 (user): −1 Demonic Energies +1 Demonic Embrace (no DPS change). Demonic Brand stays 3: at 2 (4 charges) the Succubus spends the brand sooner, −1.4%
@@ -50,7 +50,12 @@ WL.BUILDS = [
     // Round 219 (user chose "best per build"): Activate trinket right above the filler — on-use trinkets right before a Shadow Bolt,
     // from the pull (Weakness Analyzer vs the old "with your other cooldowns": ±0.00% / +0.13% / +0.06% at 180 / 120 / 300 s; tools/explore-trinket.js).
     rotation: ['deathCoilFinisher', 'bane', 'curseOfElements', 'searingPainBrand', 'corruption', 'lifeTapNeed', 'activateTrinket', 'shadowBolt'],
-    params: { lifeTapNeed: { pct: 80, sec: 45 } },   // round 168 (user): Life Tap only when the rest of the fight needs it and no free mana is ready, same numbers (default settings ±0.00%, max buffs +0.1 … +5.9%). Round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.59% (10,000 fights)
+    // Round 282 (user: "yes apply all three", after round 280 compared the build with another Forever sim's): Searing Pain also
+    // renews Demonic Brand when it has less than 3 s left, and no "Life Tap when needed" while Bane of Doom has 0-15 s left (its explosion
+    // then lands with Improved Shadow Bolt and your other bonuses up). Round 280 at the page's defaults: +6.15 ± 0.28 DPS (brand < 3 s +3.54,
+    // the Life Tap gate +1.11; +3.4 … +6.7 over 60-300 s, every race, Max Pre-BiS). Fire Demo unchanged (no gain there).
+    actWhen: { lifeTapNeed: { t: 'any', c: [{ t: 'dot', spell: 'baneOfDoom', op: '<=', v: 0 }, { t: 'dot', spell: 'baneOfDoom', op: '>=', v: 15 }] } },
+    params: { searingPainBrand: { sec: 3 }, lifeTapNeed: { pct: 80, sec: 45 } },   // round 168 (user): Life Tap only when the rest of the fight needs it and no free mana is ready, same numbers (default settings ±0.00%, max buffs +0.1 … +5.9%). Round 105 (user): Life Tap below 80% mana with more than 45 s left, +0.59% (10,000 fights)
   },
   {
     key: 'demo_pact_fire', short: 'Fire Demo',   // round 191 (user): was 'Demo Pact Fire Imp'; the key stays

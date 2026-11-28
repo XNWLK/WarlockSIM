@@ -2391,7 +2391,8 @@
       rules: b.rules && b.rules.length ? JSON.parse(JSON.stringify(b.rules)) : undefined,                                   // round 157
       groups: b.groups && Object.keys(b.groups).length ? JSON.parse(JSON.stringify(b.groups)) : undefined,
       vars: b.vars && Object.keys(b.vars).length ? JSON.parse(JSON.stringify(b.vars)) : undefined,
-      actWhen: b.actWhen && Object.keys(b.actWhen).length ? JSON.parse(JSON.stringify(b.actWhen)) : undefined };   // round 172: was lost
+      actWhen: b.actWhen && Object.keys(b.actWhen).length ? JSON.parse(JSON.stringify(b.actWhen)) : undefined,   // round 172: was lost
+      gearOf: b.gearOf || undefined };   // round 281: whose Pre-BiS gear list it wears
   }
   function edStart(src) {
     ed.b = src ? { short: src.custom ? src.short : src.short + ' (copy)', talents: JSON.parse(JSON.stringify(src.talents)), pet: src.pet || null,
@@ -2399,7 +2400,8 @@
       timeline: src.timeline ? src.timeline.map(function (e) { return { t: e.t, k: e.k }; }) : undefined,
       params: src.params ? JSON.parse(JSON.stringify(src.params)) : undefined,
       rules: src.rules ? JSON.parse(JSON.stringify(src.rules)) : undefined, groups: src.groups ? JSON.parse(JSON.stringify(src.groups)) : undefined,   // round 157
-      vars: src.vars ? JSON.parse(JSON.stringify(src.vars)) : undefined, actWhen: src.actWhen ? JSON.parse(JSON.stringify(src.actWhen)) : undefined }   // actWhen: round 172 (Wrack Succubus lost its condition here)
+      vars: src.vars ? JSON.parse(JSON.stringify(src.vars)) : undefined, actWhen: src.actWhen ? JSON.parse(JSON.stringify(src.actWhen)) : undefined,   // actWhen: round 172 (Wrack Succubus lost its condition here)
+      gearOf: src.custom ? src.gearOf : src.key }   // round 281: a copy keeps the Pre-BiS gear list of the build it came from
       : { short: 'My build', talents: {}, pet: null, sacrifice: null, oil: 'spellstone', rotation: ['bane', 'curseOfElements', 'corruption', 'immolate', 'shadowBolt'] };
     ed.editing = src && src.custom ? src.key : null; ed.held = null; ruleEd = null;
     ed.from = src ? src.key : null; quick = null; quickSel = null;   // round 110: the quick-sim panel starts over

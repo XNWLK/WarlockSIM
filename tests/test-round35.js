@@ -7,6 +7,7 @@
     delete b.talents.demonicEmbrace; b.talents.masterSummoner = 2; b.talents.demonicEnergies = 2;   // rounds 197-198: the build took Demonic Embrace instead; the scenario keeps its old talents
     delete b.talents.suppression; b.talents.felDomination = 1;   // user's scenario: the point that was Improved Life Tap (Suppression since round 61) → Fel Domination
     b.key = 't35swap'; b.short = 'swap test';
+    delete b.params.searingPainBrand; delete b.actWhen;   // round 282: Shadow Demo now renews Demonic Brand below 3 s (a Searing Pain above the swap can come first); the scenario keeps the old upkeep
     b.rotation = ['bane', 'curseOfElements', 'searingPainBrand', 'immolate', 'corruption', 'swapToImp', 'soulFire', 'searingPainExecute', 'shadowBolt'];
     return b;
   }

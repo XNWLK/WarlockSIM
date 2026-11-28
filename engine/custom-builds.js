@@ -211,6 +211,7 @@ WL.encodeBuild = function (b) {
   if (b.groups && Object.keys(b.groups).length) o.groups = b.groups;
   if (b.vars && Object.keys(b.vars).length) o.vars = b.vars;
   if (b.actWhen && Object.keys(b.actWhen).length) o.aw = b.actWhen;                                                   // round 166
+  if (b.gearOf) o.g = b.gearOf;                                                                                        // round 281: whose Pre-BiS gear list
   return WL.BUILD_CODE_PREFIX + btoa(unescape(encodeURIComponent(JSON.stringify(o))));
 };
 
@@ -253,6 +254,7 @@ WL.decodeBuild = function (code) {
            params: WL.cleanParams(o.p),
            timeline: Array.isArray(o.tl) ? o.tl.map(function (x) { return { t: +x[0], k: String(x[1]) }; }).filter(function (e) { return e.k !== 'shadowBoltR2'; }) : undefined };
   if (mt.notes.length) b.migrated = mt.notes;                       // round 149: what a patch changed in this build
+  if (typeof o.g === 'string' && o.g) b.gearOf = o.g.slice(0, 40);   // round 281: the build it came from (its Pre-BiS gear list); old codes: none
   if (Array.isArray(o.rules)) b.rules = o.rules.filter(function (r) { return r && typeof r.spell === 'string'; }).map(function (r) { var x = { spell: r.spell }; if (r.when) x.when = r.when; if (r.name) x.name = String(r.name).slice(0, 40); return x; });   // round 157
   if (o.groups && typeof o.groups === 'object') { b.groups = {}; Object.keys(o.groups).forEach(function (k) { if (Array.isArray(o.groups[k])) b.groups[String(k).slice(0, 30)] = o.groups[k].map(String); }); }
   if (o.aw && typeof o.aw === 'object') { b.actWhen = {}; Object.keys(o.aw).forEach(function (k) { if (WL.ACTIONS[k] && o.aw[k]) b.actWhen[k] = o.aw[k]; }); if (!Object.keys(b.actWhen).length) delete b.actWhen; }   // round 166

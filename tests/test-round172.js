@@ -38,7 +38,9 @@
       Object.assign(d.talents, { conflagrate: 1, shadowAndFlame: 5, decimation: 2, shadowburn: 1 });
       var m = sheet('demo_pact_succ_sb'); m.key = 't172m'; m.rotation = ['deathCoilFinisher', 'bane', 'corruption', 'searingPainBrand', 'lifeTapPet', 'deathCoil', 'isbUpkeep', 'shadowTrance', 'soulFire', 'conflagrate', 'shadowburn', 'lifeTapNeed', 'shadowBolt'];
       Object.assign(m.talents, { demonicBrand: 1, demonicEnergies: 1, improvedShadowBolt: 5, nightfall: 2 });
-      builds = builds.concat([d, m]);
+      // round 282: Shadow Demo (and so `m`) renews Demonic Brand below 3 s; Fire Demo with 5 s too, so both forms of that line are checked
+      var fd = sheet('demo_pact_fire'); fd.key = 't282f'; fd.params = Object.assign({}, fd.params, { searingPainBrand: { sec: 5 } });
+      builds = builds.concat([d, m, fd]);
       var cfgs = [null, function (c) { c.buffs.innervate.on = true; c.buffs.manaTide.on = true; c.consumables.demonicRune.on = true; }, function (c) { c.fight.targets = 3; c.fight.multiDot = true; }, function (c) { c.options.useCurseOfElements = false; }];
       builds.forEach(function (b) { cfgs.forEach(function (f, ci) { [120, 300].forEach(function (dur) { WL.simulateOnce(b, 'undead', cfgOf(f), { seed: 1 + ci, duration: dur }); }); }); });
     } finally { keys.forEach(function (k) { WL.ACTIONS[k].pick = orig[k]; }); }
@@ -64,6 +66,8 @@
     var lines = Object.keys(WL.ACTIONS).filter(function (k) { var L = WL.aplLines(k, w); return L.length === 1 && !L[0].special; });
     var same = lines.filter(function (k) { var L = WL.aplLines(k, w), m = WL.aplMatch(L[0], w, []), aw = w.actWhen && w.actWhen[k]; return m && m.key === k && JSON.stringify(m.extra) === JSON.stringify(aw || null); });   // with its own extra condition (Wrack)
     T.eq(same.length, lines.length, 'every one-line action\'s own line is recognised as that action (' + same.length + ')');
+    var sd = sheet('demo_pact_succ_sb'), sdL = WL.aplLines('searingPainBrand', sd), sdM = WL.aplMatch(sdL[0], sd, []);   // round 282: the line with a number
+    T.ok(sdM && sdM.key === 'searingPainBrand' && sdM.params && sdM.params.sec === 3, 'Shadow Demo\'s Demonic Brand line (< 3 s) is recognised as that action with 3 s');
   });
 
   T.run('round 172: the new APL conditions', function () {

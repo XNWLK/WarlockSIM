@@ -12,13 +12,16 @@
   function cfgOf(f) { var c = JSON.parse(JSON.stringify(WL.DEFAULT_CONFIG)); c.fight.durationVarPct = 0; if (f) f(c); return c; }
   function sheet(k) { return JSON.parse(JSON.stringify(WL.BUILDS.concat(WL.RETIRED_BUILDS || []).filter(function (b) { return b.key === k; })[0])); }
   function canon(x) { return JSON.stringify(WL.APL_IO.canon(x == null ? null : x)); }
-  function rows(text) { return text.split('\n').filter(function (l) { return /^ {2}`/.test(l); }).map(function (l) { return JSON.parse(l.trim().slice(1, -1)); }); }
+  // the priority rows (round 283: the prepull rows above them are not counted)
+  function rows(text) { return text.slice(text.indexOf('\npriority:\n')).split('\n').filter(function (l) { return /^ {2}`/.test(l); }).map(function (l) { return JSON.parse(l.trim().slice(1, -1)); }); }
+  if (WL.APL_IO) WL.APL_IO.precastFights = 8;   // round 283: the export's precast pick in fewer fights (speed; which spell it picks is not tested here)
   function apl(b) { return [b.rotation, WL.cleanParams(b.params, b.rotation) || null, b.actWhen || null]; }
   function dps(b, c, seed, dur) { return WL.simulateOnce(b, 'undead', c, { seed: seed, duration: dur || 120 }).dps; }
   function strip(text) { return text.split('\n').map(function (l) { if (!/^ {2}`/.test(l)) return l; var o = JSON.parse(l.trim().slice(1, -1)); delete o.notes; return '  `' + JSON.stringify(o) + '`'; }).join('\n'); }
-  var KNOWN_IDS = [11661, 25307, 17923, 11668, 25309, 11672, 25311, 1311680, 11713, 603, 1225228, 18881, 11700, 11675, 11689, 17926, 18871, 18932, 1293813, 17924, 1316697, 11684, 11678];
+  var KNOWN_IDS = [11661, 25307, 17923, 11668, 25309, 11672, 25311, 1311680, 11713, 603, 1225228, 18881, 11700, 11675, 11689, 17926, 18871, 18932, 1293813, 17924, 1316697, 11684, 11678, 18288];   // round 281: + Amplify Curse
   var KINDS = ['and', 'or', 'not', 'cmp', 'math', 'const', 'dotIsActive', 'dotRemainingTime', 'auraIsActive', 'auraRemainingTime', 'auraNumStacks', 'spellIsReady', 'spellTimeToReady',
-    'spellCastTime', 'spellIsKnown', 'remainingTime', 'currentTime', 'currentHealthPercent', 'currentManaPercent', 'isExecutePhase', 'talentRank', 'warlockActivePet', 'warlockIsAssignedCurse', 'variableRef'];
+    'spellCastTime', 'spellIsKnown', 'remainingTime', 'currentTime', 'currentHealthPercent', 'currentManaPercent', 'isExecutePhase', 'talentRank', 'warlockActivePet', 'warlockIsAssignedCurse', 'variableRef',
+    'currentMana', 'maxMana', 'gcdIsReady', 'dotTimeToNextTick'];   // round 281: mana (Life Tap when needed, for the pet), a channel's interrupt condition
   function badValue(v, path) {                      // the first fault of an APL value's shape, or ''
     if (!v || typeof v !== 'object') return path + ': not an object';
     var k = Object.keys(v); if (k.length !== 1) return path + ': ' + k.length + ' kinds';
@@ -45,8 +48,9 @@
         nrows++;
         var a = it.action || {}, k = Object.keys(a).filter(function (x) { return x !== 'condition'; });
         if (k.length > 1) bad.push(b.key + ' row ' + (i + 1) + ': ' + k.join('+'));
-        if (k[0] === 'castSpell' && KNOWN_IDS.indexOf(a.castSpell.spellId.spellId) < 0) bad.push(b.key + ' row ' + (i + 1) + ': spell id ' + a.castSpell.spellId.spellId);
-        if (k.length && ['castSpell', 'autocastOtherCooldowns'].indexOf(k[0]) < 0) bad.push(b.key + ' row ' + (i + 1) + ': ' + k[0]);
+        if ((k[0] === 'castSpell' || k[0] === 'channelSpell') && KNOWN_IDS.indexOf(a[k[0]].spellId.spellId) < 0) bad.push(b.key + ' row ' + (i + 1) + ': spell id ' + a[k[0]].spellId.spellId);
+        if (k.length && ['castSpell', 'channelSpell', 'autocastOtherCooldowns'].indexOf(k[0]) < 0) bad.push(b.key + ' row ' + (i + 1) + ': ' + k[0]);   // round 281: channels are channel rows
+        if (k[0] === 'channelSpell') { var fi = badValue(a.channelSpell.interruptIf, 'interruptIf'); if (fi) bad.push(b.key + ' row ' + (i + 1) + ': ' + fi); }
         if (!k.length && !it.hide) bad.push(b.key + ' row ' + (i + 1) + ': an empty row that is not hidden');
         if (a.condition) { var f = badValue(a.condition, 'condition'); if (f) bad.push(b.key + ' row ' + (i + 1) + ': ' + f); }
       });
@@ -55,7 +59,7 @@
       if (!last || last.action.castSpell.spellId.spellId !== 11689 || last.action.condition) bad.push(b.key + ': the last row is not the plain Life Tap');
     });
     T.ok(nrows > 100, nrows + ' rows of ' + builds.length + ' builds');
-    T.eq(bad.slice(0, 6).join(' | '), '', 'every row: one action (cast a known spell id / autocast other cooldowns / a hidden row), conditions of known kinds, ops and constants; the JSON form = the text; Life Tap under the filler');
+    T.eq(bad.slice(0, 6).join(' | '), '', 'every row: one action (cast or channel a known spell id / autocast other cooldowns / a hidden row), conditions of known kinds, ops and constants; the JSON form = the text; Life Tap under the filler');
     var sd = WL.aplExport(sheet('demo_pact_succ_sb')), r0 = rows(sd.text);
     T.ok(r0.some(function (it) { return it.action && it.action.autocastOtherCooldowns; }) && r0[r0.length - 1].action.castSpell.spellId.spellId === 11689, 'Shadow Demo: its "Activate trinket" → autocast other cooldowns; Life Tap last');
     T.eq(r0.filter(function (it) { return it.action && it.action.castSpell; }).map(function (it) { return it.action.castSpell.spellId.spellId; }).join(','), '17926,603,11713,1311680,17923,11672,11689,11661,11689', 'Shadow Demo: Death Coil, Doom, Agony, CoE, Searing Pain (Brand), Corruption, Life Tap, Shadow Bolt, Life Tap');
@@ -80,7 +84,9 @@
       });
     });
     T.eq(bad.slice(0, 5).join(' | '), '', builds.length + ' builds (sheet + retired), text and JSON: the same priority, numbers and extra conditions, no warnings, the same DPS (seed 1)');
-    var sdb = sheet('demo_pact_succ_sb'), back = WL.aplImport(FIX_BACK), tbb = WL.aplToBuild(back.lines, sdb);
+    var sdb = sheet('demo_pact_succ_sb');
+    delete sdb.actWhen; if (sdb.params) delete sdb.params.searingPainBrand;   // round 281: the fixture is Shadow Demo as it was before round 282 (no brand renewal, no Life Tap gate)
+    var back = WL.aplImport(FIX_BACK), tbb = WL.aplToBuild(back.lines, sdb);
     T.ok(!back.warnings.length && !tbb.errors.length && canon(apl(tbb.build)) === canon(apl(sdb)), 'Shadow Demo after a trip through the other sim (its own printing of the rows): exactly the build again');
     var w = sheet('wrack_ds'), t = WL.aplExport(w).text;
     T.ok(/\[when #[0-9a-z]{6}\]/.test(t), 'Wrack DS: Life Tap\'s extra condition (the 5-second rule, no equivalent) is kept whole in a hidden row');
@@ -148,12 +154,12 @@
   T.run('round 278: every lossy case is warned', function () {
     var w = function (k, f) { var b = sheet(k); if (f) f(b); return WL.aplExport(b); }, has = function (e, re) { return e.warnings.some(function (x) { return re.test(x); }); };
     var sd = w('demo_pact_succ_sb');
-    T.ok(has(sd, /the rest of the fight needs more mana than you have" has no equivalent/) && has(sd, /"free mana is ready".*has no equivalent/), 'Life Tap when needed: "needs more mana" and "free mana" left out, warned');
+    T.ok(has(sd, /the rest of the fight needs more mana than you have" is exported as "the first 6 s, or mana < [\d.]+ × seconds left"/) && has(sd, /"free mana is ready".*has no equivalent/), 'Life Tap when needed: "needs more mana" as a measured mana rate (round 281), "free mana" left out, warned');
     T.ok(has(sd, /exported as "fight time left < Shadow Bolt cast time"/), 'Death Coil finisher: approximated, warned');
     T.ok(has(sd, /Corruption needs a recast": the end-of-fight check .* exported as "the cast and 2 ticks still fit"/) && has(sd, /Bane of Agony still pays off.*"at least 12 s left"/), 'DoT recast / pays off: approximated, warned');
-    T.ok(has(sd, /autocast other cooldowns": there it also pops racials and potions/), 'Activate trinket → autocast other cooldowns, warned');
+    T.ok(has(sd, /autocast other cooldowns" \(no on-use trinket in the gear builder\): there it also pops racials and potions/), 'Activate trinket with no on-use trinket in the gear builder → autocast other cooldowns, warned');
     var fd = w('demo_pact_fire');
-    T.ok(has(fd, /Life Tap to feed the pet.*nothing of its condition has an equivalent/) && /"hide":true,"action":\{\},"notes":"Life Tap to feed the pet/.test(fd.text), 'Life Tap for the pet: no equivalent → a hidden row, warned');
+    T.ok(has(fd, /Life Tap to feed the pet.*is exported as "Imp's mana < 230 \(2 × Firebolt\)/) && /"currentMana":\{"sourceUnit":\{"type":"Pet","owner":\{"type":"Self"\}\}\}/.test(fd.text), 'Life Tap for the pet: the Imp\'s mana < 2 Firebolts (round 281), warned');
     T.ok(has(w('wrack_ds'), /5-second rule\) has no equivalent/), 'the 5-second rule (Wrack DS): warned');
     var md = w('destro_incin_succ', function (b) { b.rotation = ['multiDot', 'shadowBoltSpread', 'shadowburn', 'incinerate']; b.timeline = [{ t: 0, k: 'immolate' }]; });
     T.ok(has(md, /multi-target DoTs are a Fight setting here\) — kept as a hidden row/) && has(md, /it picks its own target/) && has(md, /Soul Shards > 0/) && has(md, /fight timeline \(1 spells/), 'multi-DoT, Shadow Bolt an extra target, Soul Shards, the timeline: warned');

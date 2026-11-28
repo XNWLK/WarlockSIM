@@ -33,8 +33,12 @@
     var mo = WL.simulateOnce(top, 'gnome', cOff, { seed: 21, duration: 150 });
     var upX = 100 * (mo.uptime['dot2:corruption'] || 0) / 150, upM = 100 * mo.uptime['dot:corruption'] / 150;
     T.ok(upX >= upM - 10, 'Corruption on target 2 up ' + upX.toFixed(1) + '% vs ' + upM.toFixed(1) + '% on the boss (within 10 points)');
-    var avg = function (k) { var r = m.bySpell[k]; return r.dmg / r.ticks; };
-    T.ok(avg('x2:corruption') < avg('corruption'), 'target-2 Corruption ticks are smaller (no Curse of the Elements / ISB there): ' + avg('x2:corruption').toFixed(0) + ' < ' + avg('corruption').toFixed(0));
+    // Round 282: the average of ALL ticks was mostly tick crits (2 vs 9 crits of 42 decided it once Shadow Demo renews Demonic Brand
+    // below 3 s); since round 39 target 2 has your Curse of the Elements too, so the difference left is Improved Shadow Bolt: the
+    // non-crit ticks (from the fight log) are never bigger on target 2, and smaller on average.
+    var nc = function (k) { return m.log.filter(function (e) { return e.type === 'tick' && e.spell === k && !e.crit; }).map(function (e) { return e.dmg; }); };
+    var mean = function (a) { return a.reduce(function (x, y) { return x + y; }, 0) / a.length; }, t2 = nc('x2:corruption'), t1 = nc('corruption');
+    T.ok(t2.length > 10 && t1.length > 10 && Math.max.apply(null, t2) <= Math.min.apply(null, t1) + 1 && mean(t2) < mean(t1), 'target-2 Corruption ticks are smaller (no ISB there; non-crit ticks): ' + mean(t2).toFixed(0) + ' < ' + mean(t1).toFixed(0));
     T.ok(m.log.some(function (e) { return e.type === 'cast' && e.spell === 'x2:corruption'; }), 'casts on target 2 appear in the log');
 
     T.group('3 targets with Bane of Havoc on target 2');
